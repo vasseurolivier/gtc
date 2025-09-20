@@ -51,9 +51,9 @@ export default function EcommerceSolutionsPage() {
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   <TranslatedContent content="Solutions E-commerce Intégrées" />
               </h1>
-              <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
                   <TranslatedContent content="Votre partenaire unique pour lancer et faire grandir votre boutique en ligne avec des produits sourcés en Chine." />
-              </p>
+              </div>
           </div>
         </div>
       </section>
@@ -64,9 +64,9 @@ export default function EcommerceSolutionsPage() {
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               <TranslatedContent content="Votre Accélérateur E-commerce" />
             </h2>
-            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+            <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
               <TranslatedContent content="Nous fournissons l'infrastructure et l'expertise nécessaires pour transformer votre idée en une entreprise e-commerce prospère." />
-            </p>
+            </div>
           </div>
 
           <div className="space-y-16">
@@ -76,17 +76,17 @@ export default function EcommerceSolutionsPage() {
                 <h3 className="font-headline text-2xl font-bold mt-4">
                   <TranslatedContent content={ecommerceFeatures[0].title} />
                 </h3>
-                <p className="mt-2 text-muted-foreground text-lg">
+                <div className="mt-2 text-muted-foreground text-lg">
                   <TranslatedContent content={ecommerceFeatures[0].description} />
-                </p>
+                </div>
                 
                 {ecommerceFeatures[1].icon}
                 <h3 className="font-headline text-2xl font-bold mt-8">
                   <TranslatedContent content={ecommerceFeatures[1].title} />
                 </h3>
-                <p className="mt-2 text-muted-foreground text-lg">
+                <div className="mt-2 text-muted-foreground text-lg">
                   <TranslatedContent content={ecommerceFeatures[1].description} />
-                </p>
+                </div>
               </div>
               {featureImage1 && 
                 <div className="relative h-96 rounded-xl overflow-hidden">
@@ -106,17 +106,17 @@ export default function EcommerceSolutionsPage() {
                 <h3 className="font-headline text-2xl font-bold mt-4">
                   <TranslatedContent content={ecommerceFeatures[2].title} />
                 </h3>
-                <p className="mt-2 text-muted-foreground text-lg">
+                <div className="mt-2 text-muted-foreground text-lg">
                   <TranslatedContent content={ecommerceFeatures[2].description} />
-                </p>
+                </div>
                 
                 {ecommerceFeatures[3].icon}
                 <h3 className="font-headline text-2xl font-bold mt-8">
                   <TranslatedContent content={ecommerceFeatures[3].title} />
                 </h3>
-                <p className="mt-2 text-muted-foreground text-lg">
+                <div className="mt-2 text-muted-foreground text-lg">
                   <TranslatedContent content={ecommerceFeatures[3].description} />
-                </p>
+                </div>
               </div>
             </div>
 
@@ -129,9 +129,9 @@ export default function EcommerceSolutionsPage() {
             <h2 className="text-3xl font-headline font-bold text-primary">
                 <TranslatedContent content="Prêt à lancer votre prochain best-seller ?" />
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Discutons de votre projet e-commerce. Que vous soyez un vendeur Amazon expérimenté ou un débutant sur Shopify, nous avons la solution pour vous." />
-            </p>
+            </div>
         </div>
       </section>
     </>

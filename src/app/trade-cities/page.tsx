@@ -57,9 +57,9 @@ export default function TradeCitiesPage() {
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   <TranslatedContent content="Pôles Commerciaux Stratégiques en Chine" />
               </h1>
-              <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
                   <TranslatedContent content="Découvrez les villes clés qui sont au cœur du commerce mondial et comment nous vous y donnons accès." />
-              </p>
+              </div>
           </div>
         </div>
       </section>
@@ -82,12 +82,12 @@ export default function TradeCitiesPage() {
                         <TranslatedContent content={city.name} />
                     </h2>
                   </div>
-                  <p className="mt-2 text-lg font-semibold text-muted-foreground">
+                  <div className="mt-2 text-lg font-semibold text-muted-foreground">
                     <TranslatedContent content={city.subtitle} />
-                  </p>
-                  <p className="mt-4 text-muted-foreground leading-relaxed">
+                  </div>
+                  <div className="mt-4 text-muted-foreground leading-relaxed">
                     <TranslatedContent content={city.description} />
-                  </p>
+                  </div>
                   <div className="mt-6 flex flex-wrap gap-2">
                     {city.specialties.map((specialty) => (
                       <Badge key={specialty} variant="secondary">

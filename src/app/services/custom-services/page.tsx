@@ -104,9 +104,9 @@ export default function CustomServicesPage() {
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   <TranslatedContent content="Services sur Mesure et Conseil Stratégique" />
               </h1>
-              <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
                   <TranslatedContent content="Des solutions flexibles conçues pour répondre précisément à vos défis commerciaux uniques en Chine." />
-              </p>
+              </div>
           </div>
         </div>
       </section>
@@ -117,9 +117,9 @@ export default function CustomServicesPage() {
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               <TranslatedContent content="Votre Partenaire pour l'Extra-Miliaire" />
             </h2>
-            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+            <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
               <TranslatedContent content="Quand vos besoins dépassent le cadre standard, notre expertise et notre flexibilité font toute la différence." />
-            </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
@@ -159,9 +159,9 @@ export default function CustomServicesPage() {
                   <h3 className="text-2xl md:text-3xl font-headline font-bold text-primary">
                     <TranslatedContent content={service.title} />
                   </h3>
-                  <p className="mt-4 text-muted-foreground text-lg">
+                  <div className="mt-4 text-muted-foreground text-lg">
                     <TranslatedContent content={service.description} />
-                  </p>
+                  </div>
                   <ul className="mt-6 space-y-3">
                     {service.points.map((point, pointIndex) => (
                       <li key={pointIndex} className="flex items-start">
@@ -184,9 +184,9 @@ export default function CustomServicesPage() {
             <h2 className="text-3xl font-headline font-bold text-primary">
                 <TranslatedContent content="Vous avez un projet qui sort de l'ordinaire ?" />
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Nous aimons les défis. Contactez-nous pour discuter de vos besoins spécifiques et nous construirons ensemble une solution sur mesure." />
-            </p>
+            </div>
         </div>
       </section>
     </>
