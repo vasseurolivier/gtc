@@ -1,3 +1,16 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "A modern shipping port with cranes and containers.",
+      "imageUrl": "https://picsum.photos/seed/hero/1600/900",
+      "imageHint": "shipping port"
+    },
+    {
+      "id": "contact-map",
+      "description": "A map showing a location in a city.",
+      "imageUrl": "https://picsum.photos/seed/map/600/400",
+      "imageHint": "city map"
+    }
+  ]
 }
