@@ -142,7 +142,7 @@ export function ContactSection() {
                     </div>
                     <div className="flex items-center">
                         <Mail className="h-5 w-5 mr-4 shrink-0 text-primary"/>
-                        <span>contact@tradebridge.global</span>
+                        <span>info@globaltradingchina.com</span>
                     </div>
                 </div>
             </div>

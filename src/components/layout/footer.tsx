@@ -44,7 +44,7 @@ export function Footer() {
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-3 shrink-0 text-primary"/>
-                <span className="text-muted-foreground">contact@tradebridge.global</span>
+                <span className="text-muted-foreground">info@globaltradingchina.com</span>
               </li>
             </ul>
           </div>
