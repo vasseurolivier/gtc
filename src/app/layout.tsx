@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 
 export const metadata: Metadata = {
-  title: 'TradeBridge Global',
+  title: 'Global Trading China',
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
 };
 

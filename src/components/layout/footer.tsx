@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
                 <Globe className="h-7 w-7 text-primary" />
-                <h3 className="text-xl font-headline font-semibold">TradeBridge Global</h3>
+                <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <p className="text-sm text-muted-foreground">Votre partenaire pour le sourcing et le commerce mondial depuis la Chine.</p>
           </div>
@@ -50,7 +50,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} TradeBridge Global. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} Global Trading China. Tous droits réservés.</p>
         </div>
       </div>
     </footer>
