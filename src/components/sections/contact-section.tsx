@@ -134,7 +134,7 @@ export function ContactSection() {
                 <div className="space-y-4 text-muted-foreground">
                     <div className="flex items-start">
                         <MapPin className="h-5 w-5 mr-4 mt-1 shrink-0 text-primary"/>
-                        <span>123 Trading Hub, Guangzhou, China 510000</span>
+                        <span>浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501</span>
                     </div>
                     <div className="flex items-center">
                         <Phone className="h-5 w-5 mr-4 shrink-0 text-primary"/>
