@@ -14,6 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 export function Header() {
   const pathname = usePathname();
@@ -37,6 +44,8 @@ export function Header() {
     { href: '/services/ecommerce-solutions', label: 'Solutions E-commerce' },
     { href: '/services/custom-services', label: 'Services sur Mesure' },
   ]
+  
+  const citiesItem = { href: '/trade-cities', label: 'Pôles Commerciaux' };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -76,6 +85,16 @@ export function Header() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <Link
+                key={citiesItem.href}
+                href={citiesItem.href}
+                className={cn(
+                  "transition-colors hover:text-primary",
+                  isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-muted-foreground"
+                )}
+              >
+                {citiesItem.label}
+              </Link>
           </nav>
         </div>
 
@@ -92,28 +111,55 @@ export function Header() {
                   <Globe className="h-6 w-6 text-primary" />
                   <span className="font-bold font-headline text-lg">TradeBridge Global</span>
                 </Link>
-                <nav className="flex flex-col space-y-6">
+                <nav className="flex flex-col space-y-2">
                   {navItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "text-lg font-medium transition-colors hover:text-primary",
+                        "text-lg font-medium transition-colors hover:text-primary py-2",
                         isClient && activePath === item.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {item.label}
                     </Link>
                   ))}
-                  {/* TODO: Add mobile dropdown for services */}
-                   <Link
-                      href="/services"
+                  
+                   <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="services" className="border-b-0">
+                        <AccordionTrigger className={cn(
+                          "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
+                          isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
+                        )}>
+                          Services
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0 pl-4">
+                          <nav className="flex flex-col space-y-2">
+                            {servicesItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                  "text-base font-medium transition-colors hover:text-primary py-2",
+                                  isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                                )}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </nav>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                    <Link
+                      key={citiesItem.href}
+                      href={citiesItem.href}
                       className={cn(
-                        "text-lg font-medium transition-colors hover:text-primary",
-                        isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
+                        "text-lg font-medium transition-colors hover:text-primary py-2",
+                        isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      Services
+                      {citiesItem.label}
                     </Link>
                 </nav>
               </SheetContent>
