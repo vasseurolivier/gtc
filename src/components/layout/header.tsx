@@ -46,6 +46,7 @@ export function Header() {
   ]
   
   const citiesItem = { href: '/trade-cities', label: 'Pôles Commerciaux' };
+  const contactItem = { href: '/contact', label: 'Contact' };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -94,6 +95,16 @@ export function Header() {
                 )}
               >
                 {citiesItem.label}
+              </Link>
+              <Link
+                key={contactItem.href}
+                href={contactItem.href}
+                className={cn(
+                  "transition-colors hover:text-primary",
+                  isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-muted-foreground"
+                )}
+              >
+                {contactItem.label}
               </Link>
           </nav>
         </div>
@@ -160,6 +171,16 @@ export function Header() {
                       )}
                     >
                       {citiesItem.label}
+                    </Link>
+                    <Link
+                      key={contactItem.href}
+                      href={contactItem.href}
+                      className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary py-2",
+                        isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-foreground"
+                      )}
+                    >
+                      {contactItem.label}
                     </Link>
                 </nav>
               </SheetContent>

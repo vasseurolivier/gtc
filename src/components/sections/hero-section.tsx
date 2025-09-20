@@ -32,13 +32,13 @@ export function HeroSection() {
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                <Link href="#contact">
+                <Link href="/contact">
                     <TranslatedContent content="Get Started" />
                     <ArrowRight className="ml-2" />
                 </Link>
             </Button>
             <Button size="lg" variant="secondary" asChild>
-                <Link href="#services">
+                <Link href="/services">
                     <TranslatedContent content="Our Services" />
                 </Link>
             </Button>
