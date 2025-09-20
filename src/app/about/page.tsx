@@ -3,26 +3,39 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { TranslatedContent } from '@/components/shared/translated-content';
+import { CheckCircle2 } from 'lucide-react';
 
-const teamMembers = [
+const advantages = [
   {
-    name: "Jean Dupont",
-    role: "PDG et Fondateur",
-    avatar: "https://picsum.photos/seed/jd/100/100",
-    bio: "Avec 20 ans d'expérience dans le commerce international, Jean a fondé TradeBridge pour simplifier les échanges avec la Chine.",
+    icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
+    title: "Expertise Locale Approfondie",
+    description: "Notre présence sur le terrain en Chine nous donne une compréhension inégalée du marché, des fournisseurs et de la culture des affaires locales."
   },
   {
-    name: "Marie Dubois",
-    role: "Responsable Sourcing",
-    avatar: "https://picsum.photos/seed/md/100/100",
-    bio: "Spécialiste de la chaîne d'approvisionnement, Marie excelle dans la recherche des meilleurs fournisseurs pour nos clients.",
+    icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
+    title: "Communication Transparente",
+    description: "Nous assurons une communication claire et constante en français, anglais et mandarin, éliminant les barrières linguistiques et les malentendus."
   },
   {
-    name: "Chen Wei",
-    role: "Responsable Logistique",
-    avatar: "https://picsum.photos/seed/cw/100/100",
-    bio: "Basé à Guangzhou, Chen assure que toutes les opérations logistiques se déroulent sans accroc, de l'usine au client.",
+    icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
+    title: "Contrôle Qualité Rigoureux",
+    description: "De l'audit d'usine aux inspections finales, nous nous assurons que vos produits respectent les normes les plus strictes avant leur expédition."
   },
+  {
+    icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
+    title: "Solutions Complètes",
+    description: "Nous gérons l'ensemble du processus, du sourcing à la logistique, vous permettant de vous concentrer sur la croissance de votre entreprise."
+  },
+  {
+    icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
+    title: "Partenariat Stratégique",
+    description: "Nous ne sommes pas un simple intermédiaire, mais un partenaire engagé dans votre succès à long terme sur le marché mondial."
+  },
+  {
+    icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
+    title: "Optimisation des Coûts",
+    description: "Grâce à notre réseau et à notre pouvoir de négociation, nous vous aidons à obtenir les meilleurs prix sans compromettre la qualité."
+  }
 ];
 
 export default function AboutPage() {
@@ -95,26 +108,26 @@ export default function AboutPage() {
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="Rencontrez Notre Équipe" />
+              <TranslatedContent content="Pourquoi Nous Choisir ?" />
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Des experts passionnés et dévoués à votre service." />
+              <TranslatedContent content="Les avantages clés qui font de nous votre partenaire idéal en Chine." />
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {teamMembers.map((member) => (
-              <Card key={member.name} className="text-center p-6">
-                <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-primary/20">
-                  <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback>{member.name.substring(0, 2)}</AvatarFallback>
-                </Avatar>
-                <CardHeader className="p-0">
-                  <CardTitle className="font-headline text-xl">{member.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 mt-2">
-                  <p className="text-primary font-semibold">{member.role}</p>
-                  <p className="text-muted-foreground text-sm mt-3">{member.bio}</p>
-                </CardContent>
+            {advantages.map((advantage) => (
+              <Card key={advantage.title} className="p-6 text-left">
+                  {advantage.icon}
+                  <CardHeader className="p-0 mt-4">
+                    <CardTitle className="font-headline text-xl">
+                      <TranslatedContent content={advantage.title} />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 mt-2">
+                    <p className="text-muted-foreground text-sm">
+                      <TranslatedContent content={advantage.description} />
+                    </p>
+                  </CardContent>
               </Card>
             ))}
           </div>
