@@ -14,9 +14,9 @@
     },
     {
       "id": "about-hero",
-      "description": "A diverse team collaborating in a modern office.",
-      "imageUrl": "https://picsum.photos/seed/abouthero/1600/600",
-      "imageHint": "business team"
+      "description": "A modern office building with glass facade.",
+      "imageUrl": "https://picsum.photos/seed/companybuilding/1600/600",
+      "imageHint": "office building"
     },
     {
       "id": "sourcing-hero",
