@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -44,9 +45,9 @@
     },
     {
       "id": "sourcing-process",
-      "description": "Close-up of a hand inspecting a piece of fabric.",
-      "imageUrl": "https://picsum.photos/seed/sourcingprocess/800/1200",
-      "imageHint": "fabric inspection"
+      "description": "A bustling street market in China, showcasing a variety of goods.",
+      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "China commerce"
     },
     {
       "id": "ecommerce-feature-1",

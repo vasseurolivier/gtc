@@ -73,9 +73,9 @@ export default function SourcingPage() {
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   <TranslatedContent content="Sourcing et Achat Stratégique en Chine" />
               </h1>
-              <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
                   <TranslatedContent content="De l'identification du fournisseur idéal à la négociation des meilleures conditions, nous sommes votre expert sur le terrain." />
-              </p>
+              </div>
           </div>
         </div>
       </section>
@@ -86,9 +86,9 @@ export default function SourcingPage() {
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               <TranslatedContent content="Notre Approche du Sourcing" />
             </h2>
-            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+            <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
               <TranslatedContent content="Nous transformons la complexité du marché chinois en une opportunité claire et sécurisée pour votre entreprise." />
-            </p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -104,9 +104,9 @@ export default function SourcingPage() {
                     <h3 className="font-headline text-xl font-semibold">
                         <TranslatedContent content={feature.title} />
                     </h3>
-                    <p className="mt-2 text-muted-foreground leading-relaxed">
+                    <div className="mt-2 text-muted-foreground leading-relaxed">
                         <TranslatedContent content={feature.description} />
-                    </p>
+                    </div>
                     </div>
                 </div>
                 ))}
@@ -132,9 +132,9 @@ export default function SourcingPage() {
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               <TranslatedContent content="Exemples de Partenariats Industriels" />
             </h2>
-            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+            <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
               <TranslatedContent content="Notre expertise s'étend à de nombreux secteurs. Voici quelques exemples concrets de notre savoir-faire." />
-            </p>
+            </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {factoryExamples.map((example) => (
@@ -146,9 +146,9 @@ export default function SourcingPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 mt-4">
-                  <p className="text-muted-foreground text-sm leading-relaxed">
+                  <div className="text-muted-foreground text-sm leading-relaxed">
                     <TranslatedContent content={example.description} />
-                  </p>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -161,9 +161,9 @@ export default function SourcingPage() {
             <h2 className="text-3xl font-headline font-bold text-primary">
                 <TranslatedContent content="Prêt à trouver le partenaire de fabrication parfait ?" />
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Contactez-nous dès aujourd'hui pour discuter de vos besoins en sourcing. Notre équipe est prête à vous aider à naviguer le paysage manufacturier chinois avec confiance." />
-            </p>
+            </div>
         </div>
       </section>
     </>
