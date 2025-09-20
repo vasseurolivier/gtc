@@ -27,9 +27,9 @@
     },
     {
       "id": "trading-hero",
-      "description": "Aerial view of a busy container port with ships and cranes.",
-      "imageUrl": "https://picsum.photos/seed/material-loading/1600/600",
-      "imageHint": "material loading"
+      "description": "A professional truck being loaded with cargo at a loading dock.",
+      "imageUrl": "https://images.unsplash.com/photo-1587293852726-70cdb122c294?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0cnVjayUyMGxvYWRpbmd8ZW58MHx8fHwxNzU4Nzc1MzYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "truck loading"
     },
     {
       "id": "ecommerce-hero",
