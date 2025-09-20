@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { TranslatedContent } from '@/components/shared/translated-content';
-import { FlaskConical, Users, Briefcase, Network } from 'lucide-react';
+import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const customServicesFeatures = [
@@ -26,6 +26,61 @@ const customServicesFeatures = [
     description: "Pour les projets nécessitant la coordination de multiples fournisseurs, des compétences techniques pointues ou un cahier des charges particulièrement exigeant, nous agissons comme votre chef de projet unique en Chine, garantissant la cohésion et le succès du projet."
   }
 ];
+
+const detailedServices = [
+    {
+        id: "oem-odm",
+        title: "Du Concept au Produit Fini : Notre Processus OEM/ODM",
+        description: "Nous transformons votre vision en un produit commercialisable grâce à un processus structuré et collaboratif.",
+        imageUrlId: "custom-services-feature-1",
+        points: [
+            "Analyse du cahier des charges et étude de faisabilité.",
+            "Conception 3D, modélisation et création de prototypes.",
+            "Sourcing de matériaux et composants spécifiques.",
+            "Sélection de l'usine la plus adaptée et mise en production.",
+            "Suivi de la fabrication et contrôle qualité à chaque étape."
+        ]
+    },
+    {
+        id: "trade-shows",
+        title: "Maximisez Votre Impact sur les Salons Professionnels",
+        description: "Faites de votre visite sur les salons chinois un investissement rentable avec un accompagnement sur mesure.",
+        imageUrlId: "custom-services-feature-2",
+        points: [
+            "Préparation en amont : définition des objectifs, présélection des exposants.",
+            "Accompagnement sur place : traduction technique, aide à la négociation.",
+            "Logistique : réservation d'hôtel, transport, organisation de l'agenda.",
+            "Suivi post-salon : centralisation des contacts, suivi des offres, gestion des échantillons.",
+            "Organisation de visites d'usines en marge du salon."
+        ]
+    },
+     {
+        id: "purchasing-strategy",
+        title: "Une Stratégie d'Achat Intelligente pour une Croissance Durable",
+        description: "Nous optimisons votre chaîne d'approvisionnement pour la rendre plus résiliente, plus efficace et moins coûteuse.",
+        imageUrlId: "custom-services-feature-3",
+        points: [
+            "Audit complet de votre chaîne d'approvisionnement actuelle.",
+            "Analyse des risques (géopolitiques, logistiques, fournisseurs).",
+            "Rationalisation du panel de fournisseurs et identification de sources alternatives.",
+            "Mise en place d'indicateurs de performance (KPIs).",
+            "Conseil sur les Incoterms et les stratégies de dédouanement."
+        ]
+    },
+    {
+        id: "project-management",
+        title: "Gestion de Projets Complexes : Votre Chef d'Orchestre en Chine",
+        description: "Nous assurons la synchronisation parfaite de tous les intervenants pour mener à bien vos projets les plus ambitieux.",
+        imageUrlId: "custom-services-feature-4",
+        points: [
+            "Point de contact unique pour tous les fournisseurs et parties prenantes.",
+            "Élaboration d'un planning détaillé et suivi rigoureux des jalons.",
+            "Gestion de la documentation technique et des conformités réglementaires.",
+            "Coordination des flux logistiques entre les différents sites de production.",
+            "Reporting régulier et transparent sur l'avancement du projet."
+        ]
+    }
+]
 
 export default function CustomServicesPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'custom-services-hero');
@@ -86,6 +141,41 @@ export default function CustomServicesPage() {
                   </Card>
               ))}
           </div>
+        </div>
+      </section>
+      
+       <section className="py-16 md:py-24 bg-secondary/30">
+        <div className="container space-y-20">
+          {detailedServices.map((service, index) => {
+            const image = PlaceHolderImages.find(p => p.id === service.imageUrlId);
+            const isOdd = index % 2 !== 0;
+
+            return (
+              <div key={service.id} className="grid md:grid-cols-2 gap-12 items-center">
+                <div className={`relative h-96 rounded-xl overflow-hidden shadow-lg ${isOdd ? 'md:order-last' : ''}`}>
+                    {image && <Image src={image.imageUrl} alt={service.title} data-ai-hint={image.imageHint} fill className="object-cover"/>}
+                </div>
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-headline font-bold text-primary">
+                    <TranslatedContent content={service.title} />
+                  </h3>
+                  <p className="mt-4 text-muted-foreground text-lg">
+                    <TranslatedContent content={service.description} />
+                  </p>
+                  <ul className="mt-6 space-y-3">
+                    {service.points.map((point, pointIndex) => (
+                      <li key={pointIndex} className="flex items-start">
+                        <CheckCircle className="h-5 w-5 mr-3 mt-1 text-accent flex-shrink-0" />
+                        <span className="text-muted-foreground">
+                          <TranslatedContent content={point} />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
       
