@@ -27,9 +27,9 @@ export function HeroSection() {
             <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg">
                 <TranslatedContent content="Your Bridge to Global Trade" />
             </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-neutral-200">
+            <div className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-neutral-200">
                 <TranslatedContent content="Expert sourcing, trading, and e-commerce solutions from the heart of China to the world." />
-            </p>
+            </div>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
                 <Link href="/contact">

@@ -60,9 +60,9 @@ export default function AboutPage() {
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   <TranslatedContent content="Notre Mission : Votre Succès Global" />
               </h1>
-              <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
                   <TranslatedContent content="Nous connectons les entreprises du monde entier aux opportunités uniques qu'offre la Chine, en offrant une expertise locale et des solutions complètes." />
-              </p>
+              </div>
           </div>
         </div>
       </section>
@@ -74,12 +74,12 @@ export default function AboutPage() {
               <h2 className="text-3xl font-headline font-bold text-primary">
                 <TranslatedContent content="Qui Sommes-Nous ?" />
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+              <div className="mt-4 text-lg text-muted-foreground leading-relaxed">
                 <TranslatedContent content="Fondée sur les principes de confiance, de transparence et d'efficacité, TradeBridge Global est bien plus qu'une simple société de négoce. Nous sommes votre partenaire stratégique sur le terrain en Chine. Notre mission est de simplifier la complexité du commerce international et de rendre le sourcing, la production et l'expédition accessibles à tous, des petites entreprises aux grandes multinationales." />
-              </p>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              </div>
+              <div className="mt-4 text-muted-foreground leading-relaxed">
                 <TranslatedContent content="Notre équipe multiculturelle combine une connaissance approfondie du marché chinois avec une compréhension des attentes des marchés occidentaux, créant ainsi un pont solide pour vos ambitions commerciales." />
-              </p>
+              </div>
             </div>
             <div>
               <Card>
@@ -110,9 +110,9 @@ export default function AboutPage() {
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               <TranslatedContent content="Pourquoi Nous Choisir ?" />
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+            <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
               <TranslatedContent content="Les avantages clés qui font de nous votre partenaire idéal en Chine." />
-            </p>
+            </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {advantages.map((advantage) => (
@@ -124,9 +124,9 @@ export default function AboutPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0 mt-2">
-                    <p className="text-muted-foreground text-sm">
+                    <div className="text-muted-foreground text-sm">
                       <TranslatedContent content={advantage.description} />
-                    </p>
+                    </div>
                   </CardContent>
               </Card>
             ))}

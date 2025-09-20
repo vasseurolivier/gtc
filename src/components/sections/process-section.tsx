@@ -18,9 +18,9 @@ export function ProcessSection() {
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
             <TranslatedContent content="Our A-to-Z Process" />
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             <TranslatedContent content="A transparent and efficient journey from your idea to your doorstep." />
-          </p>
+          </div>
         </div>
         <div className="relative">
           <div className="hidden md:block absolute top-10 left-0 w-full h-0.5 bg-border -translate-y-1/2"></div>
@@ -36,9 +36,9 @@ export function ProcessSection() {
                   <h3 className="font-headline font-semibold text-lg">
                     <TranslatedContent content={step.title} />
                   </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <div className="mt-2 text-sm text-muted-foreground">
                     <TranslatedContent content={step.description} />
-                  </p>
+                  </div>
                 </div>
               </div>
             ))}
