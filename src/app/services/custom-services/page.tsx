@@ -133,9 +133,9 @@ export default function CustomServicesPage() {
                             <TranslatedContent content={feature.title} />
                           </CardTitle>
                           <CardContent className="p-0 mt-2">
-                              <p className="text-muted-foreground">
+                              <div className="text-muted-foreground">
                                 <TranslatedContent content={feature.description} />
-                              </p>
+                              </div>
                           </CardContent>
                       </div>
                   </Card>
