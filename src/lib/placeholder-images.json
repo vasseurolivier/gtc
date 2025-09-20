@@ -41,6 +41,24 @@
       "description": "Two people discussing a blueprint.",
       "imageUrl": "https://picsum.photos/seed/custom/1600/600",
       "imageHint": "blueprint discussion"
+    },
+    {
+      "id": "sourcing-process",
+      "description": "Close-up of a hand inspecting a piece of fabric.",
+      "imageUrl": "https://picsum.photos/seed/sourcingprocess/800/1200",
+      "imageHint": "fabric inspection"
+    },
+    {
+      "id": "ecommerce-feature-1",
+      "description": "Modern product packaging on a colorful background.",
+      "imageUrl": "https://picsum.photos/seed/ecomfeature1/800/800",
+      "imageHint": "product packaging"
+    },
+    {
+      "id": "ecommerce-feature-2",
+      "description": "Warehouse shelves with boxes ready for shipping.",
+      "imageUrl": "https://picsum.photos/seed/ecomfeature2/800/800",
+      "imageHint": "warehouse shelves"
     }
   ]
 }

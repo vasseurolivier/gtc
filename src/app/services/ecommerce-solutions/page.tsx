@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { TranslatedContent } from '@/components/shared/translated-content';
 import { Lightbulb, Package, Pallet, Rocket } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const ecommerceFeatures = [
   {
@@ -28,6 +29,8 @@ const ecommerceFeatures = [
 
 export default function EcommerceSolutionsPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'ecommerce-hero');
+  const featureImage1 = PlaceHolderImages.find(p => p.id === 'ecommerce-feature-1');
+  const featureImage2 = PlaceHolderImages.find(p => p.id === 'ecommerce-feature-2');
 
   return (
     <>
@@ -66,20 +69,57 @@ export default function EcommerceSolutionsPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            {ecommerceFeatures.map((feature) => (
-              <div key={feature.title} className="flex gap-6">
-                <div className="flex-shrink-0">{feature.icon}</div>
-                <div>
-                  <h3 className="font-headline text-xl font-semibold">
-                    <TranslatedContent content={feature.title} />
-                  </h3>
-                  <p className="mt-2 text-muted-foreground leading-relaxed">
-                    <TranslatedContent content={feature.description} />
-                  </p>
-                </div>
+          <div className="space-y-16">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                {ecommerceFeatures[0].icon}
+                <h3 className="font-headline text-2xl font-bold mt-4">
+                  <TranslatedContent content={ecommerceFeatures[0].title} />
+                </h3>
+                <p className="mt-2 text-muted-foreground text-lg">
+                  <TranslatedContent content={ecommerceFeatures[0].description} />
+                </p>
+                
+                {ecommerceFeatures[1].icon}
+                <h3 className="font-headline text-2xl font-bold mt-8">
+                  <TranslatedContent content={ecommerceFeatures[1].title} />
+                </h3>
+                <p className="mt-2 text-muted-foreground text-lg">
+                  <TranslatedContent content={ecommerceFeatures[1].description} />
+                </p>
               </div>
-            ))}
+              {featureImage1 && 
+                <div className="relative h-96 rounded-xl overflow-hidden">
+                    <Image src={featureImage1.imageUrl} alt={featureImage1.description} data-ai-hint={featureImage1.imageHint} fill className="object-cover"/>
+                </div>
+              }
+            </div>
+
+             <div className="grid md:grid-cols-2 gap-12 items-center">
+              {featureImage2 && 
+                <div className="relative h-96 rounded-xl overflow-hidden md:order-last">
+                    <Image src={featureImage2.imageUrl} alt={featureImage2.description} data-ai-hint={featureImage2.imageHint} fill className="object-cover"/>
+                </div>
+              }
+              <div>
+                {ecommerceFeatures[2].icon}
+                <h3 className="font-headline text-2xl font-bold mt-4">
+                  <TranslatedContent content={ecommerceFeatures[2].title} />
+                </h3>
+                <p className="mt-2 text-muted-foreground text-lg">
+                  <TranslatedContent content={ecommerceFeatures[2].description} />
+                </p>
+                
+                {ecommerceFeatures[3].icon}
+                <h3 className="font-headline text-2xl font-bold mt-8">
+                  <TranslatedContent content={ecommerceFeatures[3].title} />
+                </h3>
+                <p className="mt-2 text-muted-foreground text-lg">
+                  <TranslatedContent content={ecommerceFeatures[3].description} />
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
@@ -92,7 +132,6 @@ export default function EcommerceSolutionsPage() {
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Discutons de votre projet e-commerce. Que vous soyez un vendeur Amazon expérimenté ou un débutant sur Shopify, nous avons la solution pour vous." />
             </p>
-             {/* CTA Button could be added here */}
         </div>
       </section>
     </>

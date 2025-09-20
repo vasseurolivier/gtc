@@ -2,25 +2,26 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { TranslatedContent } from '@/components/shared/translated-content';
 import { ClipboardList, Microscope, Ship, BookCopy } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const tradingFeatures = [
   {
-    icon: <ClipboardList className="h-8 w-8 text-primary" />,
+    icon: <ClipboardList className="h-10 w-10 text-primary" />,
     title: "Gestion des Commandes Proactive",
     description: "Nous agissons comme votre bureau local. Nous assurons un suivi quotidien de la production, anticipons les retards potentiels et communiquons de manière transparente avec vous et vos fournisseurs pour garantir le respect des délais."
   },
   {
-    icon: <Microscope className="h-8 w-8 text-primary" />,
+    icon: <Microscope className="h-10 w-10 text-primary" />,
     title: "Contrôle Qualité Multi-Étapes",
     description: "Notre processus de contrôle qualité est intransigeant. Nous effectuons des inspections sur les matières premières (IQC), en cours de production (IPQC) et sur les produits finis (FQC) selon les normes AQL que vous définissez, vous assurant une qualité constante."
   },
   {
-    icon: <Ship className="h-8 w-8 text-primary" />,
+    icon: <Ship className="h-10 w-10 text-primary" />,
     title: "Logistique Internationale Optimisée",
     description: "Nous sélectionnons les meilleures options de fret (aérien, maritime, ferroviaire) en fonction de votre budget et de vos délais. Nous gérons toutes les formalités douanières (export en Chine, import dans votre pays) pour une livraison fluide."
   },
   {
-    icon: <BookCopy className="h-8 w-8 text-primary" />,
+    icon: <BookCopy className="h-10 w-10 text-primary" />,
     title: "Consolidation Intelligente",
     description: "Regroupez des commandes de plusieurs fournisseurs en une seule expédition pour réduire drastiquement vos coûts de transport. Nous gérons la collecte, l'entreposage temporaire et le chargement coordonné de vos marchandises."
   }
@@ -66,19 +67,21 @@ export default function TradingLogisticsPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {tradingFeatures.map((feature) => (
-              <div key={feature.title} className="flex gap-6">
-                <div className="flex-shrink-0">{feature.icon}</div>
-                <div>
-                  <h3 className="font-headline text-xl font-semibold">
+              <Card key={feature.title} className="text-center flex flex-col items-center p-6 border-t-4 border-t-transparent hover:border-t-primary hover:shadow-xl transition-all duration-300 -translate-y-0 hover:-translate-y-2">
+                <CardHeader className="p-0">
+                  {feature.icon}
+                  <CardTitle className="mt-6 font-headline text-xl">
                     <TranslatedContent content={feature.title} />
-                  </h3>
-                  <p className="mt-2 text-muted-foreground leading-relaxed">
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 mt-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     <TranslatedContent content={feature.description} />
                   </p>
-                </div>
-              </div>
+                </CardContent>
+            </Card>
             ))}
           </div>
         </div>
@@ -92,7 +95,6 @@ export default function TradingLogisticsPage() {
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Laissez-nous gérer la complexité de la logistique et du commerce international pour que vous puissiez vous concentrer sur votre croissance." />
             </p>
-             {/* CTA Button could be added here */}
         </div>
       </section>
     </>

@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { TranslatedContent } from '@/components/shared/translated-content';
 import { FlaskConical, Users, Briefcase, Network } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const customServicesFeatures = [
   {
@@ -66,20 +67,24 @@ export default function CustomServicesPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            {customServicesFeatures.map((feature) => (
-              <div key={feature.title} className="flex gap-6">
-                <div className="flex-shrink-0">{feature.icon}</div>
-                <div>
-                  <h3 className="font-headline text-xl font-semibold">
-                    <TranslatedContent content={feature.title} />
-                  </h3>
-                  <p className="mt-2 text-muted-foreground leading-relaxed">
-                    <TranslatedContent content={feature.description} />
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+              {customServicesFeatures.map((feature, index) => (
+                  <Card key={index} className="w-full flex flex-col md:flex-row items-center p-6 gap-6 shadow-lg hover:shadow-xl transition-shadow">
+                      <div className="flex-shrink-0">
+                          {feature.icon}
+                      </div>
+                      <div className="text-center md:text-left">
+                          <CardTitle className="text-xl font-headline">
+                            <TranslatedContent content={feature.title} />
+                          </CardTitle>
+                          <CardContent className="p-0 mt-2">
+                              <p className="text-muted-foreground">
+                                <TranslatedContent content={feature.description} />
+                              </p>
+                          </CardContent>
+                      </div>
+                  </Card>
+              ))}
           </div>
         </div>
       </section>
@@ -92,7 +97,6 @@ export default function CustomServicesPage() {
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Nous aimons les défis. Contactez-nous pour discuter de vos besoins spécifiques et nous construirons ensemble une solution sur mesure." />
             </p>
-             {/* CTA Button could be added here */}
         </div>
       </section>
     </>

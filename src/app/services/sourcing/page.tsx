@@ -29,6 +29,7 @@ const sourcingFeatures = [
 
 export default function SourcingPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'sourcing-hero');
+  const processImage = PlaceHolderImages.find(p => p.id === 'sourcing-process');
 
   return (
     <>
@@ -67,20 +68,37 @@ export default function SourcingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            {sourcingFeatures.map((feature) => (
-              <div key={feature.title} className="flex gap-6">
-                <div className="flex-shrink-0">{feature.icon}</div>
-                <div>
-                  <h3 className="font-headline text-xl font-semibold">
-                    <TranslatedContent content={feature.title} />
-                  </h3>
-                  <p className="mt-2 text-muted-foreground leading-relaxed">
-                    <TranslatedContent content={feature.description} />
-                  </p>
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="space-y-10">
+                {sourcingFeatures.map((feature, index) => (
+                <div key={feature.title} className="flex gap-6">
+                    <div className="flex-shrink-0">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                            {feature.icon}
+                        </div>
+                    </div>
+                    <div>
+                    <h3 className="font-headline text-xl font-semibold">
+                        <TranslatedContent content={feature.title} />
+                    </h3>
+                    <p className="mt-2 text-muted-foreground leading-relaxed">
+                        <TranslatedContent content={feature.description} />
+                    </p>
+                    </div>
                 </div>
-              </div>
-            ))}
+                ))}
+            </div>
+            <div className="relative h-full min-h-[400px] rounded-xl overflow-hidden">
+                 {processImage && (
+                    <Image
+                        src={processImage.imageUrl}
+                        alt={processImage.description}
+                        data-ai-hint={processImage.imageHint}
+                        fill
+                        className="object-cover"
+                    />
+                 )}
+            </div>
           </div>
         </div>
       </section>
@@ -93,7 +111,6 @@ export default function SourcingPage() {
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 <TranslatedContent content="Contactez-nous dès aujourd'hui pour discuter de vos besoins en sourcing. Notre équipe est prête à vous aider à naviguer le paysage manufacturier chinois avec confiance." />
             </p>
-            {/* CTA Button could be added here */}
         </div>
       </section>
     </>
