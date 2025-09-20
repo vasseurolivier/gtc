@@ -57,9 +57,9 @@ export function ContactSection() {
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
             <TranslatedContent content="Get in Touch" />
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             <TranslatedContent content="Have a question or a project in mind? We'd love to hear from you." />
-          </p>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-start">

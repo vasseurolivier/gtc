@@ -64,9 +64,9 @@ export default function ServicesPage() {
         <h1 className="text-4xl md:text-5xl font-headline font-bold">
           <TranslatedContent content="Des Solutions Complètes pour Votre Entreprise" />
         </h1>
-        <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+        <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
           <TranslatedContent content="De la recherche du bon fournisseur à la livraison chez vous, découvrez comment nous pouvons vous aider à chaque étape de votre chaîne d'approvisionnement." />
-        </p>
+        </div>
       </div>
 
       <div className="space-y-12">

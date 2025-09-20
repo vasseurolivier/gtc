@@ -67,9 +67,9 @@ export default function SeoOptimizerPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-headline font-bold"><TranslatedContent content="SEO Content Optimizer" /></h1>
-          <p className="mt-2 text-lg text-muted-foreground">
+          <div className="mt-2 text-lg text-muted-foreground">
             <TranslatedContent content="Optimize your website content for search engines using AI." />
-          </p>
+          </div>
         </div>
 
         <Card className="mb-8">
@@ -114,7 +114,7 @@ export default function SeoOptimizerPage() {
         {isLoading && (
             <div className="flex flex-col justify-center items-center text-center gap-4 py-16">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground"><TranslatedContent content="AI is working its magic..." /></p>
+                <div className="text-muted-foreground"><TranslatedContent content="AI is working its magic..." /></div>
             </div>
         )}
 
@@ -137,7 +137,7 @@ export default function SeoOptimizerPage() {
                   <CardDescription><TranslatedContent content="Consider adding these keywords to your content." /></CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{result.keywordSuggestions}</p>
+                  <div className="text-muted-foreground">{result.keywordSuggestions}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -146,7 +146,7 @@ export default function SeoOptimizerPage() {
                   <CardDescription><TranslatedContent content="A suggested meta description for search engine results." /></CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{result.metaDescription}</p>
+                  <div className="text-muted-foreground">{result.metaDescription}</div>
                 </CardContent>
               </Card>
             </div>

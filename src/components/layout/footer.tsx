@@ -12,7 +12,7 @@ export function Footer() {
                 <Globe className="h-7 w-7 text-primary" />
                 <h3 className="text-xl font-headline font-semibold"><TranslatedContent content="Global Trading China"/></h3>
             </div>
-            <p className="text-sm text-muted-foreground"><TranslatedContent content="Votre partenaire pour le sourcing et le commerce mondial depuis la Chine."/></p>
+            <div className="text-sm text-muted-foreground"><TranslatedContent content="Votre partenaire pour le sourcing et le commerce mondial depuis la Chine."/></div>
           </div>
           <div>
             <h3 className="text-lg font-headline font-semibold"><TranslatedContent content="Navigation"/></h3>
@@ -50,7 +50,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p><TranslatedContent content="© {new Date().getFullYear()} Global Trading China. Tous droits réservés."/></p>
+          <div><TranslatedContent content="© {new Date().getFullYear()} Global Trading China. Tous droits réservés."/></div>
         </div>
       </div>
     </footer>

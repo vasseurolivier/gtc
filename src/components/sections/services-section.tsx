@@ -34,9 +34,9 @@ export function ServicesSection() {
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
             <TranslatedContent content="Our Core Services" />
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             <TranslatedContent content="Comprehensive solutions to power your global business." />
-          </p>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {services.map((service) => (
@@ -48,9 +48,9 @@ export function ServicesSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 mt-4">
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <div className="text-muted-foreground text-sm leading-relaxed">
                   <TranslatedContent content={service.description} />
-                </p>
+                </div>
               </CardContent>
             </Card>
           ))}

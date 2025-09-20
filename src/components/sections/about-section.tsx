@@ -18,12 +18,12 @@ export function AboutSection() {
               <TranslatedContent content="Votre Partenaire de Confiance en Chine" />
             </h2>
             <div className="mt-4 text-lg text-muted-foreground leading-relaxed space-y-4">
-              <p>
+              <div>
                 <TranslatedContent content="Fondée sur les principes de confiance et d'efficacité, TradeBridge Global est plus qu'une société de négoce. Nous sommes vos yeux et vos oreilles sur le terrain, dédiés à simplifier les complexités du commerce international." />
-              </p>
-              <p>
+              </div>
+              <div>
                 <TranslatedContent content="Notre mission est de connecter les entreprises du monde entier aux vastes opportunités de la Chine, en offrant une expertise locale, un contrôle qualité rigoureux et une communication transparente à chaque étape." />
-              </p>
+              </div>
             </div>
             <Button size="lg" className="mt-8" asChild>
                 <Link href="/about">
