@@ -15,7 +15,6 @@ export function Header() {
     { href: '/', label: 'Accueil' },
     { href: '/about', label: 'À propos' },
     { href: '/services', label: 'Services' },
-    { href: '/seo-optimizer', label: 'SEO Optimizer' },
   ];
 
   return (
