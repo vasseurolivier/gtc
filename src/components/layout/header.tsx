@@ -11,9 +11,11 @@ import { useState, useEffect } from 'react';
 
 export function Header() {
   const pathname = usePathname();
-  const [activePath, setActivePath] = useState(pathname);
+  const [activePath, setActivePath] = useState('');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     setActivePath(pathname);
   }, [pathname]);
 
@@ -40,7 +42,7 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "transition-colors hover:text-primary",
-                  activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                  isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
                 {item.label}
@@ -69,7 +71,7 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary",
-                        activePath === item.href ? "text-primary font-bold" : "text-foreground"
+                        isClient && activePath === item.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {item.label}
