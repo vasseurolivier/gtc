@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TranslatedContent } from '@/components/shared/translated-content';
-import { CheckCircle2, Search, FileSignature, Handshake, Beaker } from 'lucide-react';
+import { CheckCircle2, Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lamp } from 'lucide-react';
 
 const sourcingFeatures = [
   {
@@ -24,6 +24,29 @@ const sourcingFeatures = [
     icon: <Beaker className="h-8 w-8 text-primary" />,
     title: "Gestion d'Échantillonnage Efficace",
     description: "Nous coordonnons le développement, la production et l'expédition rapide des échantillons. Nous nous assurons que les prototypes et les échantillons de pré-production correspondent exactement à votre cahier des charges avant de lancer la fabrication en série."
+  }
+];
+
+const factoryExamples = [
+  {
+    icon: <Shirt className="h-10 w-10 text-primary" />,
+    title: "Textile & Habillement",
+    description: "Nous collaborons avec des usines spécialisées dans la confection, du prêt-à-porter à la haute couture. Notre expertise couvre le sourcing de tissus spécifiques (coton bio, soie, tissus techniques), le suivi des patronages, et le contrôle qualité des coutures et finitions."
+  },
+  {
+    icon: <Factory className="h-10 w-10 text-primary" />,
+    title: "Électronique & High-Tech",
+    description: "Le sourcing de composants électroniques et l'assemblage de produits finis exigent une rigueur extrême. Nous travaillons avec des usines certifiées, assurons la conformité aux normes (CE, RoHS, FCC) et gérons les tests de fonctionnement pour garantir la fiabilité de vos appareils."
+  },
+  {
+    icon: <Lamp className="h-10 w-10 text-primary" />,
+    title: "Mobilier & Décoration",
+    description: "Qu'il s'agisse de mobilier en bois massif, en métal ou en rotin, nous identifions des artisans et des usines capables de produire en série tout en respectant un haut niveau de finition. La gestion de la logistique pour ces articles volumineux est également une de nos forces."
+  },
+  {
+    icon: <ToyBrick className="h-10 w-10 text-primary" />,
+    title: "Jouets & Puériculture",
+    description: "La sécurité est la priorité absolue. Nous sélectionnons des usines qui respectent scrupuleusement les normes internationales (EN71, ASTM). Nos inspections se concentrent sur la non-toxicité des matériaux, la solidité des assemblages et l'absence de petites pièces dangereuses."
   }
 ];
 
@@ -99,6 +122,36 @@ export default function SourcingPage() {
                     />
                  )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24 bg-secondary/30">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">
+              <TranslatedContent content="Exemples de Partenariats Industriels" />
+            </h2>
+            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+              <TranslatedContent content="Notre expertise s'étend à de nombreux secteurs. Voici quelques exemples concrets de notre savoir-faire." />
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {factoryExamples.map((example) => (
+              <Card key={example.title} className="text-center flex flex-col items-center p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <CardHeader className="p-0">
+                  {example.icon}
+                  <CardTitle className="mt-6 font-headline text-xl">
+                    <TranslatedContent content={example.title} />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 mt-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    <TranslatedContent content={example.description} />
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
