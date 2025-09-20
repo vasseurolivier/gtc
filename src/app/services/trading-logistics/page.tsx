@@ -42,7 +42,7 @@ const processSteps = [
 const shippingOptions = [
     {
         title: "Fret Maritime",
-        duration: "30-45 jours",
+        duration: "50-60 jours",
         cost: "€",
         bestFor: "Commandes volumineuses, non urgentes. Le plus rentable pour les gros volumes.",
         icon: <Ship className="h-8 w-8 text-primary" />
