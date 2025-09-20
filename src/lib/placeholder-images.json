@@ -11,6 +11,12 @@
       "description": "A map showing a location in a city.",
       "imageUrl": "https://picsum.photos/seed/map/600/400",
       "imageHint": "city map"
+    },
+    {
+      "id": "about-hero",
+      "description": "A diverse team collaborating in a modern office.",
+      "imageUrl": "https://picsum.photos/seed/abouthero/1600/600",
+      "imageHint": "business team"
     }
   ]
 }
