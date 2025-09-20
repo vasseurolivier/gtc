@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { TranslatedContent } from '@/components/shared/translated-content';
-import { Lightbulb, Package, Pallet, Rocket } from 'lucide-react';
+import { Lightbulb, Package, Boxes, Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const ecommerceFeatures = [
@@ -16,7 +16,7 @@ const ecommerceFeatures = [
     description: "Différenciez-vous de la concurrence. Nous vous aidons à créer une marque forte, de la conception de votre logo à la réalisation d'emballages personnalisés (boîtes, étiquettes, manuels d'utilisation) qui ravira vos clients."
   },
   {
-    icon: <Pallet className="h-8 w-8 text-primary" />,
+    icon: <Boxes className="h-8 w-8 text-primary" />,
     title: "Préparation FBA & 3PL Conforme",
     description: "Évitez les refus et les retards coûteux. Nous préparons vos produits selon les spécifications les plus strictes d'Amazon (étiquetage FNSKU, polybags, cartons master) ou de tout autre service logistique tiers (3PL)."
   },
