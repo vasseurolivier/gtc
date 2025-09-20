@@ -18,15 +18,14 @@ export default function LegalNoticePage() {
 
             <h2 className="text-2xl font-headline font-semibold mt-8 mb-4">1. Éditeur du Site</h2>
             <p>
-                <strong>Dénomination sociale :</strong> [Nom de votre société]<br />
-                <strong>Forme juridique :</strong> [SARL, SAS, Auto-entrepreneur, etc.]<br />
+                <strong>Dénomination sociale :</strong> Yiwu Huangqui Trading company limited.<br />
+                <strong>Forme juridique :</strong> Société à responsabilité limitée de droit chinois<br />
                 <strong>Adresse du siège social :</strong> 浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501<br />
-                <strong>Capital social :</strong> [Montant du capital social] €<br />
-                <strong>Numéro d'immatriculation (RCS) :</strong> [Numéro RCS] R.C.S. [Ville]<br />
-                <strong>Numéro de TVA intracommunautaire :</strong> [Numéro de TVA]<br />
+                <strong>Capital social :</strong> 5000 €<br />
+                <strong>Numéro d'immatriculation :</strong> Notre société est enregistrée en Chine, les notions de RCS et de numéro de TVA intracommunautaire ne sont pas applicables.<br />
                 <strong>Adresse e-mail :</strong> info@globaltradingchina.com<br />
                 <strong>Téléphone :</strong> +86 135 6477 0717<br />
-                <strong>Directeur de la publication :</strong> [Nom du directeur de la publication]
+                <strong>Directeur de la publication :</strong> Vasseur Olivier
             </p>
 
             <h2 className="text-2xl font-headline font-semibold mt-8 mb-4">2. Hébergement du Site</h2>
