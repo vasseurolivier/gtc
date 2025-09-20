@@ -72,7 +72,7 @@ export function Header() {
                   isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
-                {item.label}
+                <TranslatedContent content={item.label} />
               </Link>
             ))}
             <DropdownMenu>
@@ -80,12 +80,12 @@ export function Header() {
                   "flex items-center gap-1 transition-colors hover:text-primary focus:outline-none",
                   isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-muted-foreground"
                 )}>
-                Services <ChevronDown className="h-4 w-4" />
+                <TranslatedContent content="Services" /> <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {servicesItems.map((item) => (
                   <DropdownMenuItem key={item.href} asChild>
-                    <Link href={item.href}>{item.label}</Link>
+                    <Link href={item.href}><TranslatedContent content={item.label} /></Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -98,7 +98,7 @@ export function Header() {
                   isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
-                {citiesItem.label}
+                <TranslatedContent content={citiesItem.label} />
               </Link>
               <Link
                 key={contactItem.href}
@@ -108,7 +108,7 @@ export function Header() {
                   isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
-                {contactItem.label}
+                <TranslatedContent content={contactItem.label} />
               </Link>
           </nav>
         </div>
@@ -136,7 +136,7 @@ export function Header() {
                         isClient && activePath === item.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      {item.label}
+                      <TranslatedContent content={item.label} />
                     </Link>
                   ))}
                   
@@ -146,7 +146,7 @@ export function Header() {
                           "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
                           isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
                         )}>
-                          Services
+                          <TranslatedContent content="Services" />
                         </AccordionTrigger>
                         <AccordionContent className="pb-0 pl-4">
                           <nav className="flex flex-col space-y-2">
@@ -159,7 +159,7 @@ export function Header() {
                                   isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                                 )}
                               >
-                                {item.label}
+                                <TranslatedContent content={item.label} />
                               </Link>
                             ))}
                           </nav>
@@ -174,7 +174,7 @@ export function Header() {
                         isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      {citiesItem.label}
+                      <TranslatedContent content={citiesItem.label} />
                     </Link>
                     <Link
                       key={contactItem.href}
@@ -184,7 +184,7 @@ export function Header() {
                         isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      {contactItem.label}
+                      <TranslatedContent content={contactItem.label} />
                     </Link>
                 </nav>
               </SheetContent>

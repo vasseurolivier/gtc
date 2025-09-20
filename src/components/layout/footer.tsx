@@ -1,5 +1,6 @@
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { TranslatedContent } from '../shared/translated-content';
 
 export function Footer() {
   return (
@@ -9,37 +10,37 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
                 <Globe className="h-7 w-7 text-primary" />
-                <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
+                <h3 className="text-xl font-headline font-semibold"><TranslatedContent content="Global Trading China"/></h3>
             </div>
-            <p className="text-sm text-muted-foreground">Votre partenaire pour le sourcing et le commerce mondial depuis la Chine.</p>
+            <p className="text-sm text-muted-foreground"><TranslatedContent content="Votre partenaire pour le sourcing et le commerce mondial depuis la Chine."/></p>
           </div>
           <div>
-            <h3 className="text-lg font-headline font-semibold">Navigation</h3>
+            <h3 className="text-lg font-headline font-semibold"><TranslatedContent content="Navigation"/></h3>
             <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/" className="text-muted-foreground hover:text-primary transition-colors">Accueil</Link></li>
-                <li><Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">À propos</Link></li>
-                <li><Link href="/services" className="text-muted-foreground hover:text-primary transition-colors">Services</Link></li>
-                 <li><Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link href="/" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="Accueil"/></Link></li>
+                <li><Link href="/about" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="À propos"/></Link></li>
+                <li><Link href="/services" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="Services"/></Link></li>
+                 <li><Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="Contact"/></Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-headline font-semibold">Légal</h3>
+            <h3 className="text-lg font-headline font-semibold"><TranslatedContent content="Légal"/></h3>
             <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/legal-notice" className="text-muted-foreground hover:text-primary transition-colors">Mentions Légales</Link></li>
-                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">Politique de Confidentialité</Link></li>
-                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors">Conditions Générales de Vente</Link></li>
+                <li><Link href="/legal-notice" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="Mentions Légales"/></Link></li>
+                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="Politique de Confidentialité"/></Link></li>
+                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors"><TranslatedContent content="Conditions Générales de Vente"/></Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-headline font-semibold">Contactez-nous</h3>
+            <h3 className="text-lg font-headline font-semibold"><TranslatedContent content="Contactez-nous"/></h3>
             <ul className="mt-4 space-y-3 text-sm">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-3 mt-1 shrink-0 text-primary"/>
-                <span className="text-muted-foreground">浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501</span>
+                <span className="text-muted-foreground"><TranslatedContent content="浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501"/></span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 shrink-0 text-primary"/>
-                <span className="text-muted-foreground">+86 135 6477 0717 (telephone et Whatsapp)</span>
+                <span className="text-muted-foreground"><TranslatedContent content="+86 135 6477 0717 (telephone et Whatsapp)"/></span>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-3 shrink-0 text-primary"/>
@@ -49,7 +50,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Global Trading China. Tous droits réservés.</p>
+          <p><TranslatedContent content="© {new Date().getFullYear()} Global Trading China. Tous droits réservés."/></p>
         </div>
       </div>
     </footer>

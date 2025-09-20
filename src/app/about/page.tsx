@@ -85,16 +85,16 @@ export default function AboutPage() {
               <Card>
                 <CardContent className="p-8 space-y-4">
                   <div>
-                    <h3 className="font-headline font-semibold text-xl">Notre Vision</h3>
-                    <p className="text-muted-foreground mt-2">Devenir le partenaire de confiance incontournable pour toutes les entreprises cherchant à prospérer grâce au commerce avec la Chine.</p>
+                    <h3 className="font-headline font-semibold text-xl"><TranslatedContent content="Notre Vision"/></h3>
+                    <p className="text-muted-foreground mt-2"><TranslatedContent content="Devenir le partenaire de confiance incontournable pour toutes les entreprises cherchant à prospérer grâce au commerce avec la Chine."/></p>
                   </div>
                   <div>
-                    <h3 className="font-headline font-semibold text-xl">Nos Valeurs</h3>
+                    <h3 className="font-headline font-semibold text-xl"><TranslatedContent content="Nos Valeurs"/></h3>
                     <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
-                      <li>Intégrité et Transparence</li>
-                      <li>Orientation Client</li>
-                      <li>Excellence Opérationnelle</li>
-                      <li>Partenariat à Long Terme</li>
+                      <li><TranslatedContent content="Intégrité et Transparence"/></li>
+                      <li><TranslatedContent content="Orientation Client"/></li>
+                      <li><TranslatedContent content="Excellence Opérationnelle"/></li>
+                      <li><TranslatedContent content="Partenariat à Long Terme"/></li>
                     </ul>
                   </div>
                 </CardContent>
