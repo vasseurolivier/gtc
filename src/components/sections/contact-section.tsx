@@ -138,7 +138,7 @@ export function ContactSection() {
                     </div>
                     <div className="flex items-center">
                         <Phone className="h-5 w-5 mr-4 shrink-0 text-primary"/>
-                        <span>+86 123 4567 8900</span>
+                        <span>+86 135 6477 0717 (telephone et Whatsapp)</span>
                     </div>
                     <div className="flex items-center">
                         <Mail className="h-5 w-5 mr-4 shrink-0 text-primary"/>
