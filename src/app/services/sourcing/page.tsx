@@ -31,22 +31,22 @@ const factoryExamples = [
   {
     icon: <Shirt className="h-10 w-10 text-primary" />,
     title: "Textile & Habillement",
-    description: "Nous collaborons avec des usines spécialisées dans la confection, du prêt-à-porter à la haute couture. Notre expertise couvre le sourcing de tissus spécifiques (coton bio, soie, tissus techniques), le suivi des patronages, et le contrôle qualité des coutures et finitions."
+    description: "Nous collaborons avec des usines comme T*xworld à Shaoxing, spécialisées dans la confection, du prêt-à-porter à la haute couture. Notre expertise couvre le sourcing de tissus spécifiques (coton bio, soie, tissus techniques), le suivi des patronages, et le contrôle qualité des coutures et finitions."
   },
   {
     icon: <Factory className="h-10 w-10 text-primary" />,
     title: "Électronique & High-Tech",
-    description: "Le sourcing de composants électroniques et l'assemblage de produits finis exigent une rigueur extrême. Nous travaillons avec des usines certifiées, assurons la conformité aux normes (CE, RoHS, FCC) et gérons les tests de fonctionnement pour garantir la fiabilité de vos appareils."
+    description: "Le sourcing de composants chez Huaqiangbei et l'assemblage de produits finis chez F*xconn exigent une rigueur extrême. Nous assurons la conformité aux normes (CE, RoHS, FCC) et gérons les tests pour garantir la fiabilité de vos appareils."
   },
   {
     icon: <Lamp className="h-10 w-10 text-primary" />,
     title: "Mobilier & Décoration",
-    description: "Qu'il s'agisse de mobilier en bois massif, en métal ou en rotin, nous identifions des artisans et des usines capables de produire en série tout en respectant un haut niveau de finition. La gestion de la logistique pour ces articles volumineux est également une de nos forces."
+    description: "Qu'il s'agisse de mobilier de Lecong ou de céramique de Jingdezhen, nous identifions des artisans et des usines comme Q*lityFurn capables de produire en série tout en respectant un haut niveau de finition. La logistique pour ces articles volumineux est une de nos forces."
   },
   {
     icon: <ToyBrick className="h-10 w-10 text-primary" />,
     title: "Jouets & Puériculture",
-    description: "La sécurité est la priorité absolue. Nous sélectionnons des usines qui respectent scrupuleusement les normes internationales (EN71, ASTM). Nos inspections se concentrent sur la non-toxicité des matériaux, la solidité des assemblages et l'absence de petites pièces dangereuses."
+    description: "La sécurité est la priorité. Nous sélectionnons des usines comme K*d'sJoy qui respectent les normes internationales (EN71, ASTM). Nos inspections se concentrent sur la non-toxicité des matériaux et la solidité des assemblages."
   }
 ];
 
