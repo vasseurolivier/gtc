@@ -108,6 +108,12 @@
       "description": "The bustling interior of the Yiwu International Trade City market.",
       "imageUrl": "https://picsum.photos/seed/yiwu/800/600",
       "imageHint": "Yiwu market"
+    },
+    {
+      "id": "logistics-process",
+      "description": "Warehouse interior with workers managing packages and shelves.",
+      "imageUrl": "https://picsum.photos/seed/logistics1/800/1200",
+      "imageHint": "warehouse logistics"
     }
   ]
 }
