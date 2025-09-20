@@ -28,8 +28,8 @@
     {
       "id": "trading-hero",
       "description": "Aerial view of a busy container port with ships and cranes.",
-      "imageUrl": "https://picsum.photos/seed/tradinghero/1600/600",
-      "imageHint": "global logistics"
+      "imageUrl": "https://picsum.photos/seed/material-loading/1600/600",
+      "imageHint": "material loading"
     },
     {
       "id": "ecommerce-hero",
