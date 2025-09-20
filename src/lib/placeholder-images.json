@@ -16,7 +16,7 @@
     {
       "id": "about-hero",
       "description": "A modern office building with glass facade.",
-      "imageUrl": "https://picsum.photos/seed/companybuilding/1600/600",
+      "imageUrl": "https://images.unsplash.com/photo-1549040280-928d54c4d7e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxvZmZpY2UlMjBidWlsZGluZ3xlbnwwfHx8fDE3NTg2NzU3NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "office building"
     },
     {
@@ -112,7 +112,7 @@
     {
       "id": "logistics-process",
       "description": "Warehouse interior with workers managing packages and shelves.",
-      "imageUrl": "https://picsum.photos/seed/logistics1/800/1200",
+      "imageUrl": "https://images.unsplash.com/photo-1592963219838-6045ccbe0563?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxOHx8aW1wb3J0JTIwZXhwb3J0fGVufDB8fHx8MTc1ODM5MzA1M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse logistics"
     }
   ]
