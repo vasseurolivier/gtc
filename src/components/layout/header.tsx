@@ -4,10 +4,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Globe } from 'lucide-react';
+import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
   const pathname = usePathname();
@@ -22,8 +28,15 @@ export function Header() {
   const navItems = [
     { href: '/', label: 'Accueil' },
     { href: '/about', label: 'À propos' },
-    { href: '/services', label: 'Services' },
   ];
+  
+  const servicesItems = [
+    { href: '/services', label: 'Tous les services' },
+    { href: '/services/sourcing', label: 'Sourcing et Achat' },
+    { href: '/services/trading-logistics', label: 'Trading et Logistique' },
+    { href: '/services/ecommerce-solutions', label: 'Solutions E-commerce' },
+    { href: '/services/custom-services', label: 'Services sur Mesure' },
+  ]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -48,6 +61,21 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger className={cn(
+                  "flex items-center gap-1 transition-colors hover:text-primary focus:outline-none",
+                  isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-muted-foreground"
+                )}>
+                Services <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {servicesItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href}>{item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
         </div>
 
@@ -77,6 +105,16 @@ export function Header() {
                       {item.label}
                     </Link>
                   ))}
+                  {/* TODO: Add mobile dropdown for services */}
+                   <Link
+                      href="/services"
+                      className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary",
+                        isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
+                      )}
+                    >
+                      Services
+                    </Link>
                 </nav>
               </SheetContent>
             </Sheet>

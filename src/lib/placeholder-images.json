@@ -17,6 +17,30 @@
       "description": "A diverse team collaborating in a modern office.",
       "imageUrl": "https://picsum.photos/seed/abouthero/1600/600",
       "imageHint": "business team"
+    },
+    {
+      "id": "sourcing-hero",
+      "description": "A person inspecting products in a warehouse.",
+      "imageUrl": "https://picsum.photos/seed/sourcing/1600/600",
+      "imageHint": "warehouse inspection"
+    },
+    {
+      "id": "trading-hero",
+      "description": "Large cargo ship on the ocean.",
+      "imageUrl": "https://picsum.photos/seed/trading/1600/600",
+      "imageHint": "cargo ship"
+    },
+    {
+      "id": "ecommerce-hero",
+      "description": "Person packing boxes for an online order.",
+      "imageUrl": "https://picsum.photos/seed/ecommerce/1600/600",
+      "imageHint": "ecommerce packing"
+    },
+    {
+      "id": "custom-services-hero",
+      "description": "Two people discussing a blueprint.",
+      "imageUrl": "https://picsum.photos/seed/custom/1600/600",
+      "imageHint": "blueprint discussion"
     }
   ]
 }
