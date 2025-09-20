@@ -7,9 +7,15 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Globe } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 export function Header() {
   const pathname = usePathname();
+  const [activePath, setActivePath] = useState(pathname);
+
+  useEffect(() => {
+    setActivePath(pathname);
+  }, [pathname]);
 
   const navItems = [
     { href: '/', label: 'Accueil' },
@@ -34,7 +40,7 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "transition-colors hover:text-primary",
-                  pathname === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                  activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
                 {item.label}
@@ -63,7 +69,7 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary",
-                        pathname === item.href ? "text-primary font-bold" : "text-foreground"
+                        activePath === item.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {item.label}
