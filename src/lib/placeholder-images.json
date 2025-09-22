@@ -100,7 +100,7 @@
     {
       "id": "shenzhen-city",
       "description": "The futuristic skyline of Shenzhen's business district.",
-      "imageUrl": "https://images.unsplash.com/photo-1634647626782-f5fffa9fd9b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaGVuemVufGVufDB8fHx8MTc1ODM5MzgxNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1634647626782-f5fffa9fd9b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaGVuemVufGVufDB8fHx8MTc1ODM5MzgxNnww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "Shenzhen skyline"
     },
     {
@@ -148,10 +148,12 @@
     {
       "id": "carousel-5",
       "description": "A close-up of a 'Made in China' label on a product.",
-      "imageUrl": "https://images.unsplash.com/photo-1606102142602-3f259f6305a2?q=80&w=1080&auto=format&fit=crop",
+      "imageUrl": "https://images.unsplash.com/photo-1598865307385-74cac1170bd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWRlJTIwaW4lMjBjaGluYXxlbnwwfHx8fDE3NTg1MjU4ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "Made in China"
     }
   ]
 }
+
+    
 
     
