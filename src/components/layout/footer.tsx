@@ -1,7 +1,7 @@
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
 
-export function Footer() {
+export function Footer({ dictionary }: { dictionary: any }) {
   return (
     <footer className="bg-secondary">
       <div className="container py-12 px-4 sm:px-6 lg:px-8">
@@ -11,27 +11,27 @@ export function Footer() {
                 <Globe className="h-7 w-7 text-primary" />
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
-            <div className="text-sm text-muted-foreground">Votre partenaire pour le sourcing et le commerce mondial depuis la Chine.</div>
+            <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>
           </div>
           <div>
-            <h3 className="text-lg font-headline font-semibold">Navigation</h3>
+            <h3 className="text-lg font-headline font-semibold">{dictionary.navigation}</h3>
             <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/" className="text-muted-foreground hover:text-primary transition-colors">Accueil</Link></li>
-                <li><Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">À propos</Link></li>
-                <li><Link href="/services" className="text-muted-foreground hover:text-primary transition-colors">Services</Link></li>
-                 <li><Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link href="/" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.home}</Link></li>
+                <li><Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.about}</Link></li>
+                <li><Link href="/services" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.services}</Link></li>
+                 <li><Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.contact}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-headline font-semibold">Légal</h3>
+            <h3 className="text-lg font-headline font-semibold">{dictionary.legal}</h3>
             <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/legal-notice" className="text-muted-foreground hover:text-primary transition-colors">Mentions Légales</Link></li>
-                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">Politique de Confidentialité</Link></li>
-                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors">Conditions Générales de Vente</Link></li>
+                <li><Link href="/legal-notice" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.legalNotice}</Link></li>
+                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.privacyPolicy}</Link></li>
+                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.termsOfService}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-headline font-semibold">Contactez-nous</h3>
+            <h3 className="text-lg font-headline font-semibold">{dictionary.contactUs}</h3>
             <ul className="mt-4 space-y-3 text-sm">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-3 mt-1 shrink-0 text-primary"/>
@@ -49,7 +49,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <div>© 2023 Global Trading China. Tous droits réservés.</div>
+          <div>© 2023 Global Trading China. {dictionary.rightsReserved}</div>
         </div>
       </div>
     </footer>

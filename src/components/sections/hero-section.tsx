@@ -5,7 +5,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-export function HeroSection() {
+export function HeroSection({ dictionary }: { dictionary: any }) {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
 
   return (
@@ -24,21 +24,21 @@ export function HeroSection() {
       <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
         <div className="max-w-4xl">
             <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg">
-                Votre Pont vers le Commerce Mondial
+                {dictionary.title}
             </h1>
             <div className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-neutral-200">
-                Solutions expertes de sourcing, de négoce et d'e-commerce depuis le cœur de la Chine vers le monde entier.
+                {dictionary.subtitle}
             </div>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
                 <Link href="/contact">
-                    Commencer
+                    {dictionary.ctaButton}
                     <ArrowRight className="ml-2" />
                 </Link>
             </Button>
             <Button size="lg" variant="secondary" asChild>
                 <Link href="/services">
-                    Nos Services
+                    {dictionary.servicesButton}
                 </Link>
             </Button>
             </div>

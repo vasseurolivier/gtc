@@ -4,6 +4,7 @@ import { AppProviders } from '@/components/app-providers';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { i18n, type Locale } from '@/i18n-config';
+import { getDictionary } from '@/lib/get-dictionary';
 
 export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ locale }));
@@ -14,13 +15,14 @@ export const metadata: Metadata = {
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
   params: { locale: Locale };
 }>) {
+  const dictionary = await getDictionary(params.locale);
   return (
     <html lang={params.locale} suppressHydrationWarning>
       <head>
@@ -31,9 +33,9 @@ export default function RootLayout({
       <body className="font-body bg-background text-foreground antialiased">
         <AppProviders>
           <div className="flex min-h-screen flex-col">
-            <Header />
+            <Header dictionary={dictionary.header} />
             <main className="flex-grow">{children}</main>
-            <Footer />
+            <Footer dictionary={dictionary.footer} />
           </div>
         </AppProviders>
       </body>

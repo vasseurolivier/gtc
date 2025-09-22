@@ -1,24 +1,24 @@
 "use client";
 import { Contact, FileText, PackageCheck, Ship, Target } from 'lucide-react';
 
-const processSteps = [
-  { icon: <Contact className="h-8 w-8 text-accent-foreground" />, title: "Contact Initial", description: "Vous nous contactez avec vos besoins." },
-  { icon: <FileText className="h-8 w-8 text-accent-foreground" />, title: "Sourcing & Devis", description: "Nous trouvons des fournisseurs et vous proposons un devis détaillé." },
-  { icon: <Target className="h-8 w-8 text-accent-foreground" />, title: "Contrôle Qualité", description: "Notre équipe effectue des contrôles qualité rigoureux." },
-  { icon: <Ship className="h-8 w-8 text-accent-foreground" />, title: "Logistique", description: "Nous gérons l'expédition, les douanes et les documents." },
-  { icon: <PackageCheck className="h-8 w-8 text-accent-foreground" />, title: "Livraison Finale", description: "Vos produits arrivent en toute sécurité à destination." }
-];
+export function ProcessSection({ dictionary }: { dictionary: any }) {
+  const processSteps = [
+    { icon: <Contact className="h-8 w-8 text-accent-foreground" />, title: dictionary.step1.title, description: dictionary.step1.description },
+    { icon: <FileText className="h-8 w-8 text-accent-foreground" />, title: dictionary.step2.title, description: dictionary.step2.description },
+    { icon: <Target className="h-8 w-8 text-accent-foreground" />, title: dictionary.step3.title, description: dictionary.step3.description },
+    { icon: <Ship className="h-8 w-8 text-accent-foreground" />, title: dictionary.step4.title, description: dictionary.step4.description },
+    { icon: <PackageCheck className="h-8 w-8 text-accent-foreground" />, title: dictionary.step5.title, description: dictionary.step5.description }
+  ];
 
-export function ProcessSection() {
   return (
     <section id="process" className="py-16 md:py-24">
       <div className="container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            Notre Processus de A à Z
+            {dictionary.title}
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Un parcours transparent et efficace, de votre idée à votre porte.
+            {dictionary.subtitle}
           </div>
         </div>
         <div className="relative">

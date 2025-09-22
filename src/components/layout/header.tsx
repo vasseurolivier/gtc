@@ -22,7 +22,7 @@ import {
 import { i18n } from '@/i18n-config';
 
 
-export function Header() {
+export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isClient, setIsClient] = useState(false);
@@ -36,20 +36,20 @@ export function Header() {
   }, [pathname]);
 
   const navItems = [
-    { href: '/', label: 'Accueil' },
-    { href: '/about', label: 'À propos' },
+    { href: '/', label: dictionary.home },
+    { href: '/about', label: dictionary.about },
   ];
   
   const servicesItems = [
-    { href: '/services', label: 'Tous les services' },
-    { href: '/services/sourcing', label: 'Sourcing et Achat' },
-    { href: '/services/trading-logistics', label: 'Trading et Logistique' },
-    { href: '/services/ecommerce-solutions', label: 'Solutions E-commerce' },
-    { href: '/services/custom-services', label: 'Services sur Mesure' },
+    { href: '/services', label: dictionary.allServices },
+    { href: '/services/sourcing', label: dictionary.sourcingAndPurchasing },
+    { href: '/services/trading-logistics', label: dictionary.tradingAndLogistics },
+    { href: '/services/ecommerce-solutions', label: dictionary.ecommerceSolutions },
+    { href: '/services/custom-services', label: dictionary.customServices },
   ]
   
-  const citiesItem = { href: '/trade-cities', label: 'Pôles Commerciaux' };
-  const contactItem = { href: '/contact', label: 'Contact' };
+  const citiesItem = { href: '/trade-cities', label: dictionary.tradeHubs };
+  const contactItem = { href: '/contact', label: dictionary.contact };
 
   const redirectedPathName = (locale: string) => {
     if (!pathname) return '/'
@@ -75,7 +75,7 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "transition-colors hover:text-primary",
-                  isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                  isClient && (activePath === `/${i18n.defaultLocale}${item.href}`.replace(/\/$/, '') || activePath === item.href) ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
                 {item.label}
@@ -86,7 +86,7 @@ export function Header() {
                   "flex items-center gap-1 transition-colors hover:text-primary focus:outline-none",
                   isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-muted-foreground"
                 )}>
-                Services <ChevronDown className="h-4 w-4" />
+                {dictionary.services} <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {servicesItems.map((item) => (
@@ -101,7 +101,7 @@ export function Header() {
                 href={citiesItem.href}
                 className={cn(
                   "transition-colors hover:text-primary",
-                  isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-muted-foreground"
+                  isClient && activePath.includes(citiesItem.href) ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
                 {citiesItem.label}
@@ -111,7 +111,7 @@ export function Header() {
                 href={contactItem.href}
                 className={cn(
                   "transition-colors hover:text-primary",
-                  isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-muted-foreground"
+                  isClient && activePath.includes(contactItem.href) ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
                 {contactItem.label}
@@ -152,7 +152,7 @@ export function Header() {
                           "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
                           isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
                         )}>
-                          Services
+                          {dictionary.services}
                         </AccordionTrigger>
                         <AccordionContent className="pb-0 pl-4">
                           <nav className="flex flex-col space-y-2">
@@ -177,7 +177,7 @@ export function Header() {
                       href={citiesItem.href}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary py-2",
-                        isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-foreground"
+                        isClient && activePath.includes(citiesItem.href) ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {citiesItem.label}
@@ -187,7 +187,7 @@ export function Header() {
                       href={contactItem.href}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary py-2",
-                        isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-foreground"
+                        isClient && activePath.includes(contactItem.href) ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {contactItem.label}

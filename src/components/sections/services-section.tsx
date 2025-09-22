@@ -2,39 +2,39 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
 
-const services = [
-  {
-    icon: <PackageSearch className="h-10 w-10 text-primary" />,
-    title: "Sourcing",
-    description: "Nous trouvons et validons les meilleurs fabricants en Chine pour vos produits, en garantissant la qualité et des prix compétitifs."
-  },
-  {
-    icon: <ArrowLeftRight className="h-10 w-10 text-primary" />,
-    title: "Négoce",
-    description: "Faciliter des opérations d'import/export fluides, en gérant toute la logistique et les douanes pour une expérience commerciale sans faille."
-  },
-  {
-    icon: <ShoppingCart className="h-10 w-10 text-primary" />,
-    title: "Solutions E-commerce",
-    description: "Un soutien de bout en bout pour votre boutique en ligne, du sourcing de produits au stockage et à l'exécution des commandes."
-  },
-  {
-    icon: <Wrench className="h-10 w-10 text-primary" />,
-    title: "Services sur Mesure",
-    description: "Des solutions personnalisées adaptées à vos besoins commerciaux uniques, y compris les audits d'usine et le contrôle qualité."
-  }
-];
+export function ServicesSection({ dictionary }: { dictionary: any }) {
+  const services = [
+    {
+      icon: <PackageSearch className="h-10 w-10 text-primary" />,
+      title: dictionary.sourcing.title,
+      description: dictionary.sourcing.description
+    },
+    {
+      icon: <ArrowLeftRight className="h-10 w-10 text-primary" />,
+      title: dictionary.trading.title,
+      description: dictionary.trading.description
+    },
+    {
+      icon: <ShoppingCart className="h-10 w-10 text-primary" />,
+      title: dictionary.ecommerce.title,
+      description: dictionary.ecommerce.description
+    },
+    {
+      icon: <Wrench className="h-10 w-10 text-primary" />,
+      title: dictionary.custom.title,
+      description: dictionary.custom.description
+    }
+  ];
 
-export function ServicesSection() {
   return (
     <section id="services" className="py-16 md:py-24 bg-card">
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            Nos Services Principaux
+            {dictionary.title}
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Des solutions complètes pour dynamiser votre activité mondiale.
+            {dictionary.subtitle}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

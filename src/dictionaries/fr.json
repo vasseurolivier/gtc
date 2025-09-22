@@ -1,0 +1,85 @@
+
+{
+  "header": {
+    "home": "Accueil",
+    "about": "À propos",
+    "services": "Services",
+    "allServices": "Tous les services",
+    "sourcingAndPurchasing": "Sourcing et Achat",
+    "tradingAndLogistics": "Trading et Logistique",
+    "ecommerceSolutions": "Solutions E-commerce",
+    "customServices": "Services sur Mesure",
+    "tradeHubs": "Pôles Commerciaux",
+    "contact": "Contact"
+  },
+  "footer": {
+    "tagline": "Votre partenaire pour le sourcing et le commerce mondial depuis la Chine.",
+    "navigation": "Navigation",
+    "home": "Accueil",
+    "about": "À propos",
+    "services": "Services",
+    "contact": "Contact",
+    "legal": "Légal",
+    "legalNotice": "Mentions Légales",
+    "privacyPolicy": "Politique de Confidentialité",
+    "termsOfService": "Conditions Générales de Vente",
+    "contactUs": "Contactez-nous",
+    "rightsReserved": "Tous droits réservés."
+  },
+  "heroSection": {
+    "title": "Votre Pont vers le Commerce Mondial",
+    "subtitle": "Solutions expertes de sourcing, de négoce et d'e-commerce depuis le cœur de la Chine vers le monde entier.",
+    "ctaButton": "Commencer",
+    "servicesButton": "Nos Services"
+  },
+  "servicesSection": {
+    "title": "Nos Services Principaux",
+    "subtitle": "Des solutions complètes pour dynamiser votre activité mondiale.",
+    "sourcing": {
+      "title": "Sourcing",
+      "description": "Nous trouvons et validons les meilleurs fabricants en Chine pour vos produits, en garantissant la qualité et des prix compétitifs."
+    },
+    "trading": {
+      "title": "Négoce",
+      "description": "Faciliter des opérations d'import/export fluides, en gérant toute la logistique et les douanes pour une expérience commerciale sans faille."
+    },
+    "ecommerce": {
+      "title": "Solutions E-commerce",
+      "description": "Un soutien de bout en bout pour votre boutique en ligne, du sourcing de produits au stockage et à l'exécution des commandes."
+    },
+    "custom": {
+      "title": "Services sur Mesure",
+      "description": "Des solutions personnalisées adaptées à vos besoins commerciaux uniques, y compris les audits d'usine et le contrôle qualité."
+    }
+  },
+  "aboutSection": {
+    "title": "Votre Partenaire de Confiance en Chine",
+    "p1": "Fondée sur les principes de confiance et d'efficacité, Global Trading China est plus qu'une société de négoce. Nous sommes vos yeux et vos oreilles sur le terrain, dédiés à simplifier les complexités du commerce international.",
+    "p2": "Notre mission est de connecter les entreprises du monde entier aux vastes opportunités de la Chine, en offrant une expertise locale, un contrôle qualité rigoureux et une communication transparente à chaque étape.",
+    "button": "En savoir plus sur nous"
+  },
+  "processSection": {
+    "title": "Notre Processus de A à Z",
+    "subtitle": "Un parcours transparent et efficace, de votre idée à votre porte.",
+    "step1": {
+      "title": "Contact Initial",
+      "description": "Vous nous contactez avec vos besoins."
+    },
+    "step2": {
+      "title": "Sourcing & Devis",
+      "description": "Nous trouvons des fournisseurs et vous proposons un devis détaillé."
+    },
+    "step3": {
+      "title": "Contrôle Qualité",
+      "description": "Notre équipe effectue des contrôles qualité rigoureux."
+    },
+    "step4": {
+      "title": "Logistique",
+      "description": "Nous gérons l'expédition, les douanes et les documents."
+    },
+    "step5": {
+      "title": "Livraison Finale",
+      "description": "Vos produits arrivent en toute sécurité à destination."
+    }
+  }
+}
