@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -192,7 +191,7 @@ export function Header() {
           </div>
         
         <div className="flex flex-1 items-center justify-end">
-          <LanguageSwitcher />
+          {/* LanguageSwitcher removed */}
         </div>
       </div>
     </header>
