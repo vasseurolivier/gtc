@@ -50,7 +50,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <div><TranslatedContent content="© {new Date().getFullYear()} Global Trading China. Tous droits réservés."/></div>
+          <div><TranslatedContent content="© 2023 Global Trading China. Tous droits réservés."/></div>
         </div>
       </div>
     </footer>
