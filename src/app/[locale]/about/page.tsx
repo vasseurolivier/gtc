@@ -1,4 +1,5 @@
 
+'use client';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +7,28 @@ import { Building, Target, Users, ShieldCheck, Handshake, Globe, Package, Shirt,
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import { useEffect, useState } from 'react';
 
 
-export default async function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
-  const dictionary = await getDictionary(locale);
+export default function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const [dictionary, setDictionary] = useState<any>(null);
+
+  useEffect(() => {
+    getDictionary(locale).then(setDictionary);
+  }, [locale]);
+
+
+  if (!dictionary) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
+  
   const aboutPageDict = dictionary.aboutPage;
 
   const values = [
@@ -62,6 +81,13 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
   ];
 
   const aboutHero = PlaceHolderImages.find(p => p.id === 'about-hero');
+  const carouselImages = [
+    PlaceHolderImages.find(p => p.id === 'carousel-1'),
+    PlaceHolderImages.find(p => p.id === 'carousel-2'),
+    PlaceHolderImages.find(p => p.id === 'carousel-3'),
+    PlaceHolderImages.find(p => p.id === 'carousel-4'),
+    PlaceHolderImages.find(p => p.id === 'carousel-5'),
+  ].filter(Boolean);
 
   return (
     <>
@@ -122,6 +148,45 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
           </div>
         </div>
       </section>
+
+      <section className="py-16 md:py-24 bg-card">
+        <div className="container">
+           <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full max-w-4xl mx-auto"
+            >
+              <CarouselContent>
+                {carouselImages.map((image, index) => (
+                  <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                    <div className="p-1">
+                      <Card className="overflow-hidden">
+                        <CardContent className="flex aspect-square items-center justify-center p-0">
+                           {image && 
+                            <div className="relative w-full h-full">
+                                <Image
+                                    src={image.imageUrl}
+                                    alt={image.description}
+                                    data-ai-hint={image.imageHint}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                           }
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+        </div>
+      </section>
+
 
       <section className="py-16 md:py-24 bg-secondary/30">
         <div className="container">

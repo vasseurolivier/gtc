@@ -10,7 +10,7 @@
     {
       "id": "contact-map",
       "description": "A map showing a location in a city.",
-      "imageUrl": "https://images.unsplash.com/photo-1615840287214-7ff58936c4cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb250YWN0fGVufDB8fHx8MTc1ODM5MzkzNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1615840287214-7ff58936c4cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb250YWN0fGVufDB8fHx8MTc1ODM5MzkzNnww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "city map"
     },
     {
@@ -46,7 +46,7 @@
     {
       "id": "sourcing-process",
       "description": "A bustling street market in China, showcasing a variety of goods.",
-      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "China commerce"
     },
     {
@@ -64,13 +64,13 @@
     {
       "id": "custom-services-feature-1",
       "description": "3D modeling of a new product on a computer screen.",
-      "imageUrl": "https://images.unsplash.com/photo-1561070791-2526d30994b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxicmFuZGluZ3xlbnwwfHx8fDE3NTgzOTM0NTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1561070791-2526d30994b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxicmFuZGluZ3xlbnwwfHx8fDE3NTgzOTM0NTB8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "product design"
     },
     {
       "id": "custom-services-feature-2",
       "description": "Busy trade show floor with many people and booths.",
-      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGluZXxlbnwwfHx8fDE3NTgzOTM1NDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGluZXxlbnwwfHx8fDE3NTgzOTM1NDV8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "trade show"
     },
     {
@@ -82,13 +82,13 @@
     {
       "id": "custom-services-feature-4",
       "description": "A project manager at a whiteboard with sticky notes and diagrams.",
-      "imageUrl": "https://images.unsplash.com/photo-1541535881962-3bb380b08458?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1hbnxlbnwwfHx8fDE3NTgzOTM2MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1541535881962-3bb380b08458?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1hbnxlbnwwfHx8fDE3NTgzOTM2MTl8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "project management"
     },
     {
       "id": "trade-cities-hero",
       "description": "A bustling street market in China, showcasing a variety of goods.",
-      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "China commerce"
     },
     {
@@ -100,7 +100,7 @@
     {
       "id": "shenzhen-city",
       "description": "The futuristic skyline of Shenzhen's business district.",
-      "imageUrl": "https://images.unsplash.com/photo-1634647626782-f5fffa9fd9b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaGVuemVufGVufDB8fHx8MTc1ODM5MzgwNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1634647626782-f5fffa9fd9b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaGVuemVufGVufDB8fHx8MTc1ODM5MzgxNnww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "Shenzhen skyline"
     },
     {
@@ -120,6 +120,36 @@
       "description": "Two business professionals shaking hands in a modern office setting.",
       "imageUrl": "https://picsum.photos/seed/handshake/800/600",
       "imageHint": "business handshake"
+    },
+    {
+      "id": "carousel-1",
+      "description": "Container ship at a busy port.",
+      "imageUrl": "https://images.unsplash.com/photo-1613690382324-9b352403b216?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "container ship"
+    },
+    {
+      "id": "carousel-2",
+      "description": "Business meeting with laptops and papers on a table.",
+      "imageUrl": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "business meeting"
+    },
+    {
+      "id": "carousel-3",
+      "description": "Skyline of Shanghai with modern skyscrapers.",
+      "imageUrl": "https://images.unsplash.com/photo-1538428489448-5a8b7a933c16?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "Shanghai skyline"
+    },
+    {
+      "id": "carousel-4",
+      "description": "Warehouse aisle with shelves full of boxes.",
+      "imageUrl": "https://images.unsplash.com/photo-1586528116311-069241578499?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "warehouse aisle"
+    },
+    {
+      "id": "carousel-5",
+      "description": "A close-up of a 'Made in China' label on a product.",
+      "imageUrl": "https://images.unsplash.com/photo-1606102142602-3f259f6305a2?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "Made in China"
     }
   ]
 }
