@@ -1,21 +1,14 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, orderBy, query, doc, updateDoc } from 'firebase/firestore';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Accordion,
   AccordionContent,
@@ -67,20 +60,17 @@ export default function AdminDashboardPage() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleMarkAsRead = async (id: string, read: boolean) => {
-    if (read) return; // Already read
-    
-    // Optimistically update the UI
+  const handleMarkAsRead = async (id: string) => {
+    const submission = submissions.find(s => s.id === id);
+    if (!submission || submission.read) return;
+
     setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: true } : s));
 
     try {
         const submissionRef = doc(db, 'contactSubmissions', id);
-        await updateDoc(submissionRef, {
-          read: true,
-        });
+        await updateDoc(submissionRef, { read: true });
     } catch (error) {
         console.error("Error marking as read:", error);
-        // Revert UI change on error
         setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: false } : s));
     }
   };
@@ -91,14 +81,12 @@ export default function AdminDashboardPage() {
   };
   
   const manualRefresh = () => {
-    // This function is kept for completeness, but onSnapshot makes it mostly redundant.
-    // We can re-trigger loading state for user feedback.
     setIsLoading(true);
-    // onSnapshot will handle the update automatically, we just simulate a load.
+    // onSnapshot will handle the update, this is for user feedback
     setTimeout(() => setIsLoading(false), 500);
   };
 
-  if (isLoading && submissions.length === 0) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -123,50 +111,51 @@ export default function AdminDashboardPage() {
       </div>
 
       <Card>
-        <CardContent>
-          <Accordion type="multiple" className="w-full">
-            {submissions.map((submission) => (
-              <AccordionItem value={submission.id} key={submission.id}>
-                <AccordionTrigger 
-                  className={`py-4 ${!submission.read ? 'font-bold' : ''}`}
-                  onClick={() => handleMarkAsRead(submission.id, submission.read)}
-                >
-                  <div className="flex items-center justify-between w-full pr-4">
-                     <div className="flex items-center gap-4">
-                        {!submission.read && <Badge>New</Badge>}
-                        <span className="truncate max-w-xs">{submission.subject}</span>
-                        <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
-                     </div>
-                     <span className="text-sm text-muted-foreground">
-                        {submission.createdAt
-                          ? format(new Date(submission.createdAt.seconds * 1000), 'MMM dd, yyyy - hh:mm a')
-                          : 'No date'}
-                      </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="p-4 bg-secondary/30 rounded-md">
-                   <div className="space-y-4">
-                        <div>
-                            <div className="font-semibold">From:</div>
-                            <div>{submission.name} &lt;{submission.email}&gt;</div>
-                        </div>
-                         <div>
-                            <div className="font-semibold">Subject:</div>
-                            <div>{submission.subject}</div>
-                        </div>
-                         <div>
-                            <div className="font-semibold">Message:</div>
-                            <div className="whitespace-pre-wrap">{submission.message}</div>
-                        </div>
-                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-          {submissions.length === 0 && !isLoading && (
+        <CardContent className="p-0">
+          {submissions.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
                 No submissions yet.
             </div>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {submissions.map((submission) => (
+                <AccordionItem value={submission.id} key={submission.id}>
+                  <AccordionTrigger 
+                    className={`py-4 px-6 hover:no-underline ${!submission.read ? 'font-bold' : ''}`}
+                    onClick={() => handleMarkAsRead(submission.id)}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                       <div className="flex items-center gap-4">
+                          {!submission.read && <Badge>New</Badge>}
+                          <span className="truncate max-w-xs">{submission.subject}</span>
+                          <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
+                       </div>
+                       <span className="text-sm text-muted-foreground pr-4">
+                          {submission.createdAt
+                            ? format(new Date(submission.createdAt.seconds * 1000), 'MMM dd, yyyy - hh:mm a')
+                            : 'No date'}
+                        </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="p-6 bg-secondary/30">
+                     <div className="space-y-4">
+                          <div>
+                              <div className="font-semibold">From:</div>
+                              <div>{submission.name} &lt;{submission.email}&gt;</div>
+                          </div>
+                           <div>
+                              <div className="font-semibold">Subject:</div>
+                              <div>{submission.subject}</div>
+                          </div>
+                           <div>
+                              <div className="font-semibold">Message:</div>
+                              <div className="whitespace-pre-wrap">{submission.message}</div>
+                          </div>
+                     </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           )}
         </CardContent>
       </Card>
