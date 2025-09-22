@@ -81,5 +81,21 @@
       "title": "Livraison Finale",
       "description": "Vos produits arrivent en toute sécurité à destination."
     }
+  },
+  "blogPage": {
+    "title": "Blog",
+    "content": "Bientôt disponible..."
+  },
+  "legalNoticePage": {
+    "title": "Mentions Légales",
+    "content": "Contenu en cours de rédaction..."
+  },
+  "privacyPolicyPage": {
+    "title": "Politique de Confidentialité",
+    "content": "Contenu en cours de rédaction..."
+  },
+  "termsOfServicePage": {
+    "title": "Conditions Générales de Vente",
+    "content": "Contenu en cours de rédaction..."
   }
 }

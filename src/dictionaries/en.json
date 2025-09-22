@@ -81,5 +81,21 @@
       "title": "Final Delivery",
       "description": "Your products arrive safely at their destination."
     }
+  },
+  "blogPage": {
+    "title": "Blog",
+    "content": "Coming soon..."
+  },
+  "legalNoticePage": {
+    "title": "Legal Notice",
+    "content": "Content being drafted..."
+  },
+  "privacyPolicyPage": {
+    "title": "Privacy Policy",
+    "content": "Content being drafted..."
+  },
+  "termsOfServicePage": {
+    "title": "Terms of Service",
+    "content": "Content being drafted..."
   }
 }
