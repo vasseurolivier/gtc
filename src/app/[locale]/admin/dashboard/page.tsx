@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, doc, updateDoc } from 'firebase/firestore';
 import {
   Table,
   TableBody,
@@ -43,30 +43,28 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const fetchSubmissions = async () => {
-    setIsLoading(true);
-    try {
-        const q = query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        const subs: Submission[] = [];
-        querySnapshot.forEach((doc) => {
-            subs.push({ id: doc.id, ...doc.data() } as Submission);
-        });
-        setSubmissions(subs);
-    } catch (error) {
-        console.error("Error fetching submissions:", error);
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
       return;
     }
-    fetchSubmissions();
+
+    const q = query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const subs: Submission[] = [];
+        querySnapshot.forEach((doc) => {
+            subs.push({ id: doc.id, ...doc.data() } as Submission);
+        });
+        setSubmissions(subs);
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error fetching submissions:", error);
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [router]);
 
   const handleMarkAsRead = async (id: string, read: boolean) => {
@@ -91,6 +89,14 @@ export default function AdminDashboardPage() {
     sessionStorage.removeItem('isAdminAuthenticated');
     router.push('/admin/login');
   };
+  
+  const manualRefresh = () => {
+    // This function is kept for completeness, but onSnapshot makes it mostly redundant.
+    // We can re-trigger loading state for user feedback.
+    setIsLoading(true);
+    // onSnapshot will handle the update automatically, we just simulate a load.
+    setTimeout(() => setIsLoading(false), 500);
+  };
 
   if (isLoading && submissions.length === 0) {
     return (
@@ -105,7 +111,7 @@ export default function AdminDashboardPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Contact Submissions</h1>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchSubmissions} disabled={isLoading}>
+            <Button variant="outline" onClick={manualRefresh} disabled={isLoading}>
                 <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
             </Button>
