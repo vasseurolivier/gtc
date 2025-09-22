@@ -144,36 +144,38 @@ export function ContactSection() {
             </CardContent>
           </Card>
           <div className="flex flex-col space-y-8">
-             <div>
-                <h3 className="text-xl font-headline font-semibold mb-6">
-                  <TranslatedContent content="Our Office"/>
-                </h3>
-                <div className="space-y-4 text-muted-foreground">
-                    <div className="flex items-start">
-                        <MapPin className="h-5 w-5 mr-4 mt-1 shrink-0 text-primary"/>
-                        <span>浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501</span>
-                    </div>
-                    <div className="flex items-center">
-                        <Phone className="h-5 w-5 mr-4 shrink-0 text-primary"/>
-                        <span>+86 135 6477 0717 (telephone et Whatsapp)</span>
-                    </div>
-                    <div className="flex items-center">
-                        <Mail className="h-5 w-5 mr-4 shrink-0 text-primary"/>
-                        <span>info@globaltradingchina.com</span>
+             <div className="flex flex-col flex-grow justify-between">
+                <div>
+                    <h3 className="text-xl font-headline font-semibold mb-6">
+                      <TranslatedContent content="Our Office"/>
+                    </h3>
+                    <div className="space-y-4 text-muted-foreground">
+                        <div className="flex items-start">
+                            <MapPin className="h-5 w-5 mr-4 mt-1 shrink-0 text-primary"/>
+                            <span>浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501</span>
+                        </div>
+                        <div className="flex items-center">
+                            <Phone className="h-5 w-5 mr-4 shrink-0 text-primary"/>
+                            <span>+86 135 6477 0717 (téléphone et Whatsapp)</span>
+                        </div>
+                        <div className="flex items-center">
+                            <Mail className="h-5 w-5 mr-4 shrink-0 text-primary"/>
+                            <span>info@globaltradingchina.com</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {mapImage && (
-              <div className="rounded-lg overflow-hidden shadow-lg border flex-grow h-full min-h-[300px] relative">
-                <Image
-                  src={mapImage.imageUrl}
-                  alt={mapImage.description}
-                  data-ai-hint={mapImage.imageHint}
-                  fill
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
+                {mapImage && (
+                  <div className="rounded-lg overflow-hidden shadow-lg border mt-8 flex-grow h-full min-h-[300px] relative">
+                    <Image
+                      src={mapImage.imageUrl}
+                      alt={mapImage.description}
+                      data-ai-hint={mapImage.imageHint}
+                      fill
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+             </div>
           </div>
         </div>
       </div>

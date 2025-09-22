@@ -40,7 +40,7 @@ export function Footer() {
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 shrink-0 text-primary"/>
-                <span className="text-muted-foreground"><TranslatedContent content="+86 135 6477 0717 (telephone et Whatsapp)"/></span>
+                <span className="text-muted-foreground"><TranslatedContent content="+86 135 6477 0717 (téléphone et Whatsapp)"/></span>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-3 shrink-0 text-primary"/>
