@@ -163,42 +163,40 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-card">
-        <div className="container">
-           <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full max-w-4xl mx-auto"
-            >
-              <CarouselContent>
-                {carouselImages.map((image, index) => (
-                  <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                    <div className="p-1">
-                      <Card className="overflow-hidden">
-                        <CardContent className="flex aspect-square items-center justify-center p-0">
-                           {image && 
-                            <div className="relative w-full h-full">
-                                <Image
-                                    src={image.imageUrl}
-                                    alt={image.description}
-                                    data-ai-hint={image.imageHint}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                           }
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-        </div>
+      <section className="w-full py-16 md:py-24 bg-card">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {carouselImages.map((image, index) => (
+              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                <div className="p-1">
+                  <Card className="overflow-hidden">
+                    <CardContent className="flex aspect-square items-center justify-center p-0">
+                       {image && 
+                        <div className="relative w-full h-full">
+                            <Image
+                                src={image.imageUrl}
+                                alt={image.description}
+                                data-ai-hint={image.imageHint}
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                       }
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="ml-16"/>
+          <CarouselNext className="mr-16"/>
+        </Carousel>
       </section>
       
       <section className="py-16 md:py-24">
