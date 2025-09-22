@@ -47,21 +47,39 @@ export function ContactSection() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    const result = await submitContactForm(values);
-    setIsLoading(false);
-
-    if (result.success) {
-      toast({
-        title: "Message Sent!",
-        description: "Thank you for contacting us. We will get back to you shortly.",
-      });
-      form.reset();
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Failed to Send Message",
-        description: result.message,
-      });
+    try {
+        const result = await submitContactForm(values);
+        if (result.success) {
+          toast({
+            title: "Message Sent!",
+            description: "Thank you for contacting us. We will get back to you shortly.",
+          });
+          form.reset();
+        } else {
+          // Check for specific Firestore permission error
+          if (result.message && result.message.includes('permission-denied')) {
+               toast({
+                variant: "destructive",
+                title: "Submission Error",
+                description: "There was a problem with the database connection. Please try again later.",
+              });
+          } else {
+              toast({
+                variant: "destructive",
+                title: "Failed to Send Message",
+                description: result.message || "An unexpected error occurred.",
+              });
+          }
+        }
+    } catch (error) {
+        console.error("Contact form submission error:", error);
+        toast({
+            variant: "destructive",
+            title: "An Error Occurred",
+            description: "Could not submit the form. Please try again.",
+        });
+    } finally {
+        setIsLoading(false);
     }
   }
 
@@ -77,7 +95,7 @@ export function ContactSection() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 items-stretch">
+        <div className="grid md:grid-cols-2 gap-12 items-start">
           <Card className="shadow-lg flex flex-col">
             <CardContent className="p-8 flex-grow">
               <Form {...form}>
@@ -143,8 +161,8 @@ export function ContactSection() {
               </Form>
             </CardContent>
           </Card>
-          <div className="flex flex-col space-y-8">
-             <div className="flex flex-col flex-grow justify-between">
+          <div className="flex flex-col space-y-8 h-full">
+             <div className="flex flex-col flex-grow justify-between h-full">
                 <div>
                     <h3 className="text-xl font-headline font-semibold mb-6">
                       <TranslatedContent content="Our Office"/>

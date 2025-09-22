@@ -20,10 +20,14 @@ export async function submitContactForm(values: z.infer<typeof formSchema>) {
       read: false,
     });
     return { success: true, message: 'Message sent successfully!' };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error submitting contact form:', error);
     if (error instanceof z.ZodError) {
       return { success: false, message: 'Validation failed.', errors: error.errors };
+    }
+    // Firebase permission errors often have a 'code' property.
+    if (error.code === 'permission-denied') {
+        return { success: false, message: 'Firestore permission-denied. Check your security rules.' };
     }
     return { success: false, message: 'An unexpected error occurred.' };
   }
