@@ -506,14 +506,66 @@
   },
   "legalNoticePage": {
     "title": "Legal Notice",
-    "content": "Content being drafted..."
+    "section1": {
+      "title": "Site Editor",
+      "p1": "This site is published by Global Trading China.",
+      "item1": { "label": "Company Name:", "value": "Global Trading China" },
+      "item2": { "label": "Address:", "value": "Unit 1501, Building 6, District 3, Xiaosanlitang, Yiwu, Jinhua, Zhejiang, China" },
+      "item3": { "label": "Email:", "value": "info@globaltradingchina.com" }
+    },
+    "section2": {
+      "title": "Hosting Provider",
+      "p1": "This site is hosted by Firebase Hosting, a service of Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA."
+    },
+    "section3": {
+      "title": "Intellectual Property",
+      "p1": "All content on this site, including but not limited to, graphics, images, text, videos, animations, sounds, logos, gifs, and icons as well as their formatting are the exclusive property of the company Global Trading China with the exception of trademarks, logos or content belonging to other partner companies or authors."
+    },
+    "section4": {
+      "title": "Liability",
+      "p1": "The information contained on this site is as accurate as possible and the site is periodically updated, but may contain inaccuracies, omissions or gaps. If you notice a gap, error or what appears to be a malfunction, please report it by email, describing the problem as precisely as possible."
+    }
   },
   "privacyPolicyPage": {
     "title": "Privacy Policy",
-    "content": "Content being drafted..."
+    "introduction": "This privacy policy describes how your personal information is collected, used, and shared when you visit or make a purchase from our site.",
+    "section1": {
+      "title": "Personal Information We Collect",
+      "p1": "When you visit the site, we automatically collect certain information about your device. Additionally, when you attempt to contact us through the site, we collect certain information from you, including:",
+      "item1": "Your name",
+      "item2": "Your email address"
+    },
+    "section2": {
+      "title": "How Do We Use Your Personal Information?",
+      "p1": "We use the information we collect generally to communicate with you and screen our orders for potential risk or fraud."
+    },
+    "section3": {
+      "title": "Sharing Your Personal Information",
+      "p1": "We do not share your Personal Information with third parties except to comply with applicable laws and regulations, to respond to a subpoena, search warrant or other lawful request for information we receive, or to otherwise protect our rights."
+    },
+    "section4": {
+      "title": "Your Rights",
+      "p1": "If you are a European resident, you have the right to access personal information we hold about you and to ask that your personal information be corrected, updated, or deleted. If you would like to exercise this right, please contact us."
+    }
   },
   "termsOfServicePage": {
     "title": "Terms of Service",
-    "content": "Content being drafted..."
+    "introduction": "These Terms of Service govern your use of our website and the services we offer. By accessing or using the service, you agree to be bound by these Terms.",
+    "section1": {
+      "title": "Services",
+      "p1": "We provide sourcing, trading, and e-commerce services from China. The specifics of these services will be defined in a separate agreement or quote provided to you."
+    },
+    "section2": {
+      "title": "User Obligations",
+      "p1": "You agree to use our site and services for lawful purposes only. You must provide accurate and complete information when requesting a quote or using our services."
+    },
+    "section3": {
+      "title": "Limitation of Liability",
+      "p1": "Our liability shall be limited to the amount paid by you for the services. We are not responsible for any indirect, incidental, or consequential damages."
+    },
+    "section4": {
+      "title": "Governing Law",
+      "p1": "These Terms shall be governed and construed in accordance with the laws of the People's Republic of China, without regard to its conflict of law provisions."
+    }
   }
 }

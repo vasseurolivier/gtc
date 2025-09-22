@@ -506,14 +506,66 @@
   },
   "legalNoticePage": {
     "title": "Mentions Légales",
-    "content": "Contenu en cours de rédaction..."
+    "section1": {
+      "title": "Éditeur du Site",
+      "p1": "Ce site est édité par la société Global Trading China.",
+      "item1": { "label": "Raison Sociale :", "value": "Global Trading China" },
+      "item2": { "label": "Adresse :", "value": "浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501" },
+      "item3": { "label": "Email :", "value": "info@globaltradingchina.com" }
+    },
+    "section2": {
+      "title": "Hébergement",
+      "p1": "Ce site est hébergé par Firebase Hosting, un service de Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA."
+    },
+    "section3": {
+      "title": "Propriété Intellectuelle",
+      "p1": "Tout le contenu présent sur le site, incluant, de façon non limitative, les graphismes, images, textes, vidéos, animations, sons, logos, gifs et icônes ainsi que leur mise en forme sont la propriété exclusive de la société Global Trading China à l'exception des marques, logos ou contenus appartenant à d'autres sociétés partenaires ou auteurs."
+    },
+    "section4": {
+      "title": "Responsabilité",
+      "p1": "Les informations contenues sur ce site sont aussi précises que possible et le site est périodiquement remis à jour, mais peut toutefois contenir des inexactitudes, des omissions ou des lacunes. Si vous constatez une lacune, erreur ou ce qui parait être un dysfonctionnement, merci de bien vouloir le signaler par email, en décrivant le problème de la manière la plus précise possible."
+    }
   },
   "privacyPolicyPage": {
     "title": "Politique de Confidentialité",
-    "content": "Contenu en cours de rédaction..."
+    "introduction": "Cette politique de confidentialité décrit comment vos informations personnelles sont collectées, utilisées et partagées lorsque vous visitez ou effectuez un achat sur notre site.",
+    "section1": {
+      "title": "Informations Personnelles que nous Collectons",
+      "p1": "Lorsque vous visitez le site, nous collectons automatiquement certaines informations sur votre appareil. De plus, lorsque vous tentez de nous contacter via le site, nous collectons certaines informations vous concernant, notamment :",
+      "item1": "Votre nom",
+      "item2": "Votre adresse e-mail"
+    },
+    "section2": {
+      "title": "Comment Utilisons-Nous Vos Informations Personnelles ?",
+      "p1": "Nous utilisons les informations que nous collectons généralement pour communiquer avec vous et pour filtrer nos commandes à la recherche de risques potentiels ou de fraudes."
+    },
+    "section3": {
+      "title": "Partage de Vos Informations Personnelles",
+      "p1": "Nous ne partageons pas vos Informations Personnelles avec des tiers, sauf pour nous conformer aux lois et réglementations applicables, pour répondre à une assignation, un mandat de perquisition ou toute autre demande légale d'informations que nous recevons, ou pour protéger nos droits."
+    },
+    "section4": {
+      "title": "Vos Droits",
+      "p1": "Si vous êtes un résident européen, vous avez le droit d'accéder aux informations personnelles que nous détenons à votre sujet et de demander que vos informations personnelles soient corrigées, mises à jour ou supprimées. Si vous souhaitez exercer ce droit, veuillez nous contacter."
+    }
   },
   "termsOfServicePage": {
     "title": "Conditions Générales de Vente",
-    "content": "Contenu en cours de rédaction..."
+    "introduction": "Ces Conditions Générales de Vente régissent votre utilisation de notre site web et des services que nous offrons. En accédant ou en utilisant le service, vous acceptez d'être lié par ces Conditions.",
+    "section1": {
+      "title": "Services",
+      "p1": "Nous fournissons des services de sourcing, de négoce et d'e-commerce depuis la Chine. Les spécificités de ces services seront définies dans un accord séparé ou un devis qui vous sera fourni."
+    },
+    "section2": {
+      "title": "Obligations de l'Utilisateur",
+      "p1": "Vous vous engagez à n'utiliser notre site et nos services qu'à des fins légales. Vous devez fournir des informations exactes et complètes lors de la demande d'un devis ou de l'utilisation de nos services."
+    },
+    "section3": {
+      "title": "Limitation de Responsabilité",
+      "p1": "Notre responsabilité sera limitée au montant que vous avez payé pour les services. Nous ne sommes pas responsables des dommages indirects, accessoires ou consécutifs."
+    },
+    "section4": {
+      "title": "Droit Applicable",
+      "p1": "Ces Conditions seront régies et interprétées conformément aux lois de la République populaire de Chine, sans égard à ses dispositions en matière de conflit de lois."
+    }
   }
 }
