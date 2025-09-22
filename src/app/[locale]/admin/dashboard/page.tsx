@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, orderBy, query, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -24,10 +24,7 @@ interface Submission {
   email: string;
   subject: string;
   message: string;
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  } | null;
+  createdAt: Timestamp | null;
   read: boolean;
 }
 
@@ -132,7 +129,7 @@ export default function AdminDashboardPage() {
                        </div>
                        <span className="text-sm text-muted-foreground pr-4">
                           {submission.createdAt
-                            ? format(new Date(submission.createdAt.seconds * 1000), 'MMM dd, yyyy - hh:mm a')
+                            ? format(submission.createdAt.toDate(), 'MMM dd, yyyy - hh:mm a')
                             : 'No date'}
                         </span>
                     </div>
