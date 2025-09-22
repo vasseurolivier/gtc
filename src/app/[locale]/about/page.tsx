@@ -137,6 +137,32 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
         </div>
       </section>
 
+      <section className="py-16 md:py-24 bg-secondary/30">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">
+              {aboutPageDict.advantages.title}
+            </h2>
+            <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              {aboutPageDict.advantages.subtitle}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {advantages.map((advantage) => (
+              <Card key={advantage.title} className="text-center p-8">
+                <div className="flex justify-center mb-4">
+                  {advantage.icon}
+                </div>
+                <CardTitle className="font-headline text-xl mb-2">{advantage.title}</CardTitle>
+                <CardContent className="p-0 text-muted-foreground">
+                  {advantage.description}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 md:py-24 bg-card">
         <div className="container">
            <Carousel
@@ -172,33 +198,6 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
               <CarouselPrevious />
               <CarouselNext />
             </Carousel>
-        </div>
-      </section>
-
-
-      <section className="py-16 md:py-24 bg-secondary/30">
-        <div className="container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              {aboutPageDict.advantages.title}
-            </h2>
-            <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              {aboutPageDict.advantages.subtitle}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {advantages.map((advantage) => (
-              <Card key={advantage.title} className="text-center p-8">
-                <div className="flex justify-center mb-4">
-                  {advantage.icon}
-                </div>
-                <CardTitle className="font-headline text-xl mb-2">{advantage.title}</CardTitle>
-                <CardContent className="p-0 text-muted-foreground">
-                  {advantage.description}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       </section>
       
