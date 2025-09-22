@@ -77,63 +77,65 @@ export function ContactSection() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 items-start">
-          <Card className="shadow-lg">
-            <CardContent className="p-8">
+        <div className="grid md:grid-cols-2 gap-12 items-stretch">
+          <Card className="shadow-lg flex flex-col">
+            <CardContent className="p-8 flex-grow">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel><TranslatedContent content="Your Name" /></FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel><TranslatedContent content="Your Email" /></FormLabel>
-                        <FormControl>
-                          <Input placeholder="john.doe@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel><TranslatedContent content="Subject" /></FormLabel>
-                        <FormControl>
-                          <Input placeholder="Sourcing Inquiry" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel><TranslatedContent content="Your Message" /></FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Tell us about your project..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex flex-col h-full">
+                  <div className="space-y-6 flex-grow">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel><TranslatedContent content="Your Name" /></FormLabel>
+                          <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel><TranslatedContent content="Your Email" /></FormLabel>
+                          <FormControl>
+                            <Input placeholder="john.doe@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel><TranslatedContent content="Subject" /></FormLabel>
+                          <FormControl>
+                            <Input placeholder="Sourcing Inquiry" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel><TranslatedContent content="Your Message" /></FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Tell us about your project..." {...field} rows={6} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
                     {isLoading ? <Loader2 className="animate-spin" /> : <TranslatedContent content="Send Message" />}
                   </Button>
@@ -141,7 +143,7 @@ export function ContactSection() {
               </Form>
             </CardContent>
           </Card>
-          <div className="space-y-8 pt-2">
+          <div className="flex flex-col space-y-8">
              <div>
                 <h3 className="text-xl font-headline font-semibold mb-6">
                   <TranslatedContent content="Our Office"/>
@@ -162,14 +164,13 @@ export function ContactSection() {
                 </div>
             </div>
             {mapImage && (
-              <div className="rounded-lg overflow-hidden shadow-lg border">
+              <div className="rounded-lg overflow-hidden shadow-lg border flex-grow h-full min-h-[300px] relative">
                 <Image
                   src={mapImage.imageUrl}
                   alt={mapImage.description}
                   data-ai-hint={mapImage.imageHint}
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
+                  fill
+                  className="w-full h-full object-cover"
                 />
               </div>
             )}
