@@ -1,5 +1,4 @@
 
-'use client';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -14,20 +13,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { useEffect, useState } from 'react';
 
-
-export default function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
-  const [dictionary, setDictionary] = useState<any>(null);
-
-  useEffect(() => {
-    getDictionary(locale).then(setDictionary);
-  }, [locale]);
-
-
-  if (!dictionary) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
-  }
+export default async function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
   
   const aboutPageDict = dictionary.aboutPage;
 
