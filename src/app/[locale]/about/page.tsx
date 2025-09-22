@@ -4,48 +4,53 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Building, Target, Users } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
-const teamMembers = [
-  {
-    name: "Vasseur Olivier",
-    role: "Fondateur & Directeur Général",
-    imageUrl: "/placeholder-user.jpg",
-    bio: "Avec plus de 15 ans d'expérience dans le commerce international et une connaissance approfondie du marché chinois, Olivier a fondé Global Trading China pour combler le fossé entre les entreprises occidentales et les fabricants chinois."
-  },
-  {
-    name: "Jane Doe",
-    role: "Responsable Sourcing",
-    imageUrl: "/placeholder-user.jpg",
-    bio: "Spécialiste de l'identification et de l'audit de fournisseurs, Jane dirige notre équipe de sourcing pour trouver les partenaires de fabrication les plus fiables et les plus compétitifs pour nos clients."
-  },
-  {
-    name: "Li Wei",
-    role: "Chef de la Logistique",
-    imageUrl: "/placeholder-user.jpg",
-    bio: "Expert en logistique internationale et en douanes, Li assure que les marchandises de nos clients sont livrées de manière efficace et sécurisée, en optimisant les coûts et les délais."
-  }
-];
-
-const values = [
-  {
-    icon: <Users className="h-8 w-8 text-primary" />,
-    title: "Partenariat",
-    description: "Nous construisons des relations à long terme basées sur la confiance et la transparence."
-  },
-  {
-    icon: <Target className="h-8 w-8 text-primary" />,
-    title: "Rigueur",
-    description: "Chaque étape, du sourcing au contrôle qualité, est menée avec la plus grande exigence."
-  },
-  {
-    icon: <Building className="h-8 w-8 text-primary" />,
-    title: "Expertise Locale",
-    description: "Notre présence sur le terrain est votre meilleur atout pour naviguer le marché chinois."
-  }
-];
+import { getDictionary } from '@/lib/get-dictionary';
+import { Locale } from '@/i18n-config';
 
 
-export default function AboutPage() {
+export default async function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
+  const aboutPageDict = dictionary.aboutPage;
+
+  const teamMembers = [
+    {
+      name: aboutPageDict.team.member1.name,
+      role: aboutPageDict.team.member1.role,
+      imageUrl: "/placeholder-user.jpg",
+      bio: aboutPageDict.team.member1.bio
+    },
+    {
+      name: aboutPageDict.team.member2.name,
+      role: aboutPageDict.team.member2.role,
+      imageUrl: "/placeholder-user.jpg",
+      bio: aboutPageDict.team.member2.bio
+    },
+    {
+      name: aboutPageDict.team.member3.name,
+      role: aboutPageDict.team.member3.role,
+      imageUrl: "/placeholder-user.jpg",
+      bio: aboutPageDict.team.member3.bio
+    }
+  ];
+
+  const values = [
+    {
+      icon: <Users className="h-8 w-8 text-primary" />,
+      title: aboutPageDict.values.value1.title,
+      description: aboutPageDict.values.value1.description
+    },
+    {
+      icon: <Target className="h-8 w-8 text-primary" />,
+      title: aboutPageDict.values.value2.title,
+      description: aboutPageDict.values.value2.description
+    },
+    {
+      icon: <Building className="h-8 w-8 text-primary" />,
+      title: aboutPageDict.values.value3.title,
+      description: aboutPageDict.values.value3.description
+    }
+  ];
+
   const aboutHero = PlaceHolderImages.find(p => p.id === 'about-hero');
 
   return (
@@ -65,10 +70,10 @@ export default function AboutPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  Notre Mission : Simplifier le Commerce avec la Chine
+                  {aboutPageDict.hero.title}
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  Nous sommes votre partenaire de confiance, dédié à transformer les opportunités du marché chinois en succès pour votre entreprise.
+                  {aboutPageDict.hero.subtitle}
               </div>
           </div>
         </div>
@@ -79,14 +84,14 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-headline font-bold text-primary">
-                Qui Sommes-Nous ?
+                {aboutPageDict.aboutUs.title}
               </h2>
               <div className="mt-6 prose prose-lg max-w-none text-muted-foreground">
                 <p>
-                  Global Trading China est née de la conviction que l'accès au marché chinois, vaste et complexe, devrait être simple et sécurisé pour toute entreprise, quelle que soit sa taille. Fondée par des experts du commerce international avec des années d'expérience sur le terrain, notre société sert de pont entre les ambitions des entrepreneurs mondiaux et l'incroyable potentiel de production de la Chine.
+                  {aboutPageDict.aboutUs.p1}
                 </p>
                 <p>
-                  Nous ne sommes pas de simples intermédiaires. Nous sommes une extension de votre équipe, vos yeux et vos oreilles en Chine. Notre mission est de défendre vos intérêts, de garantir la qualité de vos produits et d'optimiser votre chaîne d'approvisionnement pour une croissance durable.
+                  {aboutPageDict.aboutUs.p2}
                 </p>
               </div>
             </div>
@@ -112,10 +117,10 @@ export default function AboutPage() {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              Rencontrez Notre Équipe
+              {aboutPageDict.team.title}
             </h2>
             <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              Des experts passionnés et dédiés à votre succès.
+              {aboutPageDict.team.subtitle}
             </div>
           </div>
 

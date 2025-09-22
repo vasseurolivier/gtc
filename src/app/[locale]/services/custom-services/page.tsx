@@ -2,86 +2,68 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getDictionary } from '@/lib/get-dictionary';
+import { Locale } from '@/i18n-config';
 
-const customServicesFeatures = [
-  {
-    icon: <FlaskConical className="h-8 w-8 text-primary" />,
-    title: "Développement de Produit sur Mesure (OEM/ODM)",
-    description: "Vous avez une idée innovante ? Nous la transformons en réalité. Nous vous accompagnons de la conception 3D et du prototypage à la recherche de matériaux spécifiques et à la mise en place d'une ligne de production dédiée."
-  },
-  {
-    icon: <Users className="h-8 w-8 text-primary" />,
-    title: "Assistance pour Salons Professionnels",
-    description: "Optimisez votre visite en Chine. Nous vous accompagnons sur les salons majeurs comme la Foire de Canton, en assurant la traduction, la prise de contact, la présélection des stands pertinents et le suivi post-salon."
-  },
-  {
-    icon: <Briefcase className="h-8 w-8 text-primary" />,
-    title: "Conseil en Stratégie d'Achat",
-    description: "Au-delà de l'opérationnel, nous vous apportons une vision stratégique. Nous analysons votre chaîne d'approvisionnement, identifions les points de friction et proposons des solutions pour réduire les coûts, minimiser les risques et améliorer l'efficacité."
-  },
-  {
-    icon: <Network className="h-8 w-8 text-primary" />,
-    title: "Gestion de Projets Complexes",
-    description: "Pour les projets nécessitant la coordination de multiples fournisseurs, des compétences techniques pointues ou un cahier des charges particulièrement exigeant, nous agissons comme votre chef de projet unique en Chine, garantissant la cohésion et le succès du projet."
-  }
-];
 
-const detailedServices = [
+export default async function CustomServicesPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
+  const customServicesDict = dictionary.customServicesPage;
+  
+  const customServicesFeatures = [
     {
-        id: "oem-odm",
-        title: "Du Concept au Produit Fini : Notre Processus OEM/ODM",
-        description: "Nous transformons votre vision en un produit commercialisable grâce à un processus structuré et collaboratif.",
-        imageUrlId: "custom-services-feature-1",
-        points: [
-            "Analyse du cahier des charges et étude de faisabilité.",
-            "Conception 3D, modélisation et création de prototypes.",
-            "Sourcing de matériaux et composants spécifiques.",
-            "Sélection de l'usine la plus adaptée et mise en production.",
-            "Suivi de la fabrication et contrôle qualité à chaque étape."
-        ]
+      icon: <FlaskConical className="h-8 w-8 text-primary" />,
+      title: customServicesDict.features.feature1.title,
+      description: customServicesDict.features.feature1.description
     },
     {
-        id: "trade-shows",
-        title: "Maximisez Votre Impact sur les Salons Professionnels",
-        description: "Faites de votre visite sur les salons chinois un investissement rentable avec un accompagnement sur mesure.",
-        imageUrlId: "custom-services-feature-2",
-        points: [
-            "Préparation en amont : définition des objectifs, présélection des exposants.",
-            "Accompagnement sur place : traduction technique, aide à la négociation.",
-            "Logistique : réservation d'hôtel, transport, organisation de l'agenda.",
-            "Suivi post-salon : centralisation des contacts, suivi des offres, gestion des échantillons.",
-            "Organisation de visites d'usines en marge du salon."
-        ]
-    },
-     {
-        id: "purchasing-strategy",
-        title: "Une Stratégie d'Achat Intelligente pour une Croissance Durable",
-        description: "Nous optimisons votre chaîne d'approvisionnement pour la rendre plus résiliente, plus efficace et moins coûteuse.",
-        imageUrlId: "custom-services-feature-3",
-        points: [
-            "Audit complet de votre chaîne d'approvisionnement actuelle.",
-            "Analyse des risques (géopolitiques, logistiques, fournisseurs).",
-            "Rationalisation du panel de fournisseurs et identification de sources alternatives.",
-            "Mise en place d'indicateurs de performance (KPIs).",
-            "Conseil sur les Incoterms et les stratégies de dédouanement."
-        ]
+      icon: <Users className="h-8 w-8 text-primary" />,
+      title: customServicesDict.features.feature2.title,
+      description: customServicesDict.features.feature2.description
     },
     {
-        id: "project-management",
-        title: "Gestion de Projets Complexes : Votre Chef d'Orchestre en Chine",
-        description: "Nous assurons la synchronisation parfaite de tous les intervenants pour mener à bien vos projets les plus ambitieux.",
-        imageUrlId: "custom-services-feature-4",
-        points: [
-            "Point de contact unique pour tous les fournisseurs et parties prenantes.",
-            "Élaboration d'un planning détaillé et suivi rigoureux des jalons.",
-            "Gestion de la documentation technique et des conformités réglementaires.",
-            "Coordination des flux logistiques entre les différents sites de production.",
-            "Reporting régulier et transparent sur l'avancement du projet."
-        ]
+      icon: <Briefcase className="h-8 w-8 text-primary" />,
+      title: customServicesDict.features.feature3.title,
+      description: customServicesDict.features.feature3.description
+    },
+    {
+      icon: <Network className="h-8 w-8 text-primary" />,
+      title: customServicesDict.features.feature4.title,
+      description: customServicesDict.features.feature4.description
     }
-]
+  ];
+  
+  const detailedServices = [
+      {
+          id: "oem-odm",
+          title: customServicesDict.detailedServices.service1.title,
+          description: customServicesDict.detailedServices.service1.description,
+          imageUrlId: "custom-services-feature-1",
+          points: customServicesDict.detailedServices.service1.points
+      },
+      {
+          id: "trade-shows",
+          title: customServicesDict.detailedServices.service2.title,
+          description: customServicesDict.detailedServices.service2.description,
+          imageUrlId: "custom-services-feature-2",
+          points: customServicesDict.detailedServices.service2.points
+      },
+       {
+          id: "purchasing-strategy",
+          title: customServicesDict.detailedServices.service3.title,
+          description: customServicesDict.detailedServices.service3.description,
+          imageUrlId: "custom-services-feature-3",
+          points: customServicesDict.detailedServices.service3.points
+      },
+      {
+          id: "project-management",
+          title: customServicesDict.detailedServices.service4.title,
+          description: customServicesDict.detailedServices.service4.description,
+          imageUrlId: "custom-services-feature-4",
+          points: customServicesDict.detailedServices.service4.points
+      }
+  ]
 
-export default function CustomServicesPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'custom-services-hero');
 
   return (
@@ -101,10 +83,10 @@ export default function CustomServicesPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  Services sur Mesure et Conseil Stratégique
+                  {customServicesDict.hero.title}
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  Des solutions flexibles conçues pour répondre précisément à vos défis commerciaux uniques en Chine.
+                  {customServicesDict.hero.subtitle}
               </div>
           </div>
         </div>
@@ -114,10 +96,10 @@ export default function CustomServicesPage() {
         <div className="container">
            <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              Votre Partenaire pour l'Extra-Miliaire
+              {customServicesDict.extraMile.title}
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              Quand vos besoins dépassent le cadre standard, notre expertise et notre flexibilité font toute la différence.
+              {customServicesDict.extraMile.subtitle}
             </div>
           </div>
 
@@ -181,10 +163,10 @@ export default function CustomServicesPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">
-                Vous avez un projet qui sort de l'ordinaire ?
+                {customServicesDict.cta.title}
             </h2>
             <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                Nous aimons les défis. Contactez-nous pour discuter de vos besoins spécifiques et nous construirons ensemble une solution sur mesure.
+                {customServicesDict.cta.subtitle}
             </div>
         </div>
       </section>

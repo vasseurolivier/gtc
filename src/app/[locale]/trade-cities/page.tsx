@@ -1,40 +1,44 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, Lightbulb, Package, Wifi } from 'lucide-react';
+import { Building, Wifi, Package } from 'lucide-react';
+import { getDictionary } from '@/lib/get-dictionary';
+import { Locale } from '@/i18n-config';
 
-const cities = [
-  {
-    id: "guangzhou",
-    name: "Guangzhou (Canton)",
-    subtitle: "La Capitale Mondiale du Commerce Traditionnel",
-    description: "Historiquement l'un des plus anciens ports de commerce de Chine, Guangzhou est un hub incontournable. Célèbre pour la Foire de Canton, la plus grande foire commerciale au monde, la ville excelle dans une vaste gamme de produits, notamment le textile, les vêtements, les articles en cuir et l'électronique.",
-    imageUrlId: "guangzhou-city",
-    specialties: ["Textile & Habillement", "Foire de Canton", "Électronique", "Articles en cuir"],
-    icon: <Building className="h-8 w-8 text-primary" />,
-  },
-  {
-    id: "shenzhen",
-    name: "Shenzhen",
-    subtitle: "La Silicon Valley de l'Hardware",
-    description: "Voisine de Hong Kong, Shenzhen est le cœur battant de l'innovation technologique en Chine. C'est l'épicentre mondial de la fabrication électronique, des composants aux produits finis. Si votre projet concerne les startups, la haute technologie, les gadgets ou tout ce qui est alimenté par une batterie, Shenzhen est votre destination.",
-    imageUrlId: "shenzhen-city",
-    specialties: ["Électronique grand public", "Composants", "Startups Tech", "Innovation"],
-    icon: <Wifi className="h-8 w-8 text-primary" />,
-  },
-  {
-    id: "yiwu",
-    name: "Yiwu",
-    subtitle: "Le plus Grand Marché de Gros au Monde",
-    description: "Yiwu est une ville-marché unique, abritant l'immense 'International Trade City'. C'est le paradis pour le sourcing de petits articles, de biens de consommation courante, de jouets, de bijoux, de décorations et de papeterie. Idéal pour les acheteurs cherchant à commander de petites quantités (MOQ bas) sur une très grande variété de produits.",
-    imageUrlId: "yiwu-city",
-    specialties: ["Petites marchandises", "Jouets & Gadgets", "Bijoux & Accessoires", "Faibles MOQ"],
-    icon: <Package className="h-8 w-8 text-primary" />,
-  },
-]
+export default async function TradeCitiesPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
+  const tradeCitiesDict = dictionary.tradeCitiesPage;
 
-export default function TradeCitiesPage() {
+  const cities = [
+    {
+      id: "guangzhou",
+      name: tradeCitiesDict.cities.guangzhou.name,
+      subtitle: tradeCitiesDict.cities.guangzhou.subtitle,
+      description: tradeCitiesDict.cities.guangzhou.description,
+      imageUrlId: "guangzhou-city",
+      specialties: tradeCitiesDict.cities.guangzhou.specialties,
+      icon: <Building className="h-8 w-8 text-primary" />,
+    },
+    {
+      id: "shenzhen",
+      name: tradeCitiesDict.cities.shenzhen.name,
+      subtitle: tradeCitiesDict.cities.shenzhen.subtitle,
+      description: tradeCitiesDict.cities.shenzhen.description,
+      imageUrlId: "shenzhen-city",
+      specialties: tradeCitiesDict.cities.shenzhen.specialties,
+      icon: <Wifi className="h-8 w-8 text-primary" />,
+    },
+    {
+      id: "yiwu",
+      name: tradeCitiesDict.cities.yiwu.name,
+      subtitle: tradeCitiesDict.cities.yiwu.subtitle,
+      description: tradeCitiesDict.cities.yiwu.description,
+      imageUrlId: "yiwu-city",
+      specialties: tradeCitiesDict.cities.yiwu.specialties,
+      icon: <Package className="h-8 w-8 text-primary" />,
+    },
+  ];
+
   const heroImage = PlaceHolderImages.find(p => p.id === 'trade-cities-hero');
 
   return (
@@ -54,10 +58,10 @@ export default function TradeCitiesPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  Pôles Commerciaux Stratégiques en Chine
+                  {tradeCitiesDict.hero.title}
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  Découvrez les villes clés qui sont au cœur du commerce mondial et comment nous vous y donnons accès.
+                  {tradeCitiesDict.hero.subtitle}
               </div>
           </div>
         </div>
@@ -72,7 +76,7 @@ export default function TradeCitiesPage() {
             return (
               <div key={city.id} className="grid md:grid-cols-2 gap-12 items-center">
                 <div className={`relative h-96 rounded-xl overflow-hidden shadow-lg ${isOdd ? 'md:order-last' : ''}`}>
-                    {image && <Image src={image.imageUrl} alt={city.name} data-ai-hint={image.imageHint} fill className="object-cover"/>}
+                    {image && <Image src={image.imageUrl} alt={city.name} data-ai-hint={image.imageHint ?? ''} fill className="object-cover"/>}
                 </div>
                 <div>
                   <div className="flex items-center gap-4">

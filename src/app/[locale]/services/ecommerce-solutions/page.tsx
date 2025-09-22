@@ -1,32 +1,37 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Lightbulb, Package, Boxes, Rocket } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { getDictionary } from '@/lib/get-dictionary';
+import { Locale } from '@/i18n-config';
 
-const ecommerceFeatures = [
-  {
-    icon: <Lightbulb className="h-8 w-8 text-primary" />,
-    title: "Sourcing de Produits Gagnants",
-    description: "Grâce à notre analyse du marché et à notre présence sur le terrain, nous identifions des produits tendance avec un fort potentiel de marge pour des plateformes comme Amazon FBA, Shopify, et les places de marché européennes."
-  },
-  {
-    icon: <Package className="h-8 w-8 text-primary" />,
-    title: "Branding et Packaging sur Mesure",
-    description: "Différenciez-vous de la concurrence. Nous vous aidons à créer une marque forte, de la conception de votre logo à la réalisation d'emballages personnalisés (boîtes, étiquettes, manuels d'utilisation) qui ravira vos clients."
-  },
-  {
-    icon: <Boxes className="h-8 w-8 text-primary" />,
-    title: "Préparation FBA & 3PL Conforme",
-    description: "Évitez les refus et les retards coûteux. Nous préparons vos produits selon les spécifications les plus strictes d'Amazon (étiquetage FNSKU, polybags, cartons master) ou de tout autre service logistique tiers (3PL)."
-  },
-  {
-    icon: <Rocket className="h-8 w-8 text-primary" />,
-    title: "Dropshipping et Fulfillment Fiables",
-    description: "Lancez-vous sans investir dans un stock massif. Nous proposons des solutions de dropshipping où nous stockons vos produits et les expédions directement à vos clients finaux, avec des options de suivi et un packaging personnalisé."
-  }
-];
 
-export default function EcommerceSolutionsPage() {
+export default async function EcommerceSolutionsPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
+  const ecommerceDict = dictionary.ecommerceSolutionsPage;
+
+  const ecommerceFeatures = [
+    {
+      icon: <Lightbulb className="h-8 w-8 text-primary" />,
+      title: ecommerceDict.features.feature1.title,
+      description: ecommerceDict.features.feature1.description
+    },
+    {
+      icon: <Package className="h-8 w-8 text-primary" />,
+      title: ecommerceDict.features.feature2.title,
+      description: ecommerceDict.features.feature2.description
+    },
+    {
+      icon: <Boxes className="h-8 w-8 text-primary" />,
+      title: ecommerceDict.features.feature3.title,
+      description: ecommerceDict.features.feature3.description
+    },
+    {
+      icon: <Rocket className="h-8 w-8 text-primary" />,
+      title: ecommerceDict.features.feature4.title,
+      description: ecommerceDict.features.feature4.description
+    }
+  ];
+
   const heroImage = PlaceHolderImages.find(p => p.id === 'ecommerce-hero');
   const featureImage1 = PlaceHolderImages.find(p => p.id === 'ecommerce-feature-1');
   const featureImage2 = PlaceHolderImages.find(p => p.id === 'ecommerce-feature-2');
@@ -48,10 +53,10 @@ export default function EcommerceSolutionsPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  Solutions E-commerce Intégrées
+                  {ecommerceDict.hero.title}
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  Votre partenaire unique pour lancer et faire grandir votre boutique en ligne avec des produits sourcés en Chine.
+                  {ecommerceDict.hero.subtitle}
               </div>
           </div>
         </div>
@@ -61,10 +66,10 @@ export default function EcommerceSolutionsPage() {
         <div className="container">
            <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              Votre Accélérateur E-commerce
+              {ecommerceDict.accelerator.title}
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              Nous fournissons l'infrastructure et l'expertise nécessaires pour transformer votre idée en une entreprise e-commerce prospère.
+              {ecommerceDict.accelerator.subtitle}
             </div>
           </div>
 
@@ -126,10 +131,10 @@ export default function EcommerceSolutionsPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">
-                Prêt à lancer votre prochain best-seller ?
+                {ecommerceDict.cta.title}
             </h2>
             <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discutons de votre projet e-commerce. Que vous soyez un vendeur Amazon expérimenté ou un débutant sur Shopify, nous avons la solution pour vous.
+                {ecommerceDict.cta.subtitle}
             </div>
         </div>
       </section>

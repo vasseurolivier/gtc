@@ -30,7 +30,7 @@ const formSchema = z.object({
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
-export function ContactSection() {
+export function ContactSection({ dictionary }: { dictionary: any }) {
   const mapImage = PlaceHolderImages.find(p => p.id === 'contact-map');
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +51,8 @@ export function ContactSection() {
         const result = await submitContactForm(values);
         if (result.success) {
           toast({
-            title: "Message Sent!",
-            description: "Thank you for contacting us. We will get back to you shortly.",
+            title: dictionary.toast.success.title,
+            description: dictionary.toast.success.description,
           });
           form.reset();
         } else {
@@ -60,14 +60,14 @@ export function ContactSection() {
           if (result.message && result.message.includes('permission-denied')) {
                toast({
                 variant: "destructive",
-                title: "Submission Error",
-                description: "There was a problem with the database connection. Please try again later.",
+                title: dictionary.toast.error.title,
+                description: dictionary.toast.error.db,
               });
           } else {
               toast({
                 variant: "destructive",
-                title: "Failed to Send Message",
-                description: result.message || "An unexpected error occurred.",
+                title: dictionary.toast.error.title,
+                description: result.message || dictionary.toast.error.unexpected,
               });
           }
         }
@@ -75,8 +75,8 @@ export function ContactSection() {
         console.error("Contact form submission error:", error);
         toast({
             variant: "destructive",
-            title: "An Error Occurred",
-            description: "Could not submit the form. Please try again.",
+            title: dictionary.toast.error.title,
+            description: dictionary.toast.error.unexpected,
         });
     } finally {
         setIsLoading(false);
@@ -88,10 +88,10 @@ export function ContactSection() {
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            Nous contacter
+            {dictionary.title}
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Vous avez une question ou un projet en tête ? Nous serions ravis d'en discuter avec vous.
+            {dictionary.subtitle}
           </div>
         </div>
 
@@ -106,9 +106,9 @@ export function ContactSection() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Votre nom</FormLabel>
+                          <FormLabel>{dictionary.form.name.label}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Jean Dupont" {...field} />
+                            <Input placeholder={dictionary.form.name.placeholder} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -119,9 +119,9 @@ export function ContactSection() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Votre email</FormLabel>
+                          <FormLabel>{dictionary.form.email.label}</FormLabel>
                           <FormControl>
-                            <Input placeholder="jean.dupont@exemple.com" {...field} />
+                            <Input placeholder={dictionary.form.email.placeholder} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -132,9 +132,9 @@ export function ContactSection() {
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Sujet</FormLabel>
+                          <FormLabel>{dictionary.form.subject.label}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Demande de sourcing" {...field} />
+                            <Input placeholder={dictionary.form.subject.placeholder} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -145,9 +145,9 @@ export function ContactSection() {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Votre message</FormLabel>
+                          <FormLabel>{dictionary.form.message.label}</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Parlez-nous de votre projet..." {...field} rows={6} />
+                            <Textarea placeholder={dictionary.form.message.placeholder} {...field} rows={6} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -155,7 +155,7 @@ export function ContactSection() {
                     />
                   </div>
                   <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="animate-spin" /> : "Envoyer le message"}
+                    {isLoading ? <Loader2 className="animate-spin" /> : dictionary.form.submit}
                   </Button>
                 </form>
               </Form>
@@ -165,20 +165,20 @@ export function ContactSection() {
              <div className="flex flex-col flex-grow justify-between h-full">
                 <div>
                     <h3 className="text-xl font-headline font-semibold mb-6">
-                      Nos bureaux
+                      {dictionary.office.title}
                     </h3>
                     <div className="space-y-4 text-muted-foreground">
                         <div className="flex items-start">
                             <MapPin className="h-5 w-5 mr-4 mt-1 shrink-0 text-primary"/>
-                            <span>浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501</span>
+                            <span>{dictionary.office.address}</span>
                         </div>
                         <div className="flex items-center">
                             <Phone className="h-5 w-5 mr-4 shrink-0 text-primary"/>
-                            <span>+86 135 6477 0717 (téléphone et Whatsapp)</span>
+                            <span>{dictionary.office.phone}</span>
                         </div>
                         <div className="flex items-center">
                             <Mail className="h-5 w-5 mr-4 shrink-0 text-primary"/>
-                            <span>info@globaltradingchina.com</span>
+                            <span>{dictionary.office.email}</span>
                         </div>
                     </div>
                 </div>
