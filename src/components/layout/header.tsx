@@ -19,6 +19,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { i18n } from '@/i18n-config';
 
 
 export function Header() {
@@ -49,6 +50,13 @@ export function Header() {
   
   const citiesItem = { href: '/trade-cities', label: 'Pôles Commerciaux' };
   const contactItem = { href: '/contact', label: 'Contact' };
+
+  const redirectedPathName = (locale: string) => {
+    if (!pathname) return '/'
+    const segments = pathname.split('/')
+    segments[1] = locale
+    return segments.join('/')
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -190,7 +198,22 @@ export function Header() {
           </div>
         
         <div className="flex flex-1 items-center justify-end">
-          {/* LanguageSwitcher removed */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Globe className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {i18n.locales.map(locale => (
+                <DropdownMenuItem key={locale} asChild>
+                  <Link href={redirectedPathName(locale)}>
+                    {locale === 'en' ? 'English' : 'Français'}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

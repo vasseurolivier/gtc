@@ -6,22 +6,22 @@ const services = [
   {
     icon: <PackageSearch className="h-10 w-10 text-primary" />,
     title: "Sourcing",
-    description: "We find and vet the best manufacturers in China for your products, ensuring quality and competitive pricing."
+    description: "Nous trouvons et validons les meilleurs fabricants en Chine pour vos produits, en garantissant la qualité et des prix compétitifs."
   },
   {
     icon: <ArrowLeftRight className="h-10 w-10 text-primary" />,
-    title: "Trading",
-    description: "Facilitating smooth import/export operations, handling all logistics and customs for a seamless trade experience."
+    title: "Négoce",
+    description: "Faciliter des opérations d'import/export fluides, en gérant toute la logistique et les douanes pour une expérience commerciale sans faille."
   },
   {
     icon: <ShoppingCart className="h-10 w-10 text-primary" />,
-    title: "E-Commerce Solutions",
-    description: "End-to-end support for your online business, from product sourcing and storage to order fulfillment."
+    title: "Solutions E-commerce",
+    description: "Un soutien de bout en bout pour votre boutique en ligne, du sourcing de produits au stockage et à l'exécution des commandes."
   },
   {
     icon: <Wrench className="h-10 w-10 text-primary" />,
-    title: "Bespoke Services",
-    description: "Customized solutions tailored to your unique business needs, including factory audits and quality control."
+    title: "Services sur Mesure",
+    description: "Des solutions personnalisées adaptées à vos besoins commerciaux uniques, y compris les audits d'usine et le contrôle qualité."
   }
 ];
 
@@ -31,10 +31,10 @@ export function ServicesSection() {
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            Our Core Services
+            Nos Services Principaux
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Comprehensive solutions to power your global business.
+            Des solutions complètes pour dynamiser votre activité mondiale.
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

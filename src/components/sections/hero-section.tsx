@@ -24,21 +24,21 @@ export function HeroSection() {
       <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
         <div className="max-w-4xl">
             <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg">
-                Your Bridge to Global Trade
+                Votre Pont vers le Commerce Mondial
             </h1>
             <div className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-neutral-200">
-                Expert sourcing, trading, and e-commerce solutions from the heart of China to the world.
+                Solutions expertes de sourcing, de négoce et d'e-commerce depuis le cœur de la Chine vers le monde entier.
             </div>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
                 <Link href="/contact">
-                    Get Started
+                    Commencer
                     <ArrowRight className="ml-2" />
                 </Link>
             </Button>
             <Button size="lg" variant="secondary" asChild>
                 <Link href="/services">
-                    Our Services
+                    Nos Services
                 </Link>
             </Button>
             </div>

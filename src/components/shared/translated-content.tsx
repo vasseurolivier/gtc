@@ -1,5 +1,7 @@
 "use client";
 
+// This component is no longer needed for AI translation.
+// It is kept for potential future use with a manual i18n library.
 interface TranslatedContentProps {
   content: string;
   as?: React.ElementType;
@@ -7,7 +9,5 @@ interface TranslatedContentProps {
 }
 
 export function TranslatedContent({ content, as: Component = 'span', ...props }: TranslatedContentProps) {
-  // For now, just render the content directly.
-  // This component can be replaced later with a real i18n implementation.
   return <Component {...props}>{content}</Component>;
 }

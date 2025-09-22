@@ -1,4 +1,5 @@
 
+
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -87,10 +88,10 @@ export function ContactSection() {
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            Get in Touch
+            Nous contacter
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Have a question or a project in mind? We'd love to hear from you.
+            Vous avez une question ou un projet en tête ? Nous serions ravis d'en discuter avec vous.
           </div>
         </div>
 
@@ -105,9 +106,9 @@ export function ContactSection() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Name</FormLabel>
+                          <FormLabel>Votre nom</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} />
+                            <Input placeholder="Jean Dupont" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -118,9 +119,9 @@ export function ContactSection() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Email</FormLabel>
+                          <FormLabel>Votre email</FormLabel>
                           <FormControl>
-                            <Input placeholder="john.doe@example.com" {...field} />
+                            <Input placeholder="jean.dupont@exemple.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -131,9 +132,9 @@ export function ContactSection() {
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Subject</FormLabel>
+                          <FormLabel>Sujet</FormLabel>
                           <FormControl>
-                            <Input placeholder="Sourcing Inquiry" {...field} />
+                            <Input placeholder="Demande de sourcing" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -144,9 +145,9 @@ export function ContactSection() {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Message</FormLabel>
+                          <FormLabel>Votre message</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Tell us about your project..." {...field} rows={6} />
+                            <Textarea placeholder="Parlez-nous de votre projet..." {...field} rows={6} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -154,7 +155,7 @@ export function ContactSection() {
                     />
                   </div>
                   <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="animate-spin" /> : "Send Message"}
+                    {isLoading ? <Loader2 className="animate-spin" /> : "Envoyer le message"}
                   </Button>
                 </form>
               </Form>
@@ -164,7 +165,7 @@ export function ContactSection() {
              <div className="flex flex-col flex-grow justify-between h-full">
                 <div>
                     <h3 className="text-xl font-headline font-semibold mb-6">
-                      Our Office
+                      Nos bureaux
                     </h3>
                     <div className="space-y-4 text-muted-foreground">
                         <div className="flex items-start">
