@@ -75,7 +75,7 @@ export default function AboutPage() {
                 <TranslatedContent content="Qui Sommes-Nous ?" />
               </h2>
               <div className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                <TranslatedContent content="Fondée sur les principes de confiance, de transparence et d'efficacité, TradeBridge Global est bien plus qu'une simple société de négoce. Nous sommes votre partenaire stratégique sur le terrain en Chine. Notre mission est de simplifier la complexité du commerce international et de rendre le sourcing, la production et l'expédition accessibles à tous, des petites entreprises aux grandes multinationales." />
+                <TranslatedContent content="Fondée sur les principes de confiance, de transparence et d'efficacité, Global Trading China est bien plus qu'une simple société de négoce. Nous sommes votre partenaire stratégique sur le terrain en Chine. Notre mission est de simplifier la complexité du commerce international et de rendre le sourcing, la production et l'expédition accessibles à tous, des petites entreprises aux grandes multinationales." />
               </div>
               <div className="mt-4 text-muted-foreground leading-relaxed">
                 <TranslatedContent content="Notre équipe multiculturelle combine une connaissance approfondie du marché chinois avec une compréhension des attentes des marchés occidentaux, créant ainsi un pont solide pour vos ambitions commerciales." />
