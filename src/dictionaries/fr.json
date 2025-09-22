@@ -146,23 +146,36 @@
         "description": "Notre présence sur le terrain est votre meilleur atout pour naviguer le marché chinois."
       }
     },
-    "team": {
-      "title": "Rencontrez Notre Équipe",
-      "subtitle": "Des experts passionnés et dédiés à votre succès.",
-      "member1": {
-        "name": "Vasseur Olivier",
-        "role": "Fondateur & Directeur Général",
-        "bio": "Avec plus de 15 ans d'expérience dans le commerce international et une connaissance approfondie du marché chinois, Olivier a fondé Global Trading China pour combler le fossé entre les entreprises occidentales et les fabricants chinois."
+    "advantages": {
+      "title": "Pourquoi Travailler Avec Nous ?",
+      "subtitle": "Découvrez les avantages clés qui font de nous votre partenaire idéal en Chine.",
+      "advantage1": {
+        "title": "Interlocuteur Unique",
+        "description": "Simplifiez vos opérations. Nous centralisons la communication et gérons pour vous l'ensemble des acteurs, des fournisseurs aux transporteurs."
       },
-      "member2": {
-        "name": "Jane Doe",
-        "role": "Responsable Sourcing",
-        "bio": "Spécialiste de l'identification et de l'audit de fournisseurs, Jane dirige notre équipe de sourcing pour trouver les partenaires de fabrication les plus fiables et les plus compétitifs pour nos clients."
+      "advantage2": {
+        "title": "Sécurisation des Risques",
+        "description": "Nous protégeons vos investissements grâce à des contrôles qualité rigoureux, des audits d'usines et une gestion sécurisée des paiements."
       },
-      "member3": {
-        "name": "Li Wei",
-        "role": "Chef de la Logistique",
-        "bio": "Expert en logistique internationale et en douanes, Li assure que les marchandises de nos clients sont livrées de manière efficace et sécurisée, en optimisant les coûts et les délais."
+      "advantage3": {
+        "title": "Présence sur le Terrain",
+        "description": "Notre équipe en Chine lève la barrière de la langue, comprend la culture locale et réagit en temps réel à tout imprévu."
+      }
+    },
+    "productSectors": {
+      "title": "Nos Secteurs de Produits",
+      "subtitle": "Notre expertise couvre un large éventail d'industries, nous permettant de répondre à des besoins variés et spécifiques.",
+      "sectors": {
+        "textiles": "Textile & Habillement",
+        "electronics": "Électronique",
+        "furniture": "Mobilier & Décoration",
+        "jewelry": "Bijoux & Accessoires",
+        "toys": "Jouets & Jeux",
+        "packaging": "Packaging",
+        "tools": "Outillage & Quincaillerie",
+        "autoParts": "Pièces Automobiles",
+        "promotionalItems": "Objets Publicitaires",
+        "buildingMaterials": "Matériaux de Construction"
       }
     }
   },

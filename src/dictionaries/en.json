@@ -146,23 +146,36 @@
         "description": "Our on-the-ground presence is your best asset for navigating the Chinese market."
       }
     },
-    "team": {
-      "title": "Meet Our Team",
-      "subtitle": "Passionate experts dedicated to your success.",
-      "member1": {
-        "name": "Vasseur Olivier",
-        "role": "Founder & CEO",
-        "bio": "With over 15 years of experience in international trade and deep knowledge of the Chinese market, Olivier founded Global Trading China to bridge the gap between Western companies and Chinese manufacturers."
+    "advantages": {
+      "title": "Why Work With Us?",
+      "subtitle": "Discover the key benefits that make us your ideal partner in China.",
+      "advantage1": {
+        "title": "Single Point of Contact",
+        "description": "Simplify your operations. We centralize communication and manage all stakeholders for you, from suppliers to carriers."
       },
-      "member2": {
-        "name": "Jane Doe",
-        "role": "Sourcing Manager",
-        "bio": "A specialist in supplier identification and auditing, Jane leads our sourcing team to find the most reliable and competitive manufacturing partners for our clients."
+      "advantage2": {
+        "title": "Risk Securitization",
+        "description": "We protect your investments through rigorous quality controls, factory audits, and secure payment management."
       },
-      "member3": {
-        "name": "Li Wei",
-        "role": "Logistics Head",
-        "bio": "An expert in international logistics and customs, Li ensures our clients' goods are delivered efficiently and securely, optimizing costs and timelines."
+      "advantage3": {
+        "title": "On-the-Ground Presence",
+        "description": "Our team in China overcomes the language barrier, understands the local culture, and responds in real-time to any unforeseen events."
+      }
+    },
+    "productSectors": {
+      "title": "Our Product Sectors",
+      "subtitle": "Our expertise spans a wide range of industries, allowing us to meet diverse and specific needs.",
+      "sectors": {
+        "textiles": "Textiles & Apparel",
+        "electronics": "Electronics",
+        "furniture": "Furniture & Decor",
+        "jewelry": "Jewelry & Accessories",
+        "toys": "Toys & Games",
+        "packaging": "Packaging",
+        "tools": "Tools & Hardware",
+        "autoParts": "Auto Parts",
+        "promotionalItems": "Promotional Items",
+        "buildingMaterials": "Building Materials"
       }
     }
   },
@@ -489,7 +502,7 @@
   },
   "blogPage": {
     "title": "Blog",
-    "content": "Coming soon..."
+    "content": "Content being drafted..."
   },
   "legalNoticePage": {
     "title": "Legal Notice",

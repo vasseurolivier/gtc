@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
-import { Building, Target, Users } from 'lucide-react';
+import { Building, Target, Users, ShieldCheck, Handshake, Globe, Package, Shirt, Gem, ToyBrick, Sofa, Tv, Car, Wrench } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
@@ -11,27 +11,6 @@ import { Locale } from '@/i18n-config';
 export default async function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
   const dictionary = await getDictionary(locale);
   const aboutPageDict = dictionary.aboutPage;
-
-  const teamMembers = [
-    {
-      name: aboutPageDict.team.member1.name,
-      role: aboutPageDict.team.member1.role,
-      imageUrl: "/placeholder-user.jpg",
-      bio: aboutPageDict.team.member1.bio
-    },
-    {
-      name: aboutPageDict.team.member2.name,
-      role: aboutPageDict.team.member2.role,
-      imageUrl: "/placeholder-user.jpg",
-      bio: aboutPageDict.team.member2.bio
-    },
-    {
-      name: aboutPageDict.team.member3.name,
-      role: aboutPageDict.team.member3.role,
-      imageUrl: "/placeholder-user.jpg",
-      bio: aboutPageDict.team.member3.bio
-    }
-  ];
 
   const values = [
     {
@@ -49,6 +28,37 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
       title: aboutPageDict.values.value3.title,
       description: aboutPageDict.values.value3.description
     }
+  ];
+
+  const advantages = [
+    {
+      icon: <Handshake className="h-10 w-10 text-primary" />,
+      title: aboutPageDict.advantages.advantage1.title,
+      description: aboutPageDict.advantages.advantage1.description,
+    },
+    {
+        icon: <ShieldCheck className="h-10 w-10 text-primary" />,
+        title: aboutPageDict.advantages.advantage2.title,
+        description: aboutPageDict.advantages.advantage2.description,
+    },
+    {
+        icon: <Globe className="h-10 w-10 text-primary" />,
+        title: aboutPageDict.advantages.advantage3.title,
+        description: aboutPageDict.advantages.advantage3.description,
+    }
+  ];
+  
+  const productSectors = [
+    { icon: <Shirt className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.textiles },
+    { icon: <Tv className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.electronics },
+    { icon: <Sofa className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.furniture },
+    { icon: <Gem className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.jewelry },
+    { icon: <ToyBrick className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.toys },
+    { icon: <Package className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.packaging },
+    { icon: <Wrench className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.tools },
+    { icon: <Car className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.autoParts },
+    { icon: <Users className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.promotionalItems },
+    { icon: <Building className="h-10 w-10 text-primary" />, name: aboutPageDict.productSectors.sectors.buildingMaterials },
   ];
 
   const aboutHero = PlaceHolderImages.find(p => p.id === 'about-hero');
@@ -117,22 +127,45 @@ export default async function AboutPage({ params: { locale } }: { params: { loca
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              {aboutPageDict.team.title}
+              {aboutPageDict.advantages.title}
             </h2>
             <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              {aboutPageDict.team.subtitle}
+              {aboutPageDict.advantages.subtitle}
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {teamMembers.map((member) => (
-              <div key={member.name} className="text-center">
-                <div className="relative h-32 w-32 mx-auto mb-4 rounded-full overflow-hidden">
-                    <Image src={member.imageUrl} alt={member.name} fill className="object-cover" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {advantages.map((advantage) => (
+              <Card key={advantage.title} className="text-center p-8">
+                <div className="flex justify-center mb-4">
+                  {advantage.icon}
                 </div>
-                <h3 className="text-xl font-headline font-bold">{member.name}</h3>
-                <div className="text-primary font-semibold">{member.role}</div>
-                <p className="mt-2 text-sm text-muted-foreground">{member.bio}</p>
+                <CardTitle className="font-headline text-xl mb-2">{advantage.title}</CardTitle>
+                <CardContent className="p-0 text-muted-foreground">
+                  {advantage.description}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      <section className="py-16 md:py-24">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">
+              {aboutPageDict.productSectors.title}
+            </h2>
+            <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              {aboutPageDict.productSectors.subtitle}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 text-center">
+            {productSectors.map((sector) => (
+              <div key={sector.name} className="flex flex-col items-center">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  {sector.icon}
+                </div>
+                <h3 className="font-semibold text-muted-foreground">{sector.name}</h3>
               </div>
             ))}
           </div>
