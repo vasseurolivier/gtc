@@ -1,3 +1,4 @@
+
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,8 +18,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TranslatedContent } from "../shared/translated-content";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { submitContactForm } from "@/actions/contact";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -30,6 +33,7 @@ const formSchema = z.object({
 export function ContactSection() {
   const mapImage = PlaceHolderImages.find(p => p.id === 'contact-map');
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,13 +45,24 @@ export function ContactSection() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We will get back to you shortly.",
-    });
-    form.reset();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    const result = await submitContactForm(values);
+    setIsLoading(false);
+
+    if (result.success) {
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We will get back to you shortly.",
+      });
+      form.reset();
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Failed to Send Message",
+        description: result.message,
+      });
+    }
   }
 
   return (
@@ -119,8 +134,8 @@ export function ContactSection() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <TranslatedContent content="Send Message" />
+                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="animate-spin" /> : <TranslatedContent content="Send Message" />}
                   </Button>
                 </form>
               </Form>
