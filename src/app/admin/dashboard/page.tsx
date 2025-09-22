@@ -22,7 +22,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, RefreshCw } from 'lucide-react';
 
 
 interface Submission {
@@ -43,35 +43,48 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const fetchSubmissions = async () => {
+    setIsLoading(true);
+    try {
+        const q = query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const subs: Submission[] = [];
+        querySnapshot.forEach((doc) => {
+            subs.push({ id: doc.id, ...doc.data() } as Submission);
+        });
+        setSubmissions(subs);
+    } catch (error) {
+        console.error("Error fetching submissions:", error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
       return;
     }
-
-    const q = query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"));
-    
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const subs: Submission[] = [];
-        querySnapshot.forEach((doc) => {
-            subs.push({ id: doc.id, ...doc.data() } as Submission);
-        });
-        setSubmissions(subs);
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Error fetching submissions:", error);
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
+    fetchSubmissions();
   }, [router]);
 
-  const handleMarkAsRead = async (id: string) => {
-    const submissionRef = doc(db, 'contactSubmissions', id);
-    await updateDoc(submissionRef, {
-      read: true,
-    });
+  const handleMarkAsRead = async (id: string, read: boolean) => {
+    if (read) return; // Already read
+    
+    // Optimistically update the UI
+    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: true } : s));
+
+    try {
+        const submissionRef = doc(db, 'contactSubmissions', id);
+        await updateDoc(submissionRef, {
+          read: true,
+        });
+    } catch (error) {
+        console.error("Error marking as read:", error);
+        // Revert UI change on error
+        setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: false } : s));
+    }
   };
   
   const handleLogout = () => {
@@ -79,7 +92,7 @@ export default function AdminDashboardPage() {
     router.push('/admin/login');
   };
 
-  if (isLoading) {
+  if (isLoading && submissions.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -91,10 +104,16 @@ export default function AdminDashboardPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Contact Submissions</h1>
-         <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchSubmissions} disabled={isLoading}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+            </Button>
+            <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+            </Button>
+        </div>
       </div>
 
       <Card>
@@ -104,7 +123,7 @@ export default function AdminDashboardPage() {
               <AccordionItem value={submission.id} key={submission.id}>
                 <AccordionTrigger 
                   className={`py-4 ${!submission.read ? 'font-bold' : ''}`}
-                  onClick={() => !submission.read && handleMarkAsRead(submission.id)}
+                  onClick={() => handleMarkAsRead(submission.id, submission.read)}
                 >
                   <div className="flex items-center justify-between w-full pr-4">
                      <div className="flex items-center gap-4">
@@ -138,7 +157,7 @@ export default function AdminDashboardPage() {
               </AccordionItem>
             ))}
           </Accordion>
-          {submissions.length === 0 && (
+          {submissions.length === 0 && !isLoading && (
             <div className="text-center py-16 text-muted-foreground">
                 No submissions yet.
             </div>
