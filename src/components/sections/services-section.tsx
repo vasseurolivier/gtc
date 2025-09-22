@@ -1,7 +1,6 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
-import { TranslatedContent } from '@/components/shared/translated-content';
 
 const services = [
   {
@@ -32,10 +31,10 @@ export function ServicesSection() {
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            <TranslatedContent content="Our Core Services" />
+            Our Core Services
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            <TranslatedContent content="Comprehensive solutions to power your global business." />
+            Comprehensive solutions to power your global business.
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -44,12 +43,12 @@ export function ServicesSection() {
               <CardHeader className="p-0">
                 {service.icon}
                 <CardTitle className="mt-6 font-headline text-xl">
-                  <TranslatedContent content={service.title} />
+                  {service.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 mt-4">
                 <div className="text-muted-foreground text-sm leading-relaxed">
-                  <TranslatedContent content={service.description} />
+                  {service.description}
                 </div>
               </CardContent>
             </Card>

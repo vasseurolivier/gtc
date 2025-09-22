@@ -1,7 +1,6 @@
 "use client";
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -25,21 +24,21 @@ export function HeroSection() {
       <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
         <div className="max-w-4xl">
             <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg">
-                <TranslatedContent content="Your Bridge to Global Trade" />
+                Your Bridge to Global Trade
             </h1>
             <div className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-neutral-200">
-                <TranslatedContent content="Expert sourcing, trading, and e-commerce solutions from the heart of China to the world." />
+                Expert sourcing, trading, and e-commerce solutions from the heart of China to the world.
             </div>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
                 <Link href="/contact">
-                    <TranslatedContent content="Get Started" />
+                    Get Started
                     <ArrowRight className="ml-2" />
                 </Link>
             </Button>
             <Button size="lg" variant="secondary" asChild>
                 <Link href="/services">
-                    <TranslatedContent content="Our Services" />
+                    Our Services
                 </Link>
             </Button>
             </div>

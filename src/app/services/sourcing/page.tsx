@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { CheckCircle2, Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lamp } from 'lucide-react';
 
 const sourcingFeatures = [
@@ -71,10 +70,10 @@ export default function SourcingPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  <TranslatedContent content="Sourcing et Achat Stratégique en Chine" />
+                  Sourcing et Achat Stratégique en Chine
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  <TranslatedContent content="De l'identification du fournisseur idéal à la négociation des meilleures conditions, nous sommes votre expert sur le terrain." />
+                  De l'identification du fournisseur idéal à la négociation des meilleures conditions, nous sommes votre expert sur le terrain.
               </div>
           </div>
         </div>
@@ -84,10 +83,10 @@ export default function SourcingPage() {
         <div className="container">
            <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="Notre Approche du Sourcing" />
+              Notre Approche du Sourcing
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Nous transformons la complexité du marché chinois en une opportunité claire et sécurisée pour votre entreprise." />
+              Nous transformons la complexité du marché chinois en une opportunité claire et sécurisée pour votre entreprise.
             </div>
           </div>
 
@@ -102,10 +101,10 @@ export default function SourcingPage() {
                     </div>
                     <div>
                     <h3 className="font-headline text-xl font-semibold">
-                        <TranslatedContent content={feature.title} />
+                        {feature.title}
                     </h3>
                     <div className="mt-2 text-muted-foreground leading-relaxed">
-                        <TranslatedContent content={feature.description} />
+                        {feature.description}
                     </div>
                     </div>
                 </div>
@@ -130,10 +129,10 @@ export default function SourcingPage() {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="Exemples de Partenariats Industriels" />
+              Exemples de Partenariats Industriels
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Notre expertise s'étend à de nombreux secteurs. Voici quelques exemples concrets de notre savoir-faire." />
+              Notre expertise s'étend à de nombreux secteurs. Voici quelques exemples concrets de notre savoir-faire.
             </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -142,12 +141,12 @@ export default function SourcingPage() {
                 <CardHeader className="p-0">
                   {example.icon}
                   <CardTitle className="mt-6 font-headline text-xl">
-                    <TranslatedContent content={example.title} />
+                    {example.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 mt-4">
                   <div className="text-muted-foreground text-sm leading-relaxed">
-                    <TranslatedContent content={example.description} />
+                    {example.description}
                   </div>
                 </CardContent>
               </Card>
@@ -159,10 +158,10 @@ export default function SourcingPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">
-                <TranslatedContent content="Prêt à trouver le partenaire de fabrication parfait ?" />
+                Prêt à trouver le partenaire de fabrication parfait ?
             </h2>
             <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                <TranslatedContent content="Contactez-nous dès aujourd'hui pour discuter de vos besoins en sourcing. Notre équipe est prête à vous aider à naviguer le paysage manufacturier chinois avec confiance." />
+                Contactez-nous dès aujourd'hui pour discuter de vos besoins en sourcing. Notre équipe est prête à vous aider à naviguer le paysage manufacturier chinois avec confiance.
             </div>
         </div>
       </section>

@@ -1,11 +1,9 @@
-import { TranslatedContent } from '@/components/shared/translated-content';
-
 export default function PrivacyPolicyPage() {
   return (
     <div className="container py-16 md:py-24">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-headline font-bold mb-8">
-          <TranslatedContent content="Politique de Confidentialité" />
+          Politique de Confidentialité
         </h1>
 
         <div className="prose prose-lg max-w-none text-muted-foreground">

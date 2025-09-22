@@ -19,7 +19,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { TranslatedContent } from '../shared/translated-content';
 
 
 export function Header() {
@@ -58,7 +57,7 @@ export function Header() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Globe className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block font-headline text-lg">
-              <TranslatedContent content="Global Trading China" />
+              Global Trading China
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -71,7 +70,7 @@ export function Header() {
                   isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
-                <TranslatedContent content={item.label} />
+                {item.label}
               </Link>
             ))}
             <DropdownMenu>
@@ -79,12 +78,12 @@ export function Header() {
                   "flex items-center gap-1 transition-colors hover:text-primary focus:outline-none",
                   isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-muted-foreground"
                 )}>
-                <TranslatedContent content="Services" /> <ChevronDown className="h-4 w-4" />
+                Services <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {servicesItems.map((item) => (
                   <DropdownMenuItem key={item.href} asChild>
-                    <Link href={item.href}><TranslatedContent content={item.label} /></Link>
+                    <Link href={item.href}>{item.label}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -97,7 +96,7 @@ export function Header() {
                   isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
-                <TranslatedContent content={citiesItem.label} />
+                {citiesItem.label}
               </Link>
               <Link
                 key={contactItem.href}
@@ -107,7 +106,7 @@ export function Header() {
                   isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
-                <TranslatedContent content={contactItem.label} />
+                {contactItem.label}
               </Link>
           </nav>
         </div>
@@ -123,7 +122,7 @@ export function Header() {
               <SheetContent side="left" className="w-full max-w-xs">
                 <Link href="/" className="mb-8 flex items-center space-x-2">
                   <Globe className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline text-lg"><TranslatedContent content="Global Trading China" /></span>
+                  <span className="font-bold font-headline text-lg">Global Trading China</span>
                 </Link>
                 <nav className="flex flex-col space-y-2">
                   {navItems.map((item) => (
@@ -135,7 +134,7 @@ export function Header() {
                         isClient && activePath === item.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      <TranslatedContent content={item.label} />
+                      {item.label}
                     </Link>
                   ))}
                   
@@ -145,7 +144,7 @@ export function Header() {
                           "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
                           isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
                         )}>
-                          <TranslatedContent content="Services" />
+                          Services
                         </AccordionTrigger>
                         <AccordionContent className="pb-0 pl-4">
                           <nav className="flex flex-col space-y-2">
@@ -158,7 +157,7 @@ export function Header() {
                                   isClient && activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                                 )}
                               >
-                                <TranslatedContent content={item.label} />
+                                {item.label}
                               </Link>
                             ))}
                           </nav>
@@ -173,7 +172,7 @@ export function Header() {
                         isClient && activePath === citiesItem.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      <TranslatedContent content={citiesItem.label} />
+                      {citiesItem.label}
                     </Link>
                     <Link
                       key={contactItem.href}
@@ -183,7 +182,7 @@ export function Header() {
                         isClient && activePath === contactItem.href ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
-                      <TranslatedContent content={contactItem.label} />
+                      {contactItem.label}
                     </Link>
                 </nav>
               </SheetContent>

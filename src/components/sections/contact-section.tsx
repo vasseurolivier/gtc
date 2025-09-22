@@ -15,7 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { TranslatedContent } from "../shared/translated-content";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Mail, MapPin, Phone, Loader2 } from 'lucide-react';
@@ -88,10 +87,10 @@ export function ContactSection() {
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            <TranslatedContent content="Get in Touch" />
+            Get in Touch
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            <TranslatedContent content="Have a question or a project in mind? We'd love to hear from you." />
+            Have a question or a project in mind? We'd love to hear from you.
           </div>
         </div>
 
@@ -106,7 +105,7 @@ export function ContactSection() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel><TranslatedContent content="Your Name" /></FormLabel>
+                          <FormLabel>Your Name</FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} />
                           </FormControl>
@@ -119,7 +118,7 @@ export function ContactSection() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel><TranslatedContent content="Your Email" /></FormLabel>
+                          <FormLabel>Your Email</FormLabel>
                           <FormControl>
                             <Input placeholder="john.doe@example.com" {...field} />
                           </FormControl>
@@ -132,7 +131,7 @@ export function ContactSection() {
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel><TranslatedContent content="Subject" /></FormLabel>
+                          <FormLabel>Subject</FormLabel>
                           <FormControl>
                             <Input placeholder="Sourcing Inquiry" {...field} />
                           </FormControl>
@@ -145,7 +144,7 @@ export function ContactSection() {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel><TranslatedContent content="Your Message" /></FormLabel>
+                          <FormLabel>Your Message</FormLabel>
                           <FormControl>
                             <Textarea placeholder="Tell us about your project..." {...field} rows={6} />
                           </FormControl>
@@ -155,7 +154,7 @@ export function ContactSection() {
                     />
                   </div>
                   <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="animate-spin" /> : <TranslatedContent content="Send Message" />}
+                    {isLoading ? <Loader2 className="animate-spin" /> : "Send Message"}
                   </Button>
                 </form>
               </Form>
@@ -165,7 +164,7 @@ export function ContactSection() {
              <div className="flex flex-col flex-grow justify-between h-full">
                 <div>
                     <h3 className="text-xl font-headline font-semibold mb-6">
-                      <TranslatedContent content="Our Office"/>
+                      Our Office
                     </h3>
                     <div className="space-y-4 text-muted-foreground">
                         <div className="flex items-start">

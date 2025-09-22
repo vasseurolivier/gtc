@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { ClipboardList, Microscope, Ship, BookCopy, Timer, DollarSign, FileText, Globe, CheckCircle, HelpCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -101,10 +100,10 @@ export default function TradingLogisticsPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  <TranslatedContent content="Trading et Logistique Sans Faille" />
+                  Trading et Logistique Sans Faille
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  <TranslatedContent content="De l'usine à votre porte, nous gérons chaque détail de vos opérations d'import-export pour une tranquillité d'esprit totale." />
+                  De l'usine à votre porte, nous gérons chaque détail de vos opérations d'import-export pour une tranquillité d'esprit totale.
               </div>
           </div>
         </div>
@@ -114,10 +113,10 @@ export default function TradingLogisticsPage() {
         <div className="container">
            <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="La Maîtrise de la Chaîne Logistique" />
+              La Maîtrise de la Chaîne Logistique
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Nous transformons les défis logistiques et commerciaux en un processus simple, transparent et efficace." />
+              Nous transformons les défis logistiques et commerciaux en un processus simple, transparent et efficace.
             </div>
           </div>
 
@@ -127,12 +126,12 @@ export default function TradingLogisticsPage() {
                 <CardHeader className="p-0">
                   {feature.icon}
                   <CardTitle className="mt-6 font-headline text-xl">
-                    <TranslatedContent content={feature.title} />
+                    {feature.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 mt-4">
                   <div className="text-muted-foreground text-sm leading-relaxed">
-                    <TranslatedContent content={feature.description} />
+                    {feature.description}
                   </div>
                 </CardContent>
             </Card>
@@ -150,14 +149,14 @@ export default function TradingLogisticsPage() {
                     }
                 </div>
                 <div>
-                    <h2 className="text-3xl font-headline font-bold text-primary mb-6"><TranslatedContent content="Notre Processus Logistique Détaillé"/></h2>
+                    <h2 className="text-3xl font-headline font-bold text-primary mb-6">Notre Processus Logistique Détaillé</h2>
                     <ol className="space-y-4">
                         {processSteps.map((step, index) => (
                             <li key={index} className="flex items-start">
                                 <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold mr-4">{index + 1}</div>
                                 <div>
-                                    <h3 className="font-semibold text-lg"><TranslatedContent content={step.title}/></h3>
-                                    <div className="text-muted-foreground"><TranslatedContent content={step.description}/></div>
+                                    <h3 className="font-semibold text-lg">{step.title}</h3>
+                                    <div className="text-muted-foreground">{step.description}</div>
                                 </div>
                             </li>
                         ))}
@@ -170,25 +169,25 @@ export default function TradingLogisticsPage() {
       <section className="py-16 md:py-24">
         <div className="container">
             <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold"><TranslatedContent content="Délais & Coûts : Choisir la Bonne Option"/></h2>
-                <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground"><TranslatedContent content="Chaque expédition est unique. Nous vous aidons à choisir la meilleure méthode de transport en fonction de vos priorités."/></div>
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Délais & Coûts : Choisir la Bonne Option</h2>
+                <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">Chaque expédition est unique. Nous vous aidons à choisir la meilleure méthode de transport en fonction de vos priorités.</div>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
                 {shippingOptions.map(option => (
                     <Card key={option.title} className="flex flex-col">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                           <CardTitle className="text-xl font-headline"><TranslatedContent content={option.title}/></CardTitle>
+                           <CardTitle className="text-xl font-headline">{option.title}</CardTitle>
                            {option.icon}
                         </CardHeader>
                         <CardContent className="flex-grow flex flex-col justify-between">
                             <div>
-                                <div className="text-2xl font-bold text-muted-foreground"><TranslatedContent content={option.duration}/></div>
-                                <div className="text-xs text-muted-foreground uppercase font-semibold"><TranslatedContent content="Durée estimée"/></div>
+                                <div className="text-2xl font-bold text-muted-foreground">{option.duration}</div>
+                                <div className="text-xs text-muted-foreground uppercase font-semibold">Durée estimée</div>
                                 
                                 <div className="text-2xl font-bold text-primary mt-4">{option.cost}</div>
-                                <div className="text-xs text-muted-foreground uppercase font-semibold"><TranslatedContent content="Coût relatif"/></div>
+                                <div className="text-xs text-muted-foreground uppercase font-semibold">Coût relatif</div>
                             </div>
-                            <div className="mt-4 text-sm text-muted-foreground pt-4 border-t"><TranslatedContent content={option.bestFor}/></div>
+                            <div className="mt-4 text-sm text-muted-foreground pt-4 border-t">{option.bestFor}</div>
                         </CardContent>
                     </Card>
                 ))}
@@ -199,24 +198,24 @@ export default function TradingLogisticsPage() {
       <section className="py-16 md:py-24 bg-card">
           <div className="container">
             <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold"><TranslatedContent content="Notre Engagement Qualité : Zéro Compromis"/></h2>
-                <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground"><TranslatedContent content="La qualité n'est pas une option, c'est notre promesse. Découvrez comment nous protégeons votre investissement et votre réputation."/></div>
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Notre Engagement Qualité : Zéro Compromis</h2>
+                <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">La qualité n'est pas une option, c'est notre promesse. Découvrez comment nous protégeons votre investissement et votre réputation.</div>
             </div>
             <div className="grid md:grid-cols-3 gap-8 text-center">
                 <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4"><Microscope className="w-8 h-8 text-primary"/></div>
-                    <h3 className="text-xl font-headline font-semibold"><TranslatedContent content="Inspection sur Mesure"/></h3>
-                    <div className="text-muted-foreground mt-2"><TranslatedContent content="Nous développons une check-list d'inspection spécifique à votre produit, couvrant l'esthétique, les dimensions, la fonctionnalité, l'emballage et l'étiquetage."/></div>
+                    <h3 className="text-xl font-headline font-semibold">Inspection sur Mesure</h3>
+                    <div className="text-muted-foreground mt-2">Nous développons une check-list d'inspection spécifique à votre produit, couvrant l'esthétique, les dimensions, la fonctionnalité, l'emballage et l'étiquetage.</div>
                 </div>
                  <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4"><CheckCircle className="w-8 h-8 text-primary"/></div>
-                    <h3 className="text-xl font-headline font-semibold"><TranslatedContent content="Normes AQL"/></h3>
-                    <div className="text-muted-foreground mt-2"><TranslatedContent content="Nous appliquons les standards internationaux AQL (Acceptable Quality Limit) pour une évaluation objective et statistique de la qualité de vos lots de production."/></div>
+                    <h3 className="text-xl font-headline font-semibold">Normes AQL</h3>
+                    <div className="text-muted-foreground mt-2">Nous appliquons les standards internationaux AQL (Acceptable Quality Limit) pour une évaluation objective et statistique de la qualité de vos lots de production.</div>
                 </div>
                  <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4"><FileText className="w-8 h-8 text-primary"/></div>
-                    <h3 className="text-xl font-headline font-semibold"><TranslatedContent content="Rapports Détaillés"/></h3>
-                    <div className="text-muted-foreground mt-2"><TranslatedContent content="Vous recevez un rapport complet avec photos et vidéos après chaque inspection, vous donnant une vision claire de la situation avant même que la marchandise ne quitte l'usine."/></div>
+                    <h3 className="text-xl font-headline font-semibold">Rapports Détaillés</h3>
+                    <div className="text-muted-foreground mt-2">Vous recevez un rapport complet avec photos et vidéos après chaque inspection, vous donnant une vision claire de la situation avant même que la marchandise ne quitte l'usine.</div>
                 </div>
             </div>
         </div>
@@ -225,33 +224,33 @@ export default function TradingLogisticsPage() {
       <section className="py-16 md:py-24 bg-secondary/30">
           <div className="container">
             <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold"><TranslatedContent content="Douanes & Documentation : Naviguer la Complexité"/></h2>
-                <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground"><TranslatedContent content="Nous gérons la paperasse pour que vous n'ayez pas à le faire. Une documentation correcte est la clé d'une expédition sans heurt."/></div>
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Douanes & Documentation : Naviguer la Complexité</h2>
+                <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">Nous gérons la paperasse pour que vous n'ayez pas à le faire. Une documentation correcte est la clé d'une expédition sans heurt.</div>
             </div>
             <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-xl"><TranslatedContent content="Documentation d'Exportation"/></CardTitle>
+                        <CardTitle className="font-headline text-xl">Documentation d'Exportation</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                            <li><TranslatedContent content="Facture Commerciale"/></li>
-                            <li><TranslatedContent content="Liste de Colisage"/></li>
-                            <li><TranslatedContent content="Connaissement (Bill of Lading) ou Lettre de Transport Aérien (AWB)"/></li>
-                            <li><TranslatedContent content="Certificat d'Origine (si nécessaire)"/></li>
+                            <li>Facture Commerciale</li>
+                            <li>Liste de Colisage</li>
+                            <li>Connaissement (Bill of Lading) ou Lettre de Transport Aérien (AWB)</li>
+                            <li>Certificat d'Origine (si nécessaire)</li>
                         </ul>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-xl"><TranslatedContent content="Conformité & Certifications"/></CardTitle>
+                        <CardTitle className="font-headline text-xl">Conformité & Certifications</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                            <li><TranslatedContent content="Vérification de la conformité aux normes (CE, RoHS, FCC, etc.)"/></li>
-                            <li><TranslatedContent content="Assistance pour l'obtention des certificats de test requis"/></li>
-                            <li><TranslatedContent content="Conseil sur les réglementations spécifiques à votre marché"/></li>
-                            <li><TranslatedContent content="Gestion des licences d'exportation pour produits réglementés"/></li>
+                            <li>Vérification de la conformité aux normes (CE, RoHS, FCC, etc.)</li>
+                            <li>Assistance pour l'obtention des certificats de test requis</li>
+                            <li>Conseil sur les réglementations spécifiques à votre marché</li>
+                            <li>Gestion des licences d'exportation pour produits réglementés</li>
                         </ul>
                     </CardContent>
                 </Card>
@@ -262,8 +261,8 @@ export default function TradingLogisticsPage() {
       <section className="py-16 md:py-24">
         <div className="container max-w-4xl">
             <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold"><TranslatedContent content="Questions Fréquentes"/></h2>
-                <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground"><TranslatedContent content="Quelques réponses aux questions que nous recevons le plus souvent."/></div>
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Questions Fréquentes</h2>
+                <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Quelques réponses aux questions que nous recevons le plus souvent.</div>
             </div>
             <Accordion type="single" collapsible className="w-full">
                 {faqs.map((faq, index) => (
@@ -271,11 +270,11 @@ export default function TradingLogisticsPage() {
                         <AccordionTrigger className="font-semibold text-lg text-left hover:no-underline">
                             <div className="flex items-center gap-4">
                                 <HelpCircle className="h-6 w-6 text-primary flex-shrink-0" />
-                                <TranslatedContent content={faq.question} />
+                                {faq.question}
                             </div>
                         </AccordionTrigger>
                         <AccordionContent className="text-muted-foreground text-base pl-10">
-                            <TranslatedContent content={faq.answer} />
+                            {faq.answer}
                         </AccordionContent>
                     </AccordionItem>
                 ))}
@@ -286,10 +285,10 @@ export default function TradingLogisticsPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">
-                <TranslatedContent content="Optimisez votre chaîne d'approvisionnement dès maintenant." />
+                Optimisez votre chaîne d'approvisionnement dès maintenant.
             </h2>
             <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                <TranslatedContent content="Laissez-nous gérer la complexité de la logistique et du commerce international pour que vous puissiez vous concentrer sur votre croissance." />
+                Laissez-nous gérer la complexité de la logistique et du commerce international pour que vous puissiez vous concentrer sur votre croissance.
             </div>
         </div>
       </section>

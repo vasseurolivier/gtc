@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -62,10 +61,10 @@ export default function ServicesPage() {
     <div className="container py-16 md:py-24">
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-headline font-bold">
-          <TranslatedContent content="Des Solutions Complètes pour Votre Entreprise" />
+          Des Solutions Complètes pour Votre Entreprise
         </h1>
         <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-          <TranslatedContent content="De la recherche du bon fournisseur à la livraison chez vous, découvrez comment nous pouvons vous aider à chaque étape de votre chaîne d'approvisionnement." />
+          De la recherche du bon fournisseur à la livraison chez vous, découvrez comment nous pouvons vous aider à chaque étape de votre chaîne d'approvisionnement.
         </div>
       </div>
 
@@ -77,15 +76,15 @@ export default function ServicesPage() {
                   <div className="flex items-center gap-4">
                     {service.icon}
                     <CardTitle className="font-headline text-2xl">
-                      <TranslatedContent content={service.title} />
+                      {service.title}
                     </CardTitle>
                   </div>
                   <CardDescription className="mt-4 text-base">
-                    <TranslatedContent content={service.shortDescription} />
+                    {service.shortDescription}
                   </CardDescription>
                   <Button asChild className="mt-6 w-fit">
                     <Link href={service.link}>
-                      <TranslatedContent content="En savoir plus"/>
+                      En savoir plus
                       <ChevronRight className="ml-2 h-4 w-4"/>
                     </Link>
                   </Button>
@@ -95,10 +94,10 @@ export default function ServicesPage() {
                   {service.details.map((detail, i) => (
                      <AccordionItem value={`item-${service.title}-${i}`} key={i}>
                        <AccordionTrigger className="font-semibold hover:no-underline text-left">
-                         <TranslatedContent content={detail.title} />
+                         {detail.title}
                        </AccordionTrigger>
                        <AccordionContent className="text-muted-foreground">
-                         <TranslatedContent content={detail.description} />
+                         {detail.description}
                        </AccordionContent>
                      </AccordionItem>
                   ))}

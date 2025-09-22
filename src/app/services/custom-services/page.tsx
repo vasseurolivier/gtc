@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -102,10 +101,10 @@ export default function CustomServicesPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  <TranslatedContent content="Services sur Mesure et Conseil Stratégique" />
+                  Services sur Mesure et Conseil Stratégique
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  <TranslatedContent content="Des solutions flexibles conçues pour répondre précisément à vos défis commerciaux uniques en Chine." />
+                  Des solutions flexibles conçues pour répondre précisément à vos défis commerciaux uniques en Chine.
               </div>
           </div>
         </div>
@@ -115,10 +114,10 @@ export default function CustomServicesPage() {
         <div className="container">
            <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="Votre Partenaire pour l'Extra-Miliaire" />
+              Votre Partenaire pour l'Extra-Miliaire
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Quand vos besoins dépassent le cadre standard, notre expertise et notre flexibilité font toute la différence." />
+              Quand vos besoins dépassent le cadre standard, notre expertise et notre flexibilité font toute la différence.
             </div>
           </div>
 
@@ -130,11 +129,11 @@ export default function CustomServicesPage() {
                       </div>
                       <div className="text-center md:text-left">
                           <CardTitle className="text-xl font-headline">
-                            <TranslatedContent content={feature.title} />
+                            {feature.title}
                           </CardTitle>
                           <CardContent className="p-0 mt-2">
                               <div className="text-muted-foreground">
-                                <TranslatedContent content={feature.description} />
+                                {feature.description}
                               </div>
                           </CardContent>
                       </div>
@@ -157,17 +156,17 @@ export default function CustomServicesPage() {
                 </div>
                 <div>
                   <h3 className="text-2xl md:text-3xl font-headline font-bold text-primary">
-                    <TranslatedContent content={service.title} />
+                    {service.title}
                   </h3>
                   <div className="mt-4 text-muted-foreground text-lg">
-                    <TranslatedContent content={service.description} />
+                    {service.description}
                   </div>
                   <ul className="mt-6 space-y-3">
                     {service.points.map((point, pointIndex) => (
                       <li key={pointIndex} className="flex items-start">
                         <CheckCircle className="h-5 w-5 mr-3 mt-1 text-accent flex-shrink-0" />
                         <span className="text-muted-foreground">
-                          <TranslatedContent content={point} />
+                          {point}
                         </span>
                       </li>
                     ))}
@@ -182,10 +181,10 @@ export default function CustomServicesPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">
-                <TranslatedContent content="Vous avez un projet qui sort de l'ordinaire ?" />
+                Vous avez un projet qui sort de l'ordinaire ?
             </h2>
             <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                <TranslatedContent content="Nous aimons les défis. Contactez-nous pour discuter de vos besoins spécifiques et nous construirons ensemble une solution sur mesure." />
+                Nous aimons les défis. Contactez-nous pour discuter de vos besoins spécifiques et nous construirons ensemble une solution sur mesure.
             </div>
         </div>
       </section>

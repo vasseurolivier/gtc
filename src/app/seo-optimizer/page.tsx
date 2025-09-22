@@ -20,7 +20,6 @@ import { optimizeContentForSEO, OptimizeContentForSEOOutput } from "@/ai/flows/o
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { TranslatedContent } from "@/components/shared/translated-content";
 
 const formSchema = z.object({
   content: z.string().min(50, { message: "Content must be at least 50 characters." }),
@@ -66,9 +65,9 @@ export default function SeoOptimizerPage() {
     <div className="container py-8 md:py-12">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-headline font-bold"><TranslatedContent content="SEO Content Optimizer" /></h1>
+          <h1 className="text-4xl font-headline font-bold">SEO Content Optimizer</h1>
           <div className="mt-2 text-lg text-muted-foreground">
-            <TranslatedContent content="Optimize your website content for search engines using AI." />
+            Optimize your website content for search engines using AI.
           </div>
         </div>
 
@@ -81,7 +80,7 @@ export default function SeoOptimizerPage() {
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><TranslatedContent content="Content to Optimize" /></FormLabel>
+                      <FormLabel>Content to Optimize</FormLabel>
                       <FormControl>
                         <Textarea placeholder="Paste your article or page content here..." {...field} rows={10} />
                       </FormControl>
@@ -94,7 +93,7 @@ export default function SeoOptimizerPage() {
                   name="keywords"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><TranslatedContent content="Target Keywords" /></FormLabel>
+                      <FormLabel>Target Keywords</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., sourcing China, trading China" {...field} />
                       </FormControl>
@@ -104,7 +103,7 @@ export default function SeoOptimizerPage() {
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  <TranslatedContent content={isLoading ? "Optimizing..." : "Optimize Content"} />
+                  {isLoading ? "Optimizing..." : "Optimize Content"}
                 </Button>
               </form>
             </Form>
@@ -114,7 +113,7 @@ export default function SeoOptimizerPage() {
         {isLoading && (
             <div className="flex flex-col justify-center items-center text-center gap-4 py-16">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <div className="text-muted-foreground"><TranslatedContent content="AI is working its magic..." /></div>
+                <div className="text-muted-foreground">AI is working its magic...</div>
             </div>
         )}
 
@@ -122,8 +121,8 @@ export default function SeoOptimizerPage() {
           <div className="space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle><TranslatedContent content="Optimized Content" /></CardTitle>
-                <CardDescription><TranslatedContent content="This content has been rewritten for better SEO performance." /></CardDescription>
+                <CardTitle>Optimized Content</CardTitle>
+                <CardDescription>This content has been rewritten for better SEO performance.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-base leading-relaxed whitespace-pre-wrap">{result.optimizedContent}</div>
@@ -133,8 +132,8 @@ export default function SeoOptimizerPage() {
             <div className="grid md:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
-                  <CardTitle><TranslatedContent content="Keyword Suggestions" /></CardTitle>
-                  <CardDescription><TranslatedContent content="Consider adding these keywords to your content." /></CardDescription>
+                  <CardTitle>Keyword Suggestions</CardTitle>
+                  <CardDescription>Consider adding these keywords to your content.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-muted-foreground">{result.keywordSuggestions}</div>
@@ -142,8 +141,8 @@ export default function SeoOptimizerPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle><TranslatedContent content="Meta Description" /></CardTitle>
-                  <CardDescription><TranslatedContent content="A suggested meta description for search engine results." /></CardDescription>
+                  <CardTitle>Meta Description</CardTitle>
+                  <CardDescription>A suggested meta description for search engine results.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-muted-foreground">{result.metaDescription}</div>

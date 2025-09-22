@@ -7,5 +7,7 @@ interface TranslatedContentProps {
 }
 
 export function TranslatedContent({ content, as: Component = 'span', ...props }: TranslatedContentProps) {
+  // For now, just render the content directly.
+  // This component can be replaced later with a real i18n implementation.
   return <Component {...props}>{content}</Component>;
 }

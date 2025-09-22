@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { Lightbulb, Package, Boxes, Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -49,10 +48,10 @@ export default function EcommerceSolutionsPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  <TranslatedContent content="Solutions E-commerce Intégrées" />
+                  Solutions E-commerce Intégrées
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  <TranslatedContent content="Votre partenaire unique pour lancer et faire grandir votre boutique en ligne avec des produits sourcés en Chine." />
+                  Votre partenaire unique pour lancer et faire grandir votre boutique en ligne avec des produits sourcés en Chine.
               </div>
           </div>
         </div>
@@ -62,10 +61,10 @@ export default function EcommerceSolutionsPage() {
         <div className="container">
            <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="Votre Accélérateur E-commerce" />
+              Votre Accélérateur E-commerce
             </h2>
             <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Nous fournissons l'infrastructure et l'expertise nécessaires pour transformer votre idée en une entreprise e-commerce prospère." />
+              Nous fournissons l'infrastructure et l'expertise nécessaires pour transformer votre idée en une entreprise e-commerce prospère.
             </div>
           </div>
 
@@ -74,18 +73,18 @@ export default function EcommerceSolutionsPage() {
               <div>
                 {ecommerceFeatures[0].icon}
                 <h3 className="font-headline text-2xl font-bold mt-4">
-                  <TranslatedContent content={ecommerceFeatures[0].title} />
+                  {ecommerceFeatures[0].title}
                 </h3>
                 <div className="mt-2 text-muted-foreground text-lg">
-                  <TranslatedContent content={ecommerceFeatures[0].description} />
+                  {ecommerceFeatures[0].description}
                 </div>
                 
                 {ecommerceFeatures[1].icon}
                 <h3 className="font-headline text-2xl font-bold mt-8">
-                  <TranslatedContent content={ecommerceFeatures[1].title} />
+                  {ecommerceFeatures[1].title}
                 </h3>
                 <div className="mt-2 text-muted-foreground text-lg">
-                  <TranslatedContent content={ecommerceFeatures[1].description} />
+                  {ecommerceFeatures[1].description}
                 </div>
               </div>
               {featureImage1 && 
@@ -104,18 +103,18 @@ export default function EcommerceSolutionsPage() {
               <div>
                 {ecommerceFeatures[2].icon}
                 <h3 className="font-headline text-2xl font-bold mt-4">
-                  <TranslatedContent content={ecommerceFeatures[2].title} />
+                  {ecommerceFeatures[2].title}
                 </h3>
                 <div className="mt-2 text-muted-foreground text-lg">
-                  <TranslatedContent content={ecommerceFeatures[2].description} />
+                  {ecommerceFeatures[2].description}
                 </div>
                 
                 {ecommerceFeatures[3].icon}
                 <h3 className="font-headline text-2xl font-bold mt-8">
-                  <TranslatedContent content={ecommerceFeatures[3].title} />
+                  {ecommerceFeatures[3].title}
                 </h3>
                 <div className="mt-2 text-muted-foreground text-lg">
-                  <TranslatedContent content={ecommerceFeatures[3].description} />
+                  {ecommerceFeatures[3].description}
                 </div>
               </div>
             </div>
@@ -127,10 +126,10 @@ export default function EcommerceSolutionsPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">
-                <TranslatedContent content="Prêt à lancer votre prochain best-seller ?" />
+                Prêt à lancer votre prochain best-seller ?
             </h2>
             <div className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                <TranslatedContent content="Discutons de votre projet e-commerce. Que vous soyez un vendeur Amazon expérimenté ou un débutant sur Shopify, nous avons la solution pour vous." />
+                Discutons de votre projet e-commerce. Que vous soyez un vendeur Amazon expérimenté ou un débutant sur Shopify, nous avons la solution pour vous.
             </div>
         </div>
       </section>

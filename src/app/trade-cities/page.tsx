@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building, Lightbulb, Package, Wifi } from 'lucide-react';
@@ -55,10 +54,10 @@ export default function TradeCitiesPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  <TranslatedContent content="Pôles Commerciaux Stratégiques en Chine" />
+                  Pôles Commerciaux Stratégiques en Chine
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  <TranslatedContent content="Découvrez les villes clés qui sont au cœur du commerce mondial et comment nous vous y donnons accès." />
+                  Découvrez les villes clés qui sont au cœur du commerce mondial et comment nous vous y donnons accès.
               </div>
           </div>
         </div>
@@ -79,19 +78,19 @@ export default function TradeCitiesPage() {
                   <div className="flex items-center gap-4">
                     {city.icon}
                     <h2 className="text-3xl font-headline font-bold text-primary">
-                        <TranslatedContent content={city.name} />
+                        {city.name}
                     </h2>
                   </div>
                   <div className="mt-2 text-lg font-semibold text-muted-foreground">
-                    <TranslatedContent content={city.subtitle} />
+                    {city.subtitle}
                   </div>
                   <div className="mt-4 text-muted-foreground leading-relaxed">
-                    <TranslatedContent content={city.description} />
+                    {city.description}
                   </div>
                   <div className="mt-6 flex flex-wrap gap-2">
                     {city.specialties.map((specialty) => (
                       <Badge key={specialty} variant="secondary">
-                        <TranslatedContent content={specialty} />
+                        {specialty}
                       </Badge>
                     ))}
                   </div>

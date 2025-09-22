@@ -1,6 +1,5 @@
 "use client";
 import { Contact, FileText, PackageCheck, Ship, Target } from 'lucide-react';
-import { TranslatedContent } from '@/components/shared/translated-content';
 
 const processSteps = [
   { icon: <Contact className="h-8 w-8 text-accent-foreground" />, title: "Initial Contact", description: "You reach out with your requirements." },
@@ -16,10 +15,10 @@ export function ProcessSection() {
       <div className="container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            <TranslatedContent content="Our A-to-Z Process" />
+            Our A-to-Z Process
           </h2>
           <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            <TranslatedContent content="A transparent and efficient journey from your idea to your doorstep." />
+            A transparent and efficient journey from your idea to your doorstep.
           </div>
         </div>
         <div className="relative">
@@ -34,10 +33,10 @@ export function ProcessSection() {
                 </div>
                 <div className="ml-6 md:ml-0 md:mt-6">
                   <h3 className="font-headline font-semibold text-lg">
-                    <TranslatedContent content={step.title} />
+                    {step.title}
                   </h3>
                   <div className="mt-2 text-sm text-muted-foreground">
-                    <TranslatedContent content={step.description} />
+                    {step.description}
                   </div>
                 </div>
               </div>

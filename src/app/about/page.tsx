@@ -2,7 +2,6 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { TranslatedContent } from '@/components/shared/translated-content';
 import { CheckCircle2 } from 'lucide-react';
 
 const advantages = [
@@ -58,10 +57,10 @@ export default function AboutPage() {
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
-                  <TranslatedContent content="Notre Mission : Votre Succès Global" />
+                  Notre Mission : Votre Succès Global
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
-                  <TranslatedContent content="Nous connectons les entreprises du monde entier aux opportunités uniques qu'offre la Chine, en offrant une expertise locale et des solutions complètes." />
+                  Nous connectons les entreprises du monde entier aux opportunités uniques qu'offre la Chine, en offrant une expertise locale et des solutions complètes.
               </div>
           </div>
         </div>
@@ -72,29 +71,29 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-headline font-bold text-primary">
-                <TranslatedContent content="Qui Sommes-Nous ?" />
+                Qui Sommes-Nous ?
               </h2>
               <div className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                <TranslatedContent content="Fondée sur les principes de confiance, de transparence et d'efficacité, Global Trading China est bien plus qu'une simple société de négoce. Nous sommes votre partenaire stratégique sur le terrain en Chine. Notre mission est de simplifier la complexité du commerce international et de rendre le sourcing, la production et l'expédition accessibles à tous, des petites entreprises aux grandes multinationales." />
+                Fondée sur les principes de confiance, de transparence et d'efficacité, Global Trading China est bien plus qu'une simple société de négoce. Nous sommes votre partenaire stratégique sur le terrain en Chine. Notre mission est de simplifier la complexité du commerce international et de rendre le sourcing, la production et l'expédition accessibles à tous, des petites entreprises aux grandes multinationales.
               </div>
               <div className="mt-4 text-muted-foreground leading-relaxed">
-                <TranslatedContent content="Notre équipe multiculturelle combine une connaissance approfondie du marché chinois avec une compréhension des attentes des marchés occidentaux, créant ainsi un pont solide pour vos ambitions commerciales." />
+                Notre équipe multiculturelle combine une connaissance approfondie du marché chinois avec une compréhension des attentes des marchés occidentaux, créant ainsi un pont solide pour vos ambitions commerciales.
               </div>
             </div>
             <div>
               <Card>
                 <CardContent className="p-8 space-y-4">
                   <div>
-                    <h3 className="font-headline font-semibold text-xl"><TranslatedContent content="Notre Vision"/></h3>
-                    <div className="text-muted-foreground mt-2"><TranslatedContent content="Devenir le partenaire de confiance incontournable pour toutes les entreprises cherchant à prospérer grâce au commerce avec la Chine."/></div>
+                    <h3 className="font-headline font-semibold text-xl">Notre Vision</h3>
+                    <div className="text-muted-foreground mt-2">Devenir le partenaire de confiance incontournable pour toutes les entreprises cherchant à prospérer grâce au commerce avec la Chine.</div>
                   </div>
                   <div>
-                    <h3 className="font-headline font-semibold text-xl"><TranslatedContent content="Nos Valeurs"/></h3>
+                    <h3 className="font-headline font-semibold text-xl">Nos Valeurs</h3>
                     <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
-                      <li><TranslatedContent content="Intégrité et Transparence"/></li>
-                      <li><TranslatedContent content="Orientation Client"/></li>
-                      <li><TranslatedContent content="Excellence Opérationnelle"/></li>
-                      <li><TranslatedContent content="Partenariat à Long Terme"/></li>
+                      <li>Intégrité et Transparence</li>
+                      <li>Orientation Client</li>
+                      <li>Excellence Opérationnelle</li>
+                      <li>Partenariat à Long Terme</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -108,10 +107,10 @@ export default function AboutPage() {
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              <TranslatedContent content="Pourquoi Nous Choisir ?" />
+              Pourquoi Nous Choisir ?
             </h2>
             <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              <TranslatedContent content="Les avantages clés qui font de nous votre partenaire idéal en Chine." />
+              Les avantages clés qui font de nous votre partenaire idéal en Chine.
             </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -120,12 +119,12 @@ export default function AboutPage() {
                   {advantage.icon}
                   <CardHeader className="p-0 mt-4">
                     <CardTitle className="font-headline text-xl">
-                      <TranslatedContent content={advantage.title} />
+                      {advantage.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0 mt-2">
                     <div className="text-muted-foreground text-sm">
-                      <TranslatedContent content={advantage.description} />
+                      {advantage.description}
                     </div>
                   </CardContent>
               </Card>
