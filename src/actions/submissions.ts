@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export interface Submission {
   id: string;
@@ -49,4 +49,14 @@ export async function updateSubmissionReadStatus(id: string, read: boolean) {
     console.error(`Error updating submission ${id}:`, error);
     return { success: false, message: 'Failed to update submission status.' };
   }
+}
+
+export async function deleteSubmission(id: string) {
+    try {
+        await deleteDoc(doc(db, 'contactSubmissions', id));
+        return { success: true, message: 'Message deleted successfully!' };
+    } catch (error) {
+        console.error(`Error deleting submission ${id}:`, error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
 }

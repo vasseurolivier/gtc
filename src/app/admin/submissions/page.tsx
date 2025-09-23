@@ -12,8 +12,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Loader2 } from 'lucide-react';
-import { getSubmissions, Submission, updateSubmissionReadStatus } from '@/actions/submissions';
+import { Loader2, Trash2 } from 'lucide-react';
+import { getSubmissions, Submission, updateSubmissionReadStatus, deleteSubmission } from '@/actions/submissions';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function SubmissionsPage() {
@@ -21,6 +34,7 @@ export default function SubmissionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -55,6 +69,20 @@ export default function SubmissionsPage() {
         console.error("Error marking as read:", error);
         // Revert if error
         setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: false } : s));
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const originalSubmissions = [...submissions];
+    setSubmissions(prev => prev.filter(s => s.id !== id));
+
+    const result = await deleteSubmission(id);
+
+    if (result.success) {
+      toast({ title: 'Success', description: 'Message deleted successfully.' });
+    } else {
+      setSubmissions(originalSubmissions);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete message.' });
     }
   };
 
@@ -99,8 +127,8 @@ export default function SubmissionsPage() {
                         </span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="p-6 bg-secondary/30">
-                     <div className="space-y-4">
+                  <AccordionContent className="p-6 bg-secondary/30 relative">
+                     <div className="space-y-4 pr-12">
                           <div>
                               <div className="font-semibold">From:</div>
                               <div>{submission.name} &lt;{submission.email}&gt;</div>
@@ -114,6 +142,27 @@ export default function SubmissionsPage() {
                               <div className="whitespace-pre-wrap">{submission.message}</div>
                           </div>
                      </div>
+                     <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="absolute top-4 right-4">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this message.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(submission.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </AccordionContent>
                 </AccordionItem>
               ))}
