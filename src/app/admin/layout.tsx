@@ -38,6 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -47,8 +48,7 @@ function AdminSettings() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     // Currency state
-    const [localSymbol, setLocalSymbol] = useState('');
-    const [localCode, setLocalCode] = useState('');
+    const [selectedCurrency, setSelectedCurrency] = useState('EUR');
     const [localRate, setLocalRate] = useState('');
     
     // Company Info state
@@ -61,8 +61,7 @@ function AdminSettings() {
     useEffect(() => {
         if (isDialogOpen) {
             if (currencyContext) {
-                setLocalSymbol(currencyContext.currency.symbol);
-                setLocalCode(currencyContext.currency.code);
+                setSelectedCurrency(currencyContext.currency.code);
                 setLocalRate(currencyContext.exchangeRate.toString());
             }
             if (companyInfoContext) {
@@ -108,7 +107,13 @@ function AdminSettings() {
             toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid exchange rate.'});
             return;
         }
-        setCurrency({ symbol: localSymbol, code: localCode });
+
+        if (selectedCurrency === 'EUR') {
+            setCurrency({ symbol: '€', code: 'EUR' });
+        } else if (selectedCurrency === 'USD') {
+            setCurrency({ symbol: '$', code: 'USD' });
+        }
+        
         setExchangeRate(newRate);
         
         setCompanyInfo({
@@ -174,13 +179,17 @@ function AdminSettings() {
                         <div>
                             <h3 className="text-lg font-medium mb-4">Currency Settings</h3>
                             <div className="grid gap-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="currency-symbol" className="text-right">Display Symbol</Label>
-                                    <Input id="currency-symbol" value={localSymbol} onChange={(e) => setLocalSymbol(e.target.value)} className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="currency-code" className="text-right">Display Code</Label>
-                                    <Input id="currency-code" value={localCode} onChange={(e) => setLocalCode(e.target.value)} className="col-span-3" />
+                               <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="currency-select" className="text-right">Display Currency</Label>
+                                    <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                                        <SelectTrigger className="col-span-3" id="currency-select">
+                                            <SelectValue placeholder="Select a currency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="EUR">Euro (€)</SelectItem>
+                                            <SelectItem value="USD">US Dollar ($)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="exchange-rate" className="text-right">Rate (vs CNY)</Label>
