@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase/server';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
-export const customerSchema = z.object({
+const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   phone: z.string().optional(),
@@ -15,6 +15,10 @@ export const customerSchema = z.object({
   source: z.string().optional(),
   notes: z.string().optional(),
 });
+
+export type CustomerFormValues = z.infer<typeof customerSchema>;
+
+export const getCustomerSchema = () => customerSchema;
 
 export interface Customer {
     id: string;
@@ -29,7 +33,7 @@ export interface Customer {
     createdAt: any;
 }
 
-export async function addCustomer(values: z.infer<typeof customerSchema>) {
+export async function addCustomer(values: CustomerFormValues) {
     try {
         const validatedData = customerSchema.parse(values);
         const docRef = await addDoc(collection(db, 'customers'), {

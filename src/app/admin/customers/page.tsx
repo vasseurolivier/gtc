@@ -14,11 +14,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addCustomer, getCustomers, deleteCustomer, Customer, customerSchema } from '@/actions/customers';
+import { addCustomer, getCustomers, deleteCustomer, Customer, getCustomerSchema, CustomerFormValues } from '@/actions/customers';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+
+const customerSchema = getCustomerSchema();
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function CustomersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddCustomerOpen, setAddCustomerOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof customerSchema>>({
+  const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: { 
         name: "", 
@@ -63,7 +64,7 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [router, toast]);
 
-  const onSubmit = async (values: z.infer<typeof customerSchema>) => {
+  const onSubmit = async (values: CustomerFormValues) => {
     setIsSubmitting(true);
     const result = await addCustomer(values);
     if (result.success) {
