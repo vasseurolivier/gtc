@@ -51,9 +51,9 @@ export default function AdminRootLayout({
   
   const getBasePath = (path: string) => {
     const parts = path.split('/');
-    if (parts.length > 2 && (parts[1] === 'en' || parts[1] === 'fr')) {
-        // Path is like /en/admin/dashboard, we want /admin/dashboard for comparison
-        return `/${parts.slice(2).join('/')}`;
+     // Normalize path for comparison, removing locale if present
+    if (parts.length > 2 && (i18n.locales as readonly string[]).includes(parts[1])) {
+       return `/${parts.slice(2).join('/')}`;
     }
     return path;
   }
@@ -61,7 +61,7 @@ export default function AdminRootLayout({
   const activePath = getBasePath(pathname);
 
   // Login page should not have the sidebar
-  if (activePath.endsWith('/login')) {
+  if (activePath.startsWith('/admin/login')) {
     return (
         <html lang="fr" suppressHydrationWarning>
             <head>
@@ -127,3 +127,9 @@ export default function AdminRootLayout({
     </html>
   );
 }
+
+// Add i18n config here to be accessible by getBasePath
+const i18n = {
+  defaultLocale: 'fr',
+  locales: ['fr', 'en'],
+} as const;
