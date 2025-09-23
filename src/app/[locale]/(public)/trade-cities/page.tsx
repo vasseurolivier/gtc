@@ -7,10 +7,11 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
 export default async function TradeCitiesPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const tradeCitiesDict = dictionary.tradeCitiesPage;
 

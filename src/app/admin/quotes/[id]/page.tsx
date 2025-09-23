@@ -33,7 +33,8 @@ async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer
 
 
 export default async function QuotePreviewPage({ params }: PageProps) {
-    const { quote, customer, products } = await getQuoteData(params.id);
+    const { id } = params;
+    const { quote, customer, products } = await getQuoteData(id);
 
     if (!quote || !customer) {
         return (

@@ -13,7 +13,8 @@ export default async function CustomerProfilePage({
 }: {
   params: { id: string };
 }) {
-    const customer = await getCustomerById(params.id);
+    const { id } = params;
+    const customer = await getCustomerById(id);
 
     if (!customer) {
         return (

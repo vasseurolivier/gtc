@@ -33,7 +33,8 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 
 
 export default async function InvoicePreviewPage({ params }: PageProps) {
-    const { invoice, customer, products } = await getInvoiceData(params.id);
+    const { id } = params;
+    const { invoice, customer, products } = await getInvoiceData(id);
 
     if (!invoice || !customer) {
         return (
