@@ -20,7 +20,8 @@ import {
   Package,
   Mail,
   LogOut,
-  Cog
+  Cog,
+  Receipt
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -112,6 +113,7 @@ export default function AdminRootLayout({
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
+    { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
     { href: '/admin/products', icon: <Package />, label: 'Products' },
   ];
   
