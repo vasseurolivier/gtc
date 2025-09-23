@@ -102,13 +102,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span>¥{quote.subTotal.toFixed(2)}</span>
                             </div>
-                            {quote.transportCost > 0 && 
+                            {quote.transportCost && quote.transportCost > 0 && 
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Transport Cost</span>
                                     <span>¥{quote.transportCost.toFixed(2)}</span>
                                 </div>
                             }
-                            {quote.commissionRate > 0 &&
+                            {quote.commissionRate && quote.commissionRate > 0 &&
                                 <>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
