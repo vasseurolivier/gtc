@@ -30,7 +30,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     return (
-        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content" id="proforma-content">
+        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content flex flex-col min-h-full" id="proforma-content">
             <header className="flex justify-between items-start mb-8 border-b pb-8">
                 <div>
                     {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
@@ -61,7 +61,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </div>
             </section>
 
-            <section className="mb-8">
+            <section className="mb-8 flex-grow">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -124,7 +124,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </div>
             </section>
             
-            <footer className="border-t pt-8 mt-8">
+            <footer className="border-t pt-8 mt-auto">
                  <div className="text-center">
                     <h3 className="font-bold text-base">{companyInfo.name}</h3>
                     <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
