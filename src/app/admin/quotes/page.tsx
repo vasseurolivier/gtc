@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 const quoteItemSchema = z.object({
+  sku: z.string().optional(),
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().positive("Qty must be > 0."),
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
@@ -71,7 +72,7 @@ export default function QuotesPage() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-      items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
       subTotal: 0,
       transportCost: 0,
       commissionRate: 0,
@@ -139,6 +140,7 @@ export default function QuotesPage() {
     if (product) {
         update(index, {
             ...fields[index],
+            sku: product.sku,
             description: product.name,
             unitPrice: product.price
         });
@@ -157,7 +159,7 @@ export default function QuotesPage() {
         quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
         issueDate: new Date(),
         validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-        items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+        items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
         subTotal: 0,
         transportCost: 0,
         commissionRate: 0,
@@ -307,7 +309,7 @@ export default function QuotesPage() {
                         </div>
                       ))}
                     </div>
-                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ description: "", quantity: 1, unitPrice: 0, total: 0 })}>
+                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 })}>
                         <PlusCircle className="mr-2 h-4 w-4"/> Add Item
                     </Button>
                     <Separator className="my-4" />

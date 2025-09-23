@@ -6,6 +6,7 @@ import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, or
 import { z } from 'zod';
 
 const quoteItemSchema = z.object({
+  sku: z.string().optional(),
   description: z.string().min(1, "Description cannot be empty."),
   quantity: z.coerce.number().positive("Quantity must be positive."),
   unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
@@ -31,6 +32,7 @@ const quoteSchema = z.object({
 });
 
 export interface QuoteItem {
+  sku?: string;
   description: string;
   quantity: number;
   unitPrice: number;

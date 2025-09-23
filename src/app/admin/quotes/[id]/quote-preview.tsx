@@ -3,6 +3,7 @@
 
 import type { Quote } from '@/actions/quotes';
 import type { Customer } from '@/actions/customers';
+import type { Product } from '@/actions/products';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { Card } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import Image from 'next/image';
 
-export function QuotePreview({ quote, customer }: { quote: Quote, customer: Customer }) {
+export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
 
     if (!companyInfoContext) {
@@ -25,6 +26,8 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
     
     const { companyInfo } = companyInfoContext;
     const commissionAmount = (quote.subTotal + (quote.transportCost || 0)) * ((quote.commissionRate || 0) / 100);
+
+    const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     return (
         <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content" id="proforma-content">
@@ -69,14 +72,26 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {quote.items.map((item, index) => (
-                            <TableRow key={index}>
-                                <TableCell>{item.description}</TableCell>
-                                <TableCell className="text-right">{item.quantity}</TableCell>
-                                <TableCell className="text-right">{item.unitPrice.toFixed(2)}</TableCell>
-                                <TableCell className="text-right">{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
-                            </TableRow>
-                        ))}
+                        {quote.items.map((item, index) => {
+                            const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                            return (
+                                <TableRow key={index}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-4">
+                                            {product?.imageUrl && (
+                                                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                    <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
+                                                </div>
+                                            )}
+                                            <span>{item.description}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">{item.quantity}</TableCell>
+                                    <TableCell className="text-right">{item.unitPrice.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                                </TableRow>
+                            )
+                        })}
                     </TableBody>
                 </Table>
             </section>
