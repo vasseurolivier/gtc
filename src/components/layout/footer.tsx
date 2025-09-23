@@ -35,7 +35,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
             <ul className="mt-4 space-y-3 text-sm">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-3 mt-1 shrink-0 text-primary"/>
-                <span className="text-muted-foreground">浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501</span>
+                <span className="text-muted-foreground">上海市浦东新区456弄123号2号楼501室</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 shrink-0 text-primary"/>
@@ -55,3 +55,5 @@ export function Footer({ dictionary }: { dictionary: any }) {
     </footer>
   );
 }
+
+    

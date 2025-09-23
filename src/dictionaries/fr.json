@@ -106,7 +106,7 @@
     },
     "office": {
       "title": "Nos bureaux",
-      "address": "浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501",
+      "address": "上海市浦东新区456弄123号2号楼501室",
       "phone": "+86 135 6477 0717 (téléphone et Whatsapp)",
       "email": "info@globaltradingchina.com"
     },
@@ -117,7 +117,7 @@
       },
       "error": {
         "title": "Échec de l'envoi du message",
-        "db": "Un problème est survenu avec la connexion à la base de données. Veuillez réessayer plus tard.",
+        "db": "Un problème est survenu avec la connexion à la base de données. Veuillez vérifier vos règles de sécurité Firestore.",
         "unexpected": "Une erreur inattendue est survenue."
       }
     }
@@ -510,7 +510,7 @@
       "title": "Éditeur du Site",
       "p1": "Ce site est édité par la société Global Trading China.",
       "item1": { "label": "Raison Sociale :", "value": "Global Trading China" },
-      "item2": { "label": "Adresse :", "value": "浙江省， 金华市， 义乌市， 小三里唐3区， 6栋二单元1501" },
+      "item2": { "label": "Adresse :", "value": "上海市浦东新区456弄123号2号楼501室" },
       "item3": { "label": "Email :", "value": "info@globaltradingchina.com" }
     },
     "section2": {
@@ -569,3 +569,5 @@
     }
   }
 }
+
+    

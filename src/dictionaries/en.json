@@ -106,7 +106,7 @@
     },
     "office": {
       "title": "Our Office",
-      "address": "Unit 1501, Building 6, District 3, Xiaosanlitang, Yiwu, Jinhua, Zhejiang, China",
+      "address": "Room 501, Building 2, No. 123, Lane 456, Pudong New Area, Shanghai, China",
       "phone": "+86 135 6477 0717 (Phone and Whatsapp)",
       "email": "info@globaltradingchina.com"
     },
@@ -117,7 +117,7 @@
       },
       "error": {
         "title": "Failed to Send Message",
-        "db": "There was a problem with the database connection. Please try again later.",
+        "db": "There was a problem with the database connection. Please check your Firestore security rules.",
         "unexpected": "An unexpected error occurred."
       }
     }
@@ -510,7 +510,7 @@
       "title": "Site Editor",
       "p1": "This site is published by Global Trading China.",
       "item1": { "label": "Company Name:", "value": "Global Trading China" },
-      "item2": { "label": "Address:", "value": "Unit 1501, Building 6, District 3, Xiaosanlitang, Yiwu, Jinhua, Zhejiang, China" },
+      "item2": { "label": "Address:", "value": "Room 501, Building 2, No. 123, Lane 456, Pudong New Area, Shanghai, China" },
       "item3": { "label": "Email:", "value": "info@globaltradingchina.com" }
     },
     "section2": {
@@ -569,3 +569,5 @@
     }
   }
 }
+
+    
