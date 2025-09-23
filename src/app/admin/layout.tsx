@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -226,73 +225,45 @@ export default function AdminRootLayout({
   
   const activePath = pathname;
 
-  // Login page should not have the sidebar
-  if (activePath.startsWith('/admin/login')) {
-    return (
-        <html lang="en" suppressHydrationWarning>
-            <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-            </head>
-            <body className="font-body bg-background text-foreground antialiased">
-                <AppProviders>
-                    {children}
-                </AppProviders>
-            </body>
-        </html>
-    )
-  }
-
   return (
-    <html lang="en" suppressHydrationWarning>
-        <head>
-            <title>Admin Dashboard</title>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-        </head>
-        <body className="font-body bg-background text-foreground antialiased">
-            <AppProviders>
-              <CurrencyProvider>
-                <CompanyInfoProvider>
-                  <SidebarProvider>
-                  <Sidebar className="no-print">
-                      <SidebarContent>
-                      <SidebarHeader>
-                          <h2 className="text-lg font-semibold">Global Trading China</h2>
-                      </SidebarHeader>
-                      <SidebarMenu>
-                          {navItems.map((item) => (
-                          <SidebarMenuItem key={item.href}>
-                              <Link href={item.href} passHref>
-                              <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
-                                  <span>
-                                  {item.icon}
-                                  <span>{item.label}</span>
-                                  </span>
-                              </SidebarMenuButton>
-                              </Link>
-                          </SidebarMenuItem>
-                          ))}
-                      </SidebarMenu>
-                      <SidebarFooter>
-                          <AdminSettings />
-                          <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Logout
-                          </Button>
-                      </SidebarFooter>
-                      </SidebarContent>
-                  </Sidebar>
-                  <SidebarInset>
-                      {children}
-                  </SidebarInset>
-                  </SidebarProvider>
-                </CompanyInfoProvider>
-              </CurrencyProvider>
-            </AppProviders>
-        </body>
-    </html>
+    <AppProviders>
+      <CurrencyProvider>
+        <CompanyInfoProvider>
+          <SidebarProvider>
+            <Sidebar className="no-print">
+              <SidebarContent>
+                <SidebarHeader>
+                  <h2 className="text-lg font-semibold">Global Trading China</h2>
+                </SidebarHeader>
+                <SidebarMenu>
+                  {navItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <Link href={item.href} passHref>
+                        <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
+                          <span>
+                            {item.icon}
+                            <span>{item.label}</span>
+                          </span>
+                        </SidebarMenuButton>
+                      </Link>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+                <SidebarFooter>
+                  <AdminSettings />
+                  <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </SidebarFooter>
+              </SidebarContent>
+            </Sidebar>
+            <SidebarInset>
+              {children}
+            </SidebarInset>
+          </SidebarProvider>
+        </CompanyInfoProvider>
+      </CurrencyProvider>
+    </AppProviders>
   );
 }
