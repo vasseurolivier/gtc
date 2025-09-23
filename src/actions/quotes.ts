@@ -4,21 +4,41 @@ import { db } from '@/lib/firebase/server';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
+const quoteItemSchema = z.object({
+  description: z.string().min(1, "Description cannot be empty."),
+  quantity: z.coerce.number().positive("Quantity must be positive."),
+  unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
+  total: z.coerce.number().nonnegative("Total cannot be negative."),
+});
+
 const quoteSchema = z.object({
-  customerId: z.string(),
+  quoteNumber: z.string().min(1, "Quote number is required."),
+  customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
-  items: z.string().min(10),
-  totalAmount: z.number(),
+  issueDate: z.date(),
+  validUntil: z.date(),
+  items: z.array(quoteItemSchema).min(1, "At least one item is required."),
+  totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
   status: z.enum(["draft", "sent", "accepted", "rejected"]),
 });
 
+export interface QuoteItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
 export interface Quote {
     id: string;
+    quoteNumber: string;
     customerId: string;
     customerName: string;
-    items: string;
+    items: QuoteItem[];
     totalAmount: number;
     status: "draft" | "sent" | "accepted" | "rejected";
+    issueDate: any;
+    validUntil: any;
     createdAt: any;
 }
 
@@ -49,11 +69,14 @@ export async function getQuotes(): Promise<Quote[]> {
         const data = doc.data();
         quotes.push({
           id: doc.id,
+          quoteNumber: data.quoteNumber,
           customerId: data.customerId,
           customerName: data.customerName,
           items: data.items,
           totalAmount: data.totalAmount,
           status: data.status,
+          issueDate: data.issueDate ? data.issueDate.toDate() : new Date(),
+          validUntil: data.validUntil ? data.validUntil.toDate() : new Date(),
           createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
         } as Quote);
     });

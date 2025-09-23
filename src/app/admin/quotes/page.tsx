@@ -2,30 +2,43 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+
+const quoteItemSchema = z.object({
+  description: z.string().min(1, "Description is required."),
+  quantity: z.coerce.number().positive("Qty must be > 0."),
+  unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
+  total: z.number(),
+});
 
 const formSchema = z.object({
+  quoteNumber: z.string().min(1, "Quote number is required."),
   customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
-  items: z.string().min(10, { message: "Please describe the items for the quote." }),
-  totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
+  issueDate: z.date({ required_error: "Issue date is required."}),
+  validUntil: z.date({ required_error: "Validity date is required."}),
+  items: z.array(quoteItemSchema).min(1, "Please add at least one item."),
+  totalAmount: z.coerce.number(),
   status: z.enum(["draft", "sent", "accepted", "rejected"]),
 });
 
@@ -41,11 +54,25 @@ export default function QuotesPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      items: "",
+      quoteNumber: `Q-${Date.now().toString().slice(-6)}`,
+      issueDate: new Date(),
+      validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+      items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
       totalAmount: 0,
       status: "draft",
     },
   });
+
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: "items"
+  });
+
+  const watchItems = form.watch("items");
+  useEffect(() => {
+    const total = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    form.setValue("totalAmount", total);
+  }, [watchItems, form]);
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -53,21 +80,14 @@ export default function QuotesPage() {
       router.push('/admin/login');
       return;
     }
-
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [fetchedQuotes, fetchedCustomers] = await Promise.all([
-          getQuotes(),
-          getCustomers()
-        ]);
+        const [fetchedQuotes, fetchedCustomers] = await Promise.all([getQuotes(), getCustomers()]);
         setQuotes(fetchedQuotes);
         setCustomers(fetchedCustomers);
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
-      } finally {
-        setIsLoading(false);
-      }
+      } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
+      } finally { setIsLoading(false); }
     }
     fetchData();
   }, [router, toast]);
@@ -88,7 +108,14 @@ export default function QuotesPage() {
       const newQuotes = await getQuotes();
       setQuotes(newQuotes);
       setAddQuoteOpen(false);
-      form.reset({ items: "", totalAmount: 0, status: "draft" });
+      form.reset({
+        quoteNumber: `Q-${Date.now().toString().slice(-6)}`,
+        issueDate: new Date(),
+        validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+        items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+        totalAmount: 0,
+        status: "draft",
+      });
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -119,94 +146,85 @@ export default function QuotesPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Quotes</h1>
         <Dialog open={isAddQuoteOpen} onOpenChange={setAddQuoteOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create Quote
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create a New Quote</DialogTitle>
-            </DialogHeader>
+          <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Quote</Button></DialogTrigger>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader><DialogTitle>Create a New Quote</DialogTitle></DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-                <FormField
-                    control={form.control}
-                    name="customerId"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Customer</FormLabel>
-                        <Select onValueChange={handleCustomerChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a customer" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField control={form.control} name="totalAmount" render={({ field }) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <FormField control={form.control} name="quoteNumber" render={({ field }) => (
+                    <FormItem><FormLabel>Quote Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="customerId" render={({ field }) => (
+                      <FormItem className="lg:col-span-3">
+                      <FormLabel>Customer</FormLabel>
+                      <Select onValueChange={handleCustomerChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger></FormControl>
+                          <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}</SelectContent>
+                      </Select><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="issueDate" render={({ field }) => (
+                    <FormItem className="flex flex-col"><FormLabel>Issue Date</FormLabel><Popover><PopoverTrigger asChild>
+                    <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                    </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="validUntil" render={({ field }) => (
+                    <FormItem className="flex flex-col"><FormLabel>Valid Until</FormLabel><Popover><PopoverTrigger asChild>
+                    <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                    </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
+                  )} />
+                </div>
+                
+                <Card className="p-4">
+                  <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Items</h4></CardHeader>
+                  <CardContent className="p-0">
+                    <div className="space-y-2">
+                      {fields.map((field, index) => (
+                        <div key={field.id} className="flex items-start gap-2">
+                            <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
+                                <FormItem className="flex-grow"><FormControl><Input placeholder="Item description" {...f} /></FormControl><FormMessage/></FormItem>
+                            )}/>
+                            <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (
+                                <FormItem className="w-20"><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
+                            )}/>
+                            <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
+                                <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder="Unit Price" {...f} /></FormControl><FormMessage/></FormItem>
+                            )}/>
+                            <div className="w-28 pt-2 text-right">€{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ description: "", quantity: 1, unitPrice: 0, total: 0 })}>
+                        <PlusCircle className="mr-2 h-4 w-4"/> Add Item
+                    </Button>
+                    <Separator className="my-4" />
+                    <div className="flex justify-end items-center gap-4 text-lg font-semibold">
+                      <div>Total</div>
+                      <div className="w-28 text-right pr-[52px]">€{form.getValues('totalAmount').toFixed(2)}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                 <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Total Amount (€)</FormLabel>
-                        <FormControl><Input type="number" placeholder="1250.00" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )} />
-
-                <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="draft">Draft</SelectItem>
-                                <SelectItem value="sent">Sent</SelectItem>
-                                <SelectItem value="accepted">Accepted</SelectItem>
-                                <SelectItem value="rejected">Rejected</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField control={form.control} name="items" render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Items</FormLabel>
-                    <FormControl>
-                        <Textarea
-                        placeholder="Describe the items, quantities, and prices for this quote..."
-                        className="resize-y"
-                        rows={6}
-                        {...field}
-                        />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                        </SelectContent>
+                    </Select><FormMessage /></FormItem>
                 )} />
 
                 <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="ghost">Cancel</Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Create Quote
-                    </Button>
+                    <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
+                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Quote</Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -216,9 +234,7 @@ export default function QuotesPage() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-             <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-16 w-16 animate-spin text-primary" />
-             </div>
+             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
           ) : quotes.length === 0 ? (
             <div className="text-center p-16 text-muted-foreground">
               <p>No quotes yet.</p>
@@ -228,39 +244,32 @@ export default function QuotesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Quote #</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {quotes.map((quote) => (
                   <TableRow key={quote.id}>
-                    <TableCell className="font-medium">{quote.customerName}</TableCell>
-                    <TableCell>{format(new Date(quote.createdAt), 'dd MMM yyyy')}</TableCell>
+                    <TableCell className="font-medium">{quote.quoteNumber}</TableCell>
+                    <TableCell>{quote.customerName}</TableCell>
+                    <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge></TableCell>
-                    <TableCell>€{quote.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">€{quote.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            </AlertDialogTrigger>
+                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
+                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
                                     This action cannot be undone. This will permanently delete this quote.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
+                                </AlertDialogDescription></AlertDialogHeader>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>
-                                    Delete
-                                </AlertDialogAction>
+                                <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Delete</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
