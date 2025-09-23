@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase/server';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
 const productSchema = z.object({
@@ -35,6 +35,21 @@ export async function addProduct(values: z.infer<typeof productSchema>) {
         return { success: true, message: 'Product added successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding product:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: 'Validation failed.', errors: error.errors };
+        }
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateProduct(id: string, values: z.infer<typeof productSchema>) {
+    try {
+        const validatedData = productSchema.parse(values);
+        const productRef = doc(db, 'products', id);
+        await updateDoc(productRef, validatedData);
+        return { success: true, message: 'Product updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating product:', error);
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }

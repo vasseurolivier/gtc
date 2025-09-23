@@ -14,8 +14,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addProduct, getProducts, deleteProduct, Product } from '@/actions/products';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
+import { Loader2, PlusCircle, Trash2, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 const formSchema = z.object({
@@ -33,7 +33,8 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAddProductOpen, setAddProductOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,15 +69,34 @@ export default function ProductsPage() {
     fetchProducts();
   }, [router, toast]);
 
+  const handleOpenDialog = (product: Product | null = null) => {
+    setEditingProduct(product);
+    if (product) {
+      form.reset(product);
+    } else {
+      form.reset({
+        name: "",
+        sku: "",
+        description: "",
+        price: 0,
+        stock: 0,
+        category: "",
+      });
+    }
+    setIsDialogOpen(true);
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    const result = await addProduct(values);
+    const result = editingProduct
+      ? await updateProduct(editingProduct.id, values)
+      : await addProduct(values);
+
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       const newProducts = await getProducts();
       setProducts(newProducts);
-      setAddProductOpen(false);
-      form.reset();
+      setIsDialogOpen(false);
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -97,16 +117,16 @@ export default function ProductsPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Products</h1>
-        <Dialog open={isAddProductOpen} onOpenChange={setAddProductOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
-          </DialogTrigger>
+        <Button onClick={() => handleOpenDialog()}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Add a New Product</DialogTitle>
+              <DialogTitle>{editingProduct ? 'Edit Product' : 'Add a New Product'}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
@@ -160,14 +180,14 @@ export default function ProductsPage() {
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Add Product
+                        {editingProduct ? 'Save Changes' : 'Add Product'}
                     </Button>
                 </DialogFooter>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
+
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -200,6 +220,9 @@ export default function ProductsPage() {
                     <TableCell>€{product.price.toFixed(2)}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(product)}>
+                            <Pencil className="h-4 w-4" />
+                        </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon">
