@@ -28,7 +28,12 @@ function getLocale(request: NextRequest): string | undefined {
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // // `/_next/` and `/api/` are ignored by the watcher, but we need to ignore files in `public`
+  // Ignore /admin routes from i18n
+  if (pathname.startsWith('/admin')) {
+    return NextResponse.next();
+  }
+
+  // `/_next/` and `/api/` are ignored by the watcher, but we need to ignore files in `public`
   if (
     [
       '/manifest.json',
