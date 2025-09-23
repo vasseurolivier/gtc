@@ -25,7 +25,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AppProviders } from '@/components/app-providers';
-import '../[locale]/globals.css';
+import '../globals.css';
 import { i18n } from '@/i18n-config';
 
 export default function AdminRootLayout({
