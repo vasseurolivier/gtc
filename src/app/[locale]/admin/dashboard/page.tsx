@@ -1,11 +1,7 @@
-
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { db } from '@/lib/firebase';
-import { collection, onSnapshot, orderBy, query, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,24 +10,16 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
 import { Loader2 } from 'lucide-react';
-
-
-interface Submission {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  createdAt: Timestamp | null;
-  read: boolean;
-}
+import { getSubmissions, Submission } from '@/actions/submissions';
+import { updateSubmissionReadStatus } from '@/actions/submissions';
 
 export default function SubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -40,43 +28,31 @@ export default function SubmissionsPage() {
       return;
     }
 
-    const q = query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"));
-    
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const subs: Submission[] = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            subs.push({
-              id: doc.id,
-              name: data.name || '',
-              email: data.email || '',
-              subject: data.subject || '',
-              message: data.message || '',
-              createdAt: data.createdAt || null,
-              read: data.read || false,
-            } as Submission);
-        });
+    startTransition(async () => {
+      try {
+        const subs = await getSubmissions();
         setSubmissions(subs);
+      } catch (error) {
+        console.error("Failed to fetch submissions:", error);
+      } finally {
         setIsLoading(false);
-    }, (error) => {
-        console.error("Error fetching submissions:", error);
-        setIsLoading(false);
+      }
     });
 
-    return () => unsubscribe();
   }, [router]);
 
   const handleMarkAsRead = async (id: string) => {
     const submission = submissions.find(s => s.id === id);
     if (!submission || submission.read) return;
 
+    // Optimistic UI update
     setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: true } : s));
 
     try {
-        const submissionRef = doc(db, 'contactSubmissions', id);
-        await updateDoc(submissionRef, { read: true });
+        await updateSubmissionReadStatus(id, true);
     } catch (error) {
         console.error("Error marking as read:", error);
+        // Revert if error
         setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: false } : s));
     }
   };
@@ -116,8 +92,8 @@ export default function SubmissionsPage() {
                           <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
                        </div>
                        <span className="text-sm text-muted-foreground pr-4">
-                          {submission.createdAt && submission.createdAt.toDate
-                            ? format(submission.createdAt.toDate(), 'dd MMM yyyy - HH:mm')
+                          {submission.createdAt
+                            ? format(new Date(submission.createdAt), 'dd MMM yyyy - HH:mm')
                             : 'Pas de date'}
                         </span>
                     </div>
