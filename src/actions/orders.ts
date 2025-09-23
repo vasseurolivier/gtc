@@ -46,12 +46,14 @@ export async function addOrder(quote: Quote) {
           status: "processing",
           shippingAddress: quote.shippingAddress,
           orderDate: new Date(),
-          createdAt: serverTimestamp(),
         };
 
         const validatedData = orderSchema.partial().parse(newOrderData);
         
-        const docRef = await addDoc(collection(db, 'orders'), validatedData);
+        const docRef = await addDoc(collection(db, 'orders'), {
+            ...validatedData,
+            createdAt: serverTimestamp(),
+        });
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding order:', error);
