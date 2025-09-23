@@ -78,14 +78,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 return (
                                     <TableRow key={index}>
                                         <TableCell>
-                                            <div className="flex items-center gap-4">
-                                                {product?.imageUrl && (
-                                                    <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
-                                                    </div>
-                                                )}
-                                                <span>{item.description}</span>
-                                            </div>
+                                            {product?.imageUrl && (
+                                                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 mb-2">
+                                                    <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
+                                                </div>
+                                            )}
+                                            <div>{item.description}</div>
                                         </TableCell>
                                         <TableCell className="text-right">{item.quantity}</TableCell>
                                         <TableCell className="text-right">
