@@ -8,6 +8,12 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
+
 async function getCustomerData(id: string): Promise<Customer | null> {
     const customer = await getCustomerById(id);
     return customer;
@@ -23,7 +29,7 @@ const getStatusBadgeVariant = (status: any) => {
     }
 }
 
-export default async function CustomerProfilePage({ params }: { params: { id: string } }) {
+export default async function CustomerProfilePage({ params }: PageProps) {
     const customer = await getCustomerData(params.id);
 
     if (!customer) {

@@ -5,8 +5,13 @@ import { Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lam
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
+type PageProps = {
+  params: {
+    locale: Locale;
+  };
+};
 
-export default async function SourcingPage({ params }: { params: { locale: Locale } }) {
+export default async function SourcingPage({ params }: PageProps) {
   const { locale } = params;
   const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;

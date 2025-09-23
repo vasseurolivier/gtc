@@ -5,8 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
+type PageProps = {
+  params: {
+    locale: Locale;
+  };
+};
 
-export default async function CustomServicesPage({ params }: { params: { locale: Locale } }) {
+export default async function CustomServicesPage({ params }: PageProps) {
   const { locale } = params;
   const dictionary = await getDictionary(locale);
   const customServicesDict = dictionary.customServicesPage;

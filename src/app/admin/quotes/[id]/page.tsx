@@ -8,6 +8,11 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
 
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
 
 async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer: Customer | null, products: Product[] }> {
     try {
@@ -27,7 +32,7 @@ async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer
 }
 
 
-export default async function QuotePreviewPage({ params }: { params: { id: string } }) {
+export default async function QuotePreviewPage({ params }: PageProps) {
     const { quote, customer, products } = await getQuoteData(params.id);
 
     if (!quote || !customer) {
