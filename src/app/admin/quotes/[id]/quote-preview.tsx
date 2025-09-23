@@ -106,7 +106,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </Table>
 
                     <div className="flex justify-end mt-8">
-                        <div className="w-1/2 space-y-2">
+                        <div className="w-full md:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span>¥{quote.subTotal.toFixed(2)}</span>
