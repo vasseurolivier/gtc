@@ -35,9 +35,6 @@ export async function getSubmissions(): Promise<Submission[]> {
     return submissions;
   } catch (error) {
     console.error("Error fetching submissions on server:", error);
-    // Dans une vraie application, vous pourriez vouloir logger l'erreur
-    // et retourner une erreur plus structurée.
-    // Pour l'instant, on retourne un tableau vide pour ne pas crasher la page.
     return [];
   }
 }

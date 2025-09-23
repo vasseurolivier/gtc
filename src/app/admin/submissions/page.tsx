@@ -69,14 +69,14 @@ export default function SubmissionsPage() {
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Messages Reçus</h1>
+        <h1 className="text-3xl font-bold">Messages</h1>
       </div>
 
       <Card>
         <CardContent className="p-0">
           {submissions.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
-                Aucun message pour le moment.
+                No messages yet.
             </div>
           ) : (
             <Accordion type="multiple" className="w-full">
@@ -88,25 +88,25 @@ export default function SubmissionsPage() {
                   >
                     <div className="flex items-center justify-between w-full">
                        <div className="flex items-center gap-4">
-                          {!submission.read && <Badge>Nouveau</Badge>}
+                          {!submission.read && <Badge>New</Badge>}
                           <span className="truncate max-w-xs">{submission.subject}</span>
                           <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
                        </div>
                        <span className="text-sm text-muted-foreground pr-4">
                           {submission.createdAt
                             ? format(new Date(submission.createdAt), 'dd MMM yyyy - HH:mm')
-                            : 'Pas de date'}
+                            : 'No date'}
                         </span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="p-6 bg-secondary/30">
                      <div className="space-y-4">
                           <div>
-                              <div className="font-semibold">De:</div>
+                              <div className="font-semibold">From:</div>
                               <div>{submission.name} &lt;{submission.email}&gt;</div>
                           </div>
                            <div>
-                              <div className="font-semibold">Sujet:</div>
+                              <div className="font-semibold">Subject:</div>
                               <div>{submission.subject}</div>
                           </div>
                            <div>
