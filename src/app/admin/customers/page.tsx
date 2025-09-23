@@ -248,7 +248,9 @@ export default function CustomersPage() {
                 {customers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="font-medium">
-                        {customer.name}
+                        <Link href={`/admin/customers/${customer.id}`} className="hover:underline">
+                            {customer.name}
+                        </Link>
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>{customer.company || 'N/A'}</TableCell>

@@ -67,7 +67,7 @@ export default function CustomerProfilePage({ params }: { params: { id: string }
     return (
         <div className="container py-8">
             <div className="mb-8">
-                <Button variant="ghost" onClick={() => router.back()}>
+                <Button variant="ghost" onClick={() => router.push('/admin/customers')}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Customers
                 </Button>
@@ -96,7 +96,7 @@ export default function CustomerProfilePage({ params }: { params: { id: string }
                             <Euro className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{currency.symbol}{(customer.totalRevenue! * exchangeRate).toFixed(2)}</div>
+                            <div className="text-2xl font-bold">{currency.symbol}{((customer.totalRevenue || 0) * exchangeRate).toFixed(2)}</div>
                             <p className="text-xs text-muted-foreground">
                                 From {customer.orders?.length || 0} orders
                             </p>
