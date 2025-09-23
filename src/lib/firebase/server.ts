@@ -16,7 +16,7 @@ const firebaseConfig = {
 // IMPORTANT: The service account key is base64 encoded in an environment variable.
 // This is a more secure way to handle credentials in a server environment.
 const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 || '', 'base64').toString('ascii')
+  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 || '', 'base64').toString('utf8')
 );
 
 
