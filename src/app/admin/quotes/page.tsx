@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,12 +24,11 @@ import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, Quote } from '@/ac
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { addOrder } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { CurrencyContext } from '@/context/currency-context';
 
 const quoteItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
@@ -64,12 +64,6 @@ export default function QuotesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddQuoteOpen, setAddQuoteOpen] = useState(false);
-
-  const currencyContext = useContext(CurrencyContext);
-  if (!currencyContext) {
-    throw new Error("CurrencyContext must be used within a CurrencyProvider");
-  }
-  const { currency, exchangeRate } = currencyContext;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -200,7 +194,7 @@ export default function QuotesPage() {
     } else {
         toast({ title: 'Success', description: 'Proforma status updated.' });
         if (newStatus === 'accepted') {
-            const orderResult = await addOrder(quote);
+            const orderResult = await addOrder({ ...quote, status: newStatus });
             if (orderResult.success) {
                 toast({ title: 'Order Created', description: `Order for ${quote.quoteNumber} has been created.` });
                 router.refresh();
@@ -420,6 +414,11 @@ export default function QuotesPage() {
                     </TableCell>
                     <TableCell className="text-right">¥{quote.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/quotes/${quote.id}`}>
+                                <Eye className="h-4 w-4" />
+                            </Link>
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
                             <Copy className="h-4 w-4" />
                         </Button>

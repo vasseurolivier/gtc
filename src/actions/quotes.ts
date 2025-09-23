@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
 
 const quoteItemSchema = z.object({
@@ -104,6 +104,31 @@ export async function getQuotes(): Promise<Quote[]> {
     console.error("Error fetching quotes:", error);
     return [];
   }
+}
+
+export async function getQuoteById(id: string): Promise<Quote | null> {
+    try {
+        const quoteRef = doc(db, 'quotes', id);
+        const quoteSnap = await getDoc(quoteRef);
+
+        if (!quoteSnap.exists()) {
+            return null;
+        }
+
+        const quoteData = quoteSnap.data();
+
+        return {
+            id: quoteSnap.id,
+            ...quoteData,
+            issueDate: quoteData.issueDate?.toDate().toISOString() || new Date().toISOString(),
+            validUntil: quoteData.validUntil?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: quoteData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Quote;
+
+    } catch (error) {
+        console.error("Error fetching quote details:", error);
+        return null;
+    }
 }
 
 export async function deleteQuote(id: string) {
