@@ -90,10 +90,10 @@ export default function AdminRootLayout({
                         <SidebarMenuItem key={item.href}>
                             <Link href={item.href} passHref>
                             <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
-                                <>
+                                <span>
                                 {item.icon}
                                 <span>{item.label}</span>
-                                </>
+                                </span>
                             </SidebarMenuButton>
                             </Link>
                         </SidebarMenuItem>
