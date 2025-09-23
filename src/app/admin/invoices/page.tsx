@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,7 +17,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addInvoice, getInvoices, deleteInvoice, updateInvoiceStatus, Invoice } from '@/actions/invoices';
 import { getOrders, Order } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -201,6 +202,11 @@ export default function InvoicesPage() {
                     </TableCell>
                     <TableCell className="text-right">¥{invoice.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/invoices/${invoice.id}`}>
+                                <Eye className="h-4 w-4" />
+                            </Link>
+                        </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>

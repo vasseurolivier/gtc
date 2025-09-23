@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Order } from './orders';
 
@@ -90,6 +90,32 @@ export async function getInvoices(): Promise<Invoice[]> {
     return [];
   }
 }
+
+export async function getInvoiceById(id: string): Promise<Invoice | null> {
+    try {
+        const invoiceRef = doc(db, 'invoices', id);
+        const invoiceSnap = await getDoc(invoiceRef);
+
+        if (!invoiceSnap.exists()) {
+            return null;
+        }
+
+        const invoiceData = invoiceSnap.data();
+
+        return {
+            id: invoiceSnap.id,
+            ...invoiceData,
+            issueDate: invoiceData.issueDate?.toDate().toISOString() || new Date().toISOString(),
+            dueDate: invoiceData.dueDate?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: invoiceData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Invoice;
+
+    } catch (error) {
+        console.error("Error fetching invoice details:", error);
+        return null;
+    }
+}
+
 
 export async function deleteInvoice(id: string) {
     try {
