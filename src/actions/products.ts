@@ -19,6 +19,7 @@ const productSchema = z.object({
   length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
   hsCode: z.string().optional(),
   countryOfOrigin: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export interface Product {
@@ -36,6 +37,7 @@ export interface Product {
     length?: number;
     hsCode?: string;
     countryOfOrigin?: string;
+    imageUrl?: string;
     createdAt: string;
 }
 
@@ -94,6 +96,7 @@ export async function getProducts(): Promise<Product[]> {
           length: data.length || 0,
           hsCode: data.hsCode || '',
           countryOfOrigin: data.countryOfOrigin || '',
+          imageUrl: data.imageUrl || '',
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Product);
     });

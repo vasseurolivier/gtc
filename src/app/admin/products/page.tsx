@@ -3,7 +3,8 @@
 
 import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -16,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
-import { Loader2, PlusCircle, Trash2, Pencil } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
@@ -34,6 +35,7 @@ const formSchema = z.object({
   length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
   hsCode: z.string().optional(),
   countryOfOrigin: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 
@@ -70,8 +72,11 @@ export default function ProductsPage() {
       length: 0,
       hsCode: "",
       countryOfOrigin: "China",
+      imageUrl: "",
     },
   });
+
+  const watchImageUrl = form.watch("imageUrl");
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -106,6 +111,7 @@ export default function ProductsPage() {
         width: product.width || 0,
         height: product.height || 0,
         length: product.length || 0,
+        imageUrl: product.imageUrl || "",
       });
     } else {
       form.reset({
@@ -122,10 +128,31 @@ export default function ProductsPage() {
         length: 0,
         hsCode: "",
         countryOfOrigin: "China",
+        imageUrl: "",
       });
     }
     setIsDialogOpen(true);
   };
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+          toast({
+              variant: 'destructive',
+              title: 'File too large',
+              description: 'Please upload an image smaller than 2MB.',
+          });
+          return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+          form.setValue("imageUrl", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -205,6 +232,34 @@ export default function ProductsPage() {
                             </FormItem>
                         )} />
                     </div>
+                </div>
+                
+                <Separator />
+
+                <div>
+                    <h3 className="text-lg font-medium mb-2">Product Image</h3>
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Image</FormLabel>
+                          <div className="flex items-center gap-4">
+                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                {watchImageUrl ? (
+                                    <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" />
+                                ) : (
+                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-auto" />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 </div>
 
                 <Separator />
@@ -318,6 +373,7 @@ export default function ProductsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Image</TableHead>
                   <TableHead>Product Name</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Selling Price</TableHead>
@@ -329,6 +385,15 @@ export default function ProductsPage() {
               <TableBody>
                 {products.map((product) => (
                   <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                        {product.imageUrl ? (
+                          <Image src={product.imageUrl} alt={product.name} width={48} height={48} className="object-contain"/>
+                        ) : (
+                          <div className="text-xs text-muted-foreground">No Img</div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.sku}</TableCell>
                     <TableCell>{currency.symbol}{(product.price * exchangeRate).toFixed(2)}</TableCell>
