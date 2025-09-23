@@ -57,7 +57,7 @@
     {
       "id": "ecommerce-feature-2",
       "description": "Warehouse shelves with boxes ready for shipping.",
-      "imageUrl": "https://images.unsplash.com/photo-1740914994162-0b2a49280aeb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3YXJlaG91c2UlMjBzaGVsdmVzfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1449247666642-264389f5f5b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8ZS1jb21tZXJjZXxlbnwwfHx8fDE3NTg1ODA4MjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse shelves"
     },
     {
@@ -69,7 +69,7 @@
     {
       "id": "custom-services-feature-2",
       "description": "Busy trade show floor with many people and booths.",
-      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGluZXxlbnwwfHx8fDE3NTgzOTM1NDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGluZXxlbnwwfHx8fDE3NTgzOTM1NDV8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "trade show"
     },
     {
@@ -81,7 +81,7 @@
     {
       "id": "custom-services-feature-4",
       "description": "A project manager at a whiteboard with sticky notes and diagrams.",
-      "imageUrl": "https://images.unsplash.com/photo-1541535881962-3bb380b08458?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1hbnxlbnwwfHx8fDE3NTgzOTM2MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1541535881962-3bb380b08458?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1hbnxlbnwwfHx8fDE3NTgzOTM2MTl8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "project management"
     },
     {
