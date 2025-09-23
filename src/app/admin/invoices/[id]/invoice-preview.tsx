@@ -104,27 +104,27 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </Table>
 
                     <div className="flex justify-end mt-8">
-                        <div className="w-full md:w-1/2 space-y-2">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span>¥{subTotal.toFixed(2)}</span>
+                                <span className="text-right">¥{subTotal.toFixed(2)}</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between font-bold text-lg">
                                 <span>TOTAL (CNY)</span>
-                                <span>¥{invoice.totalAmount.toFixed(2)}</span>
+                                <span className="text-right">¥{invoice.totalAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-lg text-primary">
                                 <span>TOTAL ({currency.code})</span>
-                                <span>{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</span>
+                                <span className="text-right">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</span>
                             </div>
                              <div className="flex justify-between">
                                 <span className="text-muted-foreground">Amount Paid</span>
-                                <span>¥{(invoice.amountPaid || 0).toFixed(2)}</span>
+                                <span className="text-right">¥{(invoice.amountPaid || 0).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-destructive">
                                 <span>Balance Due ({currency.code})</span>
-                                <span>{currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)}</span>
+                                <span className="text-right">{currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

@@ -106,33 +106,33 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </Table>
 
                     <div className="flex justify-end mt-8">
-                        <div className="w-full md:w-1/2 space-y-2">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span>¥{quote.subTotal.toFixed(2)}</span>
+                                <span className="text-right">¥{quote.subTotal.toFixed(2)}</span>
                             </div>
                             {quote.transportCost && quote.transportCost > 0 && 
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Transport Cost</span>
-                                    <span>¥{quote.transportCost.toFixed(2)}</span>
+                                    <span className="text-right">¥{quote.transportCost.toFixed(2)}</span>
                                 </div>
                             }
                             {quote.commissionRate && quote.commissionRate > 0 &&
                                 <>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                        <span>¥{commissionAmount.toFixed(2)}</span>
+                                        <span className="text-right">¥{commissionAmount.toFixed(2)}</span>
                                     </div>
                                 </>
                             }
                             <Separator />
                             <div className="flex justify-between font-bold text-lg">
                                 <span>TOTAL (CNY)</span>
-                                <span>¥{quote.totalAmount.toFixed(2)}</span>
+                                <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-lg text-primary">
                                 <span>TOTAL ({currency.code})</span>
-                                <span>{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
+                                <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -160,3 +160,4 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         </Card>
     );
 }
+
