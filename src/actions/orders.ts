@@ -37,7 +37,7 @@ export interface Order {
 export async function addOrder(quote: Quote) {
     try {
         const newOrderData = {
-          orderNumber: `O-${quote.quoteNumber}`,
+          orderNumber: `O-${quote.quoteNumber.replace('PI-', '')}`,
           quoteId: quote.id,
           customerId: quote.customerId,
           customerName: quote.customerName,

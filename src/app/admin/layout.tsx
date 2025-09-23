@@ -110,7 +110,7 @@ export default function AdminRootLayout({
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
-    { href: '/admin/quotes', icon: <FileText />, label: 'Quotes' },
+    { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
     { href: '/admin/products', icon: <Package />, label: 'Products' },
   ];

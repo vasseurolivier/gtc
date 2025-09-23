@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
 
 const formSchema = z.object({
-  quoteId: z.string().min(1, "Please select a quote."),
+  quoteId: z.string().min(1, "Please select a proforma invoice."),
 });
 
 export default function OrdersPage() {
@@ -77,7 +77,7 @@ export default function OrdersPage() {
     setIsSubmitting(true);
     const selectedQuote = quotes.find(q => q.id === values.quoteId);
     if (!selectedQuote) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Selected quote not found.' });
+        toast({ variant: 'destructive', title: 'Error', description: 'Selected proforma not found.' });
         setIsSubmitting(false);
         return;
     }
@@ -136,20 +136,20 @@ export default function OrdersPage() {
         <Dialog open={isAddOrderOpen} onOpenChange={setAddOrderOpen}>
           <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Order</Button></DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Create Order from Quote</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Create Order from Proforma Invoice</DialogTitle></DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
                  <FormField control={form.control} name="quoteId" render={({ field }) => (
                       <FormItem>
-                      <FormLabel>Accepted Quote</FormLabel>
+                      <FormLabel>Accepted Proforma Invoice</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl><SelectTrigger>
-                            <SelectValue placeholder="Select an accepted quote" />
+                            <SelectValue placeholder="Select an accepted proforma" />
                           </SelectTrigger></FormControl>
                           <SelectContent>
                             {quotes.length > 0 ? quotes.map(q => <SelectItem key={q.id} value={q.id}>
                                 {q.quoteNumber} - {q.customerName} - {currency.symbol}{(q.totalAmount * exchangeRate).toFixed(2)}
-                            </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted quotes found.</p>}
+                            </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted proformas found.</p>}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />

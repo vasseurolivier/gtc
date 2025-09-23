@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -12,7 +13,7 @@ const quoteItemSchema = z.object({
 });
 
 const quoteSchema = z.object({
-  quoteNumber: z.string().min(1, "Quote number is required."),
+  quoteNumber: z.string().min(1, "Proforma number is required."),
   customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
   issueDate: z.date(),
@@ -59,7 +60,7 @@ export async function addQuote(values: z.infer<typeof quoteSchema>) {
             ...validatedData,
             createdAt: serverTimestamp(),
         });
-        return { success: true, message: 'Quote added successfully!', id: docRef.id };
+        return { success: true, message: 'Proforma Invoice added successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding quote:', error);
         if (error instanceof z.ZodError) {
@@ -106,7 +107,7 @@ export async function getQuotes(): Promise<Quote[]> {
 export async function deleteQuote(id: string) {
     try {
         await deleteDoc(doc(db, 'quotes', id));
-        return { success: true, message: 'Quote deleted successfully!' };
+        return { success: true, message: 'Proforma Invoice deleted successfully!' };
     } catch (error: any) {
         console.error('Error deleting quote:', error);
         return { success: false, message: 'An unexpected error occurred.' };

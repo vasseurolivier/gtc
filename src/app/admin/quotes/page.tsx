@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -34,7 +35,7 @@ const quoteItemSchema = z.object({
 });
 
 const formSchema = z.object({
-  quoteNumber: z.string().min(1, "Quote number is required."),
+  quoteNumber: z.string().min(1, "Proforma number is required."),
   customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
   issueDate: z.date({ required_error: "Issue date is required."}),
@@ -67,7 +68,7 @@ export default function QuotesPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      quoteNumber: `Q-${Date.now().toString().slice(-6)}`,
+      quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
       items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
@@ -137,7 +138,7 @@ export default function QuotesPage() {
       setQuotes(newQuotes);
       setAddQuoteOpen(false);
       form.reset({
-        quoteNumber: `Q-${Date.now().toString().slice(-6)}`,
+        quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
         issueDate: new Date(),
         validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
         items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
@@ -183,16 +184,16 @@ export default function QuotesPage() {
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Quotes</h1>
+        <h1 className="text-3xl font-bold">Proforma Invoices</h1>
         <Dialog open={isAddQuoteOpen} onOpenChange={setAddQuoteOpen}>
-          <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Quote</Button></DialogTrigger>
+          <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Proforma Invoice</Button></DialogTrigger>
           <DialogContent className="max-w-4xl">
-            <DialogHeader><DialogTitle>Create a New Quote</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Create a New Proforma Invoice</DialogTitle></DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <FormField control={form.control} name="quoteNumber" render={({ field }) => (
-                    <FormItem><FormLabel>Quote Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Proforma #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="customerId" render={({ field }) => (
                       <FormItem className="lg:col-span-3">
@@ -302,7 +303,7 @@ export default function QuotesPage() {
 
                 <DialogFooter>
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Quote</Button>
+                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Proforma</Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -315,14 +316,14 @@ export default function QuotesPage() {
              <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
           ) : quotes.length === 0 ? (
             <div className="text-center p-16 text-muted-foreground">
-              <p>No quotes yet.</p>
-              <p className="text-sm mt-2">Click "Create Quote" to get started.</p>
+              <p>No proforma invoices yet.</p>
+              <p className="text-sm mt-2">Click "Create Proforma Invoice" to get started.</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Quote #</TableHead>
+                  <TableHead>Proforma #</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
@@ -343,7 +344,7 @@ export default function QuotesPage() {
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this quote.
+                                    This action cannot be undone. This will permanently delete this document.
                                 </AlertDialogDescription></AlertDialogHeader>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
