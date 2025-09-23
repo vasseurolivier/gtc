@@ -19,7 +19,7 @@ export const CurrencyContext = createContext<CurrencyContextType | undefined>(un
 
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currency, setCurrency] = useState<Currency>({ symbol: '€', code: 'EUR' });
-  const [exchangeRate, setExchangeRate] = useState<number>(1);
+  const [exchangeRate, setExchangeRate] = useState<number>(0.13); // Default rate for CNY to EUR
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {

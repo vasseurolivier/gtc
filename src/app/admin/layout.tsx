@@ -176,15 +176,15 @@ function AdminSettings() {
                             <h3 className="text-lg font-medium mb-4">Currency Settings</h3>
                             <div className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="currency-symbol" className="text-right">Symbol</Label>
+                                    <Label htmlFor="currency-symbol" className="text-right">Display Symbol</Label>
                                     <Input id="currency-symbol" value={localSymbol} onChange={(e) => setLocalSymbol(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="currency-code" className="text-right">Code</Label>
+                                    <Label htmlFor="currency-code" className="text-right">Display Code</Label>
                                     <Input id="currency-code" value={localCode} onChange={(e) => setLocalCode(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="exchange-rate" className="text-right">Rate (vs EUR)</Label>
+                                    <Label htmlFor="exchange-rate" className="text-right">Rate (vs CNY)</Label>
                                     <Input id="exchange-rate" type="number" value={localRate} onChange={(e) => setLocalRate(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>

@@ -44,8 +44,8 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
         );
     }
     
-    // For server components, we cannot use context. We will display prices in the base currency (EUR).
-    const currency = { symbol: '€' };
+    // For server components, we cannot use context. We will display prices in the base currency (CNY).
+    const currency = { symbol: '¥' };
     const exchangeRate = 1;
 
 

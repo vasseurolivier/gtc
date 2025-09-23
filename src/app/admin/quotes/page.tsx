@@ -250,9 +250,9 @@ export default function QuotesPage() {
                                 <FormItem className="w-20"><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
                             <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
-                                <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder={`Unit Price (${currency.code})`} {...f} /></FormControl><FormMessage/></FormItem>
+                                <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder="Unit Price (CNY)" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
-                            <div className="w-28 pt-2 text-right">{currency.symbol}{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
+                            <div className="w-28 pt-2 text-right">{currency.symbol}{(watchItems[index].quantity * watchItems[index].unitPrice * exchangeRate).toFixed(2)}</div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
                         </div>
                       ))}
@@ -265,11 +265,11 @@ export default function QuotesPage() {
                       <div className="w-1/2 space-y-2">
                         <div className="flex justify-between items-center">
                           <span>Subtotal</span>
-                          <span>{currency.symbol}{subTotal.toFixed(2)}</span>
+                          <span>{currency.symbol}{(subTotal * exchangeRate).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center gap-2">
                            <FormField control={form.control} name="transportCost" render={({ field }) => (
-                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Transport Cost</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
+                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Transport Cost (CNY)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
                            )}/>
                         </div>
                          <div className="flex justify-between items-center gap-2">
@@ -279,12 +279,12 @@ export default function QuotesPage() {
                         </div>
                         <div className="flex justify-between items-center text-muted-foreground text-sm">
                           <span>Commission Amount</span>
-                          <span>{currency.symbol}{commissionAmount.toFixed(2)}</span>
+                          <span>{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</span>
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center text-lg font-semibold">
                           <span>Total</span>
-                          <span>{currency.symbol}{totalAmount.toFixed(2)}</span>
+                          <span>{currency.symbol}{(totalAmount * exchangeRate).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
