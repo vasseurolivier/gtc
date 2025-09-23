@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '../globals.css';
 import { AppProviders } from '@/components/app-providers';
 import { i18n, type Locale } from '@/i18n-config';
+import { PublicLayout } from '@/components/layout/public-layout';
 
 export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ locale }));
