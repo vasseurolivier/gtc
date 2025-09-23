@@ -21,6 +21,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
+import { getProducts, Product } from '@/actions/products';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +57,7 @@ export default function QuotesPage() {
   const { toast } = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddQuoteOpen, setAddQuoteOpen] = useState(false);
@@ -83,7 +85,7 @@ export default function QuotesPage() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "items"
   });
@@ -113,9 +115,14 @@ export default function QuotesPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [fetchedQuotes, fetchedCustomers] = await Promise.all([getQuotes(), getCustomers()]);
+        const [fetchedQuotes, fetchedCustomers, fetchedProducts] = await Promise.all([
+          getQuotes(), 
+          getCustomers(),
+          getProducts()
+        ]);
         setQuotes(fetchedQuotes);
         setCustomers(fetchedCustomers);
+        setProducts(fetchedProducts);
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
     }
@@ -127,6 +134,17 @@ export default function QuotesPage() {
     if (customer) {
         form.setValue("customerId", customer.id);
         form.setValue("customerName", customer.name);
+    }
+  };
+
+  const handleProductSelect = (productId: string, index: number) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        update(index, {
+            ...fields[index],
+            description: product.name,
+            unitPrice: product.price
+        });
     }
   };
 
@@ -243,6 +261,17 @@ export default function QuotesPage() {
                     <div className="space-y-2">
                       {fields.map((field, index) => (
                         <div key={field.id} className="flex items-start gap-2">
+                            <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a product" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {products.map(p => (
+                                        <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
                             <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
                                 <FormItem className="flex-grow"><FormControl><Input placeholder="Item description" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
