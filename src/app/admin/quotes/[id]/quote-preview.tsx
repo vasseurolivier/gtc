@@ -30,11 +30,7 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
         <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content" id="proforma-content">
             <header className="flex justify-between items-start mb-8 border-b pb-8">
                 <div>
-                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain mb-4"/>}
-                    <h1 className="font-bold text-lg">{companyInfo.name}</h1>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">{companyInfo.address}</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.email}</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.phone}</p>
+                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
                 </div>
                 <div className="text-right">
                     <h2 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h2>
@@ -113,12 +109,20 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
                 </div>
             </section>
             
-            {quote.notes && 
-                <footer className="border-t pt-8">
-                    <h3 className="font-semibold mb-2">Notes:</h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
-                </footer>
-            }
+            <footer className="border-t pt-8 mt-8">
+                {quote.notes && 
+                    <div className="mb-8">
+                        <h3 className="font-semibold mb-2">Notes:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
+                    </div>
+                }
+                 <div>
+                    <h3 className="font-bold text-base mb-2">{companyInfo.name}</h3>
+                    <p className="text-sm text-muted-foreground whitespace-pre-line">{companyInfo.address}</p>
+                    <p className="text-sm text-muted-foreground">{companyInfo.email}</p>
+                    <p className="text-sm text-muted-foreground">{companyInfo.phone}</p>
+                </div>
+            </footer>
         </Card>
     );
 }
