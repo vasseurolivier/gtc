@@ -1,6 +1,7 @@
+
 'use server';
 
-import { db } from '@/lib/firebase/server';
+import { db } from '@/lib/firebase';
 import { collection, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
 
 export interface Submission {

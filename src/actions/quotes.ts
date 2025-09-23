@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/firebase/server';
+import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
