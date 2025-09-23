@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -29,6 +28,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { CurrencyContext } from '@/context/currency-context';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -66,6 +66,12 @@ export default function QuotesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+
+  const currencyContext = useContext(CurrencyContext);
+  if (!currencyContext) {
+    throw new Error("CurrencyContext must be used within a CurrencyProvider");
+  }
+  const { currency, exchangeRate } = currencyContext;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -355,8 +361,12 @@ export default function QuotesPage() {
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center text-lg font-semibold">
-                          <span>Total</span>
+                          <span>Total (CNY)</span>
                           <span>¥{totalAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-lg font-semibold text-primary">
+                          <span>Total ({currency.code})</span>
+                          <span>{currency.symbol}{(totalAmount * exchangeRate).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -433,7 +443,10 @@ export default function QuotesPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">¥{quote.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                        <div>¥{quote.totalAmount.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
+                    </TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" asChild>
                             <Link href={`/admin/quotes/${quote.id}`}>

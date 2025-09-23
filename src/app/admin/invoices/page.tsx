@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { CurrencyContext } from '@/context/currency-context';
 
 const invoiceItemSchema = z.object({
   sku: z.string().optional(),
@@ -65,6 +66,12 @@ export default function InvoicesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+
+  const currencyContext = useContext(CurrencyContext);
+  if (!currencyContext) {
+    throw new Error("CurrencyContext must be used within a CurrencyProvider");
+  }
+  const { currency, exchangeRate } = currencyContext;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -343,6 +350,10 @@ export default function InvoicesPage() {
                           <span>TOTAL (CNY)</span>
                           <span>¥{totalAmount.toFixed(2)}</span>
                         </div>
+                        <div className="flex justify-between items-center font-bold text-lg text-primary">
+                          <span>TOTAL ({currency.code})</span>
+                          <span>{currency.symbol}{(totalAmount * exchangeRate).toFixed(2)}</span>
+                        </div>
                          <div className="flex justify-between items-center pt-2">
                            <FormField control={form.control} name="amountPaid" render={({ field }) => (
                                 <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Amount Paid (CNY)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
@@ -420,7 +431,10 @@ export default function InvoicesPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">¥{invoice.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                        <div>¥{invoice.totalAmount.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</div>
+                    </TableCell>
                     <TableCell className="text-right">
                        <div className="flex items-center justify-end gap-2">
                          <Input
@@ -441,7 +455,10 @@ export default function InvoicesPage() {
                          )}
                        </div>
                     </TableCell>
-                    <TableCell className="text-right font-medium">¥{remainingBalance.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                        <div>¥{remainingBalance.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
+                    </TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" asChild>
                             <Link href={`/admin/invoices/${invoice.id}`}>

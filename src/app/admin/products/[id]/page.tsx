@@ -11,7 +11,7 @@ import Link from 'next/link';
 export default async function ProductProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
     const { id } = await params;
     const product = await getProductById(id);
@@ -64,11 +64,11 @@ export default async function ProductProfilePage({
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Selling Price</span>
+                                <span className="text-muted-foreground">Selling Price (CNY)</span>
                                 <span className="font-semibold">¥{product.price.toFixed(2)}</span>
                             </div>
                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Purchase Price</span>
+                                <span className="text-muted-foreground">Purchase Price (CNY)</span>
                                 <span className="font-semibold">{product.purchasePrice ? `¥${product.purchasePrice.toFixed(2)}` : 'N/A'}</span>
                             </div>
                             <Separator />
@@ -137,5 +137,3 @@ export default async function ProductProfilePage({
         </div>
     );
 }
-
-    

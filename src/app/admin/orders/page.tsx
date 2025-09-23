@@ -202,7 +202,10 @@ export default function OrdersPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                        <div>¥{order.totalAmount.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</div>
+                    </TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>

@@ -378,7 +378,6 @@ export default function ProductsPage() {
                   <TableHead>Product Name</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Selling Price</TableHead>
-                  <TableHead>Purchase Price</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -401,8 +400,10 @@ export default function ProductsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{product.sku}</TableCell>
-                    <TableCell>¥{(product.price).toFixed(2)}</TableCell>
-                    <TableCell>{product.purchasePrice ? `¥${(product.purchasePrice).toFixed(2)}` : 'N/A'}</TableCell>
+                    <TableCell>
+                        <div>¥{(product.price).toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">{currency.symbol}{(product.price * exchangeRate).toFixed(2)}</div>
+                    </TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" asChild>

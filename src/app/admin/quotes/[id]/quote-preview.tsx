@@ -6,6 +6,7 @@ import type { Customer } from '@/actions/customers';
 import type { Product } from '@/actions/products';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { CurrencyContext } from '@/context/currency-context';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -15,8 +16,9 @@ import Image from 'next/image';
 
 export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
+    const currencyContext = useContext(CurrencyContext);
 
-    if (!companyInfoContext) {
+    if (!companyInfoContext || !currencyContext) {
         return (
              <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -25,6 +27,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     }
     
     const { companyInfo } = companyInfoContext;
+    const { currency, exchangeRate } = currencyContext;
     const commissionAmount = (quote.subTotal + (quote.transportCost || 0)) * ((quote.commissionRate || 0) / 100);
 
     const productsBySku = new Map(products.map(p => [p.sku, p]));
@@ -68,8 +71,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <TableRow>
                                 <TableHead className="w-1/2">Description</TableHead>
                                 <TableHead className="text-right">Quantity</TableHead>
-                                <TableHead className="text-right">Unit Price (CNY)</TableHead>
-                                <TableHead className="text-right">Total (CNY)</TableHead>
+                                <TableHead className="text-right">Unit Price</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -88,8 +91,14 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">{item.quantity}</TableCell>
-                                        <TableCell className="text-right">{item.unitPrice.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <div>¥{item.unitPrice.toFixed(2)}</div>
+                                            <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                            <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                        </TableCell>
                                     </TableRow>
                                 )
                             })}
@@ -120,6 +129,10 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <div className="flex justify-between font-bold text-lg">
                                 <span>TOTAL (CNY)</span>
                                 <span>¥{quote.totalAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold text-lg text-primary">
+                                <span>TOTAL ({currency.code})</span>
+                                <span>{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

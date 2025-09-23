@@ -11,7 +11,7 @@ import Link from 'next/link';
 export default async function CustomerProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
     const { id } = await params;
     const customer = await getCustomerById(id);
@@ -83,7 +83,7 @@ export default async function CustomerProfilePage({
                             <Euro className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{currency.symbol}{((customer.totalRevenue || 0) * exchangeRate).toFixed(2)}</div>
+                            <div className="text-2xl font-bold">¥{(customer.totalRevenue || 0).toFixed(2)}</div>
                             <p className="text-xs text-muted-foreground">
                                 From {customer.orders?.length || 0} orders
                             </p>
@@ -115,7 +115,7 @@ export default async function CustomerProfilePage({
                                             <TableHead>Order #</TableHead>
                                             <TableHead>Date</TableHead>
                                             <TableHead>Status</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
+                                            <TableHead className="text-right">Total (CNY)</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -124,7 +124,7 @@ export default async function CustomerProfilePage({
                                                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                                                 <TableCell>{format(new Date(order.orderDate), 'dd MMM yyyy')}</TableCell>
                                                 <TableCell><Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge></TableCell>
-                                                <TableCell className="text-right">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</TableCell>
+                                                <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
