@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import Image from 'next/image';
 
 export function QuotePreview({ quote, customer }: { quote: Quote, customer: Customer }) {
@@ -49,11 +49,11 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
                 <div className="text-right">
                     <div className="grid grid-cols-2">
                         <span className="font-semibold">Issue Date:</span>
-                        <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
+                        <span>{format(parseISO(quote.issueDate), 'dd MMM yyyy')}</span>
                     </div>
                         <div className="grid grid-cols-2 mt-1">
                         <span className="font-semibold">Valid Until:</span>
-                        <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
+                        <span>{format(parseISO(quote.validUntil), 'dd MMM yyyy')}</span>
                     </div>
                 </div>
             </section>
