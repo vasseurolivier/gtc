@@ -26,7 +26,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AppProviders } from '@/components/app-providers';
 import '../globals.css';
-import { i18n } from '@/i18n-config';
 
 export default function AdminRootLayout({
   children,
@@ -42,29 +41,20 @@ export default function AdminRootLayout({
   };
 
   const navItems = [
-    { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Tableau de bord' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
-    { href: '/admin/customers', icon: <Users />, label: 'Clients' },
-    { href: '/admin/quotes', icon: <FileText />, label: 'Devis' },
-    { href: '/admin/orders', icon: <ShoppingCart />, label: 'Commandes' },
-    { href: '/admin/products', icon: <Package />, label: 'Produits' },
+    { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
+    { href: '/admin/customers', icon: <Users />, label: 'Customers' },
+    { href: '/admin/quotes', icon: <FileText />, label: 'Quotes' },
+    { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
+    { href: '/admin/products', icon: <Package />, label: 'Products' },
   ];
   
-  const getBasePath = (path: string) => {
-    const parts = path.split('/');
-     // Normalize path for comparison, removing locale if present
-    if (parts.length > 2 && (i18n.locales as readonly string[]).includes(parts[1])) {
-       return `/${parts.slice(2).join('/')}`;
-    }
-    return path;
-  }
-  
-  const activePath = getBasePath(pathname);
+  const activePath = pathname;
 
   // Login page should not have the sidebar
   if (activePath.startsWith('/admin/login')) {
     return (
-        <html lang="fr" suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -80,7 +70,7 @@ export default function AdminRootLayout({
   }
 
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
         <head>
             <title>Admin Dashboard</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -93,7 +83,7 @@ export default function AdminRootLayout({
                 <Sidebar>
                     <SidebarContent>
                     <SidebarHeader>
-                        <h2 className="text-lg font-semibold">TradeBridge</h2>
+                        <h2 className="text-lg font-semibold">TradeBridge Admin</h2>
                     </SidebarHeader>
                     <SidebarMenu>
                         {navItems.map((item) => (
@@ -112,7 +102,7 @@ export default function AdminRootLayout({
                     <SidebarFooter>
                         <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
                         <LogOut className="mr-2 h-4 w-4" />
-                        Déconnexion
+                        Logout
                         </Button>
                     </SidebarFooter>
                     </SidebarContent>
