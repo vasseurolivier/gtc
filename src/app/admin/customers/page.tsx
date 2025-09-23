@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -16,7 +17,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import { addCustomer, getCustomers, deleteCustomer, Customer, CustomerFormValues } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import Link from 'next/link';
@@ -247,14 +248,17 @@ export default function CustomersPage() {
                 {customers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="font-medium">
-                        <Link href={`/admin/customers/${customer.id}`} className="hover:underline">
-                            {customer.name}
-                        </Link>
+                        {customer.name}
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>{customer.company || 'N/A'}</TableCell>
                     <TableCell>{customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy') : 'N/A'}</TableCell>
                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/admin/customers/${customer.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon">
