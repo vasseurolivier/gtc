@@ -4,22 +4,30 @@
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
-import type { Order } from './orders';
+
+const invoiceItemSchema = z.object({
+  sku: z.string().optional(),
+  description: z.string().min(1, "Description is required."),
+  quantity: z.coerce.number().positive("Qty must be > 0."),
+  unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
+  total: z.number(),
+});
 
 const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled"]);
 
 const invoiceSchema = z.object({
-  invoiceNumber: z.string(),
-  orderId: z.string(),
-  orderNumber: z.string(),
-  customerId: z.string(),
+  invoiceNumber: z.string().min(1, "Invoice number is required."),
+  orderId: z.string().optional(),
+  orderNumber: z.string().optional(),
+  customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
-  items: z.array(z.any()), // Keep items flexible
+  issueDate: z.date({ required_error: "Issue date is required."}),
+  dueDate: z.date({ required_error: "Due date is required."}),
+  items: z.array(invoiceItemSchema).min(1, "Please add at least one item."),
   totalAmount: z.coerce.number(),
   status: invoiceStatusSchema,
-  issueDate: z.date(),
-  dueDate: z.date(),
 });
+
 
 export interface Invoice {
     id: string;
@@ -36,27 +44,14 @@ export interface Invoice {
     createdAt: string;
 }
 
-export async function addInvoice(order: Order) {
+export async function addInvoice(values: z.infer<typeof invoiceSchema>) {
     try {
-        const issueDate = new Date();
-        const dueDate = new Date(issueDate);
-        dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+        const validatedData = invoiceSchema.parse(values);
 
-        const newInvoiceData = {
-          invoiceNumber: `INV-${order.orderNumber.replace('O-', '')}`,
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          customerId: order.customerId,
-          customerName: order.customerName,
-          items: order.items,
-          totalAmount: order.totalAmount,
-          status: "unpaid",
-          issueDate: serverTimestamp(),
-          dueDate: dueDate,
-          createdAt: serverTimestamp(),
-        };
-
-        const docRef = await addDoc(collection(db, 'invoices'), newInvoiceData);
+        const docRef = await addDoc(collection(db, 'invoices'), {
+            ...validatedData,
+            createdAt: serverTimestamp(),
+        });
         return { success: true, message: 'Invoice created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding invoice:', error);
@@ -66,6 +61,22 @@ export async function addInvoice(order: Order) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+export async function updateInvoice(id: string, values: z.infer<typeof invoiceSchema>) {
+    try {
+        const validatedData = invoiceSchema.parse(values);
+        const invoiceRef = doc(db, 'invoices', id);
+        await updateDoc(invoiceRef, validatedData);
+        return { success: true, message: 'Invoice updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating invoice:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: 'Validation failed.', errors: error.errors };
+        }
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
 
 export async function getInvoices(): Promise<Invoice[]> {
   try {
@@ -141,3 +152,5 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+    
