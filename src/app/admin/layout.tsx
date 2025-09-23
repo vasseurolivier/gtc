@@ -41,8 +41,8 @@ export default function AdminRootLayout({
   };
 
   const navItems = [
-    { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
+    { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Quotes' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
