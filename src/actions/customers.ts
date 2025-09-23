@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase/server';
@@ -17,8 +16,6 @@ const customerSchema = z.object({
 });
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;
-
-export const getCustomerSchema = () => customerSchema;
 
 export interface Customer {
     id: string;

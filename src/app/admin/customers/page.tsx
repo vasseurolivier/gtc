@@ -15,11 +15,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { addCustomer, getCustomers, deleteCustomer, Customer, getCustomerSchema, CustomerFormValues } from '@/actions/customers';
+import { addCustomer, getCustomers, deleteCustomer, Customer, CustomerFormValues } from '@/actions/customers';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { z } from 'zod';
 
-const customerSchema = getCustomerSchema();
+const customerSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().optional(),
+  company: z.string().optional(),
+  country: z.string().optional(),
+  status: z.enum(["lead", "active", "inactive", "prospect"]).optional(),
+  source: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -238,7 +248,7 @@ export default function CustomersPage() {
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>{customer.company || 'N/A'}</TableCell>
-                    <TableCell>{format(new Date(customer.createdAt), 'dd MMM yyyy')}</TableCell>
+                    <TableCell>{customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy') : 'N/A'}</TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
