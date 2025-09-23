@@ -4,6 +4,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
-import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
@@ -394,12 +395,21 @@ export default function ProductsPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/admin/products/${product.id}`} className="hover:underline">
+                        {product.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{product.sku}</TableCell>
                     <TableCell>¥{(product.price).toFixed(2)}</TableCell>
                     <TableCell>{product.purchasePrice ? `¥${(product.purchasePrice).toFixed(2)}` : 'N/A'}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell className="text-right">
+                       <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/admin/products/${product.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(product)}>
                             <Pencil className="h-4 w-4" />
                         </Button>
@@ -435,5 +445,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    

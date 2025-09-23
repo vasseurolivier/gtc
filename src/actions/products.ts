@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
 
 const productSchema = z.object({
@@ -106,6 +106,29 @@ export async function getProducts(): Promise<Product[]> {
     console.error("Error fetching products:", error);
     return [];
   }
+}
+
+export async function getProductById(id: string): Promise<Product | null> {
+    try {
+        const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+
+        if (!productSnap.exists()) {
+            return null;
+        }
+
+        const productData = productSnap.data();
+
+        return {
+            id: productSnap.id,
+            ...productData,
+            createdAt: productData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Product;
+
+    } catch (error) {
+        console.error("Error fetching product details:", error);
+        return null;
+    }
 }
 
 export async function deleteProduct(id: string) {
