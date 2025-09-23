@@ -61,7 +61,7 @@ export default function AdminRootLayout({
   const activePath = getBasePath(pathname);
 
   // Login page should not have the sidebar
-  if (pathname.endsWith('/login')) {
+  if (activePath.endsWith('/login')) {
     return (
         <html lang="fr" suppressHydrationWarning>
             <head>
@@ -81,6 +81,7 @@ export default function AdminRootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
         <head>
+            <title>Admin Dashboard</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
             <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
