@@ -202,7 +202,8 @@ export default function QuotesPage() {
         if (newStatus === 'accepted') {
             const orderResult = await addOrder(quote);
             if (orderResult.success) {
-                toast({ title: 'Order Created', description: `Order ${orderResult.id} has been created from this proforma.` });
+                toast({ title: 'Order Created', description: `Order for ${quote.quoteNumber} has been created.` });
+                router.refresh();
             } else {
                 toast({ variant: 'destructive', title: 'Order Creation Failed', description: orderResult.message });
             }
