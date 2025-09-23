@@ -17,24 +17,39 @@ const firebaseConfig = {
 // This is a more secure way to handle credentials in a server environment.
 const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64
   ? Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf8')
-  : '{}';
+  : '';
 
 let app;
-try {
-    const serviceAccount = JSON.parse(serviceAccountString);
-    // Initialize Firebase Admin SDK
-    app = getApps().length 
-      ? getApp() 
-      : initializeApp({
-          credential: cert(serviceAccount)
-      });
-} catch(e) {
-    console.error("Firebase Admin SDK initialization failed", e);
-    // Fallback to a non-admin app instance if admin fails, though this will have limited permissions
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let db: ReturnType<typeof getFirestore>;
+
+if (!getApps().length) {
+    if (serviceAccountString) {
+        try {
+            const serviceAccount = JSON.parse(serviceAccountString);
+            app = initializeApp({
+                credential: cert(serviceAccount)
+            });
+        } catch (e) {
+            console.error("Error parsing Firebase service account key:", e);
+            // Fallback for safety, though functionality will be limited.
+            app = initializeApp(firebaseConfig); 
+        }
+    } else {
+        console.warn("FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 is not set. Server-side Firebase operations will not be authenticated. Please set this environment variable.");
+        // Initialize with no credentials. This will have very limited permissions.
+        app = initializeApp(firebaseConfig); 
+    }
+} else {
+    app = getApp();
 }
 
+try {
+    db = getFirestore(app);
+} catch (e) {
+    console.error("Failed to initialize Firestore:", e);
+    // Create a dummy db object to avoid further crashes if Firestore fails
+    db = {} as ReturnType<typeof getFirestore>;
+}
 
-const db = getFirestore(app);
 
 export { app, db };
