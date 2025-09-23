@@ -38,6 +38,10 @@ export interface Invoice {
 
 export async function addInvoice(order: Order) {
     try {
+        const issueDate = new Date();
+        const dueDate = new Date(issueDate);
+        dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+
         const newInvoiceData = {
           invoiceNumber: `INV-${order.orderNumber.replace('O-', '')}`,
           orderId: order.id,
@@ -47,14 +51,12 @@ export async function addInvoice(order: Order) {
           items: order.items,
           totalAmount: order.totalAmount,
           status: "unpaid",
-          issueDate: new Date(),
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 30)), // Due in 30 days
+          issueDate: serverTimestamp(),
+          dueDate: dueDate,
           createdAt: serverTimestamp(),
         };
 
-        const validatedData = invoiceSchema.partial().parse(newInvoiceData);
-        
-        const docRef = await addDoc(collection(db, 'invoices'), validatedData);
+        const docRef = await addDoc(collection(db, 'invoices'), newInvoiceData);
         return { success: true, message: 'Invoice created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding invoice:', error);
