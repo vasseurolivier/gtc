@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
 import { z } from 'zod';
 
 const quoteItemSchema = z.object({
@@ -11,6 +11,8 @@ const quoteItemSchema = z.object({
   unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
   total: z.coerce.number().nonnegative("Total cannot be negative."),
 });
+
+const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
 
 const quoteSchema = z.object({
   quoteNumber: z.string().min(1, "Proforma number is required."),
@@ -23,7 +25,7 @@ const quoteSchema = z.object({
   transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
   commissionRate: z.coerce.number().min(0, "Commission can't be negative.").max(100, "Commission can't be over 100%.").optional().default(0),
   totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
-  status: z.enum(["draft", "sent", "accepted", "rejected"]),
+  status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -110,6 +112,22 @@ export async function deleteQuote(id: string) {
         return { success: true, message: 'Proforma Invoice deleted successfully!' };
     } catch (error: any) {
         console.error('Error deleting quote:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+
+export async function updateQuoteStatus(id: string, status: z.infer<typeof quoteStatusSchema>) {
+    try {
+        const validatedStatus = quoteStatusSchema.parse(status);
+        const quoteRef = doc(db, 'quotes', id);
+        await updateDoc(quoteRef, { status: validatedStatus });
+        return { success: true, message: 'Proforma status updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating proforma status:', error);
+         if (error instanceof z.ZodError) {
+            return { success: false, message: 'Invalid status value.' };
+        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

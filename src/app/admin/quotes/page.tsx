@@ -19,9 +19,10 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addQuote, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
+import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
+import { addOrder } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,8 @@ const quoteItemSchema = z.object({
   total: z.number(),
 });
 
+const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
+
 const formSchema = z.object({
   quoteNumber: z.string().min(1, "Proforma number is required."),
   customerId: z.string({ required_error: "Please select a customer." }),
@@ -47,7 +50,7 @@ const formSchema = z.object({
   transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
   commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
   totalAmount: z.coerce.number(),
-  status: z.enum(["draft", "sent", "accepted", "rejected"]),
+  status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -184,6 +187,28 @@ export default function QuotesPage() {
         toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
   };
+
+  const handleStatusChange = async (quote: Quote, newStatus: Quote['status']) => {
+    const originalQuotes = [...quotes];
+    const updatedQuotes = quotes.map(q => q.id === quote.id ? {...q, status: newStatus} : q);
+    setQuotes(updatedQuotes);
+
+    const result = await updateQuoteStatus(quote.id, newStatus);
+    if (!result.success) {
+        setQuotes(originalQuotes);
+        toast({ variant: 'destructive', title: 'Error', description: result.message });
+    } else {
+        toast({ title: 'Success', description: 'Proforma status updated.' });
+        if (newStatus === 'accepted') {
+            const orderResult = await addOrder(quote);
+            if (orderResult.success) {
+                toast({ title: 'Order Created', description: `Order ${orderResult.id} has been created from this proforma.` });
+            } else {
+                toast({ variant: 'destructive', title: 'Order Creation Failed', description: orderResult.message });
+            }
+        }
+    }
+  }
   
   const handleDuplicateQuote = (quoteToDuplicate: Quote) => {
     form.reset({
@@ -261,9 +286,10 @@ export default function QuotesPage() {
                     <div className="space-y-2">
                       {fields.map((field, index) => (
                         <div key={field.id} className="flex items-start gap-2">
-                            <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                          <div className="flex-grow">
+                             <Select onValueChange={(value) => handleProductSelect(value, index)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select a product" />
+                                    <SelectValue placeholder="Select a product or type manually" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {products.map(p => (
@@ -271,18 +297,18 @@ export default function QuotesPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-
                             <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
-                                <FormItem className="flex-grow"><FormControl><Input placeholder="Item description" {...f} /></FormControl><FormMessage/></FormItem>
+                                <FormItem className="mt-2"><FormControl><Input placeholder="Item description" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
+                          </div>
                             <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (
-                                <FormItem className="w-20"><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
+                                <FormItem className="w-20"><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
                             <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
-                                <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder="Unit Price (CNY)" {...f} /></FormControl><FormMessage/></FormItem>
+                                <FormItem className="w-28"><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
-                            <div className="w-28 pt-2 text-right">¥{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                            <div className="w-28 pt-8 text-right font-medium">¥{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
                         </div>
                       ))}
                     </div>
@@ -378,7 +404,19 @@ export default function QuotesPage() {
                     <TableCell className="font-medium">{quote.quoteNumber}</TableCell>
                     <TableCell>{quote.customerName}</TableCell>
                     <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
-                    <TableCell><Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge></TableCell>
+                    <TableCell>
+                      <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
+                        <SelectTrigger className="w-32">
+                           <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="text-right">¥{quote.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
