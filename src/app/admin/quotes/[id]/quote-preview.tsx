@@ -61,7 +61,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </div>
             </section>
 
-            <section className="flex-grow">
+            <div className="flex-grow">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -122,7 +122,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             
             <footer className="border-t pt-8 mt-auto">
