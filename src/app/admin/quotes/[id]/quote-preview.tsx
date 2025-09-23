@@ -27,7 +27,7 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
     const commissionAmount = (quote.subTotal + (quote.transportCost || 0)) * ((quote.commissionRate || 0) / 100);
 
     return (
-        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg" id="proforma-content">
+        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content" id="proforma-content">
             <header className="flex justify-between items-start mb-8 border-b pb-8">
                 <div>
                     {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain mb-4"/>}

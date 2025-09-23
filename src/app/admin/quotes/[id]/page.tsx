@@ -33,7 +33,7 @@ export default async function QuotePreviewPage({ params }: { params: { id: strin
     if (!quote || !customer) {
         return (
             <div className="container py-8">
-                 <div className="mb-8">
+                 <div className="mb-8 no-print">
                     <Button variant="ghost" asChild>
                         <Link href="/admin/quotes">
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -49,8 +49,8 @@ export default async function QuotePreviewPage({ params }: { params: { id: strin
     }
 
     return (
-        <div className="container py-8 bg-background">
-             <div className="flex justify-between items-center mb-8 print:hidden">
+        <div className="container py-8 bg-background printable-area">
+             <div className="flex justify-between items-center mb-8 no-print">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/quotes">
                         <ArrowLeft className="mr-2 h-4 w-4" />

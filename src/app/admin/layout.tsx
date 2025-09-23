@@ -257,7 +257,7 @@ export default function AdminRootLayout({
               <CurrencyProvider>
                 <CompanyInfoProvider>
                   <SidebarProvider>
-                  <Sidebar>
+                  <Sidebar className="no-print">
                       <SidebarContent>
                       <SidebarHeader>
                           <h2 className="text-lg font-semibold">Global Trading China</h2>
