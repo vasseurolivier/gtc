@@ -21,7 +21,8 @@ import {
   Mail,
   LogOut,
   Cog,
-  Receipt
+  Receipt,
+  UploadCloud
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -37,6 +38,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import Image from 'next/image';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -55,6 +57,7 @@ function AdminSettings() {
     const [companyAddress, setCompanyAddress] = useState('');
     const [companyEmail, setCompanyEmail] = useState('');
     const [companyPhone, setCompanyPhone] = useState('');
+    const [companyLogo, setCompanyLogo] = useState('');
 
     useEffect(() => {
         if (isDialogOpen) {
@@ -68,6 +71,7 @@ function AdminSettings() {
                 setCompanyAddress(companyInfoContext.companyInfo.address);
                 setCompanyEmail(companyInfoContext.companyInfo.email);
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
+                setCompanyLogo(companyInfoContext.companyInfo.logo);
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -78,6 +82,26 @@ function AdminSettings() {
 
     const { setCurrency, setExchangeRate } = currencyContext;
     const { setCompanyInfo } = companyInfoContext;
+    
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                toast({
+                    variant: 'destructive',
+                    title: 'File too large',
+                    description: 'Please upload a logo smaller than 2MB.',
+                });
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCompanyLogo(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
 
     const handleSave = () => {
         const newRate = parseFloat(localRate);
@@ -92,7 +116,8 @@ function AdminSettings() {
             name: companyName,
             address: companyAddress,
             email: companyEmail,
-            phone: companyPhone
+            phone: companyPhone,
+            logo: companyLogo
         });
 
         toast({ title: 'Success', description: 'Settings updated.'});
@@ -118,6 +143,19 @@ function AdminSettings() {
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="company-name" className="text-right">Company Name</Label>
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="company-logo" className="text-right pt-2">Logo</Label>
+                                    <div className="col-span-3 flex items-center gap-4">
+                                        <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                                            {companyLogo ? (
+                                                <Image src={companyLogo} alt="Company Logo" width={96} height={96} className="object-contain rounded-md" />
+                                            ) : (
+                                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                        <Input id="company-logo" type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={handleLogoChange} className="w-auto" />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label htmlFor="company-address" className="text-right pt-2">Address</Label>
