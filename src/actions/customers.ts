@@ -2,8 +2,9 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
+import type { Order } from './orders';
 
 const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -29,6 +30,8 @@ export interface Customer {
     source?: string;
     notes?: string;
     createdAt: any;
+    orders?: Order[];
+    totalRevenue?: number;
 }
 
 export async function addCustomer(values: CustomerFormValues) {
@@ -75,6 +78,42 @@ export async function getCustomers(): Promise<Customer[]> {
     console.error("Error fetching customers:", error);
     return [];
   }
+}
+
+export async function getCustomerById(id: string): Promise<Customer | null> {
+    try {
+        const customerRef = doc(db, 'customers', id);
+        const customerSnap = await getDoc(customerRef);
+
+        if (!customerSnap.exists()) {
+            return null;
+        }
+
+        const customerData = customerSnap.data();
+
+        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id), orderBy("createdAt", "desc"));
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
+        const orders: Order[] = [];
+        let totalRevenue = 0;
+        ordersSnapshot.forEach((doc) => {
+            const orderData = doc.data() as Order;
+            orders.push({ ...orderData, id: doc.id, orderDate: orderData.orderDate.toDate(), createdAt: orderData.createdAt.toDate() });
+            totalRevenue += orderData.totalAmount;
+        });
+
+        return {
+            id: customerSnap.id,
+            ...customerData,
+            createdAt: customerData.createdAt ? customerData.createdAt.toDate() : new Date(),
+            orders,
+            totalRevenue,
+        } as Customer;
+
+    } catch (error) {
+        console.error("Error fetching customer details:", error);
+        return null;
+    }
 }
 
 export async function deleteCustomer(id: string) {

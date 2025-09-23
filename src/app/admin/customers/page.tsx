@@ -19,6 +19,7 @@ import { addCustomer, getCustomers, deleteCustomer, Customer, CustomerFormValues
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
+import Link from 'next/link';
 
 const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -245,7 +246,11 @@ export default function CustomersPage() {
               <TableBody>
                 {customers.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell className="font-medium">
+                        <Link href={`/admin/customers/${customer.id}`} className="hover:underline">
+                            {customer.name}
+                        </Link>
+                    </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>{customer.company || 'N/A'}</TableCell>
                     <TableCell>{customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy') : 'N/A'}</TableCell>
