@@ -44,23 +44,19 @@ export async function addOrder(quote: Quote) {
           items: quote.items,
           totalAmount: quote.totalAmount,
           status: "processing",
-          shippingAddress: quote.shippingAddress,
+          shippingAddress: quote.shippingAddress || "",
           orderDate: new Date(),
+          createdAt: serverTimestamp(),
         };
 
-        const validatedData = orderSchema.partial().parse(newOrderData);
-        
-        const docRef = await addDoc(collection(db, 'orders'), {
-            ...validatedData,
-            createdAt: serverTimestamp(),
-        });
+        const docRef = await addDoc(collection(db, 'orders'), newOrderData);
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding order:', error);
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
-        return { success: false, message: 'An unexpected error occurred.' };
+        return { success: false, message: 'An unexpected error occurred while creating the order.' };
     }
 }
 
@@ -74,14 +70,14 @@ export async function getOrders(): Promise<Order[]> {
         const data = doc.data();
         orders.push({
           id: doc.id,
-          orderNumber: data.orderNumber,
-          quoteId: data.quoteId,
-          customerId: data.customerId,
-          customerName: data.customerName,
-          items: data.items,
-          totalAmount: data.totalAmount,
-          status: data.status,
-          shippingAddress: data.shippingAddress,
+          orderNumber: data.orderNumber || '',
+          quoteId: data.quoteId || '',
+          customerId: data.customerId || '',
+          customerName: data.customerName || '',
+          items: data.items || [],
+          totalAmount: data.totalAmount || 0,
+          status: data.status || 'processing',
+          shippingAddress: data.shippingAddress || '',
           orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Order);
@@ -90,6 +86,7 @@ export async function getOrders(): Promise<Order[]> {
     return orders;
   } catch (error) {
     console.error("Error fetching orders:", error);
+    // Return an empty array in case of error to prevent crashing the UI
     return [];
   }
 }
