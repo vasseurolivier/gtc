@@ -16,20 +16,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addCustomer, getCustomers, deleteCustomer, Customer } from '@/actions/customers';
+import { addCustomer, getCustomers, deleteCustomer, Customer, customerSchema } from '@/actions/customers';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  country: z.string().optional(),
-  status: z.enum(["lead", "active", "inactive", "prospect"]).optional(),
-  source: z.string().optional(),
-  notes: z.string().optional(),
-});
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -39,8 +28,8 @@ export default function CustomersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddCustomerOpen, setAddCustomerOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof customerSchema>>({
+    resolver: zodResolver(customerSchema),
     defaultValues: { 
         name: "", 
         email: "", 
@@ -74,7 +63,7 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [router, toast]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof customerSchema>) => {
     setIsSubmitting(true);
     const result = await addCustomer(values);
     if (result.success) {
@@ -282,4 +271,3 @@ export default function CustomersPage() {
     </div>
   );
 }
-

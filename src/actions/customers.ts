@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase/server';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
-const customerSchema = z.object({
+export const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   phone: z.string().optional(),
