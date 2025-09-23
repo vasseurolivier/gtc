@@ -3,15 +3,17 @@
 
 import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { getInvoices, Invoice } from '@/actions/invoices';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getProducts, Product } from '@/actions/products';
 import { format, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from 'date-fns';
-import { Loader2, ArrowDownUp, TrendingUp, TrendingDown, Package, Banknote, Warehouse, Scale, Receipt } from 'lucide-react';
+import { Loader2, ArrowDownUp, TrendingUp, TrendingDown, Package, Banknote, Warehouse, Scale, Receipt, FileSpreadsheet } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
 type Period = 'last_30_days' | 'this_month' | 'last_quarter' | 'this_year' | 'all_time';
 
@@ -76,8 +78,12 @@ export default function FinancialReportPage() {
   const { start, end } = getPeriodDateRange();
 
   const filteredInvoices = invoices.filter(inv => {
-    const invDate = parseISO(inv.issueDate);
-    return invDate >= start && invDate <= end;
+    try {
+        const invDate = parseISO(inv.issueDate);
+        return invDate >= start && invDate <= end;
+    } catch (e) {
+        return false;
+    }
   });
 
   const paidInvoices = filteredInvoices.filter(inv => inv.status === 'paid');
@@ -95,10 +101,15 @@ export default function FinancialReportPage() {
   }, 0);
 
   const grossProfit = revenue - costOfGoodsSold;
+  const grossProfitMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
 
   const acceptedQuotesInPeriod = quotes.filter(q => {
-    const quoteDate = parseISO(q.issueDate);
-    return q.status === 'accepted' && quoteDate >= start && quoteDate <= end;
+    try {
+        const quoteDate = parseISO(q.issueDate);
+        return q.status === 'accepted' && quoteDate >= start && quoteDate <= end;
+    } catch(e) {
+        return false;
+    }
   });
 
   const operatingExpenses = acceptedQuotesInPeriod.reduce((sum, q) => {
@@ -123,6 +134,38 @@ export default function FinancialReportPage() {
         </div>
     );
   };
+  
+  const handleExport = () => {
+    const periodText = document.querySelector('.lucide-file-spreadsheet')?.parentElement?.parentElement?.querySelector('span')?.textContent || 'Selected Period';
+    
+    const data = [
+        { Metric: 'Period', Value: periodText },
+        { Metric: `Exchange Rate (1 CNY to ${currency.code})`, Value: exchangeRate },
+        {},
+        { Metric: '--- SUMMARY ---' },
+        { Metric: 'Total Revenue (CNY)', Value: revenue },
+        { Metric: 'Net Profit (CNY)', Value: netProfit },
+        { Metric: 'Gross Profit Margin (%)', Value: grossProfitMargin },
+        {},
+        { Metric: '--- INCOME STATEMENT ---' },
+        { Metric: 'Revenue (CNY)', Value: revenue },
+        { Metric: 'Cost of Goods Sold (COGS) (CNY)', Value: costOfGoodsSold },
+        { Metric: 'Gross Profit (CNY)', Value: grossProfit },
+        { Metric: 'Operating Expenses (CNY)', Value: operatingExpenses },
+        { Metric: 'Net Profit (CNY)', Value: netProfit },
+        {},
+        { Metric: '--- BALANCE SHEET OVERVIEW ---' },
+        { Metric: 'Accounts Receivable (CNY)', Value: accountsReceivable },
+        { Metric: 'Inventory Value (CNY)', Value: inventoryValue },
+        { Metric: 'Total Current Assets (CNY)', Value: accountsReceivable + inventoryValue },
+    ];
+    
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    worksheet['!cols'] = [{ wch: 40 }, { wch: 20 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
+    XLSX.writeFile(workbook, `financial_report_${period}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
   if (isLoading) {
     return (
@@ -136,18 +179,24 @@ export default function FinancialReportPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Financial Report</h1>
-        <Select value={period} onValueChange={(value: Period) => setPeriod(value)}>
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a period" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="last_30_days">Last 30 days</SelectItem>
-                <SelectItem value="this_month">This Month</SelectItem>
-                <SelectItem value="last_quarter">Last Quarter</SelectItem>
-                <SelectItem value="this_year">This Year</SelectItem>
-                <SelectItem value="all_time">All Time</SelectItem>
-            </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+            <Select value={period} onValueChange={(value: Period) => setPeriod(value)}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a period" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="last_30_days">Last 30 days</SelectItem>
+                    <SelectItem value="this_month">This Month</SelectItem>
+                    <SelectItem value="last_quarter">Last Quarter</SelectItem>
+                    <SelectItem value="this_year">This Year</SelectItem>
+                    <SelectItem value="all_time">All Time</SelectItem>
+                </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={handleExport}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Export
+            </Button>
+        </div>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -179,7 +228,7 @@ export default function FinancialReportPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{revenue > 0 ? ((grossProfit / revenue) * 100).toFixed(2) : '0.00'}%</div>
+            <div className="text-2xl font-bold">{grossProfitMargin.toFixed(2)}%</div>
             <p className="text-xs text-muted-foreground">Profitability on products sold</p>
           </CardContent>
         </Card>
