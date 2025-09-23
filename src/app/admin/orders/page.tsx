@@ -148,7 +148,7 @@ export default function OrdersPage() {
                           </SelectTrigger></FormControl>
                           <SelectContent>
                             {quotes.length > 0 ? quotes.map(q => <SelectItem key={q.id} value={q.id}>
-                                {q.quoteNumber} - {q.customerName} - {currency.symbol}{(q.totalAmount * exchangeRate).toFixed(2)}
+                                {q.quoteNumber} - {q.customerName} - ¥{q.totalAmount.toFixed(2)}
                             </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted proformas found.</p>}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
@@ -202,7 +202,7 @@ export default function OrdersPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</TableCell>
+                    <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>

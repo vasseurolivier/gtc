@@ -143,7 +143,7 @@ export default function InvoicesPage() {
                           </SelectTrigger></FormControl>
                           <SelectContent>
                             {orders.length > 0 ? orders.map(o => <SelectItem key={o.id} value={o.id}>
-                                {o.orderNumber} - {o.customerName} - {currency.symbol}{(o.totalAmount * exchangeRate).toFixed(2)}
+                                {o.orderNumber} - {o.customerName} - ¥{o.totalAmount.toFixed(2)}
                             </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No orders found.</p>}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
@@ -199,7 +199,7 @@ export default function InvoicesPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</TableCell>
+                    <TableCell className="text-right">¥{invoice.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>

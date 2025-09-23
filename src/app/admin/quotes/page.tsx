@@ -265,7 +265,7 @@ export default function QuotesPage() {
                       <div className="w-1/2 space-y-2">
                         <div className="flex justify-between items-center">
                           <span>Subtotal</span>
-                          <span>{currency.symbol}{(subTotal * exchangeRate).toFixed(2)}</span>
+                          <span>¥{subTotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center gap-2">
                            <FormField control={form.control} name="transportCost" render={({ field }) => (
@@ -279,12 +279,12 @@ export default function QuotesPage() {
                         </div>
                         <div className="flex justify-between items-center text-muted-foreground text-sm">
                           <span>Commission Amount</span>
-                          <span>{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</span>
+                          <span>¥{commissionAmount.toFixed(2)}</span>
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center text-lg font-semibold">
                           <span>Total</span>
-                          <span>{currency.symbol}{(totalAmount * exchangeRate).toFixed(2)}</span>
+                          <span>¥{totalAmount.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -350,7 +350,7 @@ export default function QuotesPage() {
                     <TableCell>{quote.customerName}</TableCell>
                     <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge></TableCell>
-                    <TableCell className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</TableCell>
+                    <TableCell className="text-right">¥{quote.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
                             <Copy className="h-4 w-4" />
