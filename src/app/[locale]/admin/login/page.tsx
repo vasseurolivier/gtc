@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Admin Access</CardTitle>
-          <CardDescription>Enter the password to view contact submissions.</CardDescription>
+          <CardDescription>Enter the password to view the dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
