@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,7 +18,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import { addCustomer, getCustomers, deleteCustomer, Customer, CustomerFormValues } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, Eye } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import Link from 'next/link';
@@ -101,126 +102,151 @@ export default function CustomersPage() {
     }
   };
 
+  const handleExport = () => {
+    const dataToExport = customers.map(customer => ({
+      'Name': customer.name,
+      'Email': customer.email,
+      'Phone': customer.phone,
+      'Company': customer.company,
+      'Country': customer.country,
+      'Status': customer.status,
+      'Source': customer.source,
+      'Date Added': customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy') : 'N/A',
+      'Notes': customer.notes,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
+    XLSX.writeFile(workbook, "customers.xlsx");
+  };
+
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Customers</h1>
-        <Dialog open={isAddCustomerOpen} onOpenChange={setAddCustomerOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Customer
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add a New Customer</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-                    <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-                     <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl><Input placeholder="+1 555-123-4567" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-                    <FormField control={form.control} name="company" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Company</FormLabel>
-                        <FormControl><Input placeholder="Acme Inc." {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-                    <FormField control={form.control} name="country" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Country</FormLabel>
-                        <FormControl><Input placeholder="United States" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} disabled={customers.length === 0}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export to Excel
+          </Button>
+          <Dialog open={isAddCustomerOpen} onOpenChange={setAddCustomerOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Customer
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add a New Customer</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="name" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )} />
+                      <FormField control={form.control} name="email" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )} />
+                      <FormField control={form.control} name="phone" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Phone</FormLabel>
+                          <FormControl><Input placeholder="+1 555-123-4567" {...field} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )} />
+                      <FormField control={form.control} name="company" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Company</FormLabel>
+                          <FormControl><Input placeholder="Acme Inc." {...field} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )} />
+                      <FormField control={form.control} name="country" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <FormControl><Input placeholder="United States" {...field} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )} />
 
-                    <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Status</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a status" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="lead">Lead</SelectItem>
-                                    <SelectItem value="prospect">Prospect</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                      <FormField
+                          control={form.control}
+                          name="status"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Status</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="Select a status" />
+                                  </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                      <SelectItem value="lead">Lead</SelectItem>
+                                      <SelectItem value="prospect">Prospect</SelectItem>
+                                      <SelectItem value="active">Active</SelectItem>
+                                      <SelectItem value="inactive">Inactive</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                  </div>
 
-                <FormField control={form.control} name="source" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Source</FormLabel>
-                    <FormControl><Input placeholder="e.g., Website, Trade Show, Referral" {...field} /></FormControl>
-                    <FormDescription>How did you get this customer?</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                  <FormField control={form.control} name="source" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Source</FormLabel>
+                      <FormControl><Input placeholder="e.g., Website, Trade Show, Referral" {...field} /></FormControl>
+                      <FormDescription>How did you get this customer?</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
-                <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                            <Textarea
-                            placeholder="Any relevant notes about this customer..."
-                            className="resize-y"
-                            rows={4}
-                            {...field}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                  <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Notes</FormLabel>
+                          <FormControl>
+                              <Textarea
+                              placeholder="Any relevant notes about this customer..."
+                              className="resize-y"
+                              rows={4}
+                              {...field}
+                              />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
 
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="ghost">Cancel</Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Add Customer
-                    </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                  <DialogFooter>
+                      <DialogClose asChild>
+                          <Button type="button" variant="ghost">Cancel</Button>
+                      </DialogClose>
+                      <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Add Customer
+                      </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       <Card>
         <CardContent className="p-0">
