@@ -3,13 +3,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +23,12 @@ import { format } from 'date-fns';
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().optional(),
   company: z.string().optional(),
+  country: z.string().optional(),
+  status: z.enum(["lead", "active", "inactive", "prospect"]).optional(),
+  source: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export default function CustomersPage() {
@@ -34,7 +41,16 @@ export default function CustomersPage() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", email: "", company: "" },
+    defaultValues: { 
+        name: "", 
+        email: "", 
+        phone: "",
+        company: "",
+        country: "",
+        status: "lead",
+        source: "",
+        notes: "",
+    },
   });
 
   useEffect(() => {
@@ -94,33 +110,102 @@ export default function CustomersPage() {
               Add Customer
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add a New Customer</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+                     <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl><Input placeholder="+1 555-123-4567" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="company" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Company</FormLabel>
+                        <FormControl><Input placeholder="Acme Inc." {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="country" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <FormControl><Input placeholder="United States" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a status" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="lead">Lead</SelectItem>
+                                    <SelectItem value="prospect">Prospect</SelectItem>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField control={form.control} name="source" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                    <FormLabel>Source</FormLabel>
+                    <FormControl><Input placeholder="e.g., Website, Trade Show, Referral" {...field} /></FormControl>
+                    <FormDescription>How did you get this customer?</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="company" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company (Optional)</FormLabel>
-                    <FormControl><Input placeholder="Acme Inc." {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+
+                <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                            <Textarea
+                            placeholder="Any relevant notes about this customer..."
+                            className="resize-y"
+                            rows={4}
+                            {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="ghost">Cancel</Button>
@@ -197,3 +282,4 @@ export default function CustomersPage() {
     </div>
   );
 }
+
