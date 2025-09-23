@@ -1,17 +1,15 @@
+
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Lightbulb, Package, Boxes, Rocket } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-type PageProps = {
-  params: {
-    locale: Locale;
-  };
-};
-
-export default async function EcommerceSolutionsPage({ params }: PageProps) {
-  const { locale } = params;
+export default async function EcommerceSolutionsPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
   const dictionary = await getDictionary(locale);
   const ecommerceDict = dictionary.ecommerceSolutionsPage;
 

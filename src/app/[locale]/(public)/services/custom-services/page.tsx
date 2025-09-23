@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';
@@ -5,14 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-type PageProps = {
-  params: {
-    locale: Locale;
-  };
-};
-
-export default async function CustomServicesPage({ params }: PageProps) {
-  const { locale } = params;
+export default async function CustomServicesPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
   const dictionary = await getDictionary(locale);
   const customServicesDict = dictionary.customServicesPage;
   

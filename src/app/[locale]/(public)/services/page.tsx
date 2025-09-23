@@ -1,3 +1,4 @@
+
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -7,14 +8,11 @@ import { ChevronRight } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-type PageProps = {
-  params: {
-    locale: Locale;
-  };
-};
-
-export default async function ServicesPage({ params }: PageProps) {
-  const { locale } = params;
+export default async function ServicesPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
 

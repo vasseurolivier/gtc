@@ -8,29 +8,12 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
-type PageProps = {
-  params: {
-    id: string;
-  };
-};
-
-async function getCustomerData(id: string): Promise<Customer | null> {
-    const customer = await getCustomerById(id);
-    return customer;
-}
-
-const getStatusBadgeVariant = (status: any) => {
-    switch (status) {
-        case 'delivered': return 'default';
-        case 'shipped': return 'secondary';
-        case 'processing': return 'outline';
-        case 'cancelled': return 'destructive';
-        default: return 'outline';
-    }
-}
-
-export default async function CustomerProfilePage({ params }: PageProps) {
-    const customer = await getCustomerData(params.id);
+export default async function CustomerProfilePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+    const customer = await getCustomerById(params.id);
 
     if (!customer) {
         return (
@@ -53,6 +36,16 @@ export default async function CustomerProfilePage({ params }: PageProps) {
     // For server components, we cannot use context. We will display prices in the base currency (CNY).
     const currency = { symbol: '¥' };
     const exchangeRate = 1;
+
+    const getStatusBadgeVariant = (status: any) => {
+        switch (status) {
+            case 'delivered': return 'default';
+            case 'shipped': return 'secondary';
+            case 'processing': return 'outline';
+            case 'cancelled': return 'destructive';
+            default: return 'outline';
+        }
+    }
 
 
     return (

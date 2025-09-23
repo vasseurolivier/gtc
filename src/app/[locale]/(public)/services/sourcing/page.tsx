@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,14 +6,11 @@ import { Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lam
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-type PageProps = {
-  params: {
-    locale: Locale;
-  };
-};
-
-export default async function SourcingPage({ params }: PageProps) {
-  const { locale } = params;
+export default async function SourcingPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
   const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 

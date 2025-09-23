@@ -8,19 +8,12 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
 
-type PageProps = {
-  params: {
-    id: string;
-  };
-};
-
-async function getProductData(id: string): Promise<Product | null> {
-    const product = await getProductById(id);
-    return product;
-}
-
-export default async function ProductProfilePage({ params }: PageProps) {
-    const product = await getProductData(params.id);
+export default async function ProductProfilePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+    const product = await getProductById(params.id);
 
     if (!product) {
         return (
