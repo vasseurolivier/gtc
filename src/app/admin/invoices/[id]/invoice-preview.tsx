@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -107,7 +106,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span className="text-right">¥{subTotal.toFixed(2)}</span>
+                                <span className="font-medium text-right">¥{subTotal.toFixed(2)}</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between font-bold text-lg">
@@ -120,7 +119,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                              <div className="flex justify-between">
                                 <span className="text-muted-foreground">Amount Paid</span>
-                                <span className="text-right">¥{(invoice.amountPaid || 0).toFixed(2)}</span>
+                                <span className="font-medium text-right">¥{(invoice.amountPaid || 0).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-destructive">
                                 <span>Balance Due ({currency.code})</span>

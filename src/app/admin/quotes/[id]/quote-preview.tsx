@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -109,19 +108,19 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span className="text-right">¥{quote.subTotal.toFixed(2)}</span>
+                                <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
                             </div>
                             {quote.transportCost && quote.transportCost > 0 && 
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Transport Cost</span>
-                                    <span className="text-right">¥{quote.transportCost.toFixed(2)}</span>
+                                    <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
                                 </div>
                             }
                             {quote.commissionRate && quote.commissionRate > 0 &&
                                 <>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                        <span className="text-right">¥{commissionAmount.toFixed(2)}</span>
+                                        <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
                                     </div>
                                 </>
                             }
@@ -160,4 +159,3 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         </Card>
     );
 }
-
