@@ -5,12 +5,11 @@ import { Locale } from '@/i18n-config';
 
 export default async function PublicLayout({
   children,
-  params,
-}: Readonly<{
+  params: { locale },
+}: {
   children: React.ReactNode;
   params: { locale: Locale };
-}>) {
-  const { locale } = params;
+}) {
   const dictionary = await getDictionary(locale);
   return (
       <div className="flex min-h-screen flex-col">
