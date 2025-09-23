@@ -45,7 +45,16 @@ export default function AdminDashboardPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const subs: Submission[] = [];
         querySnapshot.forEach((doc) => {
-            subs.push({ id: doc.id, ...doc.data() } as Submission);
+            const data = doc.data();
+            subs.push({
+              id: doc.id,
+              name: data.name || '',
+              email: data.email || '',
+              subject: data.subject || '',
+              message: data.message || '',
+              createdAt: data.createdAt || null,
+              read: data.read || false,
+            } as Submission);
         });
         setSubmissions(subs);
         setIsLoading(false);
@@ -128,7 +137,7 @@ export default function AdminDashboardPage() {
                           <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
                        </div>
                        <span className="text-sm text-muted-foreground pr-4">
-                          {submission.createdAt
+                          {submission.createdAt && submission.createdAt.toDate
                             ? format(submission.createdAt.toDate(), 'MMM dd, yyyy - hh:mm a')
                             : 'No date'}
                         </span>
