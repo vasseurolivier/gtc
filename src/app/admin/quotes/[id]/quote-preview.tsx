@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import Image from 'next/image';
 
 export function QuotePreview({ quote, customer }: { quote: Quote, customer: Customer }) {
@@ -49,11 +49,11 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
                 <div className="text-right">
                     <div className="grid grid-cols-2">
                         <span className="font-semibold">Issue Date:</span>
-                        <span>{format(parseISO(quote.issueDate), 'dd MMM yyyy')}</span>
+                        <span>{formatInTimeZone(quote.issueDate, 'UTC', 'dd MMM yyyy')}</span>
                     </div>
                         <div className="grid grid-cols-2 mt-1">
                         <span className="font-semibold">Valid Until:</span>
-                        <span>{format(parseISO(quote.validUntil), 'dd MMM yyyy')}</span>
+                        <span>{formatInTimeZone(quote.validUntil, 'UTC', 'dd MMM yyyy')}</span>
                     </div>
                 </div>
             </section>
@@ -110,18 +110,18 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
             </section>
             
             <footer className="border-t pt-8 mt-8">
-                {quote.notes && 
-                    <div className="mb-8">
-                        <h3 className="font-semibold mb-2">Notes:</h3>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
-                    </div>
-                }
                  <div>
                     <h3 className="font-bold text-base mb-2">{companyInfo.name}</h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-line">{companyInfo.address}</p>
                     <p className="text-sm text-muted-foreground">{companyInfo.email}</p>
                     <p className="text-sm text-muted-foreground">{companyInfo.phone}</p>
                 </div>
+                {quote.notes && 
+                    <div className="mt-8">
+                        <h3 className="font-semibold mb-2">Notes:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
+                    </div>
+                }
             </footer>
         </Card>
     );
