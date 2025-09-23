@@ -91,20 +91,21 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 
         const customerData = customerSnap.data();
 
-        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id), orderBy("orderDate", "desc"));
+        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id));
         const ordersSnapshot = await getDocs(ordersQuery);
         
         const orders: Order[] = [];
         let totalRevenue = 0;
         ordersSnapshot.forEach((doc) => {
             const orderData = doc.data();
-            orders.push({ 
+            const order = { 
                 ...orderData, 
                 id: doc.id, 
                 orderDate: orderData.orderDate?.toDate().toISOString() || new Date().toISOString(),
                 createdAt: orderData.createdAt?.toDate().toISOString() || new Date().toISOString()
-            } as Order);
-            totalRevenue += orderData.totalAmount;
+            } as Order
+            orders.push(order);
+            totalRevenue += orderData.totalAmount || 0;
         });
 
         return {
