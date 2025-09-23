@@ -6,7 +6,8 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
 
-export default async function CustomServicesPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function CustomServicesPage({ params }: { params: { locale: Locale } }) {
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const customServicesDict = dictionary.customServicesPage;
   

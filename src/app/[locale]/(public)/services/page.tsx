@@ -7,7 +7,8 @@ import { ChevronRight } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function ServicesPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function ServicesPage({ params }: { params: { locale: Locale } }) {
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
 

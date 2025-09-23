@@ -6,7 +6,8 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
 
-export default async function SourcingPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function SourcingPage({ params }: { params: { locale: Locale } }) {
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 

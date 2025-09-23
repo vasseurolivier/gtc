@@ -14,7 +14,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 
-export default async function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function AboutPage({ params }: { params: { locale: Locale } }) {
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   
   const aboutPageDict = dictionary.aboutPage;
