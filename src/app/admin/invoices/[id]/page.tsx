@@ -8,12 +8,6 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 
-type PageProps = {
-  params: {
-    id: string;
-  };
-};
-
 async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, customer: Customer | null, products: Product[] }> {
     try {
         const invoice = await getInvoiceById(id);
@@ -32,7 +26,7 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 }
 
 
-export default async function InvoicePreviewPage({ params }: PageProps) {
+export default async function InvoicePreviewPage({ params }: { params: { id: string } }) {
     const { id } = params;
     const { invoice, customer, products } = await getInvoiceData(id);
 
