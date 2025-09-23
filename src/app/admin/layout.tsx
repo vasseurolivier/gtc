@@ -22,7 +22,8 @@ import {
   LogOut,
   Cog,
   Receipt,
-  UploadCloud
+  UploadCloud,
+  Landmark
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -225,6 +226,7 @@ export default function AdminRootLayout({
 
   const navItems = [
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
+    { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
