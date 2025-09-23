@@ -150,7 +150,7 @@ export default function AdminRootLayout({
                 <Sidebar>
                     <SidebarContent>
                     <SidebarHeader>
-                        <h2 className="text-lg font-semibold">TradeBridge Admin</h2>
+                        <h2 className="text-lg font-semibold">Global Trading China</h2>
                     </SidebarHeader>
                     <SidebarMenu>
                         {navItems.map((item) => (
