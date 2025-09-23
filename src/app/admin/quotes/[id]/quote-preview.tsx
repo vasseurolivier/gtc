@@ -110,14 +110,17 @@ export function QuotePreview({ quote, customer }: { quote: Quote, customer: Cust
             </section>
             
             <footer className="border-t pt-8 mt-8">
-                 <div>
-                    <h3 className="font-bold text-base mb-2">{companyInfo.name}</h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">{companyInfo.address}</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.email}</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.phone}</p>
+                 <div className="text-center">
+                    <h3 className="font-bold text-base">{companyInfo.name}</h3>
+                    <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {companyInfo.phone && <span>{companyInfo.phone}</span>}
+                        {companyInfo.phone && companyInfo.email && <span> | </span>}
+                        {companyInfo.email && <span>{companyInfo.email}</span>}
+                    </p>
                 </div>
                 {quote.notes && 
-                    <div className="mt-8">
+                    <div className="mt-8 text-left">
                         <h3 className="font-semibold mb-2">Notes:</h3>
                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
                     </div>
