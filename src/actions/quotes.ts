@@ -18,6 +18,9 @@ const quoteSchema = z.object({
   issueDate: z.date(),
   validUntil: z.date(),
   items: z.array(quoteItemSchema).min(1, "At least one item is required."),
+  subTotal: z.coerce.number(),
+  transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
+  commissionRate: z.coerce.number().min(0, "Commission can't be negative.").max(100, "Commission can't be over 100%.").optional().default(0),
   totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
   status: z.enum(["draft", "sent", "accepted", "rejected"]),
 });
@@ -35,6 +38,9 @@ export interface Quote {
     customerId: string;
     customerName: string;
     items: QuoteItem[];
+    subTotal: number;
+    transportCost?: number;
+    commissionRate?: number;
     totalAmount: number;
     status: "draft" | "sent" | "accepted" | "rejected";
     issueDate: any;
@@ -73,6 +79,9 @@ export async function getQuotes(): Promise<Quote[]> {
           customerId: data.customerId,
           customerName: data.customerName,
           items: data.items,
+          subTotal: data.subTotal,
+          transportCost: data.transportCost,
+          commissionRate: data.commissionRate,
           totalAmount: data.totalAmount,
           status: data.status,
           issueDate: data.issueDate ? data.issueDate.toDate() : new Date(),

@@ -38,6 +38,9 @@ const formSchema = z.object({
   issueDate: z.date({ required_error: "Issue date is required."}),
   validUntil: z.date({ required_error: "Validity date is required."}),
   items: z.array(quoteItemSchema).min(1, "Please add at least one item."),
+  subTotal: z.coerce.number(),
+  transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
+  commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
   totalAmount: z.coerce.number(),
   status: z.enum(["draft", "sent", "accepted", "rejected"]),
 });
@@ -58,21 +61,34 @@ export default function QuotesPage() {
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
       items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+      subTotal: 0,
+      transportCost: 0,
+      commissionRate: 0,
       totalAmount: 0,
       status: "draft",
     },
   });
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "items"
   });
 
   const watchItems = form.watch("items");
+  const watchTransportCost = form.watch("transportCost");
+  const watchCommissionRate = form.watch("commissionRate");
+
   useEffect(() => {
-    const total = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    form.setValue("totalAmount", total);
-  }, [watchItems, form]);
+    const subTotal = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    form.setValue("subTotal", subTotal);
+
+    const transportCost = Number(watchTransportCost) || 0;
+    const commissionRate = Number(watchCommissionRate) || 0;
+    const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
+    const totalAmount = subTotal + transportCost + commissionAmount;
+    form.setValue("totalAmount", totalAmount);
+
+  }, [watchItems, watchTransportCost, watchCommissionRate, form]);
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -113,6 +129,9 @@ export default function QuotesPage() {
         issueDate: new Date(),
         validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
         items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+        subTotal: 0,
+        transportCost: 0,
+        commissionRate: 0,
         totalAmount: 0,
         status: "draft",
       });
@@ -140,6 +159,12 @@ export default function QuotesPage() {
         default: return 'outline';
     }
   }
+
+  const subTotal = form.getValues('subTotal');
+  const transportCost = form.getValues('transportCost') || 0;
+  const commissionRate = form.getValues('commissionRate') || 0;
+  const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
+  const totalAmount = form.getValues('totalAmount');
 
   return (
     <div className="container py-8">
@@ -201,9 +226,32 @@ export default function QuotesPage() {
                         <PlusCircle className="mr-2 h-4 w-4"/> Add Item
                     </Button>
                     <Separator className="my-4" />
-                    <div className="flex justify-end items-center gap-4 text-lg font-semibold">
-                      <div>Total</div>
-                      <div className="w-28 text-right pr-[52px]">€{form.getValues('totalAmount').toFixed(2)}</div>
+                    <div className="flex justify-end">
+                      <div className="w-1/2 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span>Subtotal</span>
+                          <span>€{subTotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center gap-2">
+                           <FormField control={form.control} name="transportCost" render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Transport Cost</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
+                           )}/>
+                        </div>
+                         <div className="flex justify-between items-center gap-2">
+                           <FormField control={form.control} name="commissionRate" render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Commission (%)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
+                           )}/>
+                        </div>
+                        <div className="flex justify-between items-center text-muted-foreground text-sm">
+                          <span>Commission Amount</span>
+                          <span>€{commissionAmount.toFixed(2)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center text-lg font-semibold">
+                          <span>Total</span>
+                          <span>€{totalAmount.toFixed(2)}</span>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
