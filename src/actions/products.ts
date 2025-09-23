@@ -9,9 +9,16 @@ const productSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   sku: z.string().min(1, { message: "SKU is required." }),
   description: z.string().optional(),
-  price: z.coerce.number().nonnegative("Price cannot be negative."),
-  stock: z.coerce.number().int().nonnegative("Stock cannot be negative."),
+  price: z.coerce.number().nonnegative("Price cannot be negative.").default(0),
+  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
+  stock: z.coerce.number().int().nonnegative("Stock cannot be negative.").default(0),
   category: z.string().optional(),
+  weight: z.coerce.number().nonnegative("Weight cannot be negative.").optional().default(0),
+  width: z.coerce.number().nonnegative("Width cannot be negative.").optional().default(0),
+  height: z.coerce.number().nonnegative("Height cannot be negative.").optional().default(0),
+  length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
+  hsCode: z.string().optional(),
+  countryOfOrigin: z.string().optional(),
 });
 
 export interface Product {
@@ -20,8 +27,15 @@ export interface Product {
     sku: string;
     description?: string;
     price: number;
+    purchasePrice?: number;
     stock: number;
     category?: string;
+    weight?: number;
+    width?: number;
+    height?: number;
+    length?: number;
+    hsCode?: string;
+    countryOfOrigin?: string;
     createdAt: string;
 }
 
@@ -71,8 +85,15 @@ export async function getProducts(): Promise<Product[]> {
           sku: data.sku || '',
           description: data.description || '',
           price: data.price || 0,
+          purchasePrice: data.purchasePrice || 0,
           stock: data.stock || 0,
           category: data.category || '',
+          weight: data.weight || 0,
+          width: data.width || 0,
+          height: data.height || 0,
+          length: data.length || 0,
+          hsCode: data.hsCode || '',
+          countryOfOrigin: data.countryOfOrigin || '',
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Product);
     });
