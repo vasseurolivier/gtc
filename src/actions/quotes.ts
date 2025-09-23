@@ -2,8 +2,10 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
+import { updateOrderFromQuote } from './orders';
+import { updateInvoiceFromQuote } from './invoices';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -73,6 +75,33 @@ export async function addQuote(values: z.infer<typeof quoteSchema>) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+export async function updateQuote(id: string, values: z.infer<typeof quoteSchema>) {
+    try {
+        const validatedData = quoteSchema.parse(values);
+        const quoteRef = doc(db, 'quotes', id);
+        
+        await updateDoc(quoteRef, validatedData);
+
+        // After updating the quote, find and update the related order and invoice
+        const updatedQuote = await getQuoteById(id);
+        if (updatedQuote) {
+            const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
+            if (orderUpdateResult.success && orderUpdateResult.orderId) {
+                await updateInvoiceFromQuote(updatedQuote, orderUpdateResult.orderId);
+            }
+        }
+
+        return { success: true, message: 'Proforma Invoice updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating quote:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: 'Validation failed.', errors: error.errors };
+        }
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
 
 export async function getQuotes(): Promise<Quote[]> {
   try {

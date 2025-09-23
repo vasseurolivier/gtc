@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Quote } from './quotes';
 
@@ -57,6 +57,36 @@ export async function addOrder(quote: Quote) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
         return { success: false, message: 'An unexpected error occurred while creating the order.' };
+    }
+}
+
+export async function updateOrderFromQuote(quote: Quote) {
+    try {
+        const ordersQuery = query(collection(db, "orders"), where("quoteId", "==", quote.id));
+        const ordersSnapshot = await getDocs(ordersQuery);
+
+        if (ordersSnapshot.empty) {
+            return { success: false, message: "No matching order found for this proforma." };
+        }
+
+        const orderDoc = ordersSnapshot.docs[0];
+        const orderRef = doc(db, 'orders', orderDoc.id);
+
+        const updatedOrderData = {
+            customerId: quote.customerId,
+            customerName: quote.customerName,
+            items: quote.items,
+            totalAmount: quote.totalAmount,
+            shippingAddress: quote.shippingAddress || "",
+        };
+
+        await updateDoc(orderRef, updatedOrderData);
+        
+        return { success: true, message: 'Order updated successfully from proforma!', orderId: orderDoc.id };
+
+    } catch (error: any) {
+        console.error('Error updating order from quote:', error);
+        return { success: false, message: 'An unexpected error occurred while updating the order.' };
     }
 }
 

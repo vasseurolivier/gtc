@@ -20,11 +20,11 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, Quote } from '@/actions/quotes';
+import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { addOrder } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -64,7 +64,8 @@ export default function QuotesPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAddQuoteOpen, setAddQuoteOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -127,6 +128,34 @@ export default function QuotesPage() {
     fetchData();
   }, [router, toast]);
   
+  const handleOpenDialog = (quote: Quote | null = null) => {
+    setEditingQuote(quote);
+    if (quote) {
+        form.reset({
+            ...quote,
+            issueDate: new Date(quote.issueDate),
+            validUntil: new Date(quote.validUntil),
+        });
+    } else {
+        form.reset({
+            quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
+            issueDate: new Date(),
+            validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
+            subTotal: 0,
+            transportCost: 0,
+            commissionRate: 0,
+            totalAmount: 0,
+            status: "draft",
+            shippingAddress: "",
+            notes: "",
+            customerId: undefined,
+            customerName: undefined,
+        });
+    }
+    setIsDialogOpen(true);
+  };
+  
   const handleCustomerChange = (customerId: string) => {
     const customer = customers.find(c => c.id === customerId);
     if (customer) {
@@ -149,25 +178,15 @@ export default function QuotesPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    const result = await addQuote(values);
+    const result = editingQuote
+      ? await updateQuote(editingQuote.id, values)
+      : await addQuote(values);
+
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       const newQuotes = await getQuotes();
       setQuotes(newQuotes);
-      setAddQuoteOpen(false);
-      form.reset({
-        quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
-        issueDate: new Date(),
-        validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-        items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
-        subTotal: 0,
-        transportCost: 0,
-        commissionRate: 0,
-        totalAmount: 0,
-        status: "draft",
-        shippingAddress: "",
-        notes: "",
-      });
+      setIsDialogOpen(false);
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -215,7 +234,7 @@ export default function QuotesPage() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       status: "draft",
     });
-    setAddQuoteOpen(true);
+    setIsDialogOpen(true);
   };
 
   const getStatusBadgeVariant = (status: "draft" | "sent" | "accepted" | "rejected") => {
@@ -237,10 +256,11 @@ export default function QuotesPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Proforma Invoices</h1>
-        <Dialog open={isAddQuoteOpen} onOpenChange={setAddQuoteOpen}>
-          <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Proforma Invoice</Button></DialogTrigger>
+        <Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Create Proforma Invoice</Button>
+      </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-4xl">
-            <DialogHeader><DialogTitle>Create a New Proforma Invoice</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{editingQuote ? 'Edit Proforma Invoice' : 'Create a New Proforma Invoice'}</DialogTitle></DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -250,7 +270,7 @@ export default function QuotesPage() {
                   <FormField control={form.control} name="customerId" render={({ field }) => (
                       <FormItem className="lg:col-span-3">
                       <FormLabel>Customer</FormLabel>
-                      <Select onValueChange={handleCustomerChange} defaultValue={field.value}>
+                      <Select onValueChange={handleCustomerChange} value={field.value}>
                           <FormControl><SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger></FormControl>
                           <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}</SelectContent>
                       </Select><FormMessage /></FormItem>
@@ -354,7 +374,7 @@ export default function QuotesPage() {
                  <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
                         <SelectContent>
                             <SelectItem value="draft">Draft</SelectItem>
@@ -367,13 +387,12 @@ export default function QuotesPage() {
 
                 <DialogFooter>
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Proforma</Button>
+                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingQuote ? 'Save Changes' : 'Create Proforma'}</Button>
                 </DialogFooter>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -420,6 +439,9 @@ export default function QuotesPage() {
                             <Link href={`/admin/quotes/${quote.id}`}>
                                 <Eye className="h-4 w-4" />
                             </Link>
+                        </Button>
+                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
+                            <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
                             <Copy className="h-4 w-4" />

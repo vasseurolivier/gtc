@@ -2,8 +2,9 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
+import type { Quote } from './quotes';
 
 const invoiceItemSchema = z.object({
   sku: z.string().optional(),
@@ -32,8 +33,8 @@ const invoiceSchema = z.object({
 export interface Invoice {
     id: string;
     invoiceNumber: string;
-    orderId: string;
-    orderNumber: string;
+    orderId?: string;
+    orderNumber?: string;
     customerId: string;
     customerName: string;
     items: any[];
@@ -66,7 +67,9 @@ export async function updateInvoice(id: string, values: z.infer<typeof invoiceSc
     try {
         const validatedData = invoiceSchema.parse(values);
         const invoiceRef = doc(db, 'invoices', id);
-        await updateDoc(invoiceRef, validatedData);
+        await updateDoc(invoiceRef, {
+            ...validatedData,
+        });
         return { success: true, message: 'Invoice updated successfully!' };
     } catch (error: any) {
         console.error('Error updating invoice:', error);
@@ -74,6 +77,35 @@ export async function updateInvoice(id: string, values: z.infer<typeof invoiceSc
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
         return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
+    try {
+        const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", orderId));
+        const invoicesSnapshot = await getDocs(invoicesQuery);
+
+        if (invoicesSnapshot.empty) {
+            return { success: false, message: "No matching invoice found for this order." };
+        }
+
+        const invoiceDoc = invoicesSnapshot.docs[0];
+        const invoiceRef = doc(db, 'invoices', invoiceDoc.id);
+
+        const updatedInvoiceData = {
+            customerId: quote.customerId,
+            customerName: quote.customerName,
+            items: quote.items,
+            totalAmount: quote.totalAmount,
+        };
+        
+        await updateDoc(invoiceRef, updatedInvoiceData);
+
+        return { success: true, message: 'Invoice updated successfully from proforma!' };
+
+    } catch (error: any) {
+        console.error('Error updating invoice from quote:', error);
+        return { success: false, message: 'An unexpected error occurred while updating the invoice.' };
     }
 }
 
