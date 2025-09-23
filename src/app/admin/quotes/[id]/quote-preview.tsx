@@ -110,20 +110,20 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
                             </div>
-                            {quote.transportCost && quote.transportCost > 0 && 
+                            {(quote.transportCost && quote.transportCost > 0) && (
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Transport Cost</span>
                                     <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
                                 </div>
-                            }
-                            {quote.commissionRate && quote.commissionRate > 0 &&
+                            )}
+                            {(quote.commissionRate && quote.commissionRate > 0) && (
                                 <>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
                                         <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
                                     </div>
                                 </>
-                            }
+                            )}
                             <Separator />
                             <div className="flex justify-between font-bold text-lg">
                                 <span>TOTAL (CNY)</span>
@@ -135,6 +135,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         </div>
                     </div>
+                     {quote.notes && 
+                        <div className="mt-8 text-left">
+                            <h3 className="font-semibold mb-2">Notes:</h3>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
+                        </div>
+                    }
                 </section>
             </div>
 
@@ -149,12 +155,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         {companyInfo.email && <span>{companyInfo.email}</span>}
                     </p>
                 </div>
-                {quote.notes && 
-                    <div className="mt-8 text-left">
-                        <h3 className="font-semibold mb-2">Notes:</h3>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
-                    </div>
-                }
             </footer>
         </Card>
     );
