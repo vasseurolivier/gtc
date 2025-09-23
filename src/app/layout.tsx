@@ -3,10 +3,6 @@ import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import { i18n, type Locale } from '@/i18n-config';
 
-export async function generateStaticParams() {
-  return i18n.locales.map((locale) => ({ locale }));
-}
-
 export const metadata: Metadata = {
   title: 'Global Trading China',
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
@@ -14,13 +10,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  params: { locale },
 }: {
   children: React.ReactNode;
-  params: { locale: Locale };
 }) {
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
