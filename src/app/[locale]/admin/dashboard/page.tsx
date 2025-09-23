@@ -12,8 +12,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Loader2 } from 'lucide-react';
-import { getSubmissions, Submission } from '@/actions/submissions';
-import { updateSubmissionReadStatus } from '@/actions/submissions';
+import { getSubmissions, Submission, updateSubmissionReadStatus } from '@/actions/submissions';
+
 
 export default function SubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);

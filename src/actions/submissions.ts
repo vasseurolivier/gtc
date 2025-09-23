@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/firebase/server';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
 
 export interface Submission {
   id: string;
@@ -39,5 +39,16 @@ export async function getSubmissions(): Promise<Submission[]> {
     // et retourner une erreur plus structurée.
     // Pour l'instant, on retourne un tableau vide pour ne pas crasher la page.
     return [];
+  }
+}
+
+export async function updateSubmissionReadStatus(id: string, read: boolean) {
+  try {
+    const submissionRef = doc(db, 'contactSubmissions', id);
+    await updateDoc(submissionRef, { read });
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating submission ${id}:`, error);
+    return { success: false, message: 'Failed to update submission status.' };
   }
 }
