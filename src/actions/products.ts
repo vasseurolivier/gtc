@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase/server';
+import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
@@ -22,7 +22,7 @@ export interface Product {
     price: number;
     stock: number;
     category?: string;
-    createdAt: any;
+    createdAt: string;
 }
 
 export async function addProduct(values: z.infer<typeof productSchema>) {
@@ -73,7 +73,7 @@ export async function getProducts(): Promise<Product[]> {
           price: data.price || 0,
           stock: data.stock || 0,
           category: data.category || '',
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Product);
     });
 

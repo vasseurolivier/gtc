@@ -29,7 +29,7 @@ export interface Customer {
     status?: "lead" | "active" | "inactive" | "prospect";
     source?: string;
     notes?: string;
-    createdAt: any;
+    createdAt: string; // Changed to string for serializability
     orders?: Order[];
     totalRevenue?: number;
 }
@@ -69,7 +69,7 @@ export async function getCustomers(): Promise<Customer[]> {
           status: data.status || 'lead',
           source: data.source || '',
           notes: data.notes || '',
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Customer);
     });
 
@@ -98,16 +98,19 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
         let totalRevenue = 0;
         ordersSnapshot.forEach((doc) => {
             const orderData = doc.data();
-            const orderDate = orderData.orderDate?.toDate ? orderData.orderDate.toDate() : new Date();
-            const createdAt = orderData.createdAt?.toDate ? orderData.createdAt.toDate() : new Date();
-            orders.push({ ...orderData, id: doc.id, orderDate, createdAt } as Order);
+            orders.push({ 
+                ...orderData, 
+                id: doc.id, 
+                orderDate: orderData.orderDate?.toDate().toISOString() || new Date().toISOString(),
+                createdAt: orderData.createdAt?.toDate().toISOString() || new Date().toISOString()
+            } as Order);
             totalRevenue += orderData.totalAmount;
         });
 
         return {
             id: customerSnap.id,
             ...customerData,
-            createdAt: customerData.createdAt ? customerData.createdAt.toDate() : new Date(),
+            createdAt: customerData.createdAt?.toDate().toISOString() || new Date().toISOString(),
             orders,
             totalRevenue,
         } as Customer;

@@ -30,8 +30,8 @@ export interface Order {
     totalAmount: number;
     status: "processing" | "shipped" | "delivered" | "cancelled";
     shippingAddress?: string;
-    orderDate: any;
-    createdAt: any;
+    orderDate: string;
+    createdAt: string;
 }
 
 export async function addOrder(quote: Quote) {
@@ -80,8 +80,8 @@ export async function getOrders(): Promise<Order[]> {
           totalAmount: data.totalAmount,
           status: data.status,
           shippingAddress: data.shippingAddress,
-          orderDate: data.orderDate ? data.orderDate.toDate() : new Date(),
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Order);
     });
 

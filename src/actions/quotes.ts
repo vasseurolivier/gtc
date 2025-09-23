@@ -48,9 +48,9 @@ export interface Quote {
     status: "draft" | "sent" | "accepted" | "rejected";
     shippingAddress?: string;
     notes?: string;
-    issueDate: any;
-    validUntil: any;
-    createdAt: any;
+    issueDate: string;
+    validUntil: string;
+    createdAt: string;
 }
 
 export async function addQuote(values: z.infer<typeof quoteSchema>) {
@@ -91,9 +91,9 @@ export async function getQuotes(): Promise<Quote[]> {
           status: data.status,
           shippingAddress: data.shippingAddress,
           notes: data.notes,
-          issueDate: data.issueDate ? data.issueDate.toDate() : new Date(),
-          validUntil: data.validUntil ? data.validUntil.toDate() : new Date(),
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
+          validUntil: data.validUntil?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Quote);
     });
 

@@ -10,7 +10,7 @@ export interface Submission {
   email: string;
   subject: string;
   message: string;
-  createdAt: any;
+  createdAt: string;
   read: boolean;
 }
 
@@ -28,7 +28,7 @@ export async function getSubmissions(): Promise<Submission[]> {
           email: data.email || '',
           subject: data.subject || '',
           message: data.message || '',
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
           read: data.read || false,
         } as Submission);
     });
