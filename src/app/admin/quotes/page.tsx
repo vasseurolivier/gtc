@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -20,7 +21,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, CalendarIcon } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -166,6 +167,17 @@ export default function QuotesPage() {
     }
   };
   
+  const handleDuplicateQuote = (quoteToDuplicate: Quote) => {
+    form.reset({
+      ...quoteToDuplicate,
+      issueDate: new Date(),
+      validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+      quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
+      status: "draft",
+    });
+    setAddQuoteOpen(true);
+  };
+
   const getStatusBadgeVariant = (status: "draft" | "sent" | "accepted" | "rejected") => {
     switch (status) {
         case 'accepted': return 'default';
@@ -340,6 +352,9 @@ export default function QuotesPage() {
                     <TableCell><Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge></TableCell>
                     <TableCell className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>
