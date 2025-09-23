@@ -1,4 +1,3 @@
-
 {
   "placeholderImages": [
     {
@@ -16,31 +15,31 @@
     {
       "id": "about-hero",
       "description": "A modern office building with glass facade.",
-      "imageUrl": "https://picsum.photos/seed/office/1600/600",
+      "imageUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBidWlsZGluZ3xlbnwwfHx8fDE3NTg1ODY1MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "office building"
     },
     {
       "id": "sourcing-hero",
       "description": "A person inspecting products in a warehouse.",
-      "imageUrl": "https://picsum.photos/seed/sourcing/1600/600",
+      "imageUrl": "https://images.unsplash.com/photo-1652204775379-2b4ace437a2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3YXJlaG91c2UlMjBpbnNwZWN0aW9ufGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse inspection"
     },
     {
       "id": "trading-hero",
       "description": "A professional truck being loaded with cargo at a loading dock.",
-      "imageUrl": "https://picsum.photos/seed/truck-loading/1600/600",
+      "imageUrl": "https://images.unsplash.com/photo-1732193933813-4da17265a36c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHJ1Y2slMjBsb2FkaW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "truck loading"
     },
     {
       "id": "ecommerce-hero",
       "description": "Person packing boxes for an online order.",
-      "imageUrl": "https://picsum.photos/seed/ecommerce/1600/600",
+      "imageUrl": "https://images.unsplash.com/photo-1685119166946-d4050647b0e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlY29tbWVyY2UlMjBwYWNraW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "ecommerce packing"
     },
     {
       "id": "custom-services-hero",
       "description": "Two people discussing a blueprint.",
-      "imageUrl": "https://picsum.photos/seed/custom/1600/600",
+      "imageUrl": "https://images.unsplash.com/photo-1618393678187-fb258b8ee191?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibHVlcHJpbnQlMjBkaXNjdXNzaW9ufGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "blueprint discussion"
     },
     {
@@ -52,13 +51,13 @@
     {
       "id": "ecommerce-feature-1",
       "description": "Modern product packaging on a colorful background.",
-      "imageUrl": "https://picsum.photos/seed/ecomfeature1/800/800",
+      "imageUrl": "https://images.unsplash.com/photo-1688561807440-8a57dfa77ee3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxlLWNvbW1lcmNlfGVufDB8fHx8MTc1ODU4MDgyMHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "product packaging"
     },
     {
       "id": "ecommerce-feature-2",
       "description": "Warehouse shelves with boxes ready for shipping.",
-      "imageUrl": "https://picsum.photos/seed/ecomfeature2/800/800",
+      "imageUrl": "https://images.unsplash.com/photo-1740914994162-0b2a49280aeb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3YXJlaG91c2UlMjBzaGVsdmVzfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse shelves"
     },
     {
@@ -76,7 +75,7 @@
     {
       "id": "custom-services-feature-3",
       "description": "Analyst looking at charts and graphs on multiple screens.",
-      "imageUrl": "https://picsum.photos/seed/customfeature3/800/800",
+      "imageUrl": "https://images.unsplash.com/photo-1599658880436-c61792e70672?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxkYXRhJTIwYW5hbHlzaXN8ZW58MHx8fHwxNzU4NTg3ODE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "data analysis"
     },
     {
@@ -88,72 +87,68 @@
     {
       "id": "trade-cities-hero",
       "description": "A bustling street market in China, showcasing a variety of goods.",
-      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "China commerce"
     },
     {
       "id": "guangzhou-city",
       "description": "The iconic Canton Tower in Guangzhou at dusk.",
-      "imageUrl": "https://images.unsplash.com/photo-1559035871-4b9dcf31885c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYW50b258ZW58MHx8fHwxNzU4MzkzNzU3fDA&ixlibrb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1559035871-4b9dcf31885c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYW50b258ZW58MHx8fHwxNzU4MzkzNzU3fDA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "Canton Tower"
     },
     {
       "id": "shenzhen-city",
       "description": "The futuristic skyline of Shenzhen's business district.",
-      "imageUrl": "https://images.unsplash.com/photo-1634647626782-f5fffa9fd9b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaGVuemVufGVufDB8fHx8MTc1ODM5MzgxNnww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1634647626782-f5fffa9fd9b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaGVuemVufGVufDB8fHx8MTc1ODM5MzgxNnww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "Shenzhen skyline"
     },
     {
       "id": "yiwu-city",
       "description": "The bustling interior of the Yiwu International Trade City market.",
-      "imageUrl": "https://images.unsplash.com/photo-1743804718631-46730fbee3a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5aXd1fGVufDB8fHx8MTc1ODM5Mzg2MHww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1743804718631-46730fbee3a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5aXd1fGVufDB8fHx8MTc1ODM5Mzg2MHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "Yiwu market"
     },
     {
       "id": "logistics-process",
       "description": "Warehouse interior with workers managing packages and shelves.",
-      "imageUrl": "https://images.unsplash.com/photo-1592963219838-6045ccbe0563?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxOHx8aW1wb3J0JTIwZXhwb3J0fGVufDB8fHx8MTc1ODM5MzA1M3ww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1592963219838-6045ccbe0563?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxOHx8aW1wb3J0JTIwZXhwb3J0fGVufDB8fHx8MTc1ODM5MzA1M3ww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse logistics"
     },
     {
       "id": "about-home",
       "description": "Two business professionals shaking hands in a modern office setting.",
-      "imageUrl": "https://picsum.photos/seed/handshake/800/600",
+      "imageUrl": "https://images.unsplash.com/photo-1521791136064-7986c2920216?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMGhhbmRzaGFrZXxlbnwwfHx8fDE3NTg2MDgxOTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "business handshake"
     },
     {
       "id": "carousel-1",
       "description": "Container ship at a busy port.",
-      "imageUrl": "https://images.unsplash.com/photo-1605745341112-85968b19335b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMXx8Y29udGFpbmVyc3xlbnwwfHx8fDE3NTg1MjU1NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1605745341112-85968b19335b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMXx8Y29udGFpbmVyc3xlbnwwfHx8fDE3NTg1MjU1NzZ8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "container ship"
     },
     {
       "id": "carousel-2",
       "description": "Business meeting with laptops and papers on a table.",
-      "imageUrl": "https://images.unsplash.com/photo-1622675205169-901710ac8643?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxOXx8YnVzaW5lc3MlMjBtZWV0aW5nJTIwYXNpYXxlbnwwfHx8fDE3NTg1MjU3MTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1622675205169-901710ac8643?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxOXx8YnVzaW5lc3MlMjBtZWV0aW5nJTIwYXNpYXxlbnwwfHx8fDE3NTg1MjU3MTd8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "business meeting"
     },
     {
       "id": "carousel-3",
       "description": "Skyline of Shanghai with modern skyscrapers.",
-      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaGFuZ2hhaXxlbnwwfHx8fDE3NTg1MjU4MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaGFuZ2hhaXxlbnwwfHx8fDE3NTg1MjU4MDd8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "Shanghai skyline"
     },
     {
       "id": "carousel-4",
       "description": "Warehouse aisle with shelves full of boxes.",
-      "imageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3YXJlaG91c2V8ZW58MHx8fHwxNzU4NTI1NTEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3YXJlaG91c2V8ZW58MHx8fHwxNzU4NTI1NTEyfDA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse aisle"
     },
     {
       "id": "carousel-5",
       "description": "A close-up of a 'Made in China' label on a product.",
-      "imageUrl": "https://images.unsplash.com/photo-1598865307385-74cac1170bd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWRlJTIwaW4lMjBjaGluYXxlbnwwfHx8fDE3NTg1MjU4ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1598865307385-74cac1170bd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWRlJTIwaW4lMjBjaGluYXxlbnwwfHx8fDE3NTg1MjU4ODV8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "Made in China"
     }
   ]
 }
-
-    
-
-    
