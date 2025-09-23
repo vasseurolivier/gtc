@@ -57,3 +57,4 @@ export function Footer({ dictionary }: { dictionary: any }) {
 }
 
     
+    

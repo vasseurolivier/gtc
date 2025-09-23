@@ -38,3 +38,5 @@ export default async function LegalNoticePage({ params: { locale } }: { params: 
     </div>
   );
 }
+
+    
