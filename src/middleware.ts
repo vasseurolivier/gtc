@@ -28,7 +28,7 @@ function getLocale(request: NextRequest): string | undefined {
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Ignore /admin routes from i18n
+  // Ignore /admin routes from i18n, including /admin/login
   if (pathname.startsWith('/admin')) {
     return NextResponse.next();
   }
