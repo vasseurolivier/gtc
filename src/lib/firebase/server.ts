@@ -15,17 +15,25 @@ const firebaseConfig = {
 
 // IMPORTANT: The service account key is base64 encoded in an environment variable.
 // This is a more secure way to handle credentials in a server environment.
-const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 || '', 'base64').toString('utf8')
-);
+const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64
+  ? Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf8')
+  : '{}';
 
+let app;
+try {
+    const serviceAccount = JSON.parse(serviceAccountString);
+    // Initialize Firebase Admin SDK
+    app = getApps().length 
+      ? getApp() 
+      : initializeApp({
+          credential: cert(serviceAccount)
+      });
+} catch(e) {
+    console.error("Firebase Admin SDK initialization failed", e);
+    // Fallback to a non-admin app instance if admin fails, though this will have limited permissions
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
 
-// Initialize Firebase Admin SDK
-const app = getApps().length 
-  ? getApp() 
-  : initializeApp({
-      credential: cert(serviceAccount)
-  });
 
 const db = getFirestore(app);
 
