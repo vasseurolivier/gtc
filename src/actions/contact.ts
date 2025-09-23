@@ -1,7 +1,8 @@
+
 'use server';
 
-import { db } from '@/lib/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/server';
+import { addDoc, collection, serverTimestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 const formSchema = z.object({

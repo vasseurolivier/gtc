@@ -1,7 +1,8 @@
+
 'use server';
 
-import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase/server';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 const customerSchema = z.object({
