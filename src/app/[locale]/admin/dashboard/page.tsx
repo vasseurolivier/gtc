@@ -1,94 +1,149 @@
 
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { DollarSign, ShoppingCart, Users, FileText } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, orderBy, query, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Loader2 } from 'lucide-react';
 
-export default function AdminDashboardPage() {
+
+interface Submission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: Timestamp | null;
+  read: boolean;
+}
+
+export default function SubmissionsPage() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
+      return;
     }
+
+    const q = query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const subs: Submission[] = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            subs.push({
+              id: doc.id,
+              name: data.name || '',
+              email: data.email || '',
+              subject: data.subject || '',
+              message: data.message || '',
+              createdAt: data.createdAt || null,
+              read: data.read || false,
+            } as Submission);
+        });
+        setSubmissions(subs);
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error fetching submissions:", error);
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [router]);
+
+  const handleMarkAsRead = async (id: string) => {
+    const submission = submissions.find(s => s.id === id);
+    if (!submission || submission.read) return;
+
+    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: true } : s));
+
+    try {
+        const submissionRef = doc(db, 'contactSubmissions', id);
+        await updateDoc(submissionRef, { read: true });
+    } catch (error) {
+        console.error("Error marking as read:", error);
+        setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read: false } : s));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Tableau de Bord</h1>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Chiffre d'affaires (Mensuel)
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0 €</div>
-            <CardDescription className="text-xs text-muted-foreground">
-              Bientôt disponible
-            </CardDescription>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Nouvelles Commandes
-            </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <CardDescription className="text-xs text-muted-foreground">
-              Bientôt disponible
-            </CardDescription>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nouveaux Clients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <CardDescription className="text-xs text-muted-foreground">
-              Bientôt disponible
-            </CardDescription>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Devis en Attente</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <CardDescription className="text-xs text-muted-foreground">
-              Bientôt disponible
-            </CardDescription>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Tableau de Bord</h1>
       </div>
 
-       <div className="mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Bienvenue dans votre nouvel espace de gestion !</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription>
-              Ceci est la première étape de la construction de votre application de gestion complète.
-              Utilisez la navigation sur la gauche pour accéder aux différentes sections.
-              Prochainement, nous développerons chaque module un par un, en commençant par la gestion des clients.
-            </CardDescription>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          {submissions.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+                Aucun message pour le moment.
+            </div>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {submissions.map((submission) => (
+                <AccordionItem value={submission.id} key={submission.id}>
+                  <AccordionTrigger 
+                    className={`py-4 px-6 hover:no-underline ${!submission.read ? 'font-bold' : ''}`}
+                    onClick={() => handleMarkAsRead(submission.id)}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                       <div className="flex items-center gap-4">
+                          {!submission.read && <Badge>Nouveau</Badge>}
+                          <span className="truncate max-w-xs">{submission.subject}</span>
+                          <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
+                       </div>
+                       <span className="text-sm text-muted-foreground pr-4">
+                          {submission.createdAt && submission.createdAt.toDate
+                            ? format(submission.createdAt.toDate(), 'dd MMM yyyy - HH:mm')
+                            : 'Pas de date'}
+                        </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="p-6 bg-secondary/30">
+                     <div className="space-y-4">
+                          <div>
+                              <div className="font-semibold">De:</div>
+                              <div>{submission.name} &lt;{submission.email}&gt;</div>
+                          </div>
+                           <div>
+                              <div className="font-semibold">Sujet:</div>
+                              <div>{submission.subject}</div>
+                          </div>
+                           <div>
+                              <div className="font-semibold">Message:</div>
+                              <div className="whitespace-pre-wrap">{submission.message}</div>
+                          </div>
+                     </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

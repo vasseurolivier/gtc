@@ -26,6 +26,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AppProviders } from '@/components/app-providers';
 import '../[locale]/globals.css';
+import { i18n } from '@/i18n-config';
 
 export default function AdminRootLayout({
   children,
@@ -41,12 +42,11 @@ export default function AdminRootLayout({
   };
 
   const navItems = [
-    { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
+    { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Tableau de bord' },
     { href: '/admin/customers', icon: <Users />, label: 'Clients' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Devis' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Commandes' },
     { href: '/admin/products', icon: <Package />, label: 'Produits' },
-    { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
   ];
   
   const getBasePath = (path: string) => {
@@ -117,9 +117,7 @@ export default function AdminRootLayout({
                     </SidebarContent>
                 </Sidebar>
                 <SidebarInset>
-                    <div className="p-4 md:p-6">
                     {children}
-                    </div>
                 </SidebarInset>
                 </SidebarProvider>
             </AppProviders>
@@ -127,9 +125,3 @@ export default function AdminRootLayout({
     </html>
   );
 }
-
-// Add i18n config here to be accessible by getBasePath
-const i18n = {
-  defaultLocale: 'fr',
-  locales: ['fr', 'en'],
-} as const;
