@@ -10,7 +10,7 @@ import { getOrders, Order } from '@/actions/orders';
 import { getInvoices, Invoice } from '@/actions/invoices';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { format, subDays, parseISO } from 'date-fns';
-import { Loader2, Inbox, MailOpen, Euro, ShoppingCart, CircleAlert, CircleCheck } from 'lucide-react';
+import { Loader2, Euro, ShoppingCart, CircleAlert, Package, Truck } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -22,10 +22,8 @@ interface DailyRevenue {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,16 +35,12 @@ export default function DashboardPage() {
 
     async function fetchData() {
       try {
-        const [subs, ords, invs, qts] = await Promise.all([
-            getSubmissions(),
+        const [ords, invs] = await Promise.all([
             getOrders(),
             getInvoices(),
-            getQuotes()
         ]);
-        setSubmissions(subs);
         setOrders(ords);
         setInvoices(invs);
-        setQuotes(qts);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -70,7 +64,8 @@ export default function DashboardPage() {
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.totalAmount, 0);
 
-  const pendingOrders = orders.filter(o => o.status === 'processing').length;
+  const ordersToProcess = orders.filter(o => o.status === 'processing').length;
+  const shippedOrders = orders.filter(o => o.status === 'shipped').length;
   
   const pendingAmount = invoices
     .filter(inv => inv.status === 'unpaid' || inv.status === 'overdue')
@@ -112,7 +107,7 @@ export default function DashboardPage() {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -125,12 +120,22 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Orders to Process</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingOrders}</div>
-            <p className="text-xs text-muted-foreground">Orders currently in "processing"</p>
+            <div className="text-2xl font-bold">{ordersToProcess}</div>
+            <p className="text-xs text-muted-foreground">Orders with "processing" status</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Shipped Orders</CardTitle>
+            <Truck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{shippedOrders}</div>
+            <p className="text-xs text-muted-foreground">Orders currently in transit</p>
           </CardContent>
         </Card>
         <Card>
