@@ -9,9 +9,9 @@ import { Locale } from '@/i18n-config';
 export default async function CustomServicesPage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   const customServicesDict = dictionary.customServicesPage;
   
@@ -178,3 +178,5 @@ export default async function CustomServicesPage({
     </>
   );
 }
+
+    

@@ -11,9 +11,9 @@ import { Locale } from '@/i18n-config';
 export default async function ServicesPage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
 
@@ -101,3 +101,5 @@ export default async function ServicesPage({
     </div>
   );
 }
+
+    

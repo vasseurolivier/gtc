@@ -5,9 +5,9 @@ import { Locale } from '@/i18n-config';
 export default async function PrivacyPolicyPage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   const pageDict = dictionary.privacyPolicyPage;
 
@@ -44,3 +44,5 @@ export default async function PrivacyPolicyPage({
     </div>
   );
 }
+
+    

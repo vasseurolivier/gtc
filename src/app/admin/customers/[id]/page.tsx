@@ -11,9 +11,9 @@ import Link from 'next/link';
 export default async function CustomerProfilePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-    const { id } = params;
+    const { id } = await params;
     const customer = await getCustomerById(id);
 
     if (!customer) {
@@ -141,3 +141,5 @@ export default async function CustomerProfilePage({
         </div>
     );
 }
+
+    

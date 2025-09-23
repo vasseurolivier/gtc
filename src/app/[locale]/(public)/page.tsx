@@ -9,9 +9,9 @@ import { Locale } from '@/i18n-config';
 export default async function Home({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   return (
     <>
@@ -22,3 +22,5 @@ export default async function Home({
     </>
   );
 }
+
+    
