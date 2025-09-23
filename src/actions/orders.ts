@@ -66,7 +66,8 @@ export async function updateOrderFromQuote(quote: Quote) {
         const ordersSnapshot = await getDocs(ordersQuery);
 
         if (ordersSnapshot.empty) {
-            return { success: false, message: "No matching order found for this proforma." };
+            // This can happen if a draft quote is updated before being accepted. Not an error.
+            return { success: true, message: "No matching order found to update." };
         }
 
         const orderDoc = ordersSnapshot.docs[0];

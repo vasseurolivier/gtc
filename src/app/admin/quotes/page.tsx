@@ -22,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
-import { addOrder } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -193,6 +192,7 @@ export default function QuotesPage() {
       const newQuotes = await getQuotes();
       setQuotes(newQuotes);
       setIsDialogOpen(false);
+      router.refresh(); // Refresh server components
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -220,15 +220,7 @@ export default function QuotesPage() {
         toast({ variant: 'destructive', title: 'Error', description: result.message });
     } else {
         toast({ title: 'Success', description: 'Proforma status updated.' });
-        if (newStatus === 'accepted') {
-            const orderResult = await addOrder({ ...quote, status: newStatus });
-            if (orderResult.success) {
-                toast({ title: 'Order Created', description: `Order for ${quote.quoteNumber} has been created.` });
-                router.refresh();
-            } else {
-                toast({ variant: 'destructive', title: 'Order Creation Failed', description: orderResult.message });
-            }
-        }
+        router.refresh(); // Refresh server components to reflect changes in orders/invoices
     }
   }
   
@@ -240,6 +232,7 @@ export default function QuotesPage() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       status: "draft",
     });
+    setEditingQuote(null); // Ensure it's a new quote
     setIsDialogOpen(true);
   };
 

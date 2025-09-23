@@ -4,8 +4,8 @@
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
-import { updateOrderFromQuote } from './orders';
-import { updateInvoiceFromQuote } from './invoices';
+import { addOrder, updateOrderFromQuote } from './orders';
+import { addInvoice, updateInvoiceFromQuote } from './invoices';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -85,7 +85,7 @@ export async function updateQuote(id: string, values: z.infer<typeof quoteSchema
 
         // After updating the quote, find and update the related order and invoice
         const updatedQuote = await getQuoteById(id);
-        if (updatedQuote) {
+        if (updatedQuote && updatedQuote.status === 'accepted') {
             const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
             if (orderUpdateResult.success && orderUpdateResult.orderId) {
                 await updateInvoiceFromQuote(updatedQuote, orderUpdateResult.orderId);
@@ -177,7 +177,39 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
     try {
         const validatedStatus = quoteStatusSchema.parse(status);
         const quoteRef = doc(db, 'quotes', id);
+        
+        const quoteSnap = await getDoc(quoteRef);
+        if (!quoteSnap.exists()) {
+            return { success: false, message: 'Proforma not found.' };
+        }
+        const quote = { id: quoteSnap.id, ...quoteSnap.data() } as Quote;
+        const previousStatus = quote.status;
+
         await updateDoc(quoteRef, { status: validatedStatus });
+        
+        // If status changes to 'accepted' from another status, create order and invoice
+        if (validatedStatus === 'accepted' && previousStatus !== 'accepted') {
+            const fullQuote = await getQuoteById(id);
+            if(fullQuote) {
+                const orderResult = await addOrder(fullQuote);
+                if (orderResult.success && orderResult.id) {
+                     await addInvoice({
+                        invoiceNumber: `INV-${fullQuote.quoteNumber.replace('PI-', '')}`,
+                        orderId: orderResult.id,
+                        orderNumber: `O-${fullQuote.quoteNumber.replace('PI-', '')}`,
+                        customerId: fullQuote.customerId,
+                        customerName: fullQuote.customerName,
+                        issueDate: new Date(fullQuote.issueDate),
+                        dueDate: new Date(new Date(fullQuote.issueDate).getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days later
+                        items: fullQuote.items,
+                        totalAmount: fullQuote.totalAmount,
+                        status: 'unpaid',
+                        amountPaid: 0,
+                    });
+                }
+            }
+        }
+        
         return { success: true, message: 'Proforma status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating proforma status:', error);

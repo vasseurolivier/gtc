@@ -88,7 +88,8 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
         const invoicesSnapshot = await getDocs(invoicesQuery);
 
         if (invoicesSnapshot.empty) {
-            return { success: false, message: "No matching invoice found for this order." };
+            // This can happen if the invoice was not created yet. Not an error.
+            return { success: true, message: "No matching invoice found for this order." };
         }
 
         const invoiceDoc = invoicesSnapshot.docs[0];
@@ -99,6 +100,7 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
             customerName: quote.customerName,
             items: quote.items,
             totalAmount: quote.totalAmount,
+            // We don't update status or amountPaid from here, as those are managed separately
         };
         
         await updateDoc(invoiceRef, updatedInvoiceData);
@@ -209,7 +211,7 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
             newStatus = 'paid';
         } else if (amountPaid > 0) {
             newStatus = 'partially_paid';
-        } else {
+        } else if (invoiceData.status !== 'cancelled' && invoiceData.status !== 'overdue') { // avoid overwriting these statuses
             newStatus = 'unpaid';
         }
 
