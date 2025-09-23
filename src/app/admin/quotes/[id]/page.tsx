@@ -4,7 +4,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { getQuoteById, Quote } from '@/actions/quotes';
 import { getCustomerById, Customer } from '@/actions/customers';
-import { CompanyInfoContext, CompanyInfo } from '@/context/company-info-context';
+import { CompanyInfoContext } from '@/context/company-info-context';
 import { PrintButton } from './print-button';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
