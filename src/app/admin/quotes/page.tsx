@@ -252,7 +252,7 @@ export default function QuotesPage() {
                             <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
                                 <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder="Unit Price (CNY)" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
-                            <div className="w-28 pt-2 text-right">{currency.symbol}{(watchItems[index].quantity * watchItems[index].unitPrice * exchangeRate).toFixed(2)}</div>
+                            <div className="w-28 pt-2 text-right">¥{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
                         </div>
                       ))}
