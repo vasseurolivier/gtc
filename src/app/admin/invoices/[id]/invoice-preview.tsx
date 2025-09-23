@@ -53,11 +53,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 <div className="text-right">
                     <div className="grid grid-cols-2">
                         <span className="font-semibold">Issue Date:</span>
-                        <span>{formatInTimeZone(invoice.issueDate, 'UTC', 'dd MMM yyyy')}</span>
+                        <span>{formatInTimeZone(new Date(invoice.issueDate), 'UTC', 'dd MMM yyyy')}</span>
                     </div>
                     <div className="grid grid-cols-2 mt-1">
                         <span className="font-semibold">Due Date:</span>
-                        <span>{formatInTimeZone(invoice.dueDate, 'UTC', 'dd MMM yyyy')}</span>
+                        <span>{formatInTimeZone(new Date(invoice.dueDate), 'UTC', 'dd MMM yyyy')}</span>
                     </div>
                 </div>
             </section>
@@ -104,7 +104,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </Table>
 
                     <div className="flex justify-end mt-8">
-                        <div className="w-1/2 space-y-2">
+                        <div className="w-full md:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span>¥{subTotal.toFixed(2)}</span>
@@ -114,9 +114,17 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <span>TOTAL (CNY)</span>
                                 <span>¥{invoice.totalAmount.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between font-bold text-lg">
+                            <div className="flex justify-between font-bold text-lg text-primary">
                                 <span>TOTAL ({currency.code})</span>
                                 <span>{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</span>
+                            </div>
+                             <div className="flex justify-between">
+                                <span className="text-muted-foreground">Amount Paid</span>
+                                <span>¥{(invoice.amountPaid || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold text-destructive">
+                                <span>Balance Due ({currency.code})</span>
+                                <span>{currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

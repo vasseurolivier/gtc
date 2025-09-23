@@ -55,11 +55,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 <div className="text-right">
                     <div className="grid grid-cols-2">
                         <span className="font-semibold">Issue Date:</span>
-                        <span>{formatInTimeZone(quote.issueDate, 'UTC', 'dd MMM yyyy')}</span>
+                        <span>{formatInTimeZone(new Date(quote.issueDate), 'UTC', 'dd MMM yyyy')}</span>
                     </div>
                         <div className="grid grid-cols-2 mt-1">
                         <span className="font-semibold">Valid Until:</span>
-                        <span>{formatInTimeZone(quote.validUntil, 'UTC', 'dd MMM yyyy')}</span>
+                        <span>{formatInTimeZone(new Date(quote.validUntil), 'UTC', 'dd MMM yyyy')}</span>
                     </div>
                 </div>
             </section>
