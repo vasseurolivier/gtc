@@ -62,66 +62,68 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </section>
 
             <div className="flex-grow">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-1/2">Description</TableHead>
-                            <TableHead className="text-right">Quantity</TableHead>
-                            <TableHead className="text-right">Unit Price (CNY)</TableHead>
-                            <TableHead className="text-right">Total (CNY)</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {quote.items.map((item, index) => {
-                            const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                            return (
-                                <TableRow key={index}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-4">
-                                            {product?.imageUrl && (
-                                                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
-                                                </div>
-                                            )}
-                                            <span>{item.description}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">{item.unitPrice.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
+                <section>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-1/2">Description</TableHead>
+                                <TableHead className="text-right">Quantity</TableHead>
+                                <TableHead className="text-right">Unit Price (CNY)</TableHead>
+                                <TableHead className="text-right">Total (CNY)</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {quote.items.map((item, index) => {
+                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-4">
+                                                {product?.imageUrl && (
+                                                    <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                        <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
+                                                    </div>
+                                                )}
+                                                <span>{item.description}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">{item.quantity}</TableCell>
+                                        <TableCell className="text-right">{item.unitPrice.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
 
-                <div className="flex justify-end mt-8">
-                    <div className="w-1/2 space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Subtotal</span>
-                            <span>¥{quote.subTotal.toFixed(2)}</span>
-                        </div>
-                        {quote.transportCost > 0 && 
+                    <div className="flex justify-end mt-8">
+                        <div className="w-1/2 space-y-2">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Transport Cost</span>
-                                <span>¥{quote.transportCost.toFixed(2)}</span>
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>¥{quote.subTotal.toFixed(2)}</span>
                             </div>
-                        }
-                        {quote.commissionRate > 0 &&
-                            <>
+                            {quote.transportCost > 0 && 
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                    <span>¥{commissionAmount.toFixed(2)}</span>
+                                    <span className="text-muted-foreground">Transport Cost</span>
+                                    <span>¥{quote.transportCost.toFixed(2)}</span>
                                 </div>
-                            </>
-                        }
-                        <Separator />
-                        <div className="flex justify-between font-bold text-lg">
-                            <span>TOTAL (CNY)</span>
-                            <span>¥{quote.totalAmount.toFixed(2)}</span>
+                            }
+                            {quote.commissionRate > 0 &&
+                                <>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
+                                        <span>¥{commissionAmount.toFixed(2)}</span>
+                                    </div>
+                                </>
+                            }
+                            <Separator />
+                            <div className="flex justify-between font-bold text-lg">
+                                <span>TOTAL (CNY)</span>
+                                <span>¥{quote.totalAmount.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
 
             
