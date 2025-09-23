@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { Loader2, ArrowLeft, User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -12,11 +12,12 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
 
-export default function CustomerProfilePage({ params }: { params: { id: string } }) {
+export default function CustomerProfilePage() {
     const router = useRouter();
+    const params = useParams();
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const { id } = params;
+    const id = params.id as string;
 
     const currencyContext = useContext(CurrencyContext);
     if (!currencyContext) {
@@ -43,7 +44,9 @@ export default function CustomerProfilePage({ params }: { params: { id: string }
             setIsLoading(false);
         }
 
-        fetchCustomer();
+        if (id) {
+            fetchCustomer();
+        }
     }, [id, router]);
 
     const getStatusBadgeVariant = (status: any) => {
