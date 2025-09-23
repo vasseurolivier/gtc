@@ -396,8 +396,8 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.sku}</TableCell>
-                    <TableCell>{currency.symbol}{(product.price * exchangeRate).toFixed(2)}</TableCell>
-                    <TableCell>{product.purchasePrice ? `${currency.symbol}${(product.purchasePrice * exchangeRate).toFixed(2)}` : 'N/A'}</TableCell>
+                    <TableCell>¥{(product.price).toFixed(2)}</TableCell>
+                    <TableCell>{product.purchasePrice ? `¥${(product.purchasePrice).toFixed(2)}` : 'N/A'}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(product)}>
@@ -435,3 +435,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
