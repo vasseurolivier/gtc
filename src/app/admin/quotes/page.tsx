@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -43,6 +44,8 @@ const formSchema = z.object({
   commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
   totalAmount: z.coerce.number(),
   status: z.enum(["draft", "sent", "accepted", "rejected"]),
+  shippingAddress: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export default function QuotesPage() {
@@ -66,6 +69,8 @@ export default function QuotesPage() {
       commissionRate: 0,
       totalAmount: 0,
       status: "draft",
+      shippingAddress: "",
+      notes: "",
     },
   });
 
@@ -134,6 +139,8 @@ export default function QuotesPage() {
         commissionRate: 0,
         totalAmount: 0,
         status: "draft",
+        shippingAddress: "",
+        notes: "",
       });
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
@@ -201,6 +208,14 @@ export default function QuotesPage() {
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                 </div>
+
+                 <FormField control={form.control} name="shippingAddress" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Shipping Address</FormLabel>
+                        <FormControl><Textarea placeholder="Enter the full shipping address..." {...field} rows={3} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                  )} />
                 
                 <Card className="p-4">
                   <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Items</h4></CardHeader>
@@ -255,6 +270,14 @@ export default function QuotesPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                 <FormField control={form.control} name="notes" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Additional Information / Notes</FormLabel>
+                        <FormControl><Textarea placeholder="Any specific instructions, terms, or notes..." {...field} rows={3} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                  )} />
                 
                  <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>

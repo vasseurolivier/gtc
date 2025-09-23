@@ -23,6 +23,8 @@ const quoteSchema = z.object({
   commissionRate: z.coerce.number().min(0, "Commission can't be negative.").max(100, "Commission can't be over 100%.").optional().default(0),
   totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
   status: z.enum(["draft", "sent", "accepted", "rejected"]),
+  shippingAddress: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export interface QuoteItem {
@@ -43,6 +45,8 @@ export interface Quote {
     commissionRate?: number;
     totalAmount: number;
     status: "draft" | "sent" | "accepted" | "rejected";
+    shippingAddress?: string;
+    notes?: string;
     issueDate: any;
     validUntil: any;
     createdAt: any;
@@ -84,6 +88,8 @@ export async function getQuotes(): Promise<Quote[]> {
           commissionRate: data.commissionRate,
           totalAmount: data.totalAmount,
           status: data.status,
+          shippingAddress: data.shippingAddress,
+          notes: data.notes,
           issueDate: data.issueDate ? data.issueDate.toDate() : new Date(),
           validUntil: data.validUntil ? data.validUntil.toDate() : new Date(),
           createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
