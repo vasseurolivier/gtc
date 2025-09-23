@@ -29,24 +29,55 @@ import { Button } from '@/components/ui/button';
 import { AppProviders } from '@/components/app-providers';
 import '../globals.css';
 import { CurrencyProvider, CurrencyContext } from '@/context/currency-context';
-import { useContext, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { CompanyInfoProvider, CompanyInfoContext, CompanyInfo } from '@/context/company-info-context';
+import { useContext, useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 
-function CurrencySettings() {
+function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
+    const companyInfoContext = useContext(CompanyInfoContext);
     const { toast } = useToast();
-    if (!currencyContext) {
+    
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // Currency state
+    const [localSymbol, setLocalSymbol] = useState('');
+    const [localCode, setLocalCode] = useState('');
+    const [localRate, setLocalRate] = useState('');
+    
+    // Company Info state
+    const [companyName, setCompanyName] = useState('');
+    const [companyAddress, setCompanyAddress] = useState('');
+    const [companyEmail, setCompanyEmail] = useState('');
+    const [companyPhone, setCompanyPhone] = useState('');
+
+    useEffect(() => {
+        if (isDialogOpen) {
+            if (currencyContext) {
+                setLocalSymbol(currencyContext.currency.symbol);
+                setLocalCode(currencyContext.currency.code);
+                setLocalRate(currencyContext.exchangeRate.toString());
+            }
+            if (companyInfoContext) {
+                setCompanyName(companyInfoContext.companyInfo.name);
+                setCompanyAddress(companyInfoContext.companyInfo.address);
+                setCompanyEmail(companyInfoContext.companyInfo.email);
+                setCompanyPhone(companyInfoContext.companyInfo.phone);
+            }
+        }
+    }, [isDialogOpen, currencyContext, companyInfoContext]);
+
+    if (!currencyContext || !companyInfoContext) {
         return null;
     }
 
-    const { currency, exchangeRate, setCurrency, setExchangeRate } = currencyContext;
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [localSymbol, setLocalSymbol] = useState(currency.symbol);
-    const [localCode, setLocalCode] = useState(currency.code);
-    const [localRate, setLocalRate] = useState(exchangeRate.toString());
+    const { setCurrency, setExchangeRate } = currencyContext;
+    const { setCompanyInfo } = companyInfoContext;
 
     const handleSave = () => {
         const newRate = parseFloat(localRate);
@@ -56,7 +87,15 @@ function CurrencySettings() {
         }
         setCurrency({ symbol: localSymbol, code: localCode });
         setExchangeRate(newRate);
-        toast({ title: 'Success', description: 'Currency settings updated.'});
+        
+        setCompanyInfo({
+            name: companyName,
+            address: companyAddress,
+            email: companyEmail,
+            phone: companyPhone
+        });
+
+        toast({ title: 'Success', description: 'Settings updated.'});
         setIsDialogOpen(false);
     };
     
@@ -67,20 +106,50 @@ function CurrencySettings() {
                 Settings
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader><DialogTitle>Currency Settings</DialogTitle></DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="currency-symbol" className="text-right">Symbol</Label>
-                            <Input id="currency-symbol" value={localSymbol} onChange={(e) => setLocalSymbol(e.target.value)} className="col-span-3" />
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Admin Settings</DialogTitle>
+                        <DialogDescription>Manage global settings for the admin dashboard.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto px-1">
+                        <div>
+                            <h3 className="text-lg font-medium mb-4">Company Information</h3>
+                            <div className="grid gap-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="company-name" className="text-right">Company Name</Label>
+                                    <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="company-address" className="text-right pt-2">Address</Label>
+                                    <Textarea id="company-address" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} className="col-span-3" rows={3} />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="company-email" className="text-right">Email</Label>
+                                    <Input id="company-email" type="email" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="company-phone" className="text-right">Phone</Label>
+                                    <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
+                                </div>
+                            </div>
                         </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="currency-code" className="text-right">Code</Label>
-                            <Input id="currency-code" value={localCode} onChange={(e) => setLocalCode(e.target.value)} className="col-span-3" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="exchange-rate" className="text-right">Exchange Rate (vs EUR)</Label>
-                            <Input id="exchange-rate" type="number" value={localRate} onChange={(e) => setLocalRate(e.target.value)} className="col-span-3" />
+                        <Separator />
+                        <div>
+                            <h3 className="text-lg font-medium mb-4">Currency Settings</h3>
+                            <div className="grid gap-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="currency-symbol" className="text-right">Symbol</Label>
+                                    <Input id="currency-symbol" value={localSymbol} onChange={(e) => setLocalSymbol(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="currency-code" className="text-right">Code</Label>
+                                    <Input id="currency-code" value={localCode} onChange={(e) => setLocalCode(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="exchange-rate" className="text-right">Rate (vs EUR)</Label>
+                                    <Input id="exchange-rate" type="number" value={localRate} onChange={(e) => setLocalRate(e.target.value)} className="col-span-3" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
@@ -148,39 +217,41 @@ export default function AdminRootLayout({
         <body className="font-body bg-background text-foreground antialiased">
             <AppProviders>
               <CurrencyProvider>
-                <SidebarProvider>
-                <Sidebar>
-                    <SidebarContent>
-                    <SidebarHeader>
-                        <h2 className="text-lg font-semibold">Global Trading China</h2>
-                    </SidebarHeader>
-                    <SidebarMenu>
-                        {navItems.map((item) => (
-                        <SidebarMenuItem key={item.href}>
-                            <Link href={item.href} passHref>
-                            <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
-                                <span>
-                                {item.icon}
-                                <span>{item.label}</span>
-                                </span>
-                            </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu>
-                    <SidebarFooter>
-                        <CurrencySettings />
-                        <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Logout
-                        </Button>
-                    </SidebarFooter>
-                    </SidebarContent>
-                </Sidebar>
-                <SidebarInset>
-                    {children}
-                </SidebarInset>
-                </SidebarProvider>
+                <CompanyInfoProvider>
+                  <SidebarProvider>
+                  <Sidebar>
+                      <SidebarContent>
+                      <SidebarHeader>
+                          <h2 className="text-lg font-semibold">Global Trading China</h2>
+                      </SidebarHeader>
+                      <SidebarMenu>
+                          {navItems.map((item) => (
+                          <SidebarMenuItem key={item.href}>
+                              <Link href={item.href} passHref>
+                              <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
+                                  <span>
+                                  {item.icon}
+                                  <span>{item.label}</span>
+                                  </span>
+                              </SidebarMenuButton>
+                              </Link>
+                          </SidebarMenuItem>
+                          ))}
+                      </SidebarMenu>
+                      <SidebarFooter>
+                          <AdminSettings />
+                          <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                          </Button>
+                      </SidebarFooter>
+                      </SidebarContent>
+                  </Sidebar>
+                  <SidebarInset>
+                      {children}
+                  </SidebarInset>
+                  </SidebarProvider>
+                </CompanyInfoProvider>
               </CurrencyProvider>
             </AppProviders>
         </body>
