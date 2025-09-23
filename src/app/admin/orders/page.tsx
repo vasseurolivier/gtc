@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +20,7 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { CurrencyContext } from '@/context/currency-context';
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a quote."),
@@ -35,6 +35,12 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddOrderOpen, setAddOrderOpen] = useState(false);
+  
+  const currencyContext = useContext(CurrencyContext);
+  if (!currencyContext) {
+    throw new Error("CurrencyContext must be used within a CurrencyProvider");
+  }
+  const { currency, exchangeRate } = currencyContext;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -142,7 +148,7 @@ export default function OrdersPage() {
                           </SelectTrigger></FormControl>
                           <SelectContent>
                             {quotes.length > 0 ? quotes.map(q => <SelectItem key={q.id} value={q.id}>
-                                {q.quoteNumber} - {q.customerName} - €{q.totalAmount.toFixed(2)}
+                                {q.quoteNumber} - {q.customerName} - {currency.symbol}{(q.totalAmount * exchangeRate).toFixed(2)}
                             </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted quotes found.</p>}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
@@ -196,7 +202,7 @@ export default function OrdersPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">€{order.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>

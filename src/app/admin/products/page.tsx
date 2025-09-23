@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
 import { Loader2, PlusCircle, Trash2, Pencil } from 'lucide-react';
-import { format } from 'date-fns';
+import { CurrencyContext } from '@/context/currency-context';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -35,6 +35,14 @@ export default function ProductsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const currencyContext = useContext(CurrencyContext);
+
+  if (!currencyContext) {
+    throw new Error('CurrencyContext must be used within a CurrencyProvider');
+  }
+
+  const { currency, exchangeRate } = currencyContext;
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -156,7 +164,7 @@ export default function ProductsPage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="price" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Price (€)</FormLabel>
+                      <FormLabel>Price (EUR)</FormLabel>
                       <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -217,7 +225,7 @@ export default function ProductsPage() {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.sku}</TableCell>
                     <TableCell>{product.category || 'N/A'}</TableCell>
-                    <TableCell>€{product.price.toFixed(2)}</TableCell>
+                    <TableCell>{currency.symbol}{(product.price * exchangeRate).toFixed(2)}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(product)}>

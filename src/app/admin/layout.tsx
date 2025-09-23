@@ -19,13 +19,15 @@ import {
   ShoppingCart,
   Package,
   Mail,
-  LogOut
+  LogOut,
+  Cog
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AppProviders } from '@/components/app-providers';
 import '../globals.css';
+import { CurrencyProvider } from '@/context/currency-context';
 
 export default function AdminRootLayout({
   children,
@@ -79,6 +81,7 @@ export default function AdminRootLayout({
         </head>
         <body className="font-body bg-background text-foreground antialiased">
             <AppProviders>
+              <CurrencyProvider>
                 <SidebarProvider>
                 <Sidebar>
                     <SidebarContent>
@@ -101,8 +104,8 @@ export default function AdminRootLayout({
                     </SidebarMenu>
                     <SidebarFooter>
                         <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Logout
                         </Button>
                     </SidebarFooter>
                     </SidebarContent>
@@ -111,6 +114,7 @@ export default function AdminRootLayout({
                     {children}
                 </SidebarInset>
                 </SidebarProvider>
+              </CurrencyProvider>
             </AppProviders>
         </body>
     </html>

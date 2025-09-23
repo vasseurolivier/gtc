@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { CurrencyContext } from '@/context/currency-context';
 
 const quoteItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
@@ -56,6 +57,12 @@ export default function QuotesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddQuoteOpen, setAddQuoteOpen] = useState(false);
+
+  const currencyContext = useContext(CurrencyContext);
+  if (!currencyContext) {
+    throw new Error("CurrencyContext must be used within a CurrencyProvider");
+  }
+  const { currency, exchangeRate } = currencyContext;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -230,9 +237,9 @@ export default function QuotesPage() {
                                 <FormItem className="w-20"><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
                             <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
-                                <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder="Unit Price" {...f} /></FormControl><FormMessage/></FormItem>
+                                <FormItem className="w-28"><FormControl><Input type="number" step="0.01" placeholder={`Unit Price (${currency.code})`} {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
-                            <div className="w-28 pt-2 text-right">€{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
+                            <div className="w-28 pt-2 text-right">{currency.symbol}{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
                         </div>
                       ))}
@@ -245,7 +252,7 @@ export default function QuotesPage() {
                       <div className="w-1/2 space-y-2">
                         <div className="flex justify-between items-center">
                           <span>Subtotal</span>
-                          <span>€{subTotal.toFixed(2)}</span>
+                          <span>{currency.symbol}{subTotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center gap-2">
                            <FormField control={form.control} name="transportCost" render={({ field }) => (
@@ -259,12 +266,12 @@ export default function QuotesPage() {
                         </div>
                         <div className="flex justify-between items-center text-muted-foreground text-sm">
                           <span>Commission Amount</span>
-                          <span>€{commissionAmount.toFixed(2)}</span>
+                          <span>{currency.symbol}{commissionAmount.toFixed(2)}</span>
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center text-lg font-semibold">
                           <span>Total</span>
-                          <span>€{totalAmount.toFixed(2)}</span>
+                          <span>{currency.symbol}{totalAmount.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -330,7 +337,7 @@ export default function QuotesPage() {
                     <TableCell>{quote.customerName}</TableCell>
                     <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge></TableCell>
-                    <TableCell className="text-right">€{quote.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
