@@ -14,7 +14,7 @@ const invoiceItemSchema = z.object({
   total: z.number(),
 });
 
-const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled"]);
+const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled", "partially_paid"]);
 
 const invoiceSchema = z.object({
   invoiceNumber: z.string().min(1, "Invoice number is required."),
@@ -26,6 +26,7 @@ const invoiceSchema = z.object({
   dueDate: z.date({ required_error: "Due date is required."}),
   items: z.array(invoiceItemSchema).min(1, "Please add at least one item."),
   totalAmount: z.coerce.number(),
+  amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
   status: invoiceStatusSchema,
 });
 
@@ -39,7 +40,8 @@ export interface Invoice {
     customerName: string;
     items: any[];
     totalAmount: number;
-    status: "unpaid" | "paid" | "overdue" | "cancelled";
+    amountPaid?: number;
+    status: "unpaid" | "paid" | "overdue" | "cancelled" | "partially_paid";
     issueDate: string;
     dueDate: string;
     createdAt: string;
@@ -185,4 +187,39 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
     }
 }
 
-    
+
+export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
+    try {
+        if (typeof amountPaid !== 'number' || amountPaid < 0) {
+            return { success: false, message: 'Invalid amount paid value.' };
+        }
+        
+        const invoiceRef = doc(db, 'invoices', id);
+        const invoiceSnap = await getDoc(invoiceRef);
+
+        if (!invoiceSnap.exists()) {
+            return { success: false, message: 'Invoice not found.' };
+        }
+
+        const invoiceData = invoiceSnap.data();
+        const totalAmount = invoiceData.totalAmount;
+        let newStatus: Invoice['status'] = invoiceData.status;
+
+        if (amountPaid >= totalAmount) {
+            newStatus = 'paid';
+        } else if (amountPaid > 0) {
+            newStatus = 'partially_paid';
+        } else {
+            newStatus = 'unpaid';
+        }
+
+        await updateDoc(invoiceRef, { 
+            amountPaid: amountPaid,
+            status: newStatus
+        });
+        return { success: true, message: 'Amount paid updated successfully!', newStatus: newStatus };
+    } catch (error: any) {
+        console.error('Error updating amount paid:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}

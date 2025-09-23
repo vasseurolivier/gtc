@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -19,11 +19,11 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addInvoice, getInvoices, deleteInvoice, updateInvoice, updateInvoiceStatus, Invoice } from '@/actions/invoices';
+import { addInvoice, getInvoices, deleteInvoice, updateInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, Invoice } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { getOrders, Order } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Pencil, CalendarIcon } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Pencil, CalendarIcon, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ const invoiceItemSchema = z.object({
   total: z.number(),
 });
 
-const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled"]);
+const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled", "partially_paid"]);
 
 const formSchema = z.object({
   invoiceNumber: z.string().min(1, "Invoice number is required."),
@@ -49,6 +49,7 @@ const formSchema = z.object({
   dueDate: z.date({ required_error: "Due date is required."}),
   items: z.array(invoiceItemSchema).min(1, "Please add at least one item."),
   totalAmount: z.coerce.number(),
+  amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
   status: invoiceStatusSchema,
 });
 
@@ -73,6 +74,7 @@ export default function InvoicesPage() {
       dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
       items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
       totalAmount: 0,
+      amountPaid: 0,
       status: "unpaid",
     },
   });
@@ -121,6 +123,7 @@ export default function InvoicesPage() {
             ...invoice,
             issueDate: new Date(invoice.issueDate),
             dueDate: new Date(invoice.dueDate),
+            amountPaid: invoice.amountPaid || 0,
         });
     } else {
         form.reset({
@@ -129,6 +132,7 @@ export default function InvoicesPage() {
             dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
             items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
             totalAmount: 0,
+            amountPaid: 0,
             status: "unpaid",
             customerId: undefined,
             customerName: undefined,
@@ -198,12 +202,57 @@ export default function InvoicesPage() {
     }
   }
 
+  const [amountPaidInputs, setAmountPaidInputs] = useState<Record<string, string>>({});
+  const [isUpdatingAmount, setIsUpdatingAmount] = useState<string | null>(null);
+
+  const handleAmountPaidChange = (invoiceId: string, value: string) => {
+    setAmountPaidInputs(prev => ({ ...prev, [invoiceId]: value }));
+  };
+
+  const handleUpdateAmountPaid = async (invoiceId: string) => {
+    const amountStr = amountPaidInputs[invoiceId];
+    if (amountStr === undefined) return;
+
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount)) {
+        toast({ variant: "destructive", title: "Invalid input", description: "Please enter a valid number." });
+        return;
+    }
+    
+    setIsUpdatingAmount(invoiceId);
+    const result = await updateInvoiceAmountPaid(invoiceId, amount);
+    setIsUpdatingAmount(null);
+
+    if (result.success) {
+        toast({ title: "Success", description: result.message });
+        setInvoices(prev => prev.map(inv => 
+            inv.id === invoiceId 
+            ? { ...inv, amountPaid: amount, status: result.newStatus! } 
+            : inv
+        ));
+        setAmountPaidInputs(prev => ({...prev, [invoiceId]: ''}));
+
+    } else {
+        toast({ variant: "destructive", title: "Error", description: result.message });
+    }
+  };
+
+  useEffect(() => {
+    const initialAmounts: Record<string, string> = {};
+    invoices.forEach(inv => {
+        initialAmounts[inv.id] = (inv.amountPaid || 0).toString();
+    });
+    setAmountPaidInputs(initialAmounts);
+  }, [invoices]);
+
+
   const getStatusBadgeVariant = (status: Invoice['status']) => {
     switch (status) {
         case 'paid': return 'default';
         case 'unpaid': return 'secondary';
         case 'overdue': return 'destructive';
         case 'cancelled': return 'destructive';
+        case 'partially_paid': return 'outline';
         default: return 'outline';
     }
   }
@@ -284,10 +333,20 @@ export default function InvoicesPage() {
                     </Button>
                     <Separator className="my-4" />
                     <div className="flex justify-end">
-                      <div className="w-1/2 space-y-2">
-                        <div className="flex justify-between items-center text-lg font-semibold">
-                          <span>Total</span>
+                      <div className="w-full md:w-1/2 space-y-2">
+                         <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Subtotal</span>
+                            <span>¥{form.getValues('totalAmount').toFixed(2)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center font-bold text-lg">
+                          <span>TOTAL (CNY)</span>
                           <span>¥{totalAmount.toFixed(2)}</span>
+                        </div>
+                         <div className="flex justify-between items-center pt-2">
+                           <FormField control={form.control} name="amountPaid" render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Amount Paid (CNY)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
+                           )}/>
                         </div>
                       </div>
                     </div>
@@ -301,6 +360,7 @@ export default function InvoicesPage() {
                         <FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
                         <SelectContent>
                             <SelectItem value="unpaid">Unpaid</SelectItem>
+                            <SelectItem value="partially_paid">Partially Paid</SelectItem>
                             <SelectItem value="paid">Paid</SelectItem>
                             <SelectItem value="overdue">Overdue</SelectItem>
                             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -332,27 +392,28 @@ export default function InvoicesPage() {
                 <TableRow>
                   <TableHead>Invoice #</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right">Amount Paid</TableHead>
+                  <TableHead className="text-right">Remaining Balance</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => (
+                {invoices.map((invoice) => {
+                  const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
+                  return(
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                     <TableCell>{invoice.customerName}</TableCell>
-                    <TableCell>{format(new Date(invoice.issueDate), 'dd MMM yyyy')}</TableCell>
-                    <TableCell>{format(new Date(invoice.dueDate), 'dd MMM yyyy')}</TableCell>
                     <TableCell>
                       <Select onValueChange={(value: Invoice['status']) => handleStatusChange(invoice.id, value)} defaultValue={invoice.status}>
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger className="w-36">
                            <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="unpaid">Unpaid</SelectItem>
+                            <SelectItem value="partially_paid">Partially Paid</SelectItem>
                             <SelectItem value="paid">Paid</SelectItem>
                             <SelectItem value="overdue">Overdue</SelectItem>
                             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -360,6 +421,27 @@ export default function InvoicesPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">¥{invoice.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                       <div className="flex items-center justify-end gap-2">
+                         <Input
+                           type="number"
+                           step="0.01"
+                           className="w-28 h-8 text-right"
+                           value={amountPaidInputs[invoice.id] ?? (invoice.amountPaid || 0)}
+                           onChange={(e) => handleAmountPaidChange(invoice.id, e.target.value)}
+                           onBlur={() => handleUpdateAmountPaid(invoice.id)}
+                           disabled={isUpdatingAmount === invoice.id}
+                         />
+                         {isUpdatingAmount === invoice.id ? (
+                           <Loader2 className="h-4 w-4 animate-spin" />
+                         ) : (
+                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateAmountPaid(invoice.id)}>
+                            <Check className="h-4 w-4" />
+                           </Button>
+                         )}
+                       </div>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">¥{remainingBalance.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" asChild>
                             <Link href={`/admin/invoices/${invoice.id}`}>
@@ -383,7 +465,8 @@ export default function InvoicesPage() {
                         </AlertDialog>
                     </TableCell>
                   </TableRow>
-                ))}
+                  )
+                })}
               </TableBody>
             </Table>
           )}
@@ -392,6 +475,3 @@ export default function InvoicesPage() {
     </div>
   );
 }
-
-    
-    

@@ -68,8 +68,8 @@ export default function DashboardPage() {
   const shippedOrders = orders.filter(o => o.status === 'shipped').length;
   
   const pendingAmount = invoices
-    .filter(inv => inv.status === 'unpaid' || inv.status === 'overdue')
-    .reduce((sum, inv) => sum + inv.totalAmount, 0);
+    .filter(inv => inv.status === 'unpaid' || inv.status === 'overdue' || inv.status === 'partially_paid')
+    .reduce((sum, inv) => sum + (inv.totalAmount - (inv.amountPaid || 0)), 0);
 
 
   const getChartData = (): DailyRevenue[] => {
