@@ -3,7 +3,7 @@ import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 // Your web app's Firebase configuration
-// This is not used by the server, but useful for reference.
+// This is used as a fallback if the service account key is not available.
 const firebaseConfig = {
   "projectId": "studio-4928604682-ea1ec",
   "appId": "1:913801169761:web:0a43c3c13f0549b99c9320",
