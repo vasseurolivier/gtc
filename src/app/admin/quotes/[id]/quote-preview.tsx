@@ -61,7 +61,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </div>
             </section>
 
-            <section className="mb-8 flex-grow">
+            <section className="flex-grow">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -94,35 +94,36 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         })}
                     </TableBody>
                 </Table>
-            </section>
 
-            <section className="flex justify-end mb-8">
-                <div className="w-1/2 space-y-2">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>¥{quote.subTotal.toFixed(2)}</span>
-                    </div>
-                    {quote.transportCost > 0 && 
+                <div className="flex justify-end mt-8">
+                    <div className="w-1/2 space-y-2">
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Transport Cost</span>
-                            <span>¥{quote.transportCost.toFixed(2)}</span>
+                            <span className="text-muted-foreground">Subtotal</span>
+                            <span>¥{quote.subTotal.toFixed(2)}</span>
                         </div>
-                    }
-                    {quote.commissionRate > 0 &&
-                        <>
+                        {quote.transportCost > 0 && 
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                <span>¥{commissionAmount.toFixed(2)}</span>
+                                <span className="text-muted-foreground">Transport Cost</span>
+                                <span>¥{quote.transportCost.toFixed(2)}</span>
                             </div>
-                        </>
-                    }
-                    <Separator />
-                    <div className="flex justify-between font-bold text-lg">
-                        <span>TOTAL (CNY)</span>
-                        <span>¥{quote.totalAmount.toFixed(2)}</span>
+                        }
+                        {quote.commissionRate > 0 &&
+                            <>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
+                                    <span>¥{commissionAmount.toFixed(2)}</span>
+                                </div>
+                            </>
+                        }
+                        <Separator />
+                        <div className="flex justify-between font-bold text-lg">
+                            <span>TOTAL (CNY)</span>
+                            <span>¥{quote.totalAmount.toFixed(2)}</span>
+                        </div>
                     </div>
                 </div>
             </section>
+
             
             <footer className="border-t pt-8 mt-auto">
                  <div className="text-center">
