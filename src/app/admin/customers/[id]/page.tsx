@@ -16,6 +16,7 @@ export default function CustomerProfilePage({ params }: { params: { id: string }
     const router = useRouter();
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const { id } = params;
 
     const currencyContext = useContext(CurrencyContext);
     if (!currencyContext) {
@@ -32,7 +33,7 @@ export default function CustomerProfilePage({ params }: { params: { id: string }
 
         async function fetchCustomer() {
             setIsLoading(true);
-            const fetchedCustomer = await getCustomerById(params.id);
+            const fetchedCustomer = await getCustomerById(id);
             if (fetchedCustomer) {
                 setCustomer(fetchedCustomer);
             } else {
@@ -43,7 +44,7 @@ export default function CustomerProfilePage({ params }: { params: { id: string }
         }
 
         fetchCustomer();
-    }, [params.id, router]);
+    }, [id, router]);
 
     const getStatusBadgeVariant = (status: any) => {
         switch (status) {
