@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase/server';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import type { Quote } from './quotes';
 
