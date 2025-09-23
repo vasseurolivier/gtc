@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -239,7 +240,7 @@ export default function AdminRootLayout({
       <CurrencyProvider>
         <CompanyInfoProvider>
           <SidebarProvider>
-            <Sidebar className="no-print">
+            <Sidebar className="no-print bg-muted/20">
               <SidebarContent>
                 <SidebarHeader>
                   <h2 className="text-lg font-semibold">Global Trading China</h2>
