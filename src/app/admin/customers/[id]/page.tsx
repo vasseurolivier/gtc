@@ -1,8 +1,4 @@
 
-'use client';
-
-import { useEffect, useState, useContext } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { Loader2, ArrowLeft, User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -10,70 +6,57 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { CurrencyContext } from '@/context/currency-context';
+import Link from 'next/link';
 
-export default function CustomerProfilePage() {
-    const router = useRouter();
-    const params = useParams();
-    const [customer, setCustomer] = useState<Customer | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const id = params.id as string;
+async function getCustomerData(id: string): Promise<Customer | null> {
+    const customer = await getCustomerById(id);
+    return customer;
+}
 
-    const currencyContext = useContext(CurrencyContext);
-    if (!currencyContext) {
-        throw new Error("CurrencyContext must be used within a CurrencyProvider");
+const getStatusBadgeVariant = (status: any) => {
+    switch (status) {
+        case 'delivered': return 'default';
+        case 'shipped': return 'secondary';
+        case 'processing': return 'outline';
+        case 'cancelled': return 'destructive';
+        default: return 'outline';
     }
-    const { currency, exchangeRate } = currencyContext;
+}
 
-    useEffect(() => {
-        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
-        if (isAuthenticated !== 'true') {
-            router.push('/admin/login');
-            return;
-        }
-
-        async function fetchCustomer() {
-            setIsLoading(true);
-            const fetchedCustomer = await getCustomerById(id);
-            if (fetchedCustomer) {
-                setCustomer(fetchedCustomer);
-            } else {
-                // Handle customer not found
-                router.push('/admin/customers');
-            }
-            setIsLoading(false);
-        }
-
-        if (id) {
-            fetchCustomer();
-        }
-    }, [id, router]);
-
-    const getStatusBadgeVariant = (status: any) => {
-        switch (status) {
-            case 'delivered': return 'default';
-            case 'shipped': return 'secondary';
-            case 'processing': return 'outline';
-            case 'cancelled': return 'destructive';
-            default: return 'outline';
-        }
-    }
-
-
-    if (isLoading) {
-        return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
-    }
+export default async function CustomerProfilePage({ params }: { params: { id: string } }) {
+    const customer = await getCustomerData(params.id);
 
     if (!customer) {
-        return <div className="container py-8">Customer not found.</div>;
+        return (
+            <div className="container py-8">
+                <div className="mb-8">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/customers">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Customers
+                        </Link>
+                    </Button>
+                </div>
+                <div className="text-center text-muted-foreground py-12">
+                    Customer not found.
+                </div>
+            </div>
+        );
     }
+    
+    // For server components, we cannot use context. We will display prices in the base currency (EUR).
+    const currency = { symbol: '€' };
+    const exchangeRate = 1;
+
 
     return (
         <div className="container py-8">
             <div className="mb-8">
-                <Button variant="ghost" onClick={() => router.push('/admin/customers')}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Customers
+                <Button variant="ghost" asChild>
+                    <Link href="/admin/customers">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Customers
+                    </Link>
                 </Button>
             </div>
 
