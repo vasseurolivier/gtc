@@ -81,11 +81,16 @@ export default function DashboardPage() {
       dailyTotals[formattedDate] = 0;
     });
     
-    invoices.filter(inv => inv.status === 'paid').forEach(invoice => {
-      const invoiceDate = format(parseISO(invoice.issueDate), 'MMM dd');
-      if (dailyTotals.hasOwnProperty(invoiceDate)) {
-        dailyTotals[invoiceDate] += invoice.totalAmount;
-      }
+    invoices.filter(inv => inv.status === 'paid' && inv.issueDate).forEach(invoice => {
+        try {
+            const invoiceDate = format(parseISO(invoice.issueDate), 'MMM dd');
+            if (dailyTotals.hasOwnProperty(invoiceDate)) {
+                dailyTotals[invoiceDate] += invoice.totalAmount;
+            }
+        } catch (error) {
+            // Ignore invoices with invalid date formats
+            console.error(`Invalid date format for invoice ${invoice.id}:`, invoice.issueDate);
+        }
     });
     
     return Object.entries(dailyTotals).map(([date, total]) => ({ date, total }));
