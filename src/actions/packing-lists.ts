@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, serverTimestamp, query, orderBy, getDoc, deleteDoc } from 'firebase/firestore';
 import { z } from 'zod';
 
 const packingListItemSchema = z.object({
@@ -91,5 +91,15 @@ export async function getPackingListById(id: string): Promise<PackingList | null
     } catch (error) {
         console.error("Error fetching packing list details:", error);
         return null;
+    }
+}
+
+export async function deletePackingList(id: string) {
+    try {
+        await deleteDoc(doc(db, 'packingLists', id));
+        return { success: true, message: 'Packing List deleted successfully!' };
+    } catch (error: any) {
+        console.error('Error deleting packing list:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
     }
 }

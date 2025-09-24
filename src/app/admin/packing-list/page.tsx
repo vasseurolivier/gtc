@@ -22,7 +22,8 @@ import { useToast } from '@/hooks/use-toast';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addPackingList, getPackingLists, PackingList } from '@/actions/packing-lists';
+import { addPackingList, getPackingLists, PackingList, deletePackingList } from '@/actions/packing-lists';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
@@ -281,6 +282,7 @@ function PackingListGenerator() {
 function PackingListHistory() {
   const [packingLists, setPackingLists] = useState<PackingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchLists() {
@@ -295,6 +297,17 @@ function PackingListHistory() {
     }
     fetchLists();
   }, []);
+  
+  const handleDelete = async (id: string) => {
+    const result = await deletePackingList(id);
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      setPackingLists(prev => prev.filter(list => list.id !== id));
+    } else {
+      toast({ variant: 'destructive', title: 'Error', description: result.message });
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -338,6 +351,27 @@ function PackingListHistory() {
                         <FileUp className="h-4 w-4" />
                       </Link>
                     </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete this packing list.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(list.id)}>
+                                Delete
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}
