@@ -26,6 +26,7 @@ const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }).or(z.literal("")),
   phone: z.string().optional(),
+  address: z.string().optional(),
   company: z.string().optional(),
   country: z.string().optional(),
   status: z.enum(["lead", "active", "inactive", "prospect"]).optional(),
@@ -48,6 +49,7 @@ export default function CustomersPage() {
         name: "", 
         email: "", 
         phone: "",
+        address: "",
         company: "",
         country: "",
         status: "lead",
@@ -84,6 +86,7 @@ export default function CustomersPage() {
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
+        address: customer.address,
         company: customer.company,
         country: customer.country,
         status: customer.status,
@@ -95,6 +98,7 @@ export default function CustomersPage() {
         name: "", 
         email: "", 
         phone: "",
+        address: "",
         company: "",
         country: "",
         status: "lead",
@@ -137,6 +141,7 @@ export default function CustomersPage() {
       'Name': customer.name,
       'Email': customer.email,
       'Phone': customer.phone,
+      'Address': customer.address,
       'Company': customer.company,
       'Country': customer.country,
       'Status': customer.status,
@@ -242,6 +247,21 @@ export default function CustomersPage() {
                           )}
                       />
                   </div>
+
+                  <FormField control={form.control} name="address" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                          <Textarea
+                          placeholder="123 Main St, Anytown, USA"
+                          className="resize-y"
+                          rows={3}
+                          {...field}
+                          />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
                   <FormField control={form.control} name="source" render={({ field }) => (
                     <FormItem>

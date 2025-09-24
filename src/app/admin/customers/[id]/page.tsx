@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { getCustomerById, Customer } from '@/actions/customers';
-import { User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart, FileSpreadsheet, ArrowLeft, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart, FileSpreadsheet, ArrowLeft, Loader2, MapPin } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,7 @@ export default function CustomerProfilePage() {
             { 'Field': 'Email', 'Value': customer.email },
             { 'Field': 'Phone', 'Value': customer.phone || 'N/A' },
             { 'Field': 'Company', 'Value': customer.company || 'N/A' },
+            { 'Field': 'Address', 'Value': customer.address || 'N/A' },
             { 'Field': 'Country', 'Value': customer.country || 'N/A' },
             { 'Field': 'Status', 'Value': customer.status || 'N/A' },
             { 'Field': 'Source', 'Value': customer.source || 'N/A' },
@@ -132,10 +133,11 @@ export default function CustomerProfilePage() {
                              </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
-                            <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {customer.email}</div>
+                            <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {customer.email || 'N/A'}</div>
                             {customer.phone && <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {customer.phone}</div>}
                             {customer.company && <div className="flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> {customer.company}</div>}
                             {customer.country && <div className="flex items-center gap-2 text-muted-foreground"><Globe className="h-4 w-4" /> {customer.country}</div>}
+                            {customer.address && <div className="flex items-start gap-2 text-muted-foreground"><MapPin className="h-4 w-4 mt-1 flex-shrink-0" /> <p className="whitespace-pre-wrap">{customer.address}</p></div>}
                             {customer.notes && <div className="flex items-start gap-2 text-muted-foreground pt-4 border-t"><StickyNote className="h-4 w-4 mt-1 flex-shrink-0" /> <p className="whitespace-pre-wrap">{customer.notes}</p></div>}
                         </CardContent>
                     </Card>

@@ -11,6 +11,7 @@ const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }).or(z.literal("")),
   phone: z.string().optional(),
+  address: z.string().optional(),
   company: z.string().optional(),
   country: z.string().optional(),
   status: z.enum(["lead", "active", "inactive", "prospect"]).optional(),
@@ -25,6 +26,7 @@ export interface Customer {
     name: string;
     email: string;
     phone?: string;
+    address?: string;
     company?: string;
     country?: string;
     status?: "lead" | "active" | "inactive" | "prospect";
@@ -118,11 +120,12 @@ export async function getCustomers(): Promise<Customer[]> {
           name: data.name || '',
           email: data.email || '',
           phone: data.phone || '',
+          address: data.address || '',
           company: data.company || '',
           country: data.country || '',
           status: data.status || 'lead',
           source: data.source || '',
-          notes: data.notes || '',
+notes: data.notes || '',
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Customer);
     });
