@@ -1,3 +1,5 @@
+"use client";
+
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
