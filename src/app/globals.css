@@ -92,63 +92,73 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 1cm;
   }
+
   body {
     background-color: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
   main, .container {
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
   }
-  .printable-area {
-    display: block !important;
-  }
-  .print-content {
-     box-shadow: none !important;
-     border: none !important;
-     padding: 0 !important;
-     display: flex;
-     flex-direction: column;
-     height: 100%;
-     position: relative;
-  }
-  .printable-content-wrapper {
-      padding-bottom: 80px; /* Space for the footer */
-  }
-  .printable-footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      border-top: 1px solid hsl(var(--border));
-      padding-top: 1rem;
-      padding-bottom: 1rem;
-      font-size: 0.8rem;
-  }
 
-  .print-content pre {
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 12pt;
-    line-height: 1.5;
-  }
   .no-print {
     display: none !important;
   }
-   .print-block {
+
+  .print-block {
     display: block !important;
   }
-  .relative.w-full.overflow-auto {
-    overflow: visible !important;
+
+  .printable-area {
+    padding: 0 !important;
   }
-  table, tr, td, th, thead, tbody {
-      page-break-inside: avoid !important;
+  
+  .print-card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
+
+  .print-table {
+    page-break-inside: auto;
+  }
+  .print-table thead, .print-table tfoot {
+    display: table-row-group;
+  }
+  .print-table tr, .print-table td, .print-table th {
+    page-break-inside: avoid;
+  }
+  .print-table tbody {
+    display: table-row-group;
+  }
+  .print-header, .print-footer {
+    display: table-header-group;
+    width: 100%;
+  }
+  .print-footer {
+    display: table-footer-group;
+    position: static;
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    font-size: 0.8rem;
+  }
+
   .signature-block {
     page-break-inside: avoid;
   }
+  
+  .relative.w-full.overflow-auto {
+    overflow: visible !important;
+  }
+
 }
