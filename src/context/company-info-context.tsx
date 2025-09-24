@@ -8,7 +8,8 @@ export interface CompanyInfo {
   address: string;
   email: string;
   phone: string;
-  logo: string; // Base64 data URL
+  logo: string; // Base64 data URL for documents
+  commercialLogo: string; // Base64 data URL for website
 }
 
 interface CompanyInfoContextType {
@@ -25,6 +26,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     email: '',
     phone: '',
     logo: '',
+    commercialLogo: '',
   });
   const [isLoaded, setIsLoaded] = useState(false);
   

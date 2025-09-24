@@ -1,12 +1,13 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +21,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { i18n } from '@/i18n-config';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 
 export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isClient, setIsClient] = useState(false);
+  const companyInfoContext = useContext(CompanyInfoContext);
 
   useEffect(() => {
     setIsClient(true);
@@ -58,12 +61,18 @@ export function Header({ dictionary }: { dictionary: any }) {
     return segments.join('/')
   }
 
+  const commercialLogo = companyInfoContext?.companyInfo.commercialLogo;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Globe className="h-6 w-6 text-primary" />
+            {commercialLogo ? (
+                <Image src={commercialLogo} alt="Company Logo" width={24} height={24} className="h-6 w-6 object-contain" />
+            ) : (
+                <Globe className="h-6 w-6 text-primary" />
+            )}
             <span className="hidden font-bold sm:inline-block font-headline text-lg">
               Global Trading China
             </span>
@@ -129,7 +138,11 @@ export function Header({ dictionary }: { dictionary: any }) {
               </SheetTrigger>
               <SheetContent side="left" className="w-full max-w-xs">
                 <Link href="/" className="mb-8 flex items-center space-x-2">
-                  <Globe className="h-6 w-6 text-primary" />
+                   {commercialLogo ? (
+                        <Image src={commercialLogo} alt="Company Logo" width={24} height={24} className="h-6 w-6 object-contain" />
+                    ) : (
+                        <Globe className="h-6 w-6 text-primary" />
+                    )}
                   <span className="font-bold font-headline text-lg">Global Trading China</span>
                 </Link>
                 <nav className="flex flex-col space-y-2">

@@ -1,14 +1,24 @@
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { CompanyInfoContext } from '@/context/company-info-context';
+import { useContext } from 'react';
 
 export function Footer({ dictionary }: { dictionary: any }) {
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const commercialLogo = companyInfoContext?.companyInfo.commercialLogo;
+
   return (
     <footer className="bg-secondary">
       <div className="container py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                <Globe className="h-7 w-7 text-primary" />
+                {commercialLogo ? (
+                    <Image src={commercialLogo} alt="Company Logo" width={28} height={28} className="h-7 w-7 object-contain" />
+                ) : (
+                    <Globe className="h-7 w-7 text-primary" />
+                )}
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>
@@ -55,6 +65,3 @@ export function Footer({ dictionary }: { dictionary: any }) {
     </footer>
   );
 }
-
-    
-    

@@ -67,6 +67,8 @@ function AdminSettings() {
     const [companyEmail, setCompanyEmail] = useState('');
     const [companyPhone, setCompanyPhone] = useState('');
     const [companyLogo, setCompanyLogo] = useState('');
+    const [commercialLogo, setCommercialLogo] = useState('');
+
 
     useEffect(() => {
         if (isDialogOpen) {
@@ -80,6 +82,7 @@ function AdminSettings() {
                 setCompanyEmail(companyInfoContext.companyInfo.email);
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
+                setCommercialLogo(companyInfoContext.companyInfo.commercialLogo);
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -91,7 +94,7 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { setCompanyInfo } = companyInfoContext;
     
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>, setLogo: (value: string) => void) => {
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) { // 2MB limit
@@ -104,7 +107,7 @@ function AdminSettings() {
             }
             const reader = new FileReader();
             reader.onloadend = () => {
-                setCompanyLogo(reader.result as string);
+                setLogo(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -131,7 +134,8 @@ function AdminSettings() {
             address: companyAddress,
             email: companyEmail,
             phone: companyPhone,
-            logo: companyLogo
+            logo: companyLogo,
+            commercialLogo: commercialLogo
         });
 
         toast({ title: 'Success', description: 'Settings updated.'});
@@ -159,7 +163,7 @@ function AdminSettings() {
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="company-logo" className="text-right pt-2">Logo</Label>
+                                    <Label htmlFor="document-logo" className="text-right pt-2">Document Logo</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {companyLogo ? (
@@ -168,7 +172,20 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="company-logo" type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={handleLogoChange} className="w-auto" />
+                                        <Input id="document-logo" type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={(e) => handleLogoChange(e, setCompanyLogo)} className="w-auto" />
+                                    </div>
+                                </div>
+                                 <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="commercial-logo" className="text-right pt-2">Website Logo</Label>
+                                    <div className="col-span-3 flex items-center gap-4">
+                                        <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                                            {commercialLogo ? (
+                                                <Image src={commercialLogo} alt="Commercial Logo" width={96} height={96} className="object-contain rounded-md" />
+                                            ) : (
+                                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                        <Input id="commercial-logo" type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={(e) => handleLogoChange(e, setCommercialLogo)} className="w-auto" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
