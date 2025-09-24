@@ -122,4 +122,7 @@ body {
    .print-block {
     display: block !important;
   }
+  .relative.w-full.overflow-auto {
+    overflow: visible !important;
+  }
 }
