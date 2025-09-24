@@ -27,43 +27,36 @@ function getLocale(request: NextRequest): string | undefined {
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const { search } = request.nextUrl
 
-  // Ignore /admin routes from i18n, including /admin/login
-  if (pathname.startsWith('/admin')) {
-    return NextResponse.next();
-  }
-
-  // `/_next/` and `/api/` are ignored by the watcher, but we need to ignore files in `public`
+  // Ignore files in public folder
   if (
     [
       '/manifest.json',
       '/favicon.ico',
-      // your other files in `public`
     ].includes(pathname)
   )
-    return
-
-  // Check if there is any supported locale in the pathname
+    return NextResponse.next()
+  
+  // Handle i18n for public routes
   const pathnameIsMissingLocale = i18n.locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   )
 
-  // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
     const locale = getLocale(request)
-
-    // e.g. incoming request is /products
-    // The new URL is now /en-US/products
     return NextResponse.redirect(
       new URL(
-        `/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`,
+        `/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}${search}`,
         request.url
       )
     )
   }
+
+  return NextResponse.next()
 }
 
 export const config = {
   // Matcher ignoring `/_next/` and `/api/`
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|admin|_next/static|_next/image|favicon.ico).*)'],
 }

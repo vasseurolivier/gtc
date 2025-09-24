@@ -215,7 +215,7 @@ function AdminSettings() {
 }
 
 
-export default function AdminRootLayout({
+function ProtectedAdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -223,6 +223,14 @@ export default function AdminRootLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
+
+  useEffect(() => {
+    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+    if (isAuthenticated !== 'true') {
+      router.push('/admin/login');
+    }
+  }, [router, pathname]);
+
 
   useEffect(() => {
     async function fetchUnreadCount() {
@@ -306,4 +314,17 @@ export default function AdminRootLayout({
       </CurrencyProvider>
     </AppProviders>
   );
+}
+
+
+export default function AdminRootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+  return <ProtectedAdminLayout>{children}</ProtectedAdminLayout>;
 }
