@@ -213,8 +213,8 @@ export default function PackingListPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">Photo</TableHead>
                     <TableHead>SKU</TableHead>
+                    <TableHead className="w-16">Photo</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
                     <TableHead className="text-right">Unit Price (CNY)</TableHead>
@@ -231,12 +231,12 @@ export default function PackingListPage() {
                     const totalEur = totalCny * exchangeRate;
                     return (
                       <TableRow key={index}>
+                        <TableCell>{item.sku}</TableCell>
                         <TableCell>
                            {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                                 <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain"/>
                            </div>}
                         </TableCell>
-                        <TableCell>{item.sku}</TableCell>
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
                         <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
