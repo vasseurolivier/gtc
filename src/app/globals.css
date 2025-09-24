@@ -92,7 +92,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 0;
+    margin: 1.5cm;
   }
   body {
     background-color: white !important;
@@ -110,7 +110,27 @@ body {
   .print-content {
      box-shadow: none !important;
      border: none !important;
+     padding: 0 !important;
+     display: flex;
+     flex-direction: column;
+     height: 100%;
+     position: relative;
   }
+  .printable-content-wrapper {
+      padding-bottom: 80px; /* Space for the footer */
+  }
+  .printable-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      border-top: 1px solid hsl(var(--border));
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      font-size: 0.8rem;
+  }
+
   .print-content pre {
     font-family: 'Times New Roman', Times, serif;
     font-size: 12pt;
@@ -124,5 +144,8 @@ body {
   }
   .relative.w-full.overflow-auto {
     overflow: visible !important;
+  }
+  table, tr, td, th, thead, tbody {
+      page-break-inside: avoid !important;
   }
 }

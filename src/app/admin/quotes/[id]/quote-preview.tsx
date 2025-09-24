@@ -32,38 +32,38 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     return (
-        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content flex flex-col min-h-full" id="proforma-content">
-            <header className="flex justify-between items-start mb-8 border-b pb-8">
-                <div>
-                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
-                </div>
-                <div className="text-right">
-                    <h2 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h2>
-                    <p className="text-muted-foreground mt-2"># {quote.quoteNumber}</p>
-                </div>
-            </header>
-
-            <section className="grid grid-cols-2 gap-8 mb-8">
-                <div>
-                    <h3 className="font-semibold mb-2">Bill To:</h3>
-                    <p className="font-bold">{customer?.name}</p>
-                    <p className="text-muted-foreground">{customer?.company}</p>
-                    <p className="text-muted-foreground">{customer?.email}</p>
-                    <p className="text-muted-foreground">{quote.shippingAddress}</p>
-                </div>
-                <div className="text-right">
-                    <div className="grid grid-cols-2">
-                        <span className="font-semibold">Issue Date:</span>
-                        <span>{formatInTimeZone(new Date(quote.issueDate), 'UTC', 'dd MMM yyyy')}</span>
+        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-content" id="proforma-content">
+            <div className="printable-content-wrapper">
+                <header className="flex justify-between items-start mb-8 border-b pb-8">
+                    <div>
+                        {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
                     </div>
-                        <div className="grid grid-cols-2 mt-1">
-                        <span className="font-semibold">Valid Until:</span>
-                        <span>{formatInTimeZone(new Date(quote.validUntil), 'UTC', 'dd MMM yyyy')}</span>
+                    <div className="text-right">
+                        <h2 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h2>
+                        <p className="text-muted-foreground mt-2"># {quote.quoteNumber}</p>
                     </div>
-                </div>
-            </section>
+                </header>
 
-            <div className="flex-grow">
+                <section className="grid grid-cols-2 gap-8 mb-8">
+                    <div>
+                        <h3 className="font-semibold mb-2">Bill To:</h3>
+                        <p className="font-bold">{customer?.name}</p>
+                        <p className="text-muted-foreground">{customer?.company}</p>
+                        <p className="text-muted-foreground">{customer?.email}</p>
+                        <p className="text-muted-foreground">{quote.shippingAddress}</p>
+                    </div>
+                    <div className="text-right">
+                        <div className="grid grid-cols-2">
+                            <span className="font-semibold">Issue Date:</span>
+                            <span>{formatInTimeZone(new Date(quote.issueDate), 'UTC', 'dd MMM yyyy')}</span>
+                        </div>
+                            <div className="grid grid-cols-2 mt-1">
+                            <span className="font-semibold">Valid Until:</span>
+                            <span>{formatInTimeZone(new Date(quote.validUntil), 'UTC', 'dd MMM yyyy')}</span>
+                        </div>
+                    </div>
+                </section>
+
                 <section>
                     <Table>
                         <TableHeader>
@@ -143,9 +143,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     }
                 </section>
             </div>
-
             
-            <footer className="border-t pt-8 mt-auto">
+            <footer className="printable-footer">
                  <div className="text-center">
                     <h3 className="font-bold text-base">{companyInfo.name}</h3>
                     <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
