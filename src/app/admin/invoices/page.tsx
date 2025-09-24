@@ -11,50 +11,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addInvoice, getInvoices, deleteInvoice, updateInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, Invoice } from '@/actions/invoices';
+import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, Invoice } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
-import { getProducts, Product } from '@/actions/products';
 import { getOrders, Order } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Pencil, CalendarIcon, Check } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-
-const invoiceItemSchema = z.object({
-  sku: z.string().optional(),
-  description: z.string().min(1, "Description is required."),
-  quantity: z.coerce.number().positive("Qty must be > 0."),
-  unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
-  total: z.number(),
-});
-
-const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled", "partially_paid"]);
-
-const formSchema = z.object({
-  invoiceNumber: z.string().min(1, "Invoice number is required."),
-  orderId: z.string().optional(),
-  orderNumber: z.string().optional(),
-  customerId: z.string({ required_error: "Please select a customer." }),
-  customerName: z.string(),
-  issueDate: z.date({ required_error: "Issue date is required."}),
-  dueDate: z.date({ required_error: "Due date is required."}),
-  items: z.array(invoiceItemSchema).min(1, "Please add at least one item."),
-  totalAmount: z.coerce.number(),
-  amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
-  status: invoiceStatusSchema,
+const createInvoiceSchema = z.object({
+  orderId: z.string().min(1, "Please select an order."),
 });
 
 
@@ -63,43 +36,20 @@ export default function InvoicesPage() {
   const { toast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-
+  
   const currencyContext = useContext(CurrencyContext);
   if (!currencyContext) {
     throw new Error("CurrencyContext must be used within a CurrencyProvider");
   }
   const { currency, exchangeRate } = currencyContext;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-      issueDate: new Date(),
-      dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
-      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
-      totalAmount: 0,
-      amountPaid: 0,
-      status: "unpaid",
-    },
+  const form = useForm<z.infer<typeof createInvoiceSchema>>({
+    resolver: zodResolver(createInvoiceSchema),
   });
-
-  const { fields, append, remove, update } = useFieldArray({
-    control: form.control,
-    name: "items"
-  });
-
-  const watchItems = form.watch("items");
-
-  useEffect(() => {
-    const subTotal = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    form.setValue("totalAmount", subTotal);
-  }, [watchItems, form]);
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -110,78 +60,38 @@ export default function InvoicesPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [fetchedInvoices, fetchedOrders, fetchedCustomers, fetchedProducts] = await Promise.all([
+        const [fetchedInvoices, fetchedOrders, fetchedCustomers] = await Promise.all([
             getInvoices(),
             getOrders(),
             getCustomers(),
-            getProducts(),
         ]);
         setInvoices(fetchedInvoices);
         setOrders(fetchedOrders);
         setCustomers(fetchedCustomers);
-        setProducts(fetchedProducts);
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
     }
     fetchData();
   }, [router, toast]);
   
-  const handleOpenDialog = (invoice: Invoice | null = null) => {
-    setEditingInvoice(invoice);
-    if (invoice) {
-        form.reset({
-            ...invoice,
-            issueDate: new Date(invoice.issueDate),
-            dueDate: new Date(invoice.dueDate),
-            amountPaid: invoice.amountPaid || 0,
-        });
-    } else {
-        form.reset({
-            invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-            issueDate: new Date(),
-            dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
-            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
-            totalAmount: 0,
-            amountPaid: 0,
-            status: "unpaid",
-            customerId: undefined,
-            customerName: undefined,
-        });
-    }
-    setIsDialogOpen(true);
-  };
-  
-  const handleCustomerChange = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-        form.setValue("customerId", customer.id);
-        form.setValue("customerName", customer.name);
-    }
-  };
-
-  const handleProductSelect = (productId: string, index: number) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        update(index, {
-            ...fields[index],
-            sku: product.sku,
-            description: product.name,
-            unitPrice: product.price
-        });
-    }
-  };
-  
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof createInvoiceSchema>) => {
     setIsSubmitting(true);
-    const result = editingInvoice
-      ? await updateInvoice(editingInvoice.id, values)
-      : await addInvoice(values);
+    const selectedOrder = orders.find(o => o.id === values.orderId);
+
+    if (!selectedOrder) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Selected order not found.' });
+        setIsSubmitting(false);
+        return;
+    }
+
+    const result = await addInvoiceFromOrder(selectedOrder);
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       const newInvoices = await getInvoices();
       setInvoices(newInvoices);
       setIsDialogOpen(false);
+      form.reset();
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -266,8 +176,9 @@ export default function InvoicesPage() {
         default: return 'outline';
     }
   }
-
-  const totalAmount = form.getValues('totalAmount');
+  
+  const invoicedOrderIds = new Set(invoices.map(i => i.orderId));
+  const ordersWithoutInvoice = orders.filter(o => !invoicedOrderIds.has(o.id));
 
   const ongoingInvoices = invoices.filter(i => ['unpaid', 'partially_paid', 'overdue'].includes(i.status));
   const archivedInvoices = invoices.filter(i => ['paid', 'cancelled'].includes(i.status));
@@ -352,9 +263,6 @@ export default function InvoicesPage() {
                         <Eye className="h-4 w-4" />
                     </Link>
                 </Button>
-                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(invoice)}>
-                    <Pencil className="h-4 w-4" />
-                </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                     <AlertDialogContent>
@@ -387,118 +295,30 @@ export default function InvoicesPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Invoices</h1>
-        <Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Create Invoice</Button>
+        <Button onClick={() => setIsDialogOpen(true)}><PlusCircle className="mr-2 h-4 w-4" />Create Invoice</Button>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader><DialogTitle>{editingInvoice ? 'Edit Invoice' : 'Create a New Invoice'}</DialogTitle></DialogHeader>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Create Invoice from Order</DialogTitle></DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <FormField control={form.control} name="invoiceNumber" render={({ field }) => (
-                    <FormItem><FormLabel>Invoice #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                   <FormField control={form.control} name="customerId" render={({ field }) => (
-                      <FormItem className="lg:col-span-3">
-                      <FormLabel>Customer</FormLabel>
-                      <Select onValueChange={handleCustomerChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger></FormControl>
-                          <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}</SelectContent>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
+                 <FormField control={form.control} name="orderId" render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Select an Order to Invoice</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger>
+                            <SelectValue placeholder="Select an order" />
+                          </SelectTrigger></FormControl>
+                          <SelectContent>
+                            {ordersWithoutInvoice.length > 0 ? ordersWithoutInvoice.map(o => <SelectItem key={o.id} value={o.id}>
+                                {o.orderNumber} - {o.customerName} - ¥{o.totalAmount.toFixed(2)}
+                            </SelectItem>) : <div className="p-4 text-sm text-muted-foreground">All orders have been invoiced.</div>}
+                          </SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />
-                   <FormField control={form.control} name="issueDate" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Issue Date</FormLabel><Popover><PopoverTrigger asChild>
-                    <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? formatInTimeZone(field.value, "UTC", "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
-                    </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="dueDate" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Due Date</FormLabel><Popover><PopoverTrigger asChild>
-                    <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? formatInTimeZone(field.value, "UTC", "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
-                    </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
-                  )} />
-                </div>
-                
-                <Card className="p-4">
-                  <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Items</h4></CardHeader>
-                  <CardContent className="p-0">
-                    <div className="space-y-2">
-                      {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-start gap-2">
-                          <div className="flex-grow">
-                             <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a product or type manually" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {products.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
-                                <FormItem className="mt-2"><FormControl><Input placeholder="Item description" {...f} /></FormControl><FormMessage/></FormItem>
-                            )}/>
-                          </div>
-                            <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (
-                                <FormItem className="w-20"><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
-                            )}/>
-                            <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
-                                <FormItem className="w-28"><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>
-                            )}/>
-                            <div className="w-28 pt-8 text-right font-medium">¥{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                        </div>
-                      ))}
-                    </div>
-                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 })}>
-                        <PlusCircle className="mr-2 h-4 w-4"/> Add Item
-                    </Button>
-                    <Separator className="my-4" />
-                    <div className="flex justify-end">
-                      <div className="w-full md:w-1/2 space-y-2">
-                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Subtotal</span>
-                            <span>¥{form.getValues('totalAmount').toFixed(2)}</span>
-                        </div>
-                        <Separator />
-                        <div className="flex justify-between items-center font-bold text-lg">
-                          <span>TOTAL (CNY)</span>
-                          <span>¥{totalAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center font-bold text-lg text-primary">
-                          <span>TOTAL ({currency.code})</span>
-                          <span>{currency.symbol}{(totalAmount * exchangeRate).toFixed(2)}</span>
-                        </div>
-                         <div className="flex justify-between items-center pt-2">
-                           <FormField control={form.control} name="amountPaid" render={({ field }) => (
-                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Amount Paid (CNY)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
-                           )}/>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                 <FormField control={form.control} name="status" render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                            <SelectItem value="unpaid">Unpaid</SelectItem>
-                            <SelectItem value="partially_paid">Partially Paid</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="overdue">Overdue</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                    </Select><FormMessage /></FormItem>
-                )} />
-
                 <DialogFooter>
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingInvoice ? 'Save Changes' : 'Create Invoice'}</Button>
+                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Invoice</Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -553,5 +373,3 @@ export default function InvoicesPage() {
     </div>
   );
 }
-
-    

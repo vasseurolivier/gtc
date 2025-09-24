@@ -4,6 +4,7 @@
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
+import type { Order } from './orders';
 import type { Quote } from './quotes';
 
 const invoiceItemSchema = z.object({
@@ -46,6 +47,39 @@ export interface Invoice {
     dueDate: string;
     createdAt: string;
 }
+
+export async function addInvoiceFromOrder(order: Order) {
+    try {
+        const newInvoiceData = {
+          invoiceNumber: `INV-${order.orderNumber.replace('O-', '')}`,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          customerId: order.customerId,
+          customerName: order.customerName,
+          issueDate: new Date(),
+          dueDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days later
+          items: order.items,
+          totalAmount: order.totalAmount,
+          status: 'unpaid' as const,
+          amountPaid: 0,
+        };
+        
+        const validatedData = invoiceSchema.parse(newInvoiceData);
+
+        const docRef = await addDoc(collection(db, 'invoices'), {
+            ...validatedData,
+            createdAt: serverTimestamp(),
+        });
+        return { success: true, message: 'Invoice created successfully!', id: docRef.id };
+    } catch (error: any) {
+        console.error('Error adding invoice:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: 'Validation failed.', errors: error.errors };
+        }
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
 
 export async function addInvoice(values: z.infer<typeof invoiceSchema>) {
     try {
