@@ -26,7 +26,8 @@ import {
   Receipt,
   UploadCloud,
   Landmark,
-  FileSignature
+  FileSignature,
+  ClipboardList
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -178,7 +179,7 @@ function AdminSettings() {
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="company-phone" className="text-right">Phone</Label>
-                                    <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
+                                    <Input id-="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>
                         </div>
@@ -248,10 +249,8 @@ function ProtectedAdminLayout({
     fetchUnreadCount();
 
     // Also fetch when path changes to /admin/submissions to update the badge
-    if (pathname === '/admin/submissions') {
-        const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5s while on page
-        return () => clearInterval(interval);
-    }
+    const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5s
+    return () => clearInterval(interval);
   }, [pathname]);
 
   const handleLogout = () => {
@@ -264,6 +263,7 @@ function ProtectedAdminLayout({
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
+    { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
     { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
