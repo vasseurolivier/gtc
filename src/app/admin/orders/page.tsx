@@ -18,9 +18,10 @@ import { addOrder, getOrders, deleteOrder, updateOrderStatus, Order } from '@/ac
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a proforma invoice."),
@@ -129,6 +130,64 @@ export default function OrdersPage() {
     }
   }
 
+  const ongoingOrders = orders.filter(o => o.status === 'processing' || o.status === 'shipped');
+  const archivedOrders = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
+
+  const renderTable = (orderList: Order[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Order #</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {orderList.map((order) => (
+          <TableRow key={order.id}>
+            <TableCell className="font-medium">{order.orderNumber}</TableCell>
+            <TableCell>{order.customerName}</TableCell>
+            <TableCell>{formatInTimeZone(new Date(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
+            <TableCell>
+              <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
+                <SelectTrigger className="w-36">
+                  <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="shipped">Shipped</SelectItem>
+                    <SelectItem value="delivered">Delivered</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell className="text-right">
+                <div>¥{order.totalAmount.toFixed(2)}</div>
+                <div className="text-xs text-muted-foreground">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this order.
+                        </AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -170,71 +229,40 @@ export default function OrdersPage() {
           </DialogContent>
         </Dialog>
       </div>
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-          ) : orders.length === 0 ? (
-            <div className="text-center p-16 text-muted-foreground">
-              <p>No orders yet.</p>
-              <p className="text-sm mt-2">Click "Create Order" to get started.</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>{format(new Date(order.orderDate), 'dd MMM yyyy')}</TableCell>
-                    <TableCell>
-                      <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
-                        <SelectTrigger className="w-36">
-                          <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <div>¥{order.totalAmount.toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this order.
-                                </AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+       <Tabs defaultValue="ongoing">
+        <TabsList className="mb-4">
+            <TabsTrigger value="ongoing">En cours</TabsTrigger>
+            <TabsTrigger value="archived">Archivés</TabsTrigger>
+        </TabsList>
+        <Card>
+            <CardContent className="p-0">
+            <TabsContent value="ongoing">
+                {isLoading ? (
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+                ) : ongoingOrders.length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground">
+                        <p>Aucune commande en cours.</p>
+                    </div>
+                ) : (
+                    renderTable(ongoingOrders)
+                )}
+            </TabsContent>
+            <TabsContent value="archived">
+                {isLoading ? (
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+                ) : archivedOrders.length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground">
+                        <p>Aucune commande archivée.</p>
+                    </div>
+                ) : (
+                    renderTable(archivedOrders)
+                )}
+            </TabsContent>
+            </CardContent>
+        </Card>
+      </Tabs>
     </div>
   );
 }
+
+    

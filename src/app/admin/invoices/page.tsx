@@ -24,11 +24,13 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { getOrders, Order } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, Eye, Pencil, CalendarIcon, Check } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 const invoiceItemSchema = z.object({
   sku: z.string().optional(),
@@ -266,6 +268,100 @@ export default function InvoicesPage() {
 
   const totalAmount = form.getValues('totalAmount');
 
+  const ongoingInvoices = invoices.filter(i => ['unpaid', 'partially_paid', 'overdue'].includes(i.status));
+  const archivedInvoices = invoices.filter(i => ['paid', 'cancelled'].includes(i.status));
+
+  const renderTable = (invoiceList: Invoice[]) => (
+     <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Invoice #</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead className="text-right">Amount Paid</TableHead>
+          <TableHead className="text-right">Remaining Balance</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {invoiceList.map((invoice) => {
+          const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
+          return(
+          <TableRow key={invoice.id}>
+            <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+            <TableCell>{invoice.customerName}</TableCell>
+            <TableCell>
+              <Select onValueChange={(value: Invoice['status']) => handleStatusChange(invoice.id, value)} defaultValue={invoice.status}>
+                <SelectTrigger className="w-36">
+                   <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                    <SelectItem value="partially_paid">Partially Paid</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell className="text-right">
+                <div>¥{invoice.totalAmount.toFixed(2)}</div>
+                <div className="text-xs text-muted-foreground">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right">
+               <div className="flex items-center justify-end gap-2">
+                 <Input
+                   type="number"
+                   step="0.01"
+                   className="w-28 h-8 text-right"
+                   value={amountPaidInputs[invoice.id] ?? (invoice.amountPaid || 0)}
+                   onChange={(e) => handleAmountPaidChange(invoice.id, e.target.value)}
+                   onBlur={() => handleUpdateAmountPaid(invoice.id)}
+                   disabled={isUpdatingAmount === invoice.id}
+                 />
+                 {isUpdatingAmount === invoice.id ? (
+                   <Loader2 className="h-4 w-4 animate-spin" />
+                 ) : (
+                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateAmountPaid(invoice.id)}>
+                    <Check className="h-4 w-4" />
+                   </Button>
+                 )}
+               </div>
+            </TableCell>
+            <TableCell className="text-right font-medium">
+                <div>¥{remainingBalance.toFixed(2)}</div>
+                <div className="text-xs text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right">
+                <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/admin/invoices/${invoice.id}`}>
+                        <Eye className="h-4 w-4" />
+                    </Link>
+                </Button>
+                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(invoice)}>
+                    <Pencil className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this invoice.
+                        </AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteInvoice(invoice.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </TableCell>
+          </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
+  );
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -300,13 +396,13 @@ export default function InvoicesPage() {
                    <FormField control={form.control} name="issueDate" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Issue Date</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? formatInTimeZone(field.value, "UTC", "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="dueDate" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Due Date</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? formatInTimeZone(field.value, "UTC", "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                 </div>
@@ -396,107 +492,36 @@ export default function InvoicesPage() {
           </DialogContent>
         </Dialog>
 
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-          ) : invoices.length === 0 ? (
-            <div className="text-center p-16 text-muted-foreground">
-              <p>No invoices yet.</p>
-              <p className="text-sm mt-2">Click "Create Invoice" to get started.</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Amount Paid</TableHead>
-                  <TableHead className="text-right">Remaining Balance</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoices.map((invoice) => {
-                  const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
-                  return(
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                    <TableCell>{invoice.customerName}</TableCell>
-                    <TableCell>
-                      <Select onValueChange={(value: Invoice['status']) => handleStatusChange(invoice.id, value)} defaultValue={invoice.status}>
-                        <SelectTrigger className="w-36">
-                           <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="unpaid">Unpaid</SelectItem>
-                            <SelectItem value="partially_paid">Partially Paid</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="overdue">Overdue</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <div>¥{invoice.totalAmount.toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                       <div className="flex items-center justify-end gap-2">
-                         <Input
-                           type="number"
-                           step="0.01"
-                           className="w-28 h-8 text-right"
-                           value={amountPaidInputs[invoice.id] ?? (invoice.amountPaid || 0)}
-                           onChange={(e) => handleAmountPaidChange(invoice.id, e.target.value)}
-                           onBlur={() => handleUpdateAmountPaid(invoice.id)}
-                           disabled={isUpdatingAmount === invoice.id}
-                         />
-                         {isUpdatingAmount === invoice.id ? (
-                           <Loader2 className="h-4 w-4 animate-spin" />
-                         ) : (
-                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateAmountPaid(invoice.id)}>
-                            <Check className="h-4 w-4" />
-                           </Button>
-                         )}
-                       </div>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                        <div>¥{remainingBalance.toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/invoices/${invoice.id}`}>
-                                <Eye className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(invoice)}>
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this invoice.
-                                </AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteInvoice(invoice.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+        <Tabs defaultValue="ongoing">
+            <TabsList className="mb-4">
+                <TabsTrigger value="ongoing">En cours</TabsTrigger>
+                <TabsTrigger value="archived">Archivées</TabsTrigger>
+            </TabsList>
+            <Card>
+                <CardContent className="p-0">
+                    <TabsContent value="ongoing">
+                        {isLoading ? (
+                            <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+                        ) : ongoingInvoices.length === 0 ? (
+                            <div className="text-center p-16 text-muted-foreground"><p>Aucune facture en cours.</p></div>
+                        ) : (
+                            renderTable(ongoingInvoices)
+                        )}
+                    </TabsContent>
+                    <TabsContent value="archived">
+                        {isLoading ? (
+                             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+                        ) : archivedInvoices.length === 0 ? (
+                            <div className="text-center p-16 text-muted-foreground"><p>Aucune facture archivée.</p></div>
+                        ) : (
+                            renderTable(archivedInvoices)
+                        )}
+                    </TabsContent>
+                </CardContent>
+            </Card>
+      </Tabs>
     </div>
   );
 }
+
+    

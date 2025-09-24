@@ -23,11 +23,12 @@ import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -251,6 +252,75 @@ export default function QuotesPage() {
   const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
   const totalAmount = form.getValues('totalAmount');
 
+  const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
+  const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected');
+
+  const renderTable = (quoteList: Quote[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Proforma #</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {quoteList.map((quote) => (
+          <TableRow key={quote.id}>
+            <TableCell className="font-medium">{quote.quoteNumber}</TableCell>
+            <TableCell>{quote.customerName}</TableCell>
+            <TableCell>{formatInTimeZone(new Date(quote.issueDate), 'UTC', 'dd MMM yyyy')}</TableCell>
+            <TableCell>
+              <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
+                <SelectTrigger className="w-32">
+                   <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
+                    <SelectItem value="accepted">Accepted</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell className="text-right">
+                <div>¥{quote.totalAmount.toFixed(2)}</div>
+                <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right">
+                <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/admin/quotes/${quote.id}`}>
+                        <Eye className="h-4 w-4" />
+                    </Link>
+                </Button>
+                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
+                    <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
+                    <Copy className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this document.
+                        </AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -285,13 +355,13 @@ export default function QuotesPage() {
                   <FormField control={form.control} name="issueDate" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Issue Date</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? formatInTimeZone(field.value, 'UTC', "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="validUntil" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Valid Until</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? formatInTimeZone(field.value, 'UTC', "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                 </div>
@@ -404,82 +474,41 @@ export default function QuotesPage() {
             </Form>
           </DialogContent>
         </Dialog>
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-          ) : quotes.length === 0 ? (
-            <div className="text-center p-16 text-muted-foreground">
-              <p>No proforma invoices yet.</p>
-              <p className="text-sm mt-2">Click "Create Proforma Invoice" to get started.</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Proforma #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quotes.map((quote) => (
-                  <TableRow key={quote.id}>
-                    <TableCell className="font-medium">{quote.quoteNumber}</TableCell>
-                    <TableCell>{quote.customerName}</TableCell>
-                    <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
-                    <TableCell>
-                      <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
-                        <SelectTrigger className="w-32">
-                           <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="sent">Sent</SelectItem>
-                            <SelectItem value="accepted">Accepted</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <div>¥{quote.totalAmount.toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/quotes/${quote.id}`}>
-                                <Eye className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
-                            <Copy className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this document.
-                                </AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      
+      <Tabs defaultValue="ongoing">
+        <TabsList className="mb-4">
+            <TabsTrigger value="ongoing">En cours</TabsTrigger>
+            <TabsTrigger value="archived">Archivés</TabsTrigger>
+        </TabsList>
+        <Card>
+            <CardContent className="p-0">
+            <TabsContent value="ongoing">
+                {isLoading ? (
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+                ) : ongoingQuotes.length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground">
+                        <p>Aucune proforma en cours.</p>
+                    </div>
+                ) : (
+                    renderTable(ongoingQuotes)
+                )}
+            </TabsContent>
+            <TabsContent value="archived">
+                {isLoading ? (
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+                ) : archivedQuotes.length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground">
+                        <p>Aucune proforma archivée.</p>
+                    </div>
+                ) : (
+                    renderTable(archivedQuotes)
+                )}
+            </TabsContent>
+            </CardContent>
+        </Card>
+      </Tabs>
     </div>
   );
 }
+
+    
