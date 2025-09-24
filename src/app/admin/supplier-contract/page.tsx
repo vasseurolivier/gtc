@@ -139,6 +139,8 @@ ARTICLE 5: DELIVERY LEAD TIME
 第五条：交货时间
 The delivery lead time is: ${watchedValues.deliveryLeadTime}. This period starts from the date of the Supplier's actual receipt of the initial down payment.
 交货周期为：${watchedValues.deliveryLeadTime}。该周期自供应商实际收到首付款之日起计算。
+In case of delay in delivery, the Supplier shall be liable for a penalty of 1% of the total order value per day of delay, capped at 10% of the total order value.
+如果延迟交货，供应商应支付每日订单总额1%的罚款，罚款上限为订单总额的10%。
 
 ARTICLE 6: QUALITY CONTROL
 第六条：质量控制
@@ -256,5 +258,3 @@ ${watchedValues.supplierRepresentative || '[Supplier Representative Name]'}
     </div>
   );
 }
-
-    
