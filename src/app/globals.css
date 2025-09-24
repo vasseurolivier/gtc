@@ -103,23 +103,13 @@ body {
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
-    height: 100%;
   }
   .printable-area {
     display: block !important;
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    padding: 0;
-    margin: 0;
   }
   .print-content {
      box-shadow: none !important;
      border: none !important;
-     min-height: 100vh;
-     height: 100vh;
-     display: flex;
-     flex-direction: column;
   }
   .print-content pre {
     font-family: 'Times New Roman', Times, serif;
@@ -128,5 +118,8 @@ body {
   }
   .no-print {
     display: none !important;
+  }
+   .print-block {
+    display: block !important;
   }
 }

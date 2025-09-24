@@ -111,9 +111,6 @@ function PackingListGenerator() {
     return acc;
   }, { totalQuantity: 0, totalAmountCny: 0 });
 
-  const handlePrint = () => {
-    window.print();
-  };
 
   const onSubmit = async (values: PackingListValues) => {
     setIsSubmitting(true);
@@ -381,11 +378,12 @@ export default function PackingListPage() {
       </Tabs>
       
       <div className="hidden print-block">
-        {/* We need to render the generator again for printing, but we can't have two forms with the same logic easily without major refactoring.
-            A better approach would be a dedicated print preview page. For now, the user can print from the generator tab.
-            The print CSS will hide the form and only show the preview. */}
-        <PackingListGenerator />
+        {/* This is a fallback for printing. When printing, the `print-content` div from the generator is used. */}
+        <div className="print-content-standalone">
+            <PackingListGenerator />
+        </div>
       </div>
     </div>
   );
 }
+
