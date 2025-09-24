@@ -278,11 +278,11 @@ function QuotesPageContent() {
     }
   }
 
-  const subTotal = form.getValues('subTotal');
+  const subTotal = form.getValues('subTotal') || 0;
   const transportCost = form.getValues('transportCost') || 0;
   const commissionRate = form.getValues('commissionRate') || 0;
   const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
-  const totalAmount = form.getValues('totalAmount');
+  const totalAmount = form.getValues('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
   const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected');
