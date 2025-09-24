@@ -15,14 +15,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Printer, Loader2, PlusCircle, Trash2, UploadCloud, Save, Eye, FileUp } from 'lucide-react';
+import { Printer, Loader2, PlusCircle, Trash2, UploadCloud, Save, Eye, FileUp, Pencil } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { useToast } from '@/hooks/use-toast';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addPackingList, getPackingLists, PackingList, deletePackingList } from '@/actions/packing-lists';
+import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const packingListItemSchema = z.object({
@@ -42,7 +42,7 @@ const packingListSchema = z.object({
 
 type PackingListValues = z.infer<typeof packingListSchema>;
 
-function PackingListGenerator() {
+function PackingListGenerator({ editingList, onFinishedEditing }: { editingList: PackingList | null, onFinishedEditing: () => void }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currencyContext = useContext(CurrencyContext);
@@ -65,11 +65,25 @@ function PackingListGenerator() {
   });
   
   useEffect(() => {
-    // Generate the listId on the client side to avoid hydration mismatch
-    form.setValue('listId', `PL-${Date.now().toString().slice(-6)}`);
-    // The dependency array is intentionally empty to run this only once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (editingList) {
+        form.reset({
+            ...editingList,
+            date: new Date(editingList.date),
+            items: editingList.items.map(item => ({
+                ...item,
+                photo: item.photo || '',
+                sku: item.sku || '',
+                remarks: item.remarks || '',
+            }))
+        });
+    } else {
+        form.reset({
+            listId: `PL-${Date.now().toString().slice(-6)}`,
+            date: new Date(),
+            items: [{ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' }],
+        });
+    }
+  }, [editingList, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -115,14 +129,13 @@ function PackingListGenerator() {
 
   const onSubmit = async (values: PackingListValues) => {
     setIsSubmitting(true);
-    const result = await addPackingList(values);
+    const result = editingList 
+        ? await updatePackingList(editingList.id, values)
+        : await addPackingList(values);
+
     if (result.success) {
-      toast({ title: 'Success', description: 'Packing List saved successfully!' });
-      form.reset({
-        listId: `PL-${Date.now().toString().slice(-6)}`,
-        date: new Date(),
-        items: [{ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' }],
-      });
+      toast({ title: 'Success', description: result.message });
+      onFinishedEditing(); // This will trigger a re-fetch in the parent
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -133,7 +146,7 @@ function PackingListGenerator() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <Card className="lg:col-span-1 no-print">
         <CardContent className="p-6">
-          <h3 className="text-xl font-semibold mb-4">Packing List Details</h3>
+          <h3 className="text-xl font-semibold mb-4">{editingList ? 'Edit Packing List' : 'Packing List Details'}</h3>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -279,7 +292,7 @@ function PackingListGenerator() {
   );
 }
 
-function PackingListHistory() {
+function PackingListHistory({ onEdit }: { onEdit: (list: PackingList) => void }) {
   const [packingLists, setPackingLists] = useState<PackingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -346,6 +359,9 @@ function PackingListHistory() {
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(list)}>
+                        <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/admin/quotes?fromPackingList=${list.id}`}>
                         <FileUp className="h-4 w-4" />
@@ -385,6 +401,8 @@ function PackingListHistory() {
 
 export default function PackingListPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("generator");
+  const [editingList, setEditingList] = useState<PackingList | null>(null);
   
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -392,6 +410,17 @@ export default function PackingListPage() {
       router.push('/admin/login');
     }
   }, [router]);
+  
+  const handleEdit = (list: PackingList) => {
+    setEditingList(list);
+    setActiveTab("generator");
+  };
+
+  const handleFinishEditing = () => {
+    setEditingList(null);
+    setActiveTab("history");
+    // We need a way to force re-fetch in history, a simple key change on the component can do it
+  };
 
   return (
     <div className="container py-8 printable-area">
@@ -403,22 +432,22 @@ export default function PackingListPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="generator" className="no-print">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="no-print">
         <TabsList className="mb-4">
           <TabsTrigger value="generator">Generator</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="generator">
-          <PackingListGenerator />
+          <PackingListGenerator editingList={editingList} onFinishedEditing={handleFinishEditing} />
         </TabsContent>
         <TabsContent value="history">
-          <PackingListHistory />
+          <PackingListHistory onEdit={handleEdit} />
         </TabsContent>
       </Tabs>
       
       <div className="hidden print-block">
         <div className="print-content-standalone">
-            <PackingListGenerator />
+            <PackingListGenerator editingList={editingList} onFinishedEditing={handleFinishEditing} />
         </div>
       </div>
     </div>

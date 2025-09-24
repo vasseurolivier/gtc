@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, serverTimestamp, query, orderBy, getDoc, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, serverTimestamp, query, orderBy, getDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { z } from 'zod';
 
 const packingListItemSchema = z.object({
@@ -40,6 +40,21 @@ export async function addPackingList(values: z.infer<typeof packingListSchema>) 
         return { success: true, message: 'Packing List saved successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding packing list:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: 'Validation failed.', errors: error.errors };
+        }
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updatePackingList(id: string, values: z.infer<typeof packingListSchema>) {
+    try {
+        const validatedData = packingListSchema.parse(values);
+        const listRef = doc(db, 'packingLists', id);
+        await updateDoc(listRef, validatedData);
+        return { success: true, message: 'Packing List updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating packing list:', error);
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
