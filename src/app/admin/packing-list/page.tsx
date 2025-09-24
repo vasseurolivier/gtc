@@ -144,6 +144,9 @@ function PackingListGenerator() {
                   <Card key={field.id} className="p-4 relative">
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-2 right-2 h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     <div className="space-y-2">
+                       <FormField control={form.control} name={`items.${index}.sku`} render={({ field }) => (
+                        <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
                       <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                         <FormItem>
                           <FormLabel>Photo</FormLabel>
@@ -154,9 +157,6 @@ function PackingListGenerator() {
                             <FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoChange(e, index)} className="w-auto" /></FormControl>
                           </div>
                         </FormItem>
-                      )} />
-                      <FormField control={form.control} name={`items.${index}.sku`} render={({ field }) => (
-                        <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
                         <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -220,8 +220,8 @@ function PackingListGenerator() {
               <TableBody>
                 {watchedItems.map((item, index) => {
                   const totalCny = item.quantity * item.unitPriceCny;
-                  const unitPriceEur = item.unitPriceCny * exchangeRate;
-                  const totalEur = totalCny * exchangeRate;
+                  const unitPriceConverted = item.unitPriceCny * exchangeRate;
+                  const totalConverted = totalCny * exchangeRate;
                   return (
                     <TableRow key={index}>
                       <TableCell>{item.sku}</TableCell>
@@ -234,8 +234,8 @@ function PackingListGenerator() {
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{currency.symbol}{unitPriceEur.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-semibold">{currency.symbol}{totalEur.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
                       <TableCell>{item.remarks}</TableCell>
                     </TableRow>
                   );

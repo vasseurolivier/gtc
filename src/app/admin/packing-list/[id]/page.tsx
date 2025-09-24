@@ -66,8 +66,8 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
                     <TableBody>
                         {packingList.items.map((item, index) => {
                             const totalCny = item.quantity * item.unitPriceCny;
-                            const unitPriceEur = item.unitPriceCny * exchangeRate;
-                            const totalEur = totalCny * exchangeRate;
+                            const unitPriceConverted = item.unitPriceCny * exchangeRate;
+                            const totalConverted = totalCny * exchangeRate;
                             return (
                                 <TableRow key={index}>
                                     <TableCell>{item.sku}</TableCell>
@@ -80,8 +80,8 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
                                     <TableCell className="text-right">{item.quantity}</TableCell>
                                     <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
                                     <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">{currency.symbol}{unitPriceEur.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-semibold">{currency.symbol}{totalEur.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
                                     <TableCell>{item.remarks}</TableCell>
                                 </TableRow>
                             );
