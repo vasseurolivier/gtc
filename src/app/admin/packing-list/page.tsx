@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
+  sku: z.string().optional(),
   description: z.string().min(1, 'Description is required.'),
   quantity: z.coerce.number().positive('Quantity must be positive.'),
   unitPriceCny: z.coerce.number().nonnegative('Price must be non-negative.'),
@@ -59,6 +60,7 @@ export default function PackingListPage() {
       date: new Date(),
       items: [{
         photo: '',
+        sku: '',
         description: '',
         quantity: 1,
         unitPriceCny: 0,
@@ -164,6 +166,9 @@ export default function PackingListPage() {
                                         </div>
                                     </FormItem>
                                 )}/>
+                                <FormField control={form.control} name={`items.${index}.sku`} render={({ field }) => (
+                                    <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
                                 <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
                                     <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
@@ -182,7 +187,7 @@ export default function PackingListPage() {
                          </Card>
                     ))}
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ photo: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' })}>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' })}>
                     <PlusCircle className="mr-2 h-4 w-4"/> Add Item
                 </Button>
               </form>
@@ -209,6 +214,7 @@ export default function PackingListPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16">Photo</TableHead>
+                    <TableHead>SKU</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
                     <TableHead className="text-right">Unit Price (CNY)</TableHead>
@@ -230,6 +236,7 @@ export default function PackingListPage() {
                                 <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain"/>
                            </div>}
                         </TableCell>
+                        <TableCell>{item.sku}</TableCell>
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
                         <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
