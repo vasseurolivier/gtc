@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 
 const invoiceItemSchema = z.object({
@@ -271,19 +272,31 @@ export default function InvoicesPage() {
   const ongoingInvoices = invoices.filter(i => ['unpaid', 'partially_paid', 'overdue'].includes(i.status));
   const archivedInvoices = invoices.filter(i => ['paid', 'cancelled'].includes(i.status));
 
-  const renderTable = (invoiceList: Invoice[]) => (
+  const archivedInvoicesByCustomer = archivedInvoices.reduce((acc, invoice) => {
+    const customerId = invoice.customerId;
+    if (!acc[customerId]) {
+      acc[customerId] = [];
+    }
+    acc[customerId].push(invoice);
+    return acc;
+  }, {} as Record<string, Invoice[]>);
+
+
+  const renderTable = (invoiceList: Invoice[], isArchived = false) => (
      <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Invoice #</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead className="text-right">Amount Paid</TableHead>
-          <TableHead className="text-right">Remaining Balance</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
+      {!isArchived && (
+        <TableHeader>
+          <TableRow>
+            <TableHead>Invoice #</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Total</TableHead>
+            <TableHead className="text-right">Amount Paid</TableHead>
+            <TableHead className="text-right">Remaining Balance</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+      )}
       <TableBody>
         {invoiceList.map((invoice) => {
           const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
@@ -511,10 +524,27 @@ export default function InvoicesPage() {
                     <TabsContent value="archived">
                         {isLoading ? (
                              <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-                        ) : archivedInvoices.length === 0 ? (
+                        ) : Object.keys(archivedInvoicesByCustomer).length === 0 ? (
                             <div className="text-center p-16 text-muted-foreground"><p>Aucune facture archivée.</p></div>
                         ) : (
-                            renderTable(archivedInvoices)
+                            <Accordion type="multiple" className="w-full">
+                              {Object.entries(archivedInvoicesByCustomer).map(([customerId, customerInvoices]) => {
+                                const customer = customers.find(c => c.id === customerId);
+                                return (
+                                  <AccordionItem value={customerId} key={customerId}>
+                                    <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                                      <div className='flex justify-between w-full pr-4'>
+                                        <span>{customer?.name || 'Unknown Customer'}</span>
+                                        <span className='text-muted-foreground'>{customerInvoices.length} document(s)</span>
+                                      </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                      {renderTable(customerInvoices, true)}
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                );
+                              })}
+                            </Accordion>
                         )}
                     </TabsContent>
                 </CardContent>

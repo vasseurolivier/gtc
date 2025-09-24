@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -254,19 +255,30 @@ export default function QuotesPage() {
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
   const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected');
+  
+  const archivedQuotesByCustomer = archivedQuotes.reduce((acc, quote) => {
+    const customerId = quote.customerId;
+    if (!acc[customerId]) {
+      acc[customerId] = [];
+    }
+    acc[customerId].push(quote);
+    return acc;
+  }, {} as Record<string, Quote[]>);
 
-  const renderTable = (quoteList: Quote[]) => (
+  const renderTable = (quoteList: Quote[], isArchived = false) => (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Proforma #</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
+      {!isArchived && (
+        <TableHeader>
+          <TableRow>
+            <TableHead>Proforma #</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Total</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+      )}
       <TableBody>
         {quoteList.map((quote) => (
           <TableRow key={quote.id}>
@@ -496,12 +508,29 @@ export default function QuotesPage() {
             <TabsContent value="archived">
                 {isLoading ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-                ) : archivedQuotes.length === 0 ? (
+                ) : Object.keys(archivedQuotesByCustomer).length === 0 ? (
                     <div className="text-center p-16 text-muted-foreground">
                         <p>Aucune proforma archivée.</p>
                     </div>
                 ) : (
-                    renderTable(archivedQuotes)
+                    <Accordion type="multiple" className="w-full">
+                      {Object.entries(archivedQuotesByCustomer).map(([customerId, customerQuotes]) => {
+                        const customer = customers.find(c => c.id === customerId);
+                        return (
+                          <AccordionItem value={customerId} key={customerId}>
+                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                              <div className='flex justify-between w-full pr-4'>
+                                <span>{customer?.name || 'Unknown Customer'}</span>
+                                <span className='text-muted-foreground'>{customerQuotes.length} document(s)</span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              {renderTable(customerQuotes, true)}
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
                 )}
             </TabsContent>
             </CardContent>

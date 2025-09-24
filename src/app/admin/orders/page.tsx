@@ -22,6 +22,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a proforma invoice."),
@@ -132,19 +133,31 @@ export default function OrdersPage() {
 
   const ongoingOrders = orders.filter(o => o.status === 'processing' || o.status === 'shipped');
   const archivedOrders = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
+  
+  const archivedOrdersByCustomer = archivedOrders.reduce((acc, order) => {
+    const customerId = order.customerId;
+    if (!acc[customerId]) {
+      acc[customerId] = [];
+    }
+    acc[customerId].push(order);
+    return acc;
+  }, {} as Record<string, Order[]>);
 
-  const renderTable = (orderList: Order[]) => (
+
+  const renderTable = (orderList: Order[], isArchived = false) => (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Order #</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
+      {!isArchived && (
+        <TableHeader>
+          <TableRow>
+            <TableHead>Order #</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Total</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+      )}
       <TableBody>
         {orderList.map((order) => (
           <TableRow key={order.id}>
@@ -250,12 +263,29 @@ export default function OrdersPage() {
             <TabsContent value="archived">
                 {isLoading ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-                ) : archivedOrders.length === 0 ? (
+                ) : Object.keys(archivedOrdersByCustomer).length === 0 ? (
                     <div className="text-center p-16 text-muted-foreground">
                         <p>Aucune commande archivée.</p>
                     </div>
                 ) : (
-                    renderTable(archivedOrders)
+                   <Accordion type="multiple" className="w-full">
+                      {Object.entries(archivedOrdersByCustomer).map(([customerId, customerOrders]) => {
+                        const customer = customers.find(c => c.id === customerId);
+                        return (
+                          <AccordionItem value={customerId} key={customerId}>
+                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                              <div className='flex justify-between w-full pr-4'>
+                                <span>{customer?.name || 'Unknown Customer'}</span>
+                                <span className='text-muted-foreground'>{customerOrders.length} document(s)</span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              {renderTable(customerOrders, true)}
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
                 )}
             </TabsContent>
             </CardContent>
