@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Order } from './orders';
+import { initialCustomers } from '@/lib/initial-data';
 
 const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -51,10 +52,27 @@ export async function addCustomer(values: CustomerFormValues) {
     }
 }
 
+async function seedInitialCustomers() {
+    const customerPromises = initialCustomers.map(customer => 
+        addDoc(collection(db, 'customers'), {
+            ...customer,
+            createdAt: serverTimestamp(),
+        })
+    );
+    await Promise.all(customerPromises);
+}
+
 export async function getCustomers(): Promise<Customer[]> {
   try {
-    const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    let customersQuery = query(collection(db, "customers"), orderBy("createdAt", "desc"));
+    let querySnapshot = await getDocs(customersQuery);
+
+    if (querySnapshot.empty) {
+        console.log('No customers found, seeding initial data...');
+        await seedInitialCustomers();
+        // Re-fetch after seeding
+        querySnapshot = await getDocs(customersQuery);
+    }
     
     const customers: Customer[] = [];
     querySnapshot.forEach((doc) => {
