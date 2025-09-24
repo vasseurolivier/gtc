@@ -6,12 +6,15 @@ import { Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lam
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
+interface SourcingPageProps {
+  params: Promise<{ locale: Locale }>;
+}
+
 export default async function SourcingPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(params.locale);
+  params: paramsPromise,
+}: SourcingPageProps) {
+  const { locale } = await paramsPromise;
+  const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 
   const sourcingFeatures = [

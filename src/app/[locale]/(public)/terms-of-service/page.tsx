@@ -2,7 +2,12 @@
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function TermsOfServicePage({ params: { locale } }: { params: { locale: Locale } }) {
+interface TermsOfServicePageProps {
+  params: Promise<{ locale: Locale }>;
+}
+
+export default async function TermsOfServicePage({ params: paramsPromise }: TermsOfServicePageProps) {
+  const { locale } = await paramsPromise;
   const dictionary = await getDictionary(locale);
   const pageDict = dictionary.termsOfServicePage;
 

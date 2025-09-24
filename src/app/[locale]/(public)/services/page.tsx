@@ -9,7 +9,12 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 import type { Metadata } from 'next';
 
-export async function generateMetadata({ params: { locale } }: { params: { locale: Locale } }): Promise<Metadata> {
+interface ServicesPageProps {
+  params: Promise<{ locale: Locale }>;
+}
+
+export async function generateMetadata({ params: paramsPromise }: ServicesPageProps): Promise<Metadata> {
+  const { locale } = await paramsPromise;
   const dictionary = await getDictionary(locale);
   return {
     title: dictionary.servicesPage.hero.title,
@@ -18,8 +23,9 @@ export async function generateMetadata({ params: { locale } }: { params: { local
 }
 
 
-export default async function ServicesPage({ params }: { params: { locale: Locale } }) {
-  const dictionary = await getDictionary(params.locale);
+export default async function ServicesPage({ params: paramsPromise }: ServicesPageProps) {
+  const { locale } = await paramsPromise;
+  const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
 
   const services = [

@@ -7,12 +7,15 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
+interface TradingLogisticsPageProps {
+  params: Promise<{ locale: Locale }>;
+}
+
 export default async function TradingLogisticsPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(params.locale);
+  params: paramsPromise,
+}: TradingLogisticsPageProps) {
+  const { locale } = await paramsPromise;
+  const dictionary = await getDictionary(locale);
   const tradingLogisticsDict = dictionary.tradingLogisticsPage;
 
   const tradingFeatures = [

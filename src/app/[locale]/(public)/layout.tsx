@@ -9,13 +9,16 @@ export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ locale }));
 }
 
+interface PublicLayoutProps {
+  children: React.ReactNode;
+  params: Promise<{ locale: Locale }>;
+}
+
 export default async function PublicLayout({
   children,
-  params: { locale },
-}: {
-  children: React.ReactNode;
-  params: { locale: Locale };
-}) {
+  params: paramsPromise,
+}: PublicLayoutProps) {
+  const { locale } = await paramsPromise;
   const dictionary = await getDictionary(locale);
 
   return (

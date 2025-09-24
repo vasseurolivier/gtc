@@ -5,12 +5,15 @@ import { Lightbulb, Package, Boxes, Rocket } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
+interface EcommerceSolutionsPageProps {
+  params: Promise<{ locale: Locale }>;
+}
+
 export default async function EcommerceSolutionsPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(params.locale);
+  params: paramsPromise,
+}: EcommerceSolutionsPageProps) {
+  const { locale } = await paramsPromise;
+  const dictionary = await getDictionary(locale);
   const ecommerceDict = dictionary.ecommerceSolutionsPage;
 
   const ecommerceFeatures = [
