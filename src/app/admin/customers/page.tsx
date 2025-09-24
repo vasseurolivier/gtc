@@ -16,15 +16,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { addCustomer, getCustomers, deleteCustomer, Customer, CustomerFormValues } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, Eye, FileSpreadsheet } from 'lucide-react';
+import { addCustomer, getCustomers, deleteCustomer, updateCustomer, Customer, CustomerFormValues } from '@/actions/customers';
+import { Loader2, PlusCircle, Trash2, Eye, Pencil, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import Link from 'next/link';
 
 const customerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
+  email: z.string().email({ message: "Please enter a valid email." }).or(z.literal("")),
   phone: z.string().optional(),
   company: z.string().optional(),
   country: z.string().optional(),
@@ -39,7 +39,8 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAddCustomerOpen, setAddCustomerOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
@@ -75,16 +76,46 @@ export default function CustomersPage() {
     }
     fetchCustomers();
   }, [router, toast]);
+  
+  const handleOpenDialog = (customer: Customer | null = null) => {
+    setEditingCustomer(customer);
+    if (customer) {
+      form.reset({
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        company: customer.company,
+        country: customer.country,
+        status: customer.status,
+        source: customer.source,
+        notes: customer.notes,
+      });
+    } else {
+      form.reset({
+        name: "", 
+        email: "", 
+        phone: "",
+        company: "",
+        country: "",
+        status: "lead",
+        source: "",
+        notes: "",
+      });
+    }
+    setIsDialogOpen(true);
+  };
 
   const onSubmit = async (values: CustomerFormValues) => {
     setIsSubmitting(true);
-    const result = await addCustomer(values);
+    const result = editingCustomer
+      ? await updateCustomer(editingCustomer.id, values)
+      : await addCustomer(values);
+
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       const newCustomers = await getCustomers();
       setCustomers(newCustomers);
-      setAddCustomerOpen(false);
-      form.reset();
+      setIsDialogOpen(false);
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -137,16 +168,16 @@ export default function CustomersPage() {
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             Export to Excel
           </Button>
-          <Dialog open={isAddCustomerOpen} onOpenChange={setAddCustomerOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Customer
-              </Button>
-            </DialogTrigger>
+          <Button onClick={() => handleOpenDialog()}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Customer
+          </Button>
+        </div>
+      </div>
+       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent className="sm:max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Add a New Customer</DialogTitle>
+                <DialogTitle>{editingCustomer ? 'Edit Customer' : 'Add a New Customer'}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
@@ -193,7 +224,7 @@ export default function CustomersPage() {
                           render={({ field }) => (
                               <FormItem>
                               <FormLabel>Status</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                   <FormControl>
                                   <SelectTrigger>
                                       <SelectValue placeholder="Select a status" />
@@ -246,15 +277,13 @@ export default function CustomersPage() {
                       </DialogClose>
                       <Button type="submit" disabled={isSubmitting}>
                           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Add Customer
+                          {editingCustomer ? 'Save Changes' : 'Add Customer'}
                       </Button>
                   </DialogFooter>
                 </form>
               </Form>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -293,6 +322,9 @@ export default function CustomersPage() {
                           <Link href={`/admin/customers/${customer.id}`}>
                             <Eye className="h-4 w-4" />
                           </Link>
+                        </Button>
+                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(customer)}>
+                            <Pencil className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>

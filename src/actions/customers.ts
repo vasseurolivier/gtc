@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, getDoc, where, setDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, getDoc, where, setDoc, updateDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Order } from './orders';
 import { initialCustomers } from '@/lib/initial-data';
@@ -52,6 +52,22 @@ export async function addCustomer(values: CustomerFormValues) {
     }
 }
 
+export async function updateCustomer(id: string, values: CustomerFormValues) {
+    try {
+        const validatedData = customerSchema.parse(values);
+        const customerRef = doc(db, 'customers', id);
+        await updateDoc(customerRef, validatedData);
+        return { success: true, message: 'Customer updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating customer:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: 'Validation failed.', errors: error.errors };
+        }
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+
 async function seedInitialCustomers() {
     const customerPromises = initialCustomers.map(async (customer) => {
         const { id, ...customerData } = customer;
@@ -73,9 +89,22 @@ export async function getCustomers(): Promise<Customer[]> {
   try {
     const customersQuery = query(collection(db, "customers"), orderBy("createdAt", "desc"));
     let querySnapshot = await getDocs(customersQuery);
+    
+    const customersCount = querySnapshot.docs.length;
+    const initialCustomerIds = new Set(initialCustomers.map(c => c.id));
+    
+    let needsSeeding = false;
+    if (customersCount < initialCustomers.length) {
+        const existingIds = new Set(querySnapshot.docs.map(d => d.id));
+        for (const id of initialCustomerIds) {
+            if (!existingIds.has(id)) {
+                needsSeeding = true;
+                break;
+            }
+        }
+    }
 
-    if (querySnapshot.docs.length < initialCustomers.length) {
-        console.log('Fewer customers than initial data, checking and seeding...');
+    if (needsSeeding) {
         await seedInitialCustomers();
         // Re-fetch after potentially seeding
         querySnapshot = await getDocs(customersQuery);
@@ -151,10 +180,6 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 
 export async function deleteCustomer(id: string) {
     try {
-        // Prevent deletion of initial customers if needed, for now allow deletion
-        // if (initialCustomers.some(c => c.id === id)) {
-        //     return { success: false, message: 'Cannot delete initial seed data.' };
-        // }
         await deleteDoc(doc(db, 'customers', id));
         return { success: true, message: 'Customer deleted successfully!' };
     } catch (error: any) {
