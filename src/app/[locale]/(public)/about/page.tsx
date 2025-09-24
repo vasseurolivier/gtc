@@ -24,11 +24,7 @@ export async function generateMetadata({ params }: { params: { locale: Locale } 
 }
 
 
-export default async function AboutPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
+export default async function AboutPage({ params }: { params: { locale: Locale } }) {
   const dictionary = await getDictionary(params.locale);
   
   const aboutPageDict = dictionary.aboutPage;

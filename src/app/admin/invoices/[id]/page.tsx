@@ -26,8 +26,8 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 }
 
 
-export default async function InvoicePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function InvoicePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { invoice, customer, products } = await getInvoiceData(id);
 
     if (!invoice || !customer) {
@@ -64,5 +64,3 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
         </div>
     );
 }
-
-    
