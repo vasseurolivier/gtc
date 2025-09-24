@@ -7,11 +7,10 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
 export default async function SourcingPage({
-  params,
+  params: { locale },
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 
@@ -179,5 +178,3 @@ export default async function SourcingPage({
     </>
   );
 }
-
-    
