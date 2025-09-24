@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { getInvoices, Invoice } from '@/actions/invoices';
+import { getOrders, Order } from '@/actions/orders';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getProducts, Product } from '@/actions/products';
 import { format, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from 'date-fns';
@@ -20,6 +21,7 @@ type Period = 'last_30_days' | 'this_month' | 'last_quarter' | 'this_year' | 'al
 export default function FinancialReportPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,12 +42,14 @@ export default function FinancialReportPage() {
 
     async function fetchData() {
       try {
-        const [invs, qts, prods] = await Promise.all([
+        const [invs, ords, qts, prods] = await Promise.all([
             getInvoices(),
+            getOrders(),
             getQuotes(),
             getProducts(),
         ]);
         setInvoices(invs);
+        setOrders(ords);
         setQuotes(qts);
         setProducts(prods);
       } catch (error) {
@@ -77,8 +81,10 @@ export default function FinancialReportPage() {
 
   const { start, end } = getPeriodDateRange();
 
-  const filteredInvoices = invoices.filter(inv => {
+  const paidInvoices = invoices.filter(inv => {
+    if (inv.status !== 'paid') return false;
     try {
+        // We should ideally use the payment date, but issueDate is a good proxy
         const invDate = parseISO(inv.issueDate);
         return invDate >= start && invDate <= end;
     } catch (e) {
@@ -86,10 +92,11 @@ export default function FinancialReportPage() {
     }
   });
 
-  const paidInvoices = filteredInvoices.filter(inv => inv.status === 'paid');
   const revenue = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
   const productsBySku = new Map(products.map(p => [p.sku, p]));
+  const ordersById = new Map(orders.map(o => [o.id, o]));
+  const quotesById = new Map(quotes.map(q => [q.id, q]));
 
   const costOfGoodsSold = paidInvoices.reduce((totalCost, inv) => {
     const invoiceCost = inv.items.reduce((itemSum, item) => {
@@ -99,25 +106,23 @@ export default function FinancialReportPage() {
     }, 0);
     return totalCost + invoiceCost;
   }, 0);
+  
+  const operatingExpenses = paidInvoices.reduce((totalExpense, inv) => {
+    if (!inv.orderId) return totalExpense;
+
+    const order = ordersById.get(inv.orderId);
+    if (!order || !order.quoteId) return totalExpense;
+
+    const quote = quotesById.get(order.quoteId);
+    if (!quote) return totalExpense;
+    
+    const transport = quote.transportCost || 0;
+    const commission = (quote.subTotal + transport) * ((quote.commissionRate || 0) / 100);
+    return totalExpense + transport + commission;
+  }, 0);
 
   const grossProfit = revenue - costOfGoodsSold;
   const grossProfitMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
-
-  const acceptedQuotesInPeriod = quotes.filter(q => {
-    try {
-        const quoteDate = parseISO(q.issueDate);
-        return q.status === 'accepted' && quoteDate >= start && quoteDate <= end;
-    } catch(e) {
-        return false;
-    }
-  });
-
-  const operatingExpenses = acceptedQuotesInPeriod.reduce((sum, q) => {
-    const transport = q.transportCost || 0;
-    const commission = (q.subTotal + transport) * ((q.commissionRate || 0) / 100);
-    return sum + transport + commission;
-  }, 0);
-
   const netProfit = grossProfit - operatingExpenses;
 
   const accountsReceivable = invoices
