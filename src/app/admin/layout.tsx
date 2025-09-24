@@ -25,7 +25,8 @@ import {
   Cog,
   Receipt,
   UploadCloud,
-  Landmark
+  Landmark,
+  FileSignature
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -225,6 +226,7 @@ function ProtectedAdminLayout({
   const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
+    // This is a client-side check. The middleware should handle the primary security.
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
@@ -266,6 +268,7 @@ function ProtectedAdminLayout({
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
     { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
     { href: '/admin/products', icon: <Package />, label: 'Products' },
+    { href: '/admin/supplier-contract', icon: <FileSignature />, label: 'Supplier Contract' },
   ];
   
   const activePath = pathname;

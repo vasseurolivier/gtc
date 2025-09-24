@@ -113,13 +113,18 @@ body {
     padding: 0;
     margin: 0;
   }
-  .printable-area .print-content {
+  .print-content {
      box-shadow: none !important;
      border: none !important;
      min-height: 100vh;
      height: 100vh;
      display: flex;
      flex-direction: column;
+  }
+  .print-content pre {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.5;
   }
   .no-print {
     display: none !important;
