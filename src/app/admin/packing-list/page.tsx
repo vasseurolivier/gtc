@@ -50,7 +50,7 @@ function PackingListGenerator() {
   const form = useForm<PackingListValues>({
     resolver: zodResolver(packingListSchema),
     defaultValues: {
-      listId: `PL-${Date.now().toString().slice(-6)}`,
+      listId: '',
       date: new Date(),
       items: [{
         photo: '',
@@ -62,6 +62,17 @@ function PackingListGenerator() {
       }],
     },
   });
+  
+  useEffect(() => {
+    // Generate the listId on the client side to avoid hydration mismatch
+    form.reset({
+      ...form.getValues(),
+      listId: `PL-${Date.now().toString().slice(-6)}`,
+      date: new Date(),
+    });
+    // The dependency array is intentionally empty to run this only once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
