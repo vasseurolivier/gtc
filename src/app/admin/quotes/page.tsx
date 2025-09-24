@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -103,27 +103,32 @@ function QuotesPageContent() {
   const watchCommissionRate = form.watch("commissionRate");
 
   useEffect(() => {
-    const subTotal = watchItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.unitPrice || 0)), 0);
-    form.setValue("subTotal", subTotal);
-
-    const transportCost = Number(watchTransportCost) || 0;
-    const commissionRate = Number(watchCommissionRate) || 0;
-    const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
-    const totalAmount = subTotal + transportCost + commissionAmount;
-    form.setValue("totalAmount", totalAmount);
-
-  }, [watchItems, watchTransportCost, watchCommissionRate, form]);
-  
-  useEffect(() => {
-    watchItems.forEach((item, index) => {
-        const newTotal = (item.quantity || 0) * (item.unitPrice || 0);
-        if (item.total !== newTotal) {
-            form.setValue(`items.${index}.total`, newTotal, { shouldDirty: true });
-        }
+    const subscription = form.watch((values, { name, type }) => {
+      if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
+        const items = values.items || [];
+        
+        items.forEach((item, index) => {
+            const quantity = Number(item?.quantity) || 0;
+            const unitPrice = Number(item?.unitPrice) || 0;
+            const newTotal = quantity * unitPrice;
+            if (item?.total !== newTotal) {
+                form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+            }
+        });
+        
+        const subTotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
+        const transportCost = Number(values.transportCost) || 0;
+        const commissionRate = Number(values.commissionRate) || 0;
+        const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
+        const totalAmount = subTotal + transportCost + commissionAmount;
+        
+        form.setValue("subTotal", subTotal, { shouldValidate: true });
+        form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+      }
     });
-  }, [watchItems, form]);
-
-
+    return () => subscription.unsubscribe();
+  }, [form]);
+  
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
@@ -392,7 +397,10 @@ function QuotesPageContent() {
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-4xl">
-            <DialogHeader><DialogTitle>{editingQuote ? 'Edit Proforma Invoice' : 'Create a New Proforma Invoice'}</DialogTitle></DialogHeader>
+            <DialogHeader>
+                <DialogTitle>{editingQuote ? 'Edit Proforma Invoice' : 'Create a New Proforma Invoice'}</DialogTitle>
+                <DialogDescription>Fill in the details to create or update a proforma invoice.</DialogDescription>
+            </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -456,7 +464,7 @@ function QuotesPageContent() {
                             <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
                                 <FormItem className="w-28"><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
-                            <div className="w-28 pt-8 text-right font-medium">¥{watchItems[index].total.toFixed(2)}</div>
+                            <div className="w-28 pt-8 text-right font-medium">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
                         </div>
                       ))}
