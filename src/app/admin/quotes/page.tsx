@@ -103,7 +103,7 @@ function QuotesPageContent() {
   const watchCommissionRate = form.watch("commissionRate");
 
   useEffect(() => {
-    const subTotal = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    const subTotal = watchItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.unitPrice || 0)), 0);
     form.setValue("subTotal", subTotal);
 
     const transportCost = Number(watchTransportCost) || 0;
