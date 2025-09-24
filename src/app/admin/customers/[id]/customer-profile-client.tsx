@@ -5,7 +5,7 @@ import { User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart, Fil
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import * as XLSX from 'xlsx';
@@ -33,7 +33,7 @@ export function CustomerProfileClient({ customer }: { customer: Customer }) {
             { 'Field': 'Country', 'Value': customer.country || 'N/A' },
             { 'Field': 'Status', 'Value': customer.status || 'N/A' },
             { 'Field': 'Source', 'Value': customer.source || 'N/A' },
-            { 'Field': 'Customer Since', 'Value': customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy') : 'N/A' },
+            { 'Field': 'Customer Since', 'Value': customer.createdAt ? formatInTimeZone(new Date(customer.createdAt), 'UTC', 'dd MMM yyyy') : 'N/A' },
             { 'Field': 'Total Revenue (CNY)', 'Value': (customer.totalRevenue || 0).toFixed(2) },
             { 'Field': 'Total Orders', 'Value': customer.orders?.length || 0 },
             { 'Field': 'Notes', 'Value': customer.notes || 'N/A' },
@@ -43,7 +43,7 @@ export function CustomerProfileClient({ customer }: { customer: Customer }) {
 
         const orderHistoryData = (customer.orders || []).map(order => ({
             'Order #': order.orderNumber,
-            'Date': format(new Date(order.orderDate), 'dd MMM yyyy'),
+            'Date': formatInTimeZone(new Date(order.orderDate), 'UTC', 'dd MMM yyyy'),
             'Status': order.status,
             'Total (CNY)': order.totalAmount.toFixed(2)
         }));
@@ -77,7 +77,7 @@ export function CustomerProfileClient({ customer }: { customer: Customer }) {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><User /> {customer.name}</CardTitle>
                              <CardDescription>
-                                Customer since {format(new Date(customer.createdAt), 'MMMM yyyy')}
+                                Customer since {formatInTimeZone(new Date(customer.createdAt), 'UTC', 'MMMM yyyy')}
                              </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
@@ -133,7 +133,7 @@ export function CustomerProfileClient({ customer }: { customer: Customer }) {
                                         {customer.orders.map(order => (
                                             <TableRow key={order.id}>
                                                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                                                <TableCell>{format(new Date(order.orderDate), 'dd MMM yyyy')}</TableCell>
+                                                <TableCell>{formatInTimeZone(new Date(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
                                                 <TableCell><Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge></TableCell>
                                                 <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
                                             </TableRow>
