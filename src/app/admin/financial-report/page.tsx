@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { getInvoices, Invoice } from '@/actions/invoices';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getProducts, Product } from '@/actions/products';
-import { format, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfYear, parseISO } from 'date-fns';
 import { Loader2, ArrowDownUp, TrendingUp, TrendingDown, Package, Banknote, Warehouse, Scale, Receipt, FileSpreadsheet } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

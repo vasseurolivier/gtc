@@ -129,6 +129,14 @@ export default function OrdersPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
