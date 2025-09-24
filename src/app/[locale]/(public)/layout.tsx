@@ -19,12 +19,21 @@ export default async function PublicLayout({
   const dictionary = await getDictionary(locale);
 
   return (
-      <CompanyInfoProvider>
-        <div className="flex min-h-screen flex-col">
-          <Header dictionary={dictionary.header} />
-          <main className="flex-grow">{children}</main>
-          <Footer dictionary={dictionary.footer} />
-        </div>
-      </CompanyInfoProvider>
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-body bg-background text-foreground antialiased">
+        <CompanyInfoProvider>
+          <div className="flex min-h-screen flex-col">
+            <Header dictionary={dictionary.header} />
+            <main className="flex-grow">{children}</main>
+            <Footer dictionary={dictionary.footer} />
+          </div>
+        </CompanyInfoProvider>
+      </body>
+    </html>
   );
 }

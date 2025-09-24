@@ -18,8 +18,8 @@ export async function generateMetadata({ params: { locale } }: { params: { local
 }
 
 
-export default async function ServicesPage({ params: { locale } }: { params: { locale: Locale } }) {
-  const dictionary = await getDictionary(locale);
+export default async function ServicesPage({ params }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(params.locale);
   const servicesPageDict = dictionary.servicesPage;
 
   const services = [
