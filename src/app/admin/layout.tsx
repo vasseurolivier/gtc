@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -11,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarInset,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -41,6 +43,8 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getSubmissions, Submission } from '@/actions/submissions';
+
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -218,6 +222,27 @@ export default function AdminRootLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  useEffect(() => {
+    async function fetchUnreadCount() {
+        try {
+            const submissions = await getSubmissions();
+            const unread = submissions.filter(s => !s.read).length;
+            setUnreadMessages(unread);
+        } catch (error) {
+            console.error("Failed to fetch submissions for count:", error);
+        }
+    }
+    // Fetch count on initial load
+    fetchUnreadCount();
+
+    // Also fetch when path changes to /admin/submissions to update the badge
+    if (pathname === '/admin/submissions') {
+        const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5s while on page
+        return () => clearInterval(interval);
+    }
+  }, [pathname]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('isAdminAuthenticated');
@@ -227,7 +252,7 @@ export default function AdminRootLayout({
   const navItems = [
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
-    { href: '/admin/submissions', icon: <Mail />, label: 'Messages' },
+    { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
@@ -255,6 +280,9 @@ export default function AdminRootLayout({
                           <span>
                             {item.icon}
                             <span>{item.label}</span>
+                             {item.badge && item.badge > 0 && (
+                              <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                            )}
                           </span>
                         </SidebarMenuButton>
                       </Link>
