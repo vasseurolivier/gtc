@@ -2,8 +2,9 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
+import { initialProducts } from '@/lib/initial-products';
 
 const productSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -73,10 +74,31 @@ export async function updateProduct(id: string, values: z.infer<typeof productSc
     }
 }
 
+async function seedInitialProducts() {
+    const productPromises = initialProducts.map(async (product) => {
+        const { id, ...productData } = product;
+        const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+
+        if (!productSnap.exists()) {
+            await setDoc(productRef, {
+                ...productData,
+                createdAt: serverTimestamp(),
+            });
+        }
+    });
+    await Promise.all(productPromises);
+}
+
 export async function getProducts(): Promise<Product[]> {
   try {
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    let querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        await seedInitialProducts();
+        querySnapshot = await getDocs(q);
+    }
     
     const products: Product[] = [];
     querySnapshot.forEach((doc) => {
