@@ -91,7 +91,7 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 
         const customerData = customerSnap.data();
 
-        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id));
+        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id), where("status", "!=", "cancelled"));
         const ordersSnapshot = await getDocs(ordersQuery);
         
         const orders: Order[] = [];
