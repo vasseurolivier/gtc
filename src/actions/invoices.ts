@@ -216,9 +216,15 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
         const validatedStatus = invoiceStatusSchema.parse(status);
         const invoiceRef = doc(db, 'invoices', id);
 
-        const updateData: { status: string, paymentDate?: Date } = { status: validatedStatus };
+        const updateData: { status: string, paymentDate?: Date | null } = { status: validatedStatus };
         if (validatedStatus === 'paid') {
             updateData.paymentDate = new Date();
+        } else {
+             // If status is changed from 'paid' to something else, clear the payment date
+            const invoiceSnap = await getDoc(invoiceRef);
+            if (invoiceSnap.exists() && invoiceSnap.data().status === 'paid') {
+                updateData.paymentDate = null;
+            }
         }
 
         await updateDoc(invoiceRef, updateData);
@@ -251,19 +257,25 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
         const totalAmount = invoiceData.totalAmount;
         let newStatus: Invoice['status'] = invoiceData.status;
 
-        const updateData: { amountPaid: number, status: string, paymentDate?: Date } = {
+        const updateData: { amountPaid: number, status: string, paymentDate?: Date | null } = {
             amountPaid: amountPaid,
             status: newStatus
         };
 
         if (amountPaid >= totalAmount) {
             newStatus = 'paid';
-            updateData.paymentDate = new Date();
+            updateData.paymentDate = invoiceData.paymentDate || new Date(); // Keep existing payment date if available
         } else if (amountPaid > 0) {
             newStatus = 'partially_paid';
-        } else if (invoiceData.status !== 'cancelled' && invoiceData.status !== 'overdue') { // avoid overwriting these statuses
-            newStatus = 'unpaid';
+            updateData.paymentDate = null; // Clear payment date if not fully paid
+        } else if (invoiceData.status !== 'cancelled' && new Date() > invoiceData.dueDate.toDate()) {
+            newStatus = 'overdue';
+            updateData.paymentDate = null;
+        } else if (invoiceData.status !== 'cancelled') {
+             newStatus = 'unpaid';
+             updateData.paymentDate = null;
         }
+
         updateData.status = newStatus;
 
         await updateDoc(invoiceRef, updateData);
