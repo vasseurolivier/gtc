@@ -82,11 +82,10 @@ export default function FinancialReportPage() {
   const { start, end } = getPeriodDateRange();
 
   const paidInvoices = invoices.filter(inv => {
-    if (inv.status !== 'paid') return false;
+    if (inv.status !== 'paid' || !inv.paymentDate) return false;
     try {
-        // We should ideally use the payment date, but issueDate is a good proxy
-        const invDate = parseISO(inv.issueDate);
-        return invDate >= start && invDate <= end;
+        const paymentDate = parseISO(inv.paymentDate);
+        return paymentDate >= start && paymentDate <= end;
     } catch (e) {
         return false;
     }

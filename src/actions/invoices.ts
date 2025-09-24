@@ -45,6 +45,7 @@ export interface Invoice {
     status: "unpaid" | "paid" | "overdue" | "cancelled" | "partially_paid";
     issueDate: string;
     dueDate: string;
+    paymentDate?: string;
     createdAt: string;
 }
 
@@ -161,6 +162,7 @@ export async function getInvoices(): Promise<Invoice[]> {
           ...data,
           issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
           dueDate: data.dueDate?.toDate().toISOString() || new Date().toISOString(),
+          paymentDate: data.paymentDate?.toDate().toISOString(),
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice);
     });
@@ -188,6 +190,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
             ...invoiceData,
             issueDate: invoiceData.issueDate?.toDate().toISOString() || new Date().toISOString(),
             dueDate: invoiceData.dueDate?.toDate().toISOString() || new Date().toISOString(),
+            paymentDate: invoiceData.paymentDate?.toDate().toISOString(),
             createdAt: invoiceData.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice;
 
@@ -212,7 +215,14 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
     try {
         const validatedStatus = invoiceStatusSchema.parse(status);
         const invoiceRef = doc(db, 'invoices', id);
-        await updateDoc(invoiceRef, { status: validatedStatus });
+
+        const updateData: { status: string, paymentDate?: Date } = { status: validatedStatus };
+        if (validatedStatus === 'paid') {
+            updateData.paymentDate = new Date();
+        }
+
+        await updateDoc(invoiceRef, updateData);
+        
         return { success: true, message: 'Invoice status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating invoice status:', error);
@@ -241,18 +251,23 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
         const totalAmount = invoiceData.totalAmount;
         let newStatus: Invoice['status'] = invoiceData.status;
 
+        const updateData: { amountPaid: number, status: string, paymentDate?: Date } = {
+            amountPaid: amountPaid,
+            status: newStatus
+        };
+
         if (amountPaid >= totalAmount) {
             newStatus = 'paid';
+            updateData.paymentDate = new Date();
         } else if (amountPaid > 0) {
             newStatus = 'partially_paid';
         } else if (invoiceData.status !== 'cancelled' && invoiceData.status !== 'overdue') { // avoid overwriting these statuses
             newStatus = 'unpaid';
         }
+        updateData.status = newStatus;
 
-        await updateDoc(invoiceRef, { 
-            amountPaid: amountPaid,
-            status: newStatus
-        });
+        await updateDoc(invoiceRef, updateData);
+
         return { success: true, message: 'Amount paid updated successfully!', newStatus: newStatus };
     } catch (error: any) {
         console.error('Error updating amount paid:', error);
