@@ -123,36 +123,23 @@ body {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
-    height: 100%;
+    min-height: 25cm; /* Roughly A4 height minus margins */
     display: flex;
     flex-direction: column;
   }
-
-  .print-table {
-    page-break-inside: auto;
+  
+  .print-header {
+    flex-shrink: 0;
   }
-  .print-table thead, .print-table tfoot {
-    display: table-row-group;
-  }
-  .print-table tr, .print-table td, .print-table th {
-    page-break-inside: avoid;
-  }
-  .print-table tbody {
-    display: table-row-group;
-  }
-  .print-header, .print-footer {
-    display: table-header-group;
-    width: 100%;
-  }
+  
   .print-footer {
-    display: table-footer-group;
-    position: static;
+    flex-shrink: 0;
     border-top: 1px solid hsl(var(--border));
     padding-top: 1rem;
     padding-bottom: 1rem;
     font-size: 0.8rem;
   }
-
+  
   .signature-block {
     page-break-inside: avoid;
   }
