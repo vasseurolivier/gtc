@@ -9,9 +9,9 @@ import { CustomerProfileClient } from './customer-profile-client';
 export default async function CustomerProfilePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-    const { id } = params;
+    const { id } = await params;
     const customer = await getCustomerById(id);
 
     if (!customer) {
