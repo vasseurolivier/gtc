@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Printer, Loader2, PlusCircle, Trash2, UploadCloud, Save, Eye } from 'lucide-react';
+import { Printer, Loader2, PlusCircle, Trash2, UploadCloud, Save, Eye, FileUp } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { useToast } from '@/hooks/use-toast';
@@ -240,7 +240,7 @@ function PackingListGenerator() {
                       </TableCell>
                       <TableCell className="font-medium">{item.description}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">¥{unitPriceCny.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">¥{(Number(item.unitPriceCny) || 0).toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
@@ -333,6 +333,11 @@ function PackingListHistory() {
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/admin/quotes?fromPackingList=${list.id}`}>
+                        <FileUp className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -378,7 +383,6 @@ export default function PackingListPage() {
       </Tabs>
       
       <div className="hidden print-block">
-        {/* This is a fallback for printing. When printing, the `print-content` div from the generator is used. */}
         <div className="print-content-standalone">
             <PackingListGenerator />
         </div>
@@ -386,4 +390,3 @@ export default function PackingListPage() {
     </div>
   );
 }
-

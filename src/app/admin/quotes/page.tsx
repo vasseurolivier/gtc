@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState, useContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useContext, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
+import { getPackingListById } from '@/actions/packing-lists';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
@@ -57,8 +58,9 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
-export default function QuotesPage() {
+function QuotesPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -118,6 +120,9 @@ export default function QuotesPage() {
       router.push('/admin/login');
       return;
     }
+    
+    const packingListId = searchParams.get('fromPackingList');
+
     async function fetchData() {
       setIsLoading(true);
       try {
@@ -129,11 +134,37 @@ export default function QuotesPage() {
         setQuotes(fetchedQuotes);
         setCustomers(fetchedCustomers);
         setProducts(fetchedProducts);
+
+        if (packingListId) {
+            const packingList = await getPackingListById(packingListId);
+            if (packingList) {
+                const newItems = packingList.items.map(item => ({
+                    sku: item.sku || "",
+                    description: item.description,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPriceCny,
+                    total: item.quantity * item.unitPriceCny
+                }));
+                form.reset({
+                    quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
+                    issueDate: new Date(),
+                    validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+                    items: newItems,
+                    status: "draft",
+                    // Reset other fields
+                });
+                setIsDialogOpen(true);
+                 // Clean up URL
+                router.replace('/admin/quotes');
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: 'Packing List not found.' });
+            }
+        }
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
     }
     fetchData();
-  }, [router, toast]);
+  }, [router, toast, searchParams, form]);
   
   const handleOpenDialog = (quote: Quote | null = null) => {
     setEditingQuote(quote);
@@ -540,4 +571,11 @@ export default function QuotesPage() {
   );
 }
 
-    
+
+export default function QuotesPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <QuotesPageContent />
+        </Suspense>
+    );
+}
