@@ -26,6 +26,7 @@ import { submitContactForm } from "@/actions/contact";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().optional(),
   subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
@@ -40,6 +41,7 @@ export function ContactSection({ dictionary }: { dictionary: any }) {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
       subject: "",
       message: "",
     },
@@ -114,19 +116,34 @@ export function ContactSection({ dictionary }: { dictionary: any }) {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{dictionary.form.email.label}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={dictionary.form.email.placeholder} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>{dictionary.form.email.label}</FormLabel>
+                            <FormControl>
+                                <Input placeholder={dictionary.form.email.placeholder} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>{dictionary.form.phone.label}</FormLabel>
+                            <FormControl>
+                                <Input placeholder={dictionary.form.phone.placeholder} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
                     <FormField
                       control={form.control}
                       name="subject"

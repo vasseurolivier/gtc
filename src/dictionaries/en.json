@@ -94,6 +94,10 @@
         "label": "Your Email",
         "placeholder": "john.doe@example.com"
       },
+      "phone": {
+        "label": "Phone / WhatsApp",
+        "placeholder": "+1 555 123 4567"
+      },
       "subject": {
         "label": "Subject",
         "placeholder": "Sourcing request"
@@ -569,5 +573,3 @@
     }
   }
 }
-
-    

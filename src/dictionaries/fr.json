@@ -94,6 +94,10 @@
         "label": "Votre email",
         "placeholder": "jean.dupont@exemple.com"
       },
+      "phone": {
+        "label": "Téléphone / WhatsApp",
+        "placeholder": "+33 6 12 34 56 78"
+      },
       "subject": {
         "label": "Sujet",
         "placeholder": "Demande de sourcing"
@@ -569,5 +573,3 @@
     }
   }
 }
-
-    
