@@ -1,6 +1,7 @@
 
 export const initialCustomers = [
     {
+        id: "initial-david",
         name: "David",
         company: "Mr. Jean",
         email: "",
@@ -9,6 +10,7 @@ export const initialCustomers = [
         status: "lead",
     },
     {
+        id: "initial-charles",
         name: "Charles Guedj",
         company: "",
         email: "",
@@ -18,6 +20,7 @@ export const initialCustomers = [
         status: "lead",
     },
     {
+        id: "initial-oumar",
         name: "Oumar",
         company: "",
         email: "",
@@ -27,6 +30,7 @@ export const initialCustomers = [
         status: "lead",
     },
     {
+        id: "initial-elias",
         name: "Elias Latrigue",
         company: "LTG Company LLC",
         email: "elias.latrigue@gmail.com",
@@ -36,6 +40,7 @@ export const initialCustomers = [
         status: "active",
     },
     {
+        id: "initial-herve",
         name: "Herve LEMEUNIER",
         company: "USN Spay",
         email: "surgeles@delicemer.fr",
@@ -45,6 +50,7 @@ export const initialCustomers = [
         status: "active",
     },
     {
+        id: "initial-stan",
         name: "Stan",
         company: "RAGNARÖK ENERGY DRINK",
         email: "",
@@ -54,6 +60,7 @@ export const initialCustomers = [
         status: "prospect",
     },
     {
+        id: "initial-steph",
         name: "Steph",
         company: "",
         email: "",
