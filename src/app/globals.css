@@ -148,4 +148,7 @@ body {
   table, tr, td, th, thead, tbody {
       page-break-inside: avoid !important;
   }
+  .signature-block {
+    page-break-inside: avoid;
+  }
 }
