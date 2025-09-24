@@ -2,8 +2,12 @@
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
+import { i18n, Locale } from '@/i18n-config';
 import { CompanyInfoProvider } from '@/context/company-info-context';
+
+export async function generateStaticParams() {
+  return i18n.locales.map((locale) => ({ locale }));
+}
 
 export default async function PublicLayout({
   children,

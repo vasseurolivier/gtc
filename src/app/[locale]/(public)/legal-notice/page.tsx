@@ -2,8 +2,8 @@
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function LegalNoticePage({ params }: { params: { locale: Locale } }) {
-  const dictionary = await getDictionary(params.locale);
+export default async function LegalNoticePage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
   const pageDict = dictionary.legalNoticePage;
 
   return (

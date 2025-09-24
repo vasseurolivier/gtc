@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/carousel"
 import type { Metadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { locale: Locale } }): Promise<Metadata> {
-  const dictionary = await getDictionary(params.locale);
+export async function generateMetadata({ params: { locale } }: { params: { locale: Locale } }): Promise<Metadata> {
+  const dictionary = await getDictionary(locale);
   return {
     title: dictionary.aboutPage.hero.title,
     description: dictionary.aboutPage.hero.subtitle,
@@ -24,8 +24,8 @@ export async function generateMetadata({ params }: { params: { locale: Locale } 
 }
 
 
-export default async function AboutPage({ params }: { params: { locale: Locale } }) {
-  const dictionary = await getDictionary(params.locale);
+export default async function AboutPage({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
   
   const aboutPageDict = dictionary.aboutPage;
 

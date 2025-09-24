@@ -6,8 +6,8 @@ import { AboutSection } from '@/components/sections/about-section';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function Home({ params }: { params: { locale: Locale } }) {
-  const dictionary = await getDictionary(params.locale);
+export default async function Home({ params: { locale } }: { params: { locale: Locale } }) {
+  const dictionary = await getDictionary(locale);
   return (
     <>
       <HeroSection dictionary={dictionary.heroSection} />
