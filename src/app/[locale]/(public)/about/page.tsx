@@ -13,6 +13,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params: { locale } }: { params: { locale: Locale } }): Promise<Metadata> {
+  const dictionary = await getDictionary(locale);
+  return {
+    title: dictionary.aboutPage.hero.title,
+    description: dictionary.aboutPage.hero.subtitle,
+  };
+}
+
 
 export default async function AboutPage({
   params,

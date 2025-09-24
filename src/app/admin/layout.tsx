@@ -29,6 +29,7 @@ import {
   FileSignature,
   ClipboardList,
   FileUp,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -270,6 +271,7 @@ function ProtectedAdminLayout({
     { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
     { href: '/admin/products', icon: <Package />, label: 'Products' },
     { href: '/admin/supplier-contract', icon: <FileSignature />, label: 'Supplier Contract' },
+    { href: '/seo-optimizer', icon: <Sparkles />, label: 'SEO Optimizer' },
   ];
   
   const activePath = pathname;

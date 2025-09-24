@@ -4,8 +4,12 @@ import { AppProviders } from '@/components/app-providers';
 import { i18n, type Locale } from '@/i18n-config';
 
 export const metadata: Metadata = {
-  title: 'Global Trading China',
-  description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
+  title: {
+    template: '%s | Global Trading China',
+    default: 'Global Trading China - Sourcing & Trading in China',
+  },
+  description: 'Your expert partner for sourcing, trading, and e-commerce solutions from China. We simplify your supply chain.',
+  metadataBase: new URL('https://www.globaltradingchina.com'),
 };
 
 export default function RootLayout({

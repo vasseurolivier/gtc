@@ -7,6 +7,16 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params: { locale } }: { params: { locale: Locale } }): Promise<Metadata> {
+  const dictionary = await getDictionary(locale);
+  return {
+    title: dictionary.servicesPage.hero.title,
+    description: dictionary.servicesPage.hero.subtitle,
+  };
+}
+
 
 export default async function ServicesPage({
   params,
