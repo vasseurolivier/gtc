@@ -65,11 +65,7 @@ function PackingListGenerator() {
   
   useEffect(() => {
     // Generate the listId on the client side to avoid hydration mismatch
-    form.reset({
-      ...form.getValues(),
-      listId: `PL-${Date.now().toString().slice(-6)}`,
-      date: new Date(),
-    });
+    form.setValue('listId', `PL-${Date.now().toString().slice(-6)}`);
     // The dependency array is intentionally empty to run this only once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -107,8 +103,10 @@ function PackingListGenerator() {
   };
 
   const totals = watchedItems.reduce((acc, item) => {
-    const totalCny = item.quantity * item.unitPriceCny;
-    acc.totalQuantity += item.quantity;
+    const quantity = Number(item.quantity) || 0;
+    const unitPrice = Number(item.unitPriceCny) || 0;
+    const totalCny = quantity * unitPrice;
+    acc.totalQuantity += quantity;
     acc.totalAmountCny += totalCny;
     return acc;
   }, { totalQuantity: 0, totalAmountCny: 0 });
@@ -230,8 +228,10 @@ function PackingListGenerator() {
               </TableHeader>
               <TableBody>
                 {watchedItems.map((item, index) => {
-                  const totalCny = item.quantity * item.unitPriceCny;
-                  const unitPriceConverted = item.unitPriceCny * exchangeRate;
+                  const quantity = Number(item.quantity) || 0;
+                  const unitPriceCny = Number(item.unitPriceCny) || 0;
+                  const totalCny = quantity * unitPriceCny;
+                  const unitPriceConverted = unitPriceCny * exchangeRate;
                   const totalConverted = totalCny * exchangeRate;
                   return (
                     <TableRow key={index}>
@@ -243,7 +243,7 @@ function PackingListGenerator() {
                       </TableCell>
                       <TableCell className="font-medium">{item.description}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">¥{unitPriceCny.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
