@@ -27,20 +27,20 @@
     "rightsReserved": "All rights reserved."
   },
   "heroSection": {
-    "title": "Your Bridge to Global Commerce",
-    "subtitle": "Expert sourcing, trading, and e-commerce solutions from the heart of China to the world.",
+    "title": "Expert Sourcing & Trading in China",
+    "subtitle": "Optimize your supply chain with our expert solutions in sourcing, import-export logistics, and quality control. Your reliable partner for manufacturing in China.",
     "ctaButton": "Get Started",
     "servicesButton": "Our Services"
   },
   "servicesSection": {
     "title": "Our Core Services",
-    "subtitle": "Comprehensive solutions to boost your global business.",
+    "subtitle": "Comprehensive solutions to boost your global business and simplify your import-export operations from China.",
     "sourcing": {
-      "title": "Sourcing",
+      "title": "Sourcing & Purchasing",
       "description": "We find and validate the best manufacturers in China for your products, ensuring quality and competitive prices."
     },
     "trading": {
-      "title": "Trading",
+      "title": "Trading & Logistics",
       "description": "Facilitating smooth import/export operations, managing all logistics and customs for a seamless trade experience."
     },
     "ecommerce": {
@@ -128,8 +128,8 @@
   },
   "aboutPage": {
     "hero": {
-      "title": "Our Mission: Simplifying Trade with China",
-      "subtitle": "We are your trusted partner, dedicated to turning the opportunities of the Chinese market into success for your business."
+      "title": "Our Mission: To Be Your Eyes and Ears in China",
+      "subtitle": "We are your dedicated sourcing agent and trading partner, committed to transforming the opportunities of the Chinese market into success for your business."
     },
     "aboutUs": {
       "title": "Who Are We?",
@@ -185,14 +185,14 @@
   },
   "servicesPage": {
     "hero": {
-      "title": "Comprehensive Solutions for Your Business",
-      "subtitle": "From finding the right supplier to delivery at your doorstep, discover how we can help you at every stage of your supply chain."
+      "title": "Sourcing and Import-Export Services in China",
+      "subtitle": "From finding the right supplier to doorstep delivery, discover how our services cover every stage of your supply chain from China."
     },
     "learnMore": "Learn More",
     "services": {
       "sourcing": {
         "title": "Sourcing and Purchasing",
-        "shortDescription": "Find and evaluate the best suppliers for your products.",
+        "shortDescription": "Find, audit, and negotiate with the best Chinese suppliers for your specific products.",
         "details": [
           { "title": "Supplier Identification", "description": "Research and selection of qualified manufacturers matching your specifications." },
           { "title": "Factory Verification and Audit", "description": "On-site inspections to assess production capacity, certifications, and social compliance." },
@@ -202,7 +202,7 @@
       },
       "trading": {
         "title": "Trading and Logistics",
-        "shortDescription": "Facilitate your import-export operations with comprehensive management.",
+        "shortDescription": "Facilitate your import-export operations with comprehensive management of logistics and customs.",
         "details": [
           { "title": "Order Management", "description": "Production monitoring and constant communication with suppliers to meet deadlines." },
           { "title": "Quality Control", "description": "Pre-production, in-production, and final inspections to ensure your products' compliance." },
@@ -212,7 +212,7 @@
       },
       "ecommerce": {
         "title": "E-commerce Solutions",
-        "shortDescription": "End-to-end support for your online store.",
+        "shortDescription": "End-to-end support for your online business, from product hunting to fulfillment.",
         "details": [
           { "title": "Winning Product Sourcing", "description": "Identifying trendy and high-potential products for platforms like Amazon FBA, Shopify, etc." },
           { "title": "Custom Branding and Packaging", "description": "Creating your brand identity, from logo design to custom packaging." },
@@ -222,7 +222,7 @@
       },
       "custom": {
         "title": "Custom Services",
-        "shortDescription": "Personalized solutions for your unique needs.",
+        "shortDescription": "Personalized solutions for your unique needs, including OEM/ODM and strategic consulting.",
         "details": [
           { "title": "Product Development", "description": "Support from idea to prototype, including design, engineering, and material research." },
           { "title": "Trade Fair Assistance", "description": "Guidance and translation during your visits to trade fairs like the Canton Fair." },
@@ -480,26 +480,26 @@
   },
   "tradeCitiesPage": {
     "hero": {
-      "title": "Strategic Trade Hubs in China",
-      "subtitle": "Discover the key cities at the heart of global trade and how we give you access to them."
+      "title": "China's Strategic Trade Hubs",
+      "subtitle": "Discover the key cities at the heart of global trade and how we give you direct access to their unique strengths."
     },
     "cities": {
       "guangzhou": {
         "name": "Guangzhou (Canton)",
         "subtitle": "The World Capital of Traditional Trade",
-        "description": "Historically one of China's oldest trading ports, Guangzhou is an essential hub. Famous for the Canton Fair, the world's largest trade fair, the city excels in a wide range of products, including textiles, clothing, leather goods, and electronics.",
+        "description": "Famous for the Canton Fair, Guangzhou is a crucial hub for sourcing a diverse range of products, including textiles, clothing, leather goods, and electronics. We navigate its vast markets to find your ideal products.",
         "specialties": ["Textile & Apparel", "Canton Fair", "Electronics", "Leather Goods"]
       },
       "shenzhen": {
         "name": "Shenzhen",
         "subtitle": "The Silicon Valley of Hardware",
-        "description": "Neighboring Hong Kong, Shenzhen is the beating heart of technological innovation in China. It is the global epicenter of electronics manufacturing, from components to finished products. If your project involves startups, high-tech, gadgets, or anything battery-powered, Shenzhen is your destination.",
+        "description": "Shenzhen is the global epicenter for electronics manufacturing and tech innovation. If your project involves high-tech gadgets, electronic components, or smart devices, our Shenzhen expertise is your best asset.",
         "specialties": ["Consumer Electronics", "Components", "Tech Startups", "Innovation"]
       },
       "yiwu": {
         "name": "Yiwu",
         "subtitle": "The World's Largest Wholesale Market",
-        "description": "Yiwu is a unique market city, home to the immense 'International Trade City'. It is a paradise for sourcing small items, everyday consumer goods, toys, jewelry, decorations, and stationery. Ideal for buyers looking to order small quantities (low MOQs) across a huge variety of products.",
+        "description": "Yiwu is a paradise for sourcing small commodities, toys, jewelry, and promotional items. It is ideal for buyers looking to order smaller quantities (low MOQs) across a huge variety of products. We make it simple.",
         "specialties": ["Small Commodities", "Toys & Gadgets", "Jewelry & Accessories", "Low MOQs"]
       }
     }

@@ -27,20 +27,20 @@
     "rightsReserved": "Tous droits réservés."
   },
   "heroSection": {
-    "title": "Votre Pont vers le Commerce Mondial",
-    "subtitle": "Solutions expertes de sourcing, de négoce et d'e-commerce depuis le cœur de la Chine vers le monde entier.",
+    "title": "Votre Partenaire Expert en Sourcing et Négoce depuis la Chine",
+    "subtitle": "Optimisez votre chaîne d'approvisionnement avec nos solutions de sourcing, logistique import-export et contrôle qualité. Votre partenaire fiable pour produire en Chine.",
     "ctaButton": "Commencer",
     "servicesButton": "Nos Services"
   },
   "servicesSection": {
     "title": "Nos Services Principaux",
-    "subtitle": "Des solutions complètes pour dynamiser votre activité mondiale.",
+    "subtitle": "Des solutions complètes pour dynamiser votre activité mondiale et simplifier vos opérations d'import-export depuis la Chine.",
     "sourcing": {
-      "title": "Sourcing",
+      "title": "Sourcing & Achat",
       "description": "Nous trouvons et validons les meilleurs fabricants en Chine pour vos produits, en garantissant la qualité et des prix compétitifs."
     },
     "trading": {
-      "title": "Négoce",
+      "title": "Négoce & Logistique",
       "description": "Faciliter des opérations d'import/export fluides, en gérant toute la logistique et les douanes pour une expérience commerciale sans faille."
     },
     "ecommerce": {
@@ -128,8 +128,8 @@
   },
   "aboutPage": {
     "hero": {
-      "title": "Notre Mission : Simplifier le Commerce avec la Chine",
-      "subtitle": "Nous sommes votre partenaire de confiance, dédié à transformer les opportunités du marché chinois en succès pour votre entreprise."
+      "title": "Notre Mission : Être Vos Yeux et Oreilles en Chine",
+      "subtitle": "Nous sommes votre agent de sourcing et partenaire commercial dédié, engagé à transformer les opportunités du marché chinois en succès pour votre entreprise."
     },
     "aboutUs": {
       "title": "Qui Sommes-Nous ?",
@@ -185,14 +185,14 @@
   },
    "servicesPage": {
     "hero": {
-      "title": "Des Solutions Complètes pour Votre Entreprise",
-      "subtitle": "De la recherche du bon fournisseur à la livraison chez vous, découvrez comment nous pouvons vous aider à chaque étape de votre chaîne d'approvisionnement."
+      "title": "Services de Sourcing et d'Import-Export en Chine",
+      "subtitle": "De la recherche du bon fournisseur à la livraison chez vous, découvrez comment nos services couvrent chaque étape de votre chaîne d'approvisionnement depuis la Chine."
     },
     "learnMore": "En savoir plus",
     "services": {
       "sourcing": {
         "title": "Sourcing et Achat",
-        "shortDescription": "Trouvez et évaluez les meilleurs fournisseurs pour vos produits.",
+        "shortDescription": "Trouvez, auditez et négociez avec les meilleurs fournisseurs chinois pour vos produits spécifiques.",
         "details": [
           { "title": "Identification de Fournisseurs", "description": "Recherche et sélection de fabricants qualifiés correspondant à votre cahier des charges." },
           { "title": "Vérification et Audit d'Usine", "description": "Inspections sur site pour évaluer la capacité de production, les certifications et la conformité sociale." },
@@ -202,7 +202,7 @@
       },
       "trading": {
         "title": "Trading et Logistique",
-        "shortDescription": "Facilitez vos opérations d'import-export avec une gestion complète.",
+        "shortDescription": "Facilitez vos opérations d'import-export avec une gestion complète de la logistique et des douanes.",
         "details": [
           { "title": "Gestion des Commandes", "description": "Suivi de la production et communication constante avec les fournisseurs pour respecter les délais." },
           { "title": "Contrôle Qualité", "description": "Inspections pré-production, en cours de production et finales pour garantir la conformité de vos produits." },
@@ -212,7 +212,7 @@
       },
       "ecommerce": {
         "title": "Solutions E-commerce",
-        "shortDescription": "Un soutien de bout en bout pour votre boutique en ligne.",
+        "shortDescription": "Un soutien de bout en bout pour votre activité en ligne, de la recherche de produit au fulfillment.",
         "details": [
           { "title": "Sourcing de Produits Gagnants", "description": "Identification de produits tendance et à fort potentiel pour les plateformes comme Amazon FBA, Shopify, etc." },
           { "title": "Branding et Packaging Personnalisé", "description": "Création de votre identité de marque, de la conception du logo à l'emballage sur mesure." },
@@ -222,7 +222,7 @@
       },
       "custom": {
         "title": "Services sur Mesure",
-        "shortDescription": "Des solutions personnalisées pour vos besoins uniques.",
+        "shortDescription": "Des solutions personnalisées pour vos besoins uniques, incluant OEM/ODM et conseil stratégique.",
         "details": [
           { "title": "Développement de Produit", "description": "Accompagnement de l'idée au prototype, incluant la conception, l'ingénierie et la recherche de matériaux." },
           { "title": "Assistance pour les Salons Professionnels", "description": "Accompagnement et traduction lors de vos visites sur les salons comme la Foire de Canton." },
@@ -481,25 +481,25 @@
   "tradeCitiesPage": {
     "hero": {
       "title": "Pôles Commerciaux Stratégiques en Chine",
-      "subtitle": "Découvrez les villes clés qui sont au cœur du commerce mondial et comment nous vous y donnons accès."
+      "subtitle": "Découvrez les villes clés au cœur du commerce mondial et comment nous vous donnons un accès direct à leurs forces uniques."
     },
     "cities": {
       "guangzhou": {
         "name": "Guangzhou (Canton)",
         "subtitle": "La Capitale Mondiale du Commerce Traditionnel",
-        "description": "Historiquement l'un des plus anciens ports de commerce de Chine, Guangzhou est un hub incontournable. Célèbre pour la Foire de Canton, la plus grande foire commerciale au monde, la ville excelle dans une vaste gamme de produits, notamment le textile, les vêtements, les articles en cuir et l'électronique.",
-        "specialties": ["Textile & Habillement", "Foire de Canton", "Électronique", "Articles en cuir"]
+        "description": "Célèbre pour la Foire de Canton, Guangzhou est un hub crucial pour le sourcing d'une gamme variée de produits, notamment le textile, l'habillement, la maroquinerie et l'électronique. Nous naviguons ses vastes marchés pour trouver vos produits idéaux.",
+        "specialties": ["Textile & Habillement", "Foire de Canton", "Électronique", "Maroquinerie"]
       },
       "shenzhen": {
         "name": "Shenzhen",
-        "subtitle": "La Silicon Valley de l'Hardware",
-        "description": "Voisine de Hong Kong, Shenzhen est le cœur battant de l'innovation technologique en Chine. C'est l'épicentre mondial de la fabrication électronique, des composants aux produits finis. Si votre projet concerne les startups, la haute technologie, les gadgets ou tout ce qui est alimenté par une batterie, Shenzhen est votre destination.",
+        "subtitle": "La Silicon Valley du Hardware",
+        "description": "Shenzhen est l'épicentre mondial de la fabrication électronique et de l'innovation technologique. Si votre projet concerne les gadgets high-tech, les composants électroniques ou les objets connectés, notre expertise à Shenzhen est votre meilleur atout.",
         "specialties": ["Électronique grand public", "Composants", "Startups Tech", "Innovation"]
       },
       "yiwu": {
         "name": "Yiwu",
         "subtitle": "Le plus Grand Marché de Gros au Monde",
-        "description": "Yiwu est une ville-marché unique, abritant l'immense 'International Trade City'. C'est le paradis pour le sourcing de petits articles, de biens de consommation courante, de jouets, de bijoux, de décorations et de papeterie. Idéal pour les acheteurs cherchant à commander de petites quantités (MOQ bas) sur une très grande variété de produits.",
+        "description": "Yiwu est le paradis du sourcing pour les petits articles, les jouets, les bijoux et les objets promotionnels. Idéal pour les acheteurs cherchant à commander de faibles quantités (bas MOQ) sur une très grande variété de produits. Nous vous simplifions l'accès.",
         "specialties": ["Petites marchandises", "Jouets & Gadgets", "Bijoux & Accessoires", "Faibles MOQ"]
       }
     }
