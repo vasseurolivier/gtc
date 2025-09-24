@@ -74,43 +74,10 @@ export async function updateProduct(id: string, values: z.infer<typeof productSc
     }
 }
 
-async function seedInitialProducts() {
-    const productPromises = initialProducts.map(async (product) => {
-        const { id, ...productData } = product;
-        const productRef = doc(db, 'products', id);
-        const productSnap = await getDoc(productRef);
-
-        if (!productSnap.exists()) {
-            await setDoc(productRef, {
-                ...productData,
-                createdAt: serverTimestamp(),
-            });
-        }
-    });
-    await Promise.all(productPromises);
-}
-
 export async function getProducts(): Promise<Product[]> {
   try {
     const productsQuery = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    let querySnapshot = await getDocs(productsQuery);
-    
-    // Check if initial products need to be seeded, regardless of whether the collection is empty
-    const existingIds = new Set(querySnapshot.docs.map(d => d.id));
-    const initialProductIds = new Set(initialProducts.map(p => p.id));
-    let needsSeeding = false;
-    for (const id of initialProductIds) {
-        if (!existingIds.has(id)) {
-            needsSeeding = true;
-            break;
-        }
-    }
-
-    if (needsSeeding) {
-        await seedInitialProducts();
-        // Re-fetch after potentially seeding
-        querySnapshot = await getDocs(productsQuery);
-    }
+    const querySnapshot = await getDocs(productsQuery);
     
     const products: Product[] = [];
     querySnapshot.forEach((doc) => {
