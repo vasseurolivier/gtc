@@ -3,7 +3,7 @@ export const initialCustomers = [
     {
         name: "David",
         company: "Mr. Jean",
-        email: "inconnue@gmail.com",
+        email: "",
         country: "Congo",
         notes: "",
         status: "lead",
@@ -11,7 +11,7 @@ export const initialCustomers = [
     {
         name: "Charles Guedj",
         company: "",
-        email: "inconnue@gmail.com",
+        email: "",
         phone: "+33777800015",
         country: "France",
         notes: "/",
@@ -20,7 +20,7 @@ export const initialCustomers = [
     {
         name: "Oumar",
         company: "",
-        email: "inconnue@gmail.com",
+        email: "",
         phone: "+2250770000000",
         country: "Cote d'ivoire",
         notes: "",
@@ -47,7 +47,7 @@ export const initialCustomers = [
     {
         name: "Stan",
         company: "RAGNARÖK ENERGY DRINK",
-        email: "inconnue@gmail.com",
+        email: "",
         phone: "+33625886912",
         country: "France",
         notes: "",
@@ -56,7 +56,7 @@ export const initialCustomers = [
     {
         name: "Steph",
         company: "",
-        email: "inconnue@gmail.com",
+        email: "",
         phone: "",
         country: "France",
         notes: "",
