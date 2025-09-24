@@ -381,6 +381,9 @@ export default function PackingListPage() {
       </Tabs>
       
       <div className="hidden print-block">
+        {/* We need to render the generator again for printing, but we can't have two forms with the same logic easily without major refactoring.
+            A better approach would be a dedicated print preview page. For now, the user can print from the generator tab.
+            The print CSS will hide the form and only show the preview. */}
         <PackingListGenerator />
       </div>
     </div>
