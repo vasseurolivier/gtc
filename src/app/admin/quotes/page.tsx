@@ -113,6 +113,16 @@ function QuotesPageContent() {
     form.setValue("totalAmount", totalAmount);
 
   }, [watchItems, watchTransportCost, watchCommissionRate, form]);
+  
+  useEffect(() => {
+    watchItems.forEach((item, index) => {
+        const newTotal = (item.quantity || 0) * (item.unitPrice || 0);
+        if (item.total !== newTotal) {
+            form.setValue(`items.${index}.total`, newTotal, { shouldDirty: true });
+        }
+    });
+  }, [watchItems, form]);
+
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -205,11 +215,13 @@ function QuotesPageContent() {
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
+        const quantity = form.getValues(`items.${index}.quantity`) || 1;
         update(index, {
             ...fields[index],
             sku: product.sku,
             description: product.name,
-            unitPrice: product.price
+            unitPrice: product.price,
+            total: quantity * product.price
         });
     }
   };
@@ -423,10 +435,10 @@ function QuotesPageContent() {
                     <div className="space-y-2">
                       {fields.map((field, index) => (
                         <div key={field.id} className="flex items-start gap-2">
-                          <div className="flex-grow">
+                          <div className="flex-grow space-y-2">
                              <Select onValueChange={(value) => handleProductSelect(value, index)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select a product or type manually" />
+                                    <SelectValue placeholder="Select a product (optional)" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {products.map(p => (
@@ -435,7 +447,7 @@ function QuotesPageContent() {
                                 </SelectContent>
                             </Select>
                             <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
-                                <FormItem className="mt-2"><FormControl><Input placeholder="Item description" {...f} /></FormControl><FormMessage/></FormItem>
+                                <FormItem><FormControl><Input placeholder="Or type item description manually" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
                           </div>
                             <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (
@@ -444,7 +456,7 @@ function QuotesPageContent() {
                             <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
                                 <FormItem className="w-28"><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>
                             )}/>
-                            <div className="w-28 pt-8 text-right font-medium">¥{(watchItems[index].quantity * watchItems[index].unitPrice).toFixed(2)}</div>
+                            <div className="w-28 pt-8 text-right font-medium">¥{watchItems[index].total.toFixed(2)}</div>
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
                         </div>
                       ))}
