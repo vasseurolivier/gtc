@@ -251,7 +251,7 @@ export default function FinancialReportPage() {
                     {formatCurrency(revenue)}
                 </div>
                 <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-red-500"><TrendingDown className="h-5 w-5"/><span>Cost of Goods Sold (COGS)</span></div>
+                    <div className="flex items-center gap-2 text-red-500"><TrendingDown className="h-5 w-5"/><span>Coût d'Achat des Marchandises Vendues (COGS)</span></div>
                     {formatCurrency(costOfGoodsSold)}
                 </div>
                 <Separator />
