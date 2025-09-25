@@ -112,7 +112,7 @@ body {
     display: block;
     box-shadow: none !important;
     border: none !important;
-    padding: 50px;
+    padding: 0 50px;
     margin: 0 !important;
     font-size: 10pt;
     background-color: transparent;
@@ -128,7 +128,7 @@ body {
     top: 0;
     left: 50px;
     right: 50px;
-    height: 80px;
+    height: 80px; /* Header height */
   }
   
   .print-footer {
@@ -136,12 +136,12 @@ body {
     bottom: 0;
     left: 50px;
     right: 50px;
-    height: 80px;
+    height: 80px; /* Footer height */
   }
 
   .print-body {
-    padding-top: 80px;
-    padding-bottom: 80px;
+    padding-top: 80px; /* Same as header height */
+    padding-bottom: 80px; /* Same as footer height */
   }
 
   thead {
