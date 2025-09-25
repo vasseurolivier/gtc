@@ -112,7 +112,7 @@ body {
     background-color: white !important;
   }
 
-  .print-table thead, .print-table tfoot {
+  .print-table thead {
     display: table-header-group;
   }
 
@@ -120,8 +120,28 @@ body {
     display: table-footer-group;
   }
 
+  .print-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 250px; /* Adjust based on your header's height */
+  }
+
+  .print-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px; /* Adjust based on your footer's height */
+  }
+  
   .print-header-spacer, .print-footer-spacer {
-      height: 150px;
+      display: block;
+  }
+
+  .print-header-spacer {
+      height: 250px;
   }
   .print-footer-spacer {
       height: 50px;
