@@ -9,7 +9,7 @@ export function AboutSection({ dictionary }: { dictionary: any }) {
   const aboutImage = PlaceHolderImages.find(p => p.id === 'about-home');
 
   return (
-    <section className="py-16 md:py-24 bg-secondary/30">
+    <section className="py-16 md:py-24 bg-card">
       <div className="container">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
