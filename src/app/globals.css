@@ -90,10 +90,15 @@ body {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background-color: white;
+    background-color: white !important;
   }
   
   .no-print {
@@ -120,21 +125,36 @@ body {
     display: table-footer-group;
   }
 
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+  }
+  
   .print-header-spacer {
-    /* Height of the header */
-    height: 350px; 
+    height: 260px; /* Adjust this value based on your actual header height */
   }
   
   .print-footer-spacer {
-    height: 50px;
+    height: 60px; /* Adjust this value based on your actual footer height */
   }
 
-}
-
-.print-content {
-  page-break-inside: auto;
-}
-.print-content tr {
-  page-break-inside: avoid;
-  page-break-after: auto;
+  .print-content {
+    page-break-inside: auto;
+  }
+  
+  .print-content tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
 }
