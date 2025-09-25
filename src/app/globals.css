@@ -117,12 +117,16 @@ body {
 
   thead {
       display: table-header-group;
-      break-after: auto;
+      break-inside: avoid;
   }
   
   tfoot {
       display: table-footer-group;
-      break-before: auto;
+      break-inside: avoid;
+  }
+
+  tbody {
+    break-inside: auto;
   }
 
   tr, td, th {

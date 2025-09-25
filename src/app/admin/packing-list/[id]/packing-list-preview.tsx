@@ -41,7 +41,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
             
             <div className="relative w-full">
                 <table className="w-full caption-bottom text-sm">
-                    <thead className="[&_tr]:border-b">
+                    <thead>
                         <tr>
                             <th colSpan={9} className="p-0">
                                 <div className="flex justify-between items-start pb-4 border-b">
@@ -53,10 +53,6 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                         <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
                                     </div>
                                 </div>
-                            </th>
-                        </tr>
-                        <tr>
-                            <th colSpan={9} className="p-0">
                                 <div className="my-8 text-left">
                                     <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                                 </div>
@@ -74,7 +70,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             <TableHead>Remarks</TableHead>
                         </TableRow>
                     </thead>
-                    <tbody className="[&_tr:last-child]:border-0">
+                    <tbody>
                         {packingList.items.map((item, index) => {
                             const totalCny = item.quantity * item.unitPriceCny;
                             const unitPriceConverted = item.unitPriceCny * exchangeRate;
@@ -98,29 +94,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             );
                         })}
                     </tbody>
-                    <tfoot className="border-t bg-muted/50 font-medium [&>tr]:last:border-b-0">
+                    <tfoot>
                         <tr>
                             <td colSpan={9} className="p-0">
-                                <div className="flex justify-end pt-4">
-                                    <div className="w-full md:w-1/2">
-                                        <table className="w-full">
-                                            <tbody className="[&_tr:last-child]:border-0">
-                                                <TableRow>
-                                                    <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
-                                                    <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
-                                                    <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
-                                                    <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
-                                                </TableRow>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
                                 <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
                                     <p className="font-bold">{companyInfo.name}</p>
                                     <p>{companyInfo.address}</p>
@@ -130,6 +106,27 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </tr>
                     </tfoot>
                 </table>
+
+                 <div className="flex justify-end pt-4">
+                    <div className="w-full md:w-1/2">
+                        <table className="w-full">
+                            <tbody className="[&_tr:last-child]:border-0">
+                                <TableRow>
+                                    <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
+                                    <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
+                                    <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
+                                    <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
+                                </TableRow>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     );

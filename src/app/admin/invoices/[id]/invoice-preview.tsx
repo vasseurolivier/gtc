@@ -40,7 +40,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
             
             <div className="relative w-full">
                 <table className="w-full caption-bottom text-sm">
-                    <thead className="[&_tr]:border-b">
+                    <thead>
                         <tr>
                             <th colSpan={5} className="p-0">
                                 <div className="flex justify-between items-start pb-4 border-b">
@@ -52,10 +52,6 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                         <p className="text-muted-foreground mt-1"># {invoice.invoiceNumber}</p>
                                     </div>
                                 </div>
-                            </th>
-                        </tr>
-                         <tr>
-                            <th colSpan={5} className="p-0">
                                 <div className="grid grid-cols-2 gap-8 my-8">
                                     <div>
                                         <h3 className="font-semibold mb-2 text-left">Bill To:</h3>
@@ -84,7 +80,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             <TableHead className="text-right">Total</TableHead>
                         </TableRow>
                     </thead>
-                    <tbody className="[&_tr:last-child]:border-0">
+                    <tbody>
                         {invoice.items.map((item, itemIndex) => {
                             const product = item.sku ? productsBySku.get(item.sku) : undefined;
                             return (
@@ -110,29 +106,9 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             )
                         })}
                     </tbody>
-                     <tfoot className="border-t bg-muted/50 font-medium [&>tr]:last:border-b-0">
+                     <tfoot>
                         <tr>
                             <td colSpan={5} className="p-0">
-                                <div className="flex justify-end pt-8">
-                                    <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
-                                        <div className="flex justify-between font-bold text-lg">
-                                            <span>TOTAL (CNY)</span>
-                                            <span className="text-right">¥{invoice.totalAmount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-lg text-primary">
-                                            <span>TOTAL ({currency.code})</span>
-                                            <span className="text-right">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Amount Paid</span>
-                                            <span className="font-medium text-right">¥{(invoice.amountPaid || 0).toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-destructive">
-                                            <span>Balance Due ({currency.code})</span>
-                                            <span className="text-right">{currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
                                     <p className="font-bold">{companyInfo.name}</p>
                                     <p>{companyInfo.address}</p>
@@ -142,6 +118,27 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                         </tr>
                     </tfoot>
                 </table>
+
+                 <div className="flex justify-end pt-8">
+                    <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                        <div className="flex justify-between font-bold text-lg">
+                            <span>TOTAL (CNY)</span>
+                            <span className="text-right">¥{invoice.totalAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg text-primary">
+                            <span>TOTAL ({currency.code})</span>
+                            <span className="text-right">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Amount Paid</span>
+                            <span className="font-medium text-right">¥{(invoice.amountPaid || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-destructive">
+                            <span>Balance Due ({currency.code})</span>
+                            <span className="text-right">{currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
