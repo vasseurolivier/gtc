@@ -92,13 +92,25 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm;
+    margin: 1.5cm; /* Augmente la marge pour laisser de la place au pied de page */
+    
+    @bottom-center {
+      content: element(footer);
+      vertical-align: bottom;
+    }
   }
 
   body {
     background-color: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  
+  .print-footer {
+    position: running(footer);
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 0.5rem;
+    font-size: 0.8rem;
   }
 
   main, .container {
@@ -123,23 +135,9 @@ body {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
-    min-height: 25cm; /* Roughly A4 height minus margins */
-    display: flex;
-    flex-direction: column;
+    min-height: initial; /* On retire la hauteur minimale qui peut causer des sauts de page */
   }
-  
-  .print-header {
-    flex-shrink: 0;
-  }
-  
-  .print-footer {
-    flex-shrink: 0;
-    border-top: 1px solid hsl(var(--border));
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    font-size: 0.8rem;
-  }
-  
+
   .signature-block {
     page-break-inside: avoid;
   }
@@ -147,5 +145,4 @@ body {
   .relative.w-full.overflow-auto {
     overflow: visible !important;
   }
-
 }

@@ -31,8 +31,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const subTotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
     return (
-        <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-card" id="invoice-content">
-            <div className="flex flex-col h-full">
+        <>
+            <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-card" id="invoice-content">
                 <header className="flex justify-between items-start mb-8 border-b pb-8 print-header">
                     <div>
                         {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
@@ -128,18 +128,16 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                     </div>
                 </main>
-                <footer className="mt-auto pt-8 print-footer">
-                    <div className="text-center">
-                        <h3 className="font-bold text-base">{companyInfo.name}</h3>
-                        <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
-                        <p className="text-sm text-muted-foreground">
-                            {companyInfo.phone && <span>{companyInfo.phone}</span>}
-                            {companyInfo.phone && companyInfo.email && <span> | </span>}
-                            {companyInfo.email && <span>{companyInfo.email}</span>}
-                        </p>
-                    </div>
-                </footer>
-            </div>
-        </Card>
+            </Card>
+            <footer className="print-footer text-center">
+                <h3 className="font-bold text-base">{companyInfo.name}</h3>
+                <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
+                <p className="text-sm text-muted-foreground">
+                    {companyInfo.phone && <span>{companyInfo.phone}</span>}
+                    {companyInfo.phone && companyInfo.email && <span> | </span>}
+                    {companyInfo.email && <span>{companyInfo.email}</span>}
+                </p>
+            </footer>
+        </>
     );
 }
