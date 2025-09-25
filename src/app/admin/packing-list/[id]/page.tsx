@@ -114,7 +114,7 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
     );
 }
 
-export default function PackingListViewPage({ params: pathParams }: { params: { id: string } }) {
+export default function PackingListViewPage() {
     const params = useParams();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
