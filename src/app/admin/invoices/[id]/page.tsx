@@ -1,4 +1,3 @@
-
 import { getInvoiceById, Invoice } from '@/actions/invoices';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, customer: Customer | null, products: Product[] }> {
     try {
@@ -26,8 +26,8 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 }
 
 
-export default async function InvoicePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function InvoicePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { invoice, customer, products } = await getInvoiceData(id);
 
     if (!invoice || !customer) {
@@ -60,12 +60,10 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
                 <PrintButton />
             </div>
             
-            <div className="print-content">
+            <div className="print-content main-content">
               <InvoicePreview invoice={invoice} customer={customer} products={products} />
             </div>
-            <footer className="print-footer" />
+            <PrintFooter />
         </div>
     );
 }
-
-    

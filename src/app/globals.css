@@ -113,21 +113,28 @@ body {
     box-shadow: none !important;
     border: none !important;
   }
-  
+
   .print-footer {
+    display: block !important;
     position: fixed;
     bottom: 0;
-    left: 1cm;
-    right: 1cm;
+    left: 0;
+    right: 0;
+    width: 100%;
     text-align: center;
+    padding: 0.5rem;
     font-size: 0.75rem;
-    color: hsl(var(--muted-foreground));
     border-top: 1px solid hsl(var(--border));
-    padding-top: 0.5rem;
+    background-color: hsl(var(--background));
+    color: hsl(var(--muted-foreground));
   }
   
   .print-content {
      page-break-after: always;
+  }
+  
+  .main-content {
+    margin-bottom: 50px; /* Adjust this value based on footer height */
   }
 
   .signature-block, table, tr, td, th {

@@ -16,6 +16,7 @@ import { Loader2, Printer, ArrowLeft } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import Link from 'next/link';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 function PackingListPreview({ packingList }: { packingList: PackingList }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -113,18 +114,15 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
     );
 }
 
-export default function PackingListViewPage({ params: promiseParams }: { params: Promise<{ id: string }> }) {
-    const [params, setParams] = useState<{ id: string } | null>(null);
+export default function PackingListViewPage({ params: pathParams }: { params: { id: string } }) {
+    const params = useParams();
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        promiseParams.then(setParams);
-    }, [promiseParams]);
-
-    useEffect(() => {
-        if (params) {
-            getPackingListById(params.id)
+        if (id) {
+            getPackingListById(id)
                 .then(data => {
                     setPackingList(data);
                 })
@@ -136,9 +134,9 @@ export default function PackingListViewPage({ params: promiseParams }: { params:
                     setIsLoading(false);
                 });
         }
-    }, [params]);
+    }, [id]);
 
-    if (isLoading || !params) {
+    if (isLoading) {
         return (
             <div className="container py-8">
                 <div className="flex h-screen items-center justify-center">
@@ -181,9 +179,10 @@ export default function PackingListViewPage({ params: promiseParams }: { params:
                 </Button>
             </div>
             
-            <div className="print-content">
+            <div className="print-content main-content">
               <PackingListPreview packingList={packingList} />
             </div>
+            <PrintFooter />
         </div>
     );
 }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer: Customer | null, products: Product[] }> {
     try {
@@ -26,8 +27,8 @@ async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer
 }
 
 
-export default async function QuotePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function QuotePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { quote, customer, products } = await getQuoteData(id);
 
     if (!quote || !customer) {
@@ -60,12 +61,10 @@ export default async function QuotePreviewPage({ params }: { params: Promise<{ i
                 <PrintButton />
             </div>
             
-            <div className="print-content">
+            <div className="print-content main-content">
                 <QuotePreview quote={quote} customer={customer} products={products} />
             </div>
-            <footer className="print-footer" />
+            <PrintFooter />
         </div>
     );
 }
-
-    
