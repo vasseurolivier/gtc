@@ -8,13 +8,21 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default async function ProductProfilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-    const { id } = await params;
-    const product = await getProductById(id);
+async function getProductData(id: string): Promise<Product | null> {
+    try {
+        const product = await getProductById(id);
+        return product;
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+}
+
+
+export default async function ProductProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+    const params = await paramsPromise;
+    const { id } = params;
+    const product = await getProductData(id);
 
     if (!product) {
         return (
@@ -34,8 +42,8 @@ export default async function ProductProfilePage({
         );
     }
     
-    const marginValue = product.price - (product.purchasePrice || 0);
-    const marginPercentage = product.price > 0 ? (marginValue / product.price) * 100 : 0;
+    const profitValue = product.price - (product.purchasePrice || 0);
+    const profitPercentage = product.price > 0 ? (profitValue / product.price) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
 
 
@@ -63,44 +71,46 @@ export default async function ProductProfilePage({
                            </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><DollarSign /> Pricing & Stock</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Selling Price (CNY)</span>
-                                <span className="font-semibold">¥{product.price.toFixed(2)}</span>
-                            </div>
-                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Purchase Price (CNY)</span>
-                                <span className="font-semibold">{product.purchasePrice ? `¥${product.purchasePrice.toFixed(2)}` : 'N/A'}</span>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Stock Quantity</span>
-                                <span className="font-semibold">{product.stock} units</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {hasPricingInfo && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><TrendingUp /> Margin</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><DollarSign /> Pricing & Stock</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Margin (CNY)</span>
-                                    <span className="font-semibold">¥{marginValue.toFixed(2)}</span>
+                                    <span className="text-muted-foreground">Selling Price (CNY)</span>
+                                    <span className="font-semibold">¥{product.price.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Margin (%)</span>
-                                    <span className="font-semibold">{marginPercentage.toFixed(2)}%</span>
+                                    <span className="text-muted-foreground">Purchase Price (CNY)</span>
+                                    <span className="font-semibold">{product.purchasePrice ? `¥${product.purchasePrice.toFixed(2)}` : 'N/A'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Stock Quantity</span>
+                                    <span className="font-semibold">{product.stock} units</span>
                                 </div>
                             </CardContent>
                         </Card>
-                    )}
+
+                        {hasPricingInfo && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><TrendingUp /> Bénéfice</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Bénéfice (CNY)</span>
+                                        <span className="font-semibold text-green-600">¥{profitValue.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Bénéfice (%)</span>
+                                        <span className="font-semibold text-green-600">{profitPercentage.toFixed(2)}%</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
 
                 </div>
                 <div className="lg:col-span-2 space-y-8">
@@ -161,5 +171,6 @@ export default async function ProductProfilePage({
         </div>
     );
 }
+
 
 
