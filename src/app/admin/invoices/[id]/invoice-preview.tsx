@@ -48,7 +48,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             <tr>
                                 <td>
                                     <div className="print-header-spacer"></div>
-                                    <header className="print-header">
+                                    <header className="print-header fixed top-0 left-0 right-0 p-8 bg-white">
                                         <div className="flex justify-between items-start mb-8 border-b pb-4">
                                             <div>
                                                 {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
