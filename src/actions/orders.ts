@@ -121,6 +121,8 @@ export async function getOrders(): Promise<Order[]> {
         orders.push({
           id: doc.id,
           ...data,
+          orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Order);
     });
 
@@ -141,11 +143,13 @@ export async function getOrderById(id: string): Promise<Order | null> {
             return null;
         }
 
-        const orderData = orderSnap.data();
+        const data = orderSnap.data();
 
         return {
             id: orderSnap.id,
-            ...orderData,
+            ...data,
+            orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Order;
 
     } catch (error) {

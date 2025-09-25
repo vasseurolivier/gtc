@@ -19,8 +19,7 @@ async function getProductData(id: string): Promise<Product | null> {
 }
 
 
-export default async function ProductProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
-    const params = await paramsPromise;
+export default async function ProductProfilePage({ params }: { params: { id: string } }) {
     const { id } = params;
     const product = await getProductData(id);
 
@@ -43,7 +42,7 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
     }
     
     const profitValue = product.price - (product.purchasePrice || 0);
-    const profitPercentage = product.price > 0 && (product.purchasePrice || 0) > 0 ? (profitValue / product.price) * 100 : 0;
+    const profitPercentage = product.price > 0 && (product.purchasePrice || 0) > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
 
 
@@ -94,7 +93,7 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
                         </Card>
 
                         {hasPricingInfo && (
-                            <Card>
+                             <Card>
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2"><TrendingUp /> Profit</CardTitle>
                                 </CardHeader>
@@ -175,5 +174,3 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
         </div>
     );
 }
-
-    

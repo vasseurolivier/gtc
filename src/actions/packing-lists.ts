@@ -94,13 +94,13 @@ export async function getPackingListById(id: string): Promise<PackingList | null
             return null;
         }
 
-        const listData = listSnap.data();
+        const data = listSnap.data();
 
         return {
             id: listSnap.id,
-            ...listData,
-            date: listData.date?.toDate().toISOString() || new Date().toISOString(),
-            createdAt: listData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            ...data,
+            date: data.date?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as PackingList;
 
     } catch (error) {

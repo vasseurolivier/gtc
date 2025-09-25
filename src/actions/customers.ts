@@ -32,7 +32,7 @@ export interface Customer {
     status?: "lead" | "active" | "inactive" | "prospect";
     source?: string;
     notes?: string;
-    createdAt: string; // Changed to string for serializability
+    createdAt: string;
     orders?: Order[];
     totalRevenue?: number;
 }
@@ -125,7 +125,7 @@ export async function getCustomers(): Promise<Customer[]> {
           country: data.country || '',
           status: data.status || 'lead',
           source: data.source || '',
-notes: data.notes || '',
+          notes: data.notes || '',
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Customer);
     });
@@ -167,13 +167,15 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
             }
         });
 
-        return {
+        const customer = {
             id: customerSnap.id,
             ...customerData,
             createdAt: customerData.createdAt?.toDate().toISOString() || new Date().toISOString(),
             orders,
             totalRevenue,
-        } as Customer;
+        } as unknown as Customer;
+
+        return customer;
 
     } catch (error) {
         console.error("Error fetching customer details:", error);

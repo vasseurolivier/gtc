@@ -163,6 +163,10 @@ export async function getInvoices(): Promise<Invoice[]> {
         invoices.push({
           id: doc.id,
           ...data,
+          issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
+          dueDate: data.dueDate?.toDate().toISOString() || new Date().toISOString(),
+          paymentDate: data.paymentDate?.toDate().toISOString() || undefined,
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice);
     });
 
@@ -182,11 +186,15 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
             return null;
         }
 
-        const invoiceData = invoiceSnap.data();
+        const data = invoiceSnap.data();
 
         return {
             id: invoiceSnap.id,
-            ...invoiceData,
+            ...data,
+            issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
+            dueDate: data.dueDate?.toDate().toISOString() || new Date().toISOString(),
+            paymentDate: data.paymentDate?.toDate().toISOString() || undefined,
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice;
 
     } catch (error) {

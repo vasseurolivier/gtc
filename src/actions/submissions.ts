@@ -55,7 +55,7 @@ export async function deleteSubmission(id: string) {
     try {
         await deleteDoc(doc(db, 'contactSubmissions', id));
         return { success: true, message: 'Message deleted successfully!' };
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Error deleting submission ${id}:`, error);
         return { success: false, message: 'An unexpected error occurred.' };
     }

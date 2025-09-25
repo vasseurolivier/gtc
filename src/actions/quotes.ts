@@ -115,7 +115,10 @@ export async function getQuotes(): Promise<Quote[]> {
         const data = doc.data();
         quotes.push({
           id: doc.id,
-          ...data
+          ...data,
+          issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
+          validUntil: data.validUntil?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Quote);
     });
 
@@ -135,14 +138,14 @@ export async function getQuoteById(id: string): Promise<Quote | null> {
             return null;
         }
 
-        const quoteData = quoteSnap.data();
+        const data = quoteSnap.data();
 
         return {
             id: quoteSnap.id,
-            ...quoteData,
-            issueDate: quoteData.issueDate?.toDate().toISOString() || new Date().toISOString(),
-            validUntil: quoteData.validUntil?.toDate().toISOString() || new Date().toISOString(),
-            createdAt: quoteData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            ...data,
+            issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
+            validUntil: data.validUntil?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Quote;
 
     } catch (error) {
@@ -171,8 +174,8 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         if (!quoteSnap.exists()) {
             return { success: false, message: 'Proforma not found.' };
         }
-        const quote = { id: quoteSnap.id, ...quoteSnap.data(), issueDate: quoteSnap.data().issueDate.toDate().toISOString() } as Quote;
-        const previousStatus = quote.status;
+        const quoteData = quoteSnap.data();
+        const previousStatus = quoteData.status;
 
         await updateDoc(quoteRef, { status: validatedStatus });
         
@@ -184,7 +187,7 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
                 if (orderResult.success && orderResult.id) {
                      await addInvoiceFromOrder({
                         ...fullQuote,
-                        orderId: orderResult.id,
+                        id: orderResult.id, // The ID of the newly created order
                         orderNumber: `O-${fullQuote.quoteNumber.replace('PI-', '')}`,
                      } as any);
                 }
@@ -200,4 +203,3 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
-

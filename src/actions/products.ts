@@ -118,12 +118,12 @@ export async function getProductById(id: string): Promise<Product | null> {
             return null;
         }
 
-        const productData = productSnap.data();
+        const data = productSnap.data();
 
         return {
             id: productSnap.id,
-            ...productData,
-            createdAt: productData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Product;
 
     } catch (error) {
@@ -141,5 +141,3 @@ export async function deleteProduct(id: string) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
-
-    
