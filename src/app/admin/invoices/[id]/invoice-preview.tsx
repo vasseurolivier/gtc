@@ -50,10 +50,17 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                         </div>
                         <div className="text-right">
-                            <h1 className="text-2xl font-bold text-primary">INVOICE</h1>
+                            <h1 className="text-2xl font-bold text-red-500">INVOICE</h1>
                             <p className="mt-1"># {invoice.invoiceNumber}</p>
                         </div>
                     </div>
+                </header>
+                
+                <footer className="print-footer">
+                    <CompanyInfoFooter />
+                </footer>
+                
+                <div className="print-body">
                     <div className="grid grid-cols-2 gap-8 my-8">
                         <div>
                             <h3 className="font-semibold mb-2">Bill To:</h3>
@@ -72,16 +79,9 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </div>
                         </div>
                     </div>
-                </header>
-                
-                <footer className="print-footer">
-                    <CompanyInfoFooter />
-                </footer>
-                
-                <div className="print-body">
                     <table className="w-full">
                         <thead>
-                            <tr className="text-left">
+                            <tr className="text-left bg-muted/30">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>
                                 <th className="text-right p-2">Quantity</th>
@@ -94,7 +94,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             {invoice.items.map((item, itemIndex) => {
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
-                                    <tr key={itemIndex}>
+                                    <tr key={itemIndex} className="border-b">
                                         <td className="p-2 align-top">
                                             {product?.imageUrl && (
                                                 <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">

@@ -11,8 +11,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
-import { CompanyInfoProvider } from '@/context/company-info-context';
-import { CurrencyProvider } from '@/context/currency-context';
 
 export default function QuotePreviewPage() {
     const params = useParams();
@@ -89,21 +87,17 @@ export default function QuotePreviewPage() {
     const { quote, customer, products } = data;
 
     return (
-      <CompanyInfoProvider>
-        <CurrencyProvider>
-          <div className="container py-8 bg-muted/20 printable-area">
-              <div className="flex justify-between items-center mb-8 no-print">
-                  <Button variant="ghost" asChild>
-                      <Link href="/admin/quotes">
-                          <ArrowLeft className="mr-2 h-4 w-4" />
-                          Back to Proforma Invoices
-                      </Link>
-                  </Button>
-              </div>
-              
-              <QuotePreview quote={quote} customer={customer} products={products} logo={logo} />
+      <div className="container py-8 bg-muted/20 printable-area">
+          <div className="flex justify-between items-center mb-8 no-print">
+              <Button variant="ghost" asChild>
+                  <Link href="/admin/quotes">
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back to Proforma Invoices
+                  </Link>
+              </Button>
           </div>
-        </CurrencyProvider>
-      </CompanyInfoProvider>
+          
+          <QuotePreview quote={quote} customer={customer} products={products} logo={logo} />
+      </div>
     );
 }

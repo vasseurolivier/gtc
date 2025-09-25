@@ -51,12 +51,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                         </div>
                         <div className="text-right">
-                            <h1 className="text-2xl font-bold text-primary">PACKING LIST</h1>
+                            <h1 className="text-2xl font-bold text-red-500">PACKING LIST</h1>
                             <p className="mt-1"># {packingList.listId}</p>
                         </div>
-                    </div>
-                     <div className="my-8 text-left">
-                        <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                     </div>
                 </header>
 
@@ -65,9 +62,12 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </footer>
                 
                 <div className="print-body">
+                    <div className="my-8 text-left">
+                        <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
+                    </div>
                     <table className="w-full">
                         <thead>
-                            <tr className="text-left">
+                            <tr className="text-left bg-muted/30">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>
                                 <th className="p-2">Description</th>
@@ -86,7 +86,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                 const unitPriceConverted = item.unitPriceCny * exchangeRate;
                                 const totalConverted = totalCny * exchangeRate;
                                 return (
-                                    <tr key={index}>
+                                    <tr key={index} className="border-b">
                                         <td className="p-2 align-top">{item.sku}</td>
                                         <td className="p-2 align-top">
                                             {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">

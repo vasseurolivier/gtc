@@ -14,9 +14,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
-import { CompanyInfoProvider } from '@/context/company-info-context';
-import { CurrencyProvider } from '@/context/currency-context';
-
 
 export default function InvoicePreviewPage() {
     const params = useParams();
@@ -94,21 +91,17 @@ export default function InvoicePreviewPage() {
     const { invoice, customer, products } = data;
 
     return (
-      <CompanyInfoProvider>
-        <CurrencyProvider>
-          <div className="container py-8 bg-muted/20 printable-area">
-              <div className="flex justify-between items-center mb-8 no-print">
-                  <Button variant="ghost" asChild>
-                      <Link href="/admin/invoices">
-                          <ArrowLeft className="mr-2 h-4 w-4" />
-                          Back to Invoices
-                      </Link>
-                  </Button>
-              </div>
-              
-              <InvoicePreview invoice={invoice} customer={customer} products={products} logo={logo} />
+      <div className="container py-8 bg-muted/20 printable-area">
+          <div className="flex justify-between items-center mb-8 no-print">
+              <Button variant="ghost" asChild>
+                  <Link href="/admin/invoices">
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back to Invoices
+                  </Link>
+              </Button>
           </div>
-        </CurrencyProvider>
-      </CompanyInfoProvider>
+          
+          <InvoicePreview invoice={invoice} customer={customer} products={products} logo={logo} />
+      </div>
     );
 }

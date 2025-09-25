@@ -21,7 +21,7 @@ body {
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0 84% 60%;
+    --accent: 0 84.2% 60.2%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 0;
   }
 
   body.printing {
@@ -115,31 +115,46 @@ body {
     font-size: 10pt;
     width: 100%;
   }
+
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    padding: 1.5cm;
+    padding-bottom: 1rem;
+    z-index: 10;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    padding: 1.5cm;
+    padding-top: 1rem;
+    z-index: 10;
+  }
+
+  .print-body {
+    margin-top: 100px;
+    margin-bottom: 80px;
+    padding: 0 1.5cm;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
   
   .print-document * {
     color: #000 !important;
     border-color: #ccc !important;
   }
-
-  .print-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .print-table thead {
-    display: table-header-group;
-  }
-
-  .print-table tfoot {
-    display: table-footer-group;
-  }
-  
-  .print-table tr {
-    page-break-inside: avoid;
-  }
-  
-  .print-header-spacer, .print-footer-spacer {
-    height: 120px; /* Adjust height based on your header/footer */
-  }
-
 }
