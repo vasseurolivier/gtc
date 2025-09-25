@@ -15,8 +15,8 @@ body {
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 204 80% 58%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 84.2% 60.2%;
+    --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -51,8 +51,8 @@ body {
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 204 80% 58%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 84.2% 60.2%;
+    --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -93,40 +93,23 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 0;
+    margin: 1.5cm;
   }
 
-  body, body.printing .printable-area {
+  body, body.printing {
     background-color: #fff !important;
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+  
+  body *, body.printing * {
+    color: #000 !important;
+    background-color: transparent !important;
+  }
 
   .no-print {
     display: none !important;
-  }
-  
-  .print-header {
-      position: fixed;
-      top: 0;
-      left: 1.5cm;
-      right: 1.5cm;
-      height: 100px;
-  }
-
-  .print-footer {
-      position: fixed;
-      bottom: 0;
-      left: 1.5cm;
-      right: 1.5cm;
-      height: 80px;
-  }
-  
-  .print-body {
-    padding-top: 100px; /* Space for header */
-    padding-bottom: 80px; /* Space for footer */
-    margin: 0 1.5cm;
   }
   
   .print-document {
@@ -138,14 +121,28 @@ body {
     margin: 0 !important;
     font-size: 10pt;
     background-color: #fff !important;
-    color: #000 !important;
+  }
+
+  .print-header, .print-footer {
+    position: fixed;
+    left: 1.5cm;
+    right: 1.5cm;
+    width: auto;
   }
   
-   .print-document, .print-document * {
-    color: #000 !important;
-    background-color: #fff !important;
+  .print-header {
+      top: 0;
+  }
+
+  .print-footer {
+      bottom: 0;
   }
   
+  .print-body {
+    padding-top: 110px; /* Space for header */
+    padding-bottom: 90px; /* Space for footer */
+  }
+
   table {
     page-break-inside: auto;
   }
