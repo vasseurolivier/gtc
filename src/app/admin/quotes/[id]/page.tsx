@@ -87,7 +87,7 @@ export default function QuotePreviewPage() {
     const { quote, customer, products } = data;
 
     return (
-      <div className="container py-8 bg-muted/20 printable-area">
+      <div className="container py-8 printable-area">
           <div className="flex justify-between items-center mb-8 no-print">
               <Button variant="ghost" asChild>
                   <Link href="/admin/quotes">
