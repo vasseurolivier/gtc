@@ -17,11 +17,11 @@ export function PrintFooter() {
     return (
         <footer className="print-footer hidden">
             <div className="text-xs">
-                <span>{companyInfo.name}</span> | 
-                <span> {companyInfo.address}</span> | 
-                <span> Email: {companyInfo.email}</span> | 
-                <span> Phone: {companyInfo.phone}</span>
+                <div className="font-bold">{companyInfo.name}</div>
+                <div>{companyInfo.address}</div>
+                <div>Email: {companyInfo.email} | Phone: {companyInfo.phone}</div>
             </div>
         </footer>
     );
 }
+
