@@ -83,8 +83,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         </div>
                     </div>
                     <table className="w-full">
-                        <thead className="border-b-2 border-t-2">
-                            <tr className="text-left">
+                        <thead>
+                            <tr className="text-left border-b-2 border-t-2">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>
                                 <th className="text-right p-2">Quantity</th>
@@ -97,7 +97,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             {quote.items.map((item, itemIndex) => {
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
-                                    <tr key={itemIndex} className="border-b" style={{ pageBreakInside: 'avoid', height: '80px' }}>
+                                    <tr key={itemIndex} className="border-b" style={{ height: '80px' }}>
                                         <td className="p-2 align-top">
                                             {product?.imageUrl && (
                                                 <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -121,7 +121,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         </tbody>
                     </table>
                     
-                    <div className="flex justify-end pt-8" style={{ pageBreakInside: 'avoid' }}>
+                    <div className="flex justify-end pt-8">
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
@@ -153,7 +153,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
 
                     {quote.notes && 
-                        <div className="mt-8 text-left border-t pt-4" style={{ pageBreakInside: 'avoid' }}>
+                        <div className="mt-8 text-left border-t pt-4">
                             <h3 className="font-semibold mb-2">Notes:</h3>
                             <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
                         </div>

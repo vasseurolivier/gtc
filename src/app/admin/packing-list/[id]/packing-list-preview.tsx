@@ -67,8 +67,8 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                     </div>
                     <table className="w-full">
-                        <thead className="border-b-2 border-t-2">
-                            <tr className="text-left">
+                        <thead>
+                            <tr className="text-left border-b-2 border-t-2">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>
                                 <th className="p-2">Description</th>
@@ -87,7 +87,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                 const unitPriceConverted = item.unitPriceCny * exchangeRate;
                                 const totalConverted = totalCny * exchangeRate;
                                 return (
-                                    <tr key={index} className="border-b" style={{ pageBreakInside: 'avoid', height: '80px' }}>
+                                    <tr key={index} className="border-b" style={{ height: '80px' }}>
                                         <td className="p-2 align-top">{item.sku}</td>
                                         <td className="p-2 align-top">
                                             {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
@@ -107,7 +107,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </tbody>
                     </table>
 
-                     <div className="flex justify-end pt-4" style={{ pageBreakInside: 'avoid' }}>
+                     <div className="flex justify-end pt-4">
                         <div className="w-full md:w-1/2">
                             <table className="w-full">
                                 <tbody>
