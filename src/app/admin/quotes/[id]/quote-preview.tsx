@@ -40,50 +40,50 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             
              <Table>
                 <thead>
-                    <tr>
+                    <tr className="print-header">
                         <th colSpan={4} className="p-0">
-                           <div className="print-header">
-                                <div className="flex justify-between items-start pb-4 border-b">
-                                    <div>
-                                        {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
-                                    </div>
-                                    <div className="text-right">
-                                        <h1 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h1>
-                                        <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
-                                    </div>
+                           <div className="flex justify-between items-start pb-4 border-b">
+                                <div>
+                                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
                                 </div>
-                                <div className="grid grid-cols-2 gap-8 my-8">
-                                    <div>
-                                        <h3 className="font-semibold mb-2">Bill To:</h3>
-                                        <p className="font-bold">{customer?.name}</p>
-                                        <p className="text-muted-foreground">{customer?.company}</p>
-                                        <p className="text-muted-foreground">{customer?.email}</p>
-                                        <p className="text-muted-foreground">{quote.shippingAddress}</p>
+                                <div className="text-right">
+                                    <h1 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h1>
+                                    <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                    <tr className="print-header">
+                        <th colSpan={4} className="p-0">
+                            <div className="grid grid-cols-2 gap-8 my-8">
+                                <div>
+                                    <h3 className="font-semibold mb-2 text-left">Bill To:</h3>
+                                    <p className="font-bold text-left">{customer?.name}</p>
+                                    <p className="text-muted-foreground text-left">{customer?.company}</p>
+                                    <p className="text-muted-foreground text-left">{customer?.email}</p>
+                                    <p className="text-muted-foreground text-left">{quote.shippingAddress}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="grid grid-cols-2">
+                                        <span className="font-semibold">Issue Date:</span>
+                                        <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="grid grid-cols-2">
-                                            <span className="font-semibold">Issue Date:</span>
-                                            <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 mt-1">
-                                            <span className="font-semibold">Valid Until:</span>
-                                            <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
-                                        </div>
+                                    <div className="grid grid-cols-2 mt-1">
+                                        <span className="font-semibold">Valid Until:</span>
+                                        <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
                                     </div>
                                 </div>
                             </div>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-1/2">Description</TableHead>
-                                    <TableHead className="text-right">Quantity</TableHead>
-                                    <TableHead className="text-right">Unit Price</TableHead>
-                                    <TableHead className="text-right">Total</TableHead>
-                                </TableRow>
-                            </TableHeader>
                         </th>
                     </tr>
+                    <tr>
+                        <TableHead className="w-1/2">Description</TableHead>
+                        <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Unit Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                    </tr>
                 </thead>
-                <TableBody className="print-body">
+                <tbody className="print-body">
                     {quote.items.map((item, itemIndex) => {
                         const product = item.sku ? productsBySku.get(item.sku) : undefined;
                         return (
@@ -110,52 +110,54 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </TableRow>
                         )
                     })}
-                </TableBody>
+                </tbody>
                  <tfoot>
-                    <tr>
+                    <tr className="print-footer">
                         <td colSpan={4} className="p-0">
-                            <div className="print-footer">
-                                <div className="flex justify-end pt-8">
-                                    <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                            <div className="flex justify-end pt-8">
+                                <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Subtotal</span>
+                                        <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
+                                    </div>
+                                    {(quote.transportCost && quote.transportCost > 0) && (
                                         <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Subtotal</span>
-                                            <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
+                                            <span className="text-muted-foreground">Transport Cost</span>
+                                            <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
                                         </div>
-                                        {(quote.transportCost && quote.transportCost > 0) && (
+                                    )}
+                                    {(quote.commissionRate && quote.commissionRate > 0) && (
+                                        <>
                                             <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Transport Cost</span>
-                                                <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
+                                                <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
+                                                <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
                                             </div>
-                                        )}
-                                        {(quote.commissionRate && quote.commissionRate > 0) && (
-                                            <>
-                                                <div className="flex justify-between">
-                                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                                    <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
-                                                </div>
-                                            </>
-                                        )}
-                                        <div className="flex justify-between font-bold text-lg">
-                                            <span>TOTAL (CNY)</span>
-                                            <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-lg text-primary">
-                                            <span>TOTAL ({currency.code})</span>
-                                            <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
-                                        </div>
+                                        </>
+                                    )}
+                                    <div className="flex justify-between font-bold text-lg">
+                                        <span>TOTAL (CNY)</span>
+                                        <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-lg text-primary">
+                                        <span>TOTAL ({currency.code})</span>
+                                        <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
                                     </div>
                                 </div>
-                                {quote.notes && 
-                                    <div className="mt-8 text-left">
-                                        <h3 className="font-semibold mb-2">Notes:</h3>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
-                                    </div>
-                                }
-                                <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-                                    <p className="font-bold">{companyInfo.name}</p>
-                                    <p>{companyInfo.address}</p>
-                                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+                            </div>
+                             {quote.notes && 
+                                <div className="mt-8 text-left">
+                                    <h3 className="font-semibold mb-2">Notes:</h3>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
                                 </div>
+                            }
+                        </td>
+                    </tr>
+                    <tr className="print-footer">
+                         <td colSpan={4} className="p-0">
+                           <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+                                <p className="font-bold">{companyInfo.name}</p>
+                                <p>{companyInfo.address}</p>
+                                <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
                             </div>
                         </td>
                     </tr>
