@@ -33,7 +33,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
     };
 
     return (
-        <main className="w-full max-w-4xl mx-auto">
+        <main className="w-full mx-auto">
              <div className="p-8 no-print flex justify-end">
                 <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
@@ -41,7 +41,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                 </Button>
             </div>
 
-            <div className="print-document bg-white rounded-lg shadow-lg p-8">
+            <div className="print-document bg-white rounded-lg shadow-lg">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
                         <div className="w-1/3 flex justify-center">
@@ -56,8 +56,6 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                         </div>
                     </div>
                 </header>
-                
-                <CompanyInfoFooter />
                 
                 <div className="print-body">
                     <div className="grid grid-cols-2 gap-8 my-8">
@@ -80,9 +78,6 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                     </div>
                     <table className="w-full">
                         <thead>
-                            <tr>
-                                <td style={{ height: '10px' }} colSpan={5}></td>
-                            </tr>
                             <tr className="text-left border-b-2 border-t-2">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>
@@ -141,6 +136,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                         </div>
                     </div>
                 </div>
+                <CompanyInfoFooter />
             </div>
         </main>
     );

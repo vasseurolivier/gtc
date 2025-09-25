@@ -34,7 +34,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
     };
 
     return (
-        <main className="w-full max-w-4xl mx-auto">
+        <main className="w-full mx-auto">
              <div className="p-8 no-print flex justify-end">
                 <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
@@ -42,7 +42,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </Button>
             </div>
             
-            <div className="print-document bg-white rounded-lg shadow-lg p-8">
+            <div className="print-document bg-white rounded-lg shadow-lg">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
                         <div className="w-1/3 flex justify-center">
@@ -57,8 +57,6 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </div>
                     </div>
                 </header>
-
-                <CompanyInfoFooter />
                 
                 <div className="print-body">
                     <div className="my-8 text-left">
@@ -66,9 +64,6 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                     <table className="w-full">
                         <thead>
-                             <tr>
-                                <td style={{ height: '10px' }} colSpan={9}></td>
-                            </tr>
                             <tr className="text-left border-b-2 border-t-2">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>
@@ -129,6 +124,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </div>
                     </div>
                 </div>
+                <CompanyInfoFooter />
             </div>
         </main>
     );

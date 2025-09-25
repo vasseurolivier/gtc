@@ -93,21 +93,18 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 100px 50px 80px;
-
-    @top-center {
-      content: element(print-header);
-    }
-    @bottom-center {
-      content: element(print-footer);
-    }
+    margin: 0;
   }
 
-  body, .printable-area {
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: transparent !important;
-    color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  }
+  
+  .printable-area {
     margin: 0;
     padding: 0;
   }
@@ -117,37 +114,46 @@ body {
   }
   
   .print-document {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    width: 100%;
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important;
+    padding: 50px;
     margin: 0 !important;
     font-size: 10pt;
-    width: 100%;
     background-color: transparent;
+    page-break-after: always;
   }
-  
+
   .print-document * {
     color: #000 !important;
     border-color: #ccc !important;
   }
-  
-  .print-header {
-    position: running(print-header);
+
+  .print-header, .print-footer {
+    flex-shrink: 0;
   }
 
-  .print-footer {
-    position: running(print-footer);
+  .print-body {
+    flex-grow: 1;
+  }
+
+  .print-header {
+    page-break-before: always;
+  }
+  
+  .print-document:first-child .print-header {
+    page-break-before: auto;
   }
 
   thead {
     display: table-header-group;
   }
   
-  tr {
+  tr, table, tbody, thead {
     page-break-inside: avoid;
-  }
-  
-  tfoot {
-    display: table-footer-group;
   }
 }
