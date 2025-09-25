@@ -6,7 +6,7 @@ import type { Product } from '@/actions/products';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -39,9 +39,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             </div>
             
             <Table>
-                <thead>
-                    <tr className="print-header">
-                        <th colSpan={4} className="p-0">
+                <thead className="print-header">
+                    <tr>
+                        <th colSpan={5} className="p-0">
                             <div className="flex justify-between items-start pb-4 border-b">
                                 <div>
                                     {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
@@ -53,8 +53,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                         </th>
                     </tr>
-                    <tr className="print-header">
-                        <th colSpan={4} className="p-0">
+                    <tr>
+                        <th colSpan={5} className="p-0">
                              <div className="grid grid-cols-2 gap-8 my-8">
                                 <div>
                                     <h3 className="font-semibold mb-2 text-left">Bill To:</h3>
@@ -76,6 +76,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </th>
                     </tr>
                     <tr>
+                        <TableHead className="w-16">Photo</TableHead>
                         <TableHead className="w-1/2">Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit Price</TableHead>
@@ -87,15 +88,15 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         const product = item.sku ? productsBySku.get(item.sku) : undefined;
                         return (
                             <TableRow key={itemIndex}>
+                                <TableCell>
+                                    {product?.imageUrl && (
+                                        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                            <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
+                                        </div>
+                                    )}
+                                </TableCell>
                                 <TableCell className="w-1/2">
-                                    <div className="flex items-center gap-4">
-                                        {product?.imageUrl && (
-                                            <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 no-print">
-                                                <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
-                                            </div>
-                                        )}
-                                        <div>{item.description}</div>
-                                    </div>
+                                    <div>{item.description}</div>
                                 </TableCell>
                                 <TableCell className="text-right">{item.quantity}</TableCell>
                                 <TableCell className="text-right">
@@ -110,9 +111,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         )
                     })}
                 </tbody>
-                <tfoot>
-                    <tr className="print-footer">
-                        <td colSpan={4} className="p-0">
+                <tfoot className="print-footer">
+                    <tr>
+                        <td colSpan={5} className="p-0">
                             <div className="flex justify-end pt-8">
                                 <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                                     <div className="flex justify-between">
@@ -139,8 +140,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                         </td>
                     </tr>
-                    <tr className="print-footer">
-                        <td colSpan={4} className="p-0">
+                    <tr>
+                        <td colSpan={5} className="p-0">
                            <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
                                 <p className="font-bold">{companyInfo.name}</p>
                                 <p>{companyInfo.address}</p>

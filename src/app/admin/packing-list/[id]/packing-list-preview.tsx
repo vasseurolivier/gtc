@@ -39,8 +39,8 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
             </div>
             
             <Table>
-                <thead>
-                    <tr className="print-header">
+                <thead className="print-header">
+                    <tr>
                         <th colSpan={9} className="p-0">
                             <div className="flex justify-between items-start pb-4 border-b">
                                 <div>
@@ -53,7 +53,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                             </div>
                         </th>
                     </tr>
-                    <tr className="print-header">
+                    <tr>
                         <th colSpan={9} className="p-0">
                              <div className="my-8 text-left">
                                 <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
@@ -62,7 +62,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </tr>
                     <tr>
                         <TableHead>SKU</TableHead>
-                        <TableHead className="w-16 no-print">Photo</TableHead>
+                        <TableHead className="w-16">Photo</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit Price (CNY)</TableHead>
@@ -80,7 +80,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         return (
                             <TableRow key={index}>
                                 <TableCell>{item.sku}</TableCell>
-                                <TableCell className="w-16 no-print">
+                                <TableCell className="w-16">
                                     {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                                         <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
                                     </div>}
@@ -96,8 +96,8 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         );
                     })}
                 </tbody>
-                <tfoot>
-                     <tr className="print-footer">
+                <tfoot className="print-footer">
+                     <tr>
                         <td colSpan={9} className="p-0">
                             <div className="flex justify-end pt-4">
                                 <div className="w-full md:w-1/2">
@@ -121,7 +121,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                             </div>
                         </td>
                     </tr>
-                    <tr className="print-footer">
+                    <tr>
                          <td colSpan={9} className="p-0">
                             <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
                                 <p className="font-bold">{companyInfo.name}</p>
