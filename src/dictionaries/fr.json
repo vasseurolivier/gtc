@@ -54,7 +54,7 @@
   },
   "aboutSection": {
     "title": "Votre Partenaire de Confiance en Chine",
-    "p1": "Fondée sur les principes de confiance et d'efficacité, Yiwu Huangqing Trading est plus qu'une société de négoce. Nous sommes vos yeux et vos oreilles sur le terrain, dédiés à simplifier les complexités du commerce international.",
+    "p1": "Fondée sur les principes de confiance et d'efficacité, Global Trading China est plus qu'une société de négoce. Nous sommes vos yeux et vos oreilles sur le terrain, dédiés à simplifier les complexités du commerce international.",
     "p2": "Notre mission est de connecter les entreprises du monde entier aux vastes opportunités de la Chine, en offrant une expertise locale, un contrôle qualité rigoureux et une communication transparente à chaque étape.",
     "button": "En savoir plus sur nous"
   },
@@ -133,7 +133,7 @@
     },
     "aboutUs": {
       "title": "Qui Sommes-Nous ?",
-      "p1": "Yiwu Huangqing Trading est née de la conviction que l'accès au marché chinois, vaste et complexe, devrait être simple et sécurisé pour toute entreprise, quelle que soit sa taille. Fondée par des experts du commerce international avec des années d'expérience sur le terrain, notre société sert de pont entre les ambitions des entrepreneurs mondiaux et l'incroyable potentiel de production de la Chine.",
+      "p1": "Global Trading China est née de la conviction que l'accès au marché chinois, vaste et complexe, devrait être simple et sécurisé pour toute entreprise, quelle que soit sa taille. Fondée par des experts du commerce international avec des années d'expérience sur le terrain, notre société sert de pont entre les ambitions des entrepreneurs mondiaux et l'incroyable potentiel de production de la Chine.",
       "p2": "Nous ne sont pas de simples intermédiaires. Nous sommes une extension de votre équipe, vos yeux et vos oreilles en Chine. Notre mission est de défendre vos intérêts, de garantir la qualité de vos produits et d'optimiser votre chaîne d'approvisionnement pour une croissance durable."
     },
     "values": {
@@ -512,8 +512,8 @@
     "title": "Mentions Légales",
     "section1": {
       "title": "Éditeur du Site",
-      "p1": "Ce site est édité par la société Yiwu Huangqing Trading Co. LTD.",
-      "item1": { "label": "Raison Sociale :", "value": "Yiwu Huangqing Trading Co. LTD" },
+      "p1": "Ce site est édité par la société Global Trading China.",
+      "item1": { "label": "Raison Sociale :", "value": "Global Trading China" },
       "item2": { "label": "Adresse :", "value": "浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501" },
       "item3": { "label": "Email :", "value": "info@globaltradingchina.com" }
     },
@@ -523,7 +523,7 @@
     },
     "section3": {
       "title": "Propriété Intellectuelle",
-      "p1": "Tout le contenu présent sur le site, incluant, de façon non limitative, les graphismes, images, textes, vidéos, animations, sons, logos, gifs et icônes ainsi que leur mise en forme sont la propriété exclusive de la société Yiwu Huangqing Trading Co. LTD à l'exception des marques, logos ou contenus appartenant à d'autres sociétés partenaires ou auteurs."
+      "p1": "Tout le contenu présent sur le site, incluant, de façon non limitative, les graphismes, images, textes, vidéos, animations, sons, logos, gifs et icônes ainsi que leur mise en forme sont la propriété exclusive de la société Global Trading China à l'exception des marques, logos ou contenus appartenant à d'autres sociétés partenaires ou auteurs."
     },
     "section4": {
       "title": "Responsabilité",
@@ -573,3 +573,5 @@
     }
   }
 }
+
+    

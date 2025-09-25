@@ -1,3 +1,4 @@
+
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
 
@@ -9,7 +10,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
                 <Globe className="h-7 w-7 text-primary" />
-                <h3 className="text-xl font-headline font-semibold">Yiwu Huangqing Trading Co. LTD</h3>
+                <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>
           </div>
@@ -49,7 +50,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <div>© 2023 Yiwu Huangqing Trading Co. LTD. {dictionary.rightsReserved}</div>
+          <div>© 2023 Global Trading China. {dictionary.rightsReserved}</div>
         </div>
       </div>
     </footer>
@@ -57,4 +58,6 @@ export function Footer({ dictionary }: { dictionary: any }) {
 }
 
     
+    
+
     
