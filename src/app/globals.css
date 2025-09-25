@@ -93,7 +93,14 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm;
+    margin: 2.5cm 1cm 2cm 1cm;
+
+    @top-center {
+      content: element(print-header);
+    }
+    @bottom-center {
+      content: element(print-footer);
+    }
   }
 
   body.printing {
@@ -131,37 +138,15 @@ body {
   }
   
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 1cm;
-    right: 1cm;
-    height: 80px;
-    background-color: white;
-    z-index: 10;
+    position: running(print-header);
   }
 
   .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 1cm;
-    right: 1cm;
-    height: 50px;
-    background-color: white;
-    z-index: 10;
-  }
-
-  .print-body {
-    padding: 0; /* Let the table header spacer handle the top margin */
+    position: running(print-footer);
   }
 
   thead {
     display: table-header-group;
-  }
-
-  .print-header-spacer {
-    display: table-row; /* This should be part of the thead to be repeated */
-    height: 90px;
-    visibility: hidden;
   }
   
   tbody {
@@ -170,7 +155,6 @@ body {
 
   tr {
     page-break-inside: avoid;
-    page-break-after: auto;
   }
   
   tfoot {

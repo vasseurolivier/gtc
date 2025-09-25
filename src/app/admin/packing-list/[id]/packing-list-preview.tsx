@@ -34,17 +34,15 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
     };
 
     return (
-        <main className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-auto">
-             <div className="p-8 no-print">
-                <div className="flex justify-end mb-4">
-                    <Button onClick={handlePrint}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Export to PDF
-                    </Button>
-                </div>
+        <main className="w-full max-w-4xl mx-auto">
+             <div className="p-8 no-print flex justify-end">
+                <Button onClick={handlePrint}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Export to PDF
+                </Button>
             </div>
             
-            <div className="print-document p-8">
+            <div className="print-document bg-white rounded-lg shadow-lg p-8">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
                         <div className="w-1/3 flex justify-center">
@@ -64,13 +62,12 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     <CompanyInfoFooter />
                 </footer>
                 
-                <div className="print-body">
+                <div>
                     <div className="my-8 text-left">
                         <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                     </div>
                     <table className="w-full">
                         <thead className="border-b-2 border-t-2">
-                             <tr className="h-[90px] print-header-spacer"><td colSpan={9}></td></tr>
                             <tr className="text-left">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>

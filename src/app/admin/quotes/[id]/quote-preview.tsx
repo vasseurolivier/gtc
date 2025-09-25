@@ -34,17 +34,15 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
     };
 
     return (
-        <main className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-auto">
-            <div className="p-8 no-print">
-                <div className="flex justify-end mb-4">
-                    <Button onClick={handlePrint}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Export to PDF
-                    </Button>
-                </div>
+        <main className="w-full max-w-4xl mx-auto">
+            <div className="p-8 no-print flex justify-end">
+                <Button onClick={handlePrint}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Export to PDF
+                </Button>
             </div>
             
-            <div className="print-document p-8">
+            <div className="print-document bg-white rounded-lg shadow-lg p-8">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
                         <div className="w-1/3 flex justify-center">
@@ -64,7 +62,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     <CompanyInfoFooter />
                 </footer>
                     
-                <div className="print-body">
+                <div>
                     <div className="grid grid-cols-2 gap-8 my-8">
                         <div>
                             <h3 className="font-semibold mb-2">Bill To:</h3>
@@ -86,7 +84,6 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                     <table className="w-full">
                         <thead className="border-b-2 border-t-2">
-                             <tr className="h-[90px] print-header-spacer"><td colSpan={5}></td></tr>
                             <tr className="text-left">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>
