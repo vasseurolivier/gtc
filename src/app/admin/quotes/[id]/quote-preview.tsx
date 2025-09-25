@@ -85,7 +85,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         </div>
                     </div>
                     <table className="w-full">
-                        <thead>
+                        <thead className="border-b-2 border-t-2">
                             <tr className="text-left">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>

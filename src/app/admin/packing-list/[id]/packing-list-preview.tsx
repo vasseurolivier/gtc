@@ -69,7 +69,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                     </div>
                     <table className="w-full">
-                        <thead>
+                        <thead className="border-b-2 border-t-2">
                             <tr className="text-left">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>

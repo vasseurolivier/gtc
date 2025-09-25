@@ -114,16 +114,23 @@ body {
     margin: 0 !important;
     font-size: 10pt;
     width: 100%;
+    background-color: white;
   }
-
+  
+  .print-document * {
+    color: #000 !important;
+    border-color: #ccc !important;
+  }
+  
   .print-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 100px;
+    height: 100px; /* Adjust height as needed */
     padding: 1.5cm;
     padding-bottom: 1rem;
+    background-color: white; /* Ensure it has a background */
     z-index: 10;
   }
 
@@ -132,15 +139,17 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 80px;
+    height: 60px; /* Adjust height as needed */
     padding: 1.5cm;
     padding-top: 1rem;
+    background-color: white; /* Ensure it has a background */
     z-index: 10;
   }
 
   .print-body {
+    /* These margins create the space for the fixed header and footer on EVERY page */
     margin-top: 100px;
-    margin-bottom: 80px;
+    margin-bottom: 60px;
     padding: 0 1.5cm;
   }
 
@@ -152,9 +161,12 @@ body {
     page-break-inside: avoid;
     page-break-after: auto;
   }
+
+  thead {
+    display: table-header-group;
+  }
   
-  .print-document * {
-    color: #000 !important;
-    border-color: #ccc !important;
+  tfoot {
+    display: table-footer-group;
   }
 }
