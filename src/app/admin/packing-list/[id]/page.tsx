@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Printer, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PackingListPreview } from './packing-list-preview';
+import { CompanyInfoProvider } from '@/context/company-info-context';
+import { CurrencyProvider } from '@/context/currency-context';
 
 
 export default function PackingListViewPage() {
@@ -63,21 +65,21 @@ export default function PackingListViewPage() {
     }
 
     return (
-        <div className="container py-8 bg-background printable-area">
-             <div className="flex justify-between items-center mb-8 no-print">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/packing-list">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Packing Lists
-                    </Link>
-                </Button>
-                <Button onClick={() => window.print()}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Export to PDF
-                </Button>
-            </div>
-            
-            {packingList && <PackingListPreview packingList={packingList} />}
-        </div>
+        <CompanyInfoProvider>
+            <CurrencyProvider>
+                <div className="container py-8 bg-background printable-area">
+                    <div className="flex justify-between items-center mb-8 no-print">
+                        <Button variant="ghost" asChild>
+                            <Link href="/admin/packing-list">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back to Packing Lists
+                            </Link>
+                        </Button>
+                    </div>
+                    
+                    {packingList && <PackingListPreview packingList={packingList} />}
+                </div>
+            </CurrencyProvider>
+        </CompanyInfoProvider>
     );
 }

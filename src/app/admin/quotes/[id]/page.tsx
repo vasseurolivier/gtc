@@ -2,7 +2,6 @@
 import { getQuoteById, Quote } from '@/actions/quotes';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
-import { PrintButton } from './print-button';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -28,8 +27,8 @@ async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer
 }
 
 
-export default async function QuotePreviewPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default async function QuotePreviewPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const { quote, customer, products } = await getQuoteData(id);
 
     if (!quote || !customer) {
@@ -61,7 +60,7 @@ export default async function QuotePreviewPage({ params }: { params: { id: strin
                           Back to Proforma Invoices
                       </Link>
                   </Button>
-                  <PrintButton />
+                  {/* The PrintButton is client-side and was causing issues here. It is now part of the preview component. */}
               </div>
               
               <QuotePreview quote={quote} customer={customer} products={products} />

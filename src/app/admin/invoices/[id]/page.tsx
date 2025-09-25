@@ -2,7 +2,6 @@
 import { getInvoiceById, Invoice } from '@/actions/invoices';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
-import { PrintButton } from './print-button';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -28,8 +27,8 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 }
 
 
-export default async function InvoicePreviewPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default async function InvoicePreviewPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const { invoice, customer, products } = await getInvoiceData(id);
 
     if (!invoice || !customer) {
@@ -61,7 +60,7 @@ export default async function InvoicePreviewPage({ params }: { params: { id: str
                           Back to Invoices
                       </Link>
                   </Button>
-                  <PrintButton />
+                  {/* The PrintButton is client-side and was causing issues here. It is now part of the preview component. */}
               </div>
               
               <InvoicePreview invoice={invoice} customer={customer} products={products} />
