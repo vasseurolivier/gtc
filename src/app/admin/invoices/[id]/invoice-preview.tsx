@@ -130,15 +130,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </main>
             </Card>
-            <footer className="print-footer">
-                <h3 className="font-bold text-base">{companyInfo.name}</h3>
-                <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
-                <p className="text-sm text-muted-foreground">
-                    {companyInfo.phone && <span>{companyInfo.phone}</span>}
-                    {companyInfo.phone && companyInfo.email && <span> | </span>}
-                    {companyInfo.email && <span>{companyInfo.email}</span>}
-                </p>
-            </footer>
         </>
     );
 }

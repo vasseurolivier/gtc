@@ -41,7 +41,6 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
                     <header className="flex justify-between items-start mb-8 border-b pb-8">
                         <div>
                             {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
-                            <h2 className="text-xl font-bold mt-4">{companyInfo.name}</h2>
                         </div>
                         <div className="text-right">
                             <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
@@ -114,15 +113,18 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
     );
 }
 
-export default function PackingListViewPage() {
-    const params = useParams();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+export default function PackingListViewPage({ params: promiseParams }: { params: Promise<{ id: string }> }) {
+    const [params, setParams] = useState<{ id: string } | null>(null);
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (id) {
-            getPackingListById(id)
+        promiseParams.then(setParams);
+    }, [promiseParams]);
+
+    useEffect(() => {
+        if (params) {
+            getPackingListById(params.id)
                 .then(data => {
                     setPackingList(data);
                 })
@@ -134,9 +136,9 @@ export default function PackingListViewPage() {
                     setIsLoading(false);
                 });
         }
-    }, [id]);
+    }, [params]);
 
-    if (isLoading) {
+    if (isLoading || !params) {
         return (
             <div className="container py-8">
                 <div className="flex h-screen items-center justify-center">
@@ -165,8 +167,8 @@ export default function PackingListViewPage() {
     }
 
     return (
-        <div className="container py-8 printable-area">
-            <div className="flex justify-between items-center mb-8 no-print">
+        <div className="container py-8 bg-background printable-area">
+             <div className="flex justify-between items-center mb-8 no-print">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/packing-list">
                         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -178,10 +180,10 @@ export default function PackingListViewPage() {
                     Export to PDF
                 </Button>
             </div>
+            
             <div className="print-content">
-                <PackingListPreview packingList={packingList} />
+              <PackingListPreview packingList={packingList} />
             </div>
-            <footer className="print-footer" />
         </div>
     );
 }

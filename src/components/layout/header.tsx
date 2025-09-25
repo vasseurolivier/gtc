@@ -65,7 +65,7 @@ export function Header({ dictionary }: { dictionary: any }) {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Globe className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block font-headline text-lg">
-              Global Trading China
+              Yiwu Huangqing Trading
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -130,7 +130,7 @@ export function Header({ dictionary }: { dictionary: any }) {
               <SheetContent side="left" className="w-full max-w-xs">
                 <Link href="/" className="mb-8 flex items-center space-x-2">
                   <Globe className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline text-lg">Global Trading China</span>
+                  <span className="font-bold font-headline text-lg">Yiwu Huangqing Trading</span>
                 </Link>
                 <nav className="flex flex-col space-y-2">
                   {navItems.map((item) => (

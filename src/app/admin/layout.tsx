@@ -281,7 +281,7 @@ function ProtectedAdminLayout({
             <Sidebar className="no-print bg-muted/20">
               <SidebarContent>
                 <SidebarHeader>
-                  <h2 className="text-lg font-semibold">Global Trading China</h2>
+                  <h2 className="text-lg font-semibold">Yiwu Huangqing Trading</h2>
                 </SidebarHeader>
                 <SidebarMenu>
                   {navItems.map((item) => (
