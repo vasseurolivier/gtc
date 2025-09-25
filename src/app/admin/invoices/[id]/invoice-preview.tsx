@@ -46,10 +46,13 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
             <div className="print-document p-8">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
-                        <div>
+                        <div className="w-1/3">
                             {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                         </div>
-                        <div className="text-right">
+                        <div className="w-1/3 text-center">
+                           
+                        </div>
+                        <div className="w-1/3 text-right">
                             <h1 className="text-2xl font-bold text-red-500">INVOICE</h1>
                             <p className="mt-1"># {invoice.invoiceNumber}</p>
                         </div>
@@ -81,7 +84,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                     </div>
                     <table className="w-full">
                         <thead>
-                            <tr className="text-left bg-muted/30">
+                            <tr className="text-left">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>
                                 <th className="text-right p-2">Quantity</th>
