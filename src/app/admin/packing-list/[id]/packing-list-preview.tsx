@@ -6,21 +6,19 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 
 import type { PackingList } from '@/actions/packing-lists';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Printer } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Button } from '@/components/ui/button';
 
 export function PackingListPreview({ packingList, logo }: { packingList: PackingList, logo: string }) {
-    const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
 
-    if (!companyInfoContext || !currencyContext) {
+    if (!currencyContext) {
         return <Loader2 className="h-16 w-16 animate-spin text-primary" />;
     }
 
-    const { companyInfo } = companyInfoContext;
     const { currency, exchangeRate } = currencyContext;
 
     const totals = packingList.items.reduce((acc, item) => {
@@ -39,25 +37,27 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </Button>
             </div>
             
-            <div className="relative w-full">
-                <table className="w-full caption-bottom text-sm">
-                    <thead>
-                        <tr>
-                            <th colSpan={9} className="p-0">
-                                <div className="flex justify-between items-start pb-4 border-b">
-                                    <div>
-                                        {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
-                                    </div>
-                                    <div className="text-right">
-                                        <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
-                                        <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
-                                    </div>
-                                </div>
-                                <div className="my-8 text-left">
-                                    <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
-                                </div>
-                            </th>
-                        </tr>
+            <header className="print-header">
+                 <div className="flex justify-between items-start">
+                    <div>
+                        {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
+                    </div>
+                    <div className="text-right">
+                        <h1 className="text-2xl font-bold text-primary">PACKING LIST</h1>
+                        <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
+                    </div>
+                </div>
+            </header>
+
+            <CompanyInfoFooter />
+
+            <main className="print-body">
+                <div className="my-8 text-left">
+                    <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
+                </div>
+
+                <Table>
+                    <TableHeader>
                         <TableRow>
                             <TableHead>SKU</TableHead>
                             <TableHead className="w-16">Photo</TableHead>
@@ -69,7 +69,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             <TableHead className="text-right">Total ({currency.code})</TableHead>
                             <TableHead>Remarks</TableHead>
                         </TableRow>
-                    </thead>
+                    </TableHeader>
                     <tbody>
                         {packingList.items.map((item, index) => {
                             const totalCny = item.quantity * item.unitPriceCny;
@@ -94,18 +94,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             );
                         })}
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={9} className="p-0">
-                                <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-                                    <p className="font-bold">{companyInfo.name}</p>
-                                    <p>{companyInfo.address}</p>
-                                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                </Table>
 
                  <div className="flex justify-end pt-4">
                     <div className="w-full md:w-1/2">
@@ -127,7 +116,23 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </table>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
+    );
+}
+
+function CompanyInfoFooter() {
+    const companyInfoContext = useContext(CompanyInfoContext);
+     if (!companyInfoContext) return null;
+    const { companyInfo } = companyInfoContext;
+    
+    return (
+        <footer className="print-footer">
+            <div className="text-center text-xs text-muted-foreground">
+                <p className="font-bold">{companyInfo.name}</p>
+                <p>{companyInfo.address}</p>
+                <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+            </div>
+        </footer>
     );
 }
