@@ -93,10 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin-top: 100px;
-    margin-bottom: 80px;
-    margin-left: 50px;
-    margin-right: 50px;
+    margin: 100px 50px 80px;
 
     @top-center {
       content: element(print-header);
@@ -106,11 +103,13 @@ body {
     }
   }
 
-  body.printing {
-    background-color: #fff !important;
+  body, .printable-area {
+    background-color: transparent !important;
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    margin: 0;
+    padding: 0;
   }
 
   .no-print {
@@ -139,16 +138,12 @@ body {
   .print-footer {
     position: running(print-footer);
   }
-  
-  .print-body {
-     padding: 0;
-  }
 
   thead {
     display: table-header-group;
   }
   
-  tbody tr {
+  tr {
     page-break-inside: avoid;
   }
   

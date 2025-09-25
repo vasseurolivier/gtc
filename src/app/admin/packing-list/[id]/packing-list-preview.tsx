@@ -58,9 +58,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                 </header>
 
-                <footer className="print-footer">
-                    <CompanyInfoFooter />
-                </footer>
+                <CompanyInfoFooter />
                 
                 <div className="print-body">
                     <div className="my-8 text-left">
@@ -68,6 +66,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                     <table className="w-full">
                         <thead>
+                             <tr>
+                                <td style={{ height: '10px' }} colSpan={9}></td>
+                            </tr>
                             <tr className="text-left border-b-2 border-t-2">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>
@@ -90,7 +91,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                     <tr key={index} className="border-b" style={{ height: '80px' }}>
                                         <td className="p-2 align-top">{item.sku}</td>
                                         <td className="p-2 align-top">
-                                            {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                                            {item.photo && <div className="w-16 h-16 rounded-md flex items-center justify-center overflow-hidden">
                                                 <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
                                             </div>}
                                         </td>
@@ -139,10 +140,12 @@ function CompanyInfoFooter() {
     const { companyInfo } = companyInfoContext;
     
     return (
-        <div className="pt-4 border-t text-center text-xs">
-            <p className="font-bold">{companyInfo.name}</p>
-            <p>{companyInfo.address}</p>
-            <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-        </div>
+        <footer className="print-footer">
+            <div className="pt-4 border-t text-center text-xs">
+                <p className="font-bold">{companyInfo.name}</p>
+                <p>{companyInfo.address}</p>
+                <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+            </div>
+        </footer>
     );
 }

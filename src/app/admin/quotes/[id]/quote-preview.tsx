@@ -58,9 +58,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                 </header>
 
-                <footer className="print-footer">
-                    <CompanyInfoFooter />
-                </footer>
+                <CompanyInfoFooter />
                     
                 <div className="print-body">
                     <div className="grid grid-cols-2 gap-8 my-8">
@@ -84,6 +82,9 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                     <table className="w-full">
                         <thead>
+                            <tr>
+                                <td style={{ height: '10px' }} colSpan={5}></td>
+                            </tr>
                             <tr className="text-left border-b-2 border-t-2">
                                 <th className="w-16 p-2">Photo</th>
                                 <th className="w-1/2 p-2">Description</th>
@@ -100,7 +101,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <tr key={itemIndex} className="border-b" style={{ height: '80px' }}>
                                         <td className="p-2 align-top">
                                             {product?.imageUrl && (
-                                                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                <div className="w-16 h-16 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
                                                 </div>
                                             )}
@@ -170,10 +171,12 @@ function CompanyInfoFooter() {
     const { companyInfo } = companyInfoContext;
     
     return (
-        <div className="pt-4 border-t text-center text-xs">
-            <p className="font-bold">{companyInfo.name}</p>
-            <p>{companyInfo.address}</p>
-            <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-        </div>
+        <footer className="print-footer">
+            <div className="pt-4 border-t text-center text-xs">
+                <p className="font-bold">{companyInfo.name}</p>
+                <p>{companyInfo.address}</p>
+                <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+            </div>
+        </footer>
     );
 }
