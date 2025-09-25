@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 1cm;
   }
 
   body.printing {
@@ -112,6 +112,7 @@ body {
   .printable-area {
     padding: 0 !important;
     margin: 0 !important;
+    background-color: transparent !important;
   }
   
   .print-document {
@@ -132,10 +133,9 @@ body {
   .print-header {
     position: fixed;
     top: 0;
-    left: 1.5cm;
-    right: 1.5cm;
-    height: 80px; /* Header height */
-    padding-top: 0;
+    left: 1cm;
+    right: 1cm;
+    height: 80px;
     background-color: white;
     z-index: 10;
   }
@@ -143,30 +143,34 @@ body {
   .print-footer {
     position: fixed;
     bottom: 0;
-    left: 1.5cm;
-    right: 1.5cm;
-    height: 60px; /* Footer height */
-    padding-bottom: 0;
+    left: 1cm;
+    right: 1cm;
+    height: 50px;
     background-color: white;
     z-index: 10;
   }
 
   .print-body {
-    padding-top: 90px;
-    padding-bottom: 70px;
+    padding: 0; /* Let the table header spacer handle the top margin */
   }
 
-  table {
-    page-break-inside: auto;
+  thead {
+    display: table-header-group;
+  }
+
+  .print-header-spacer {
+    display: table-row; /* This should be part of the thead to be repeated */
+    height: 90px;
+    visibility: hidden;
+  }
+  
+  tbody {
+    display: table-row-group;
   }
 
   tr {
     page-break-inside: avoid;
     page-break-after: auto;
-  }
-
-  thead {
-    display: table-header-group;
   }
   
   tfoot {

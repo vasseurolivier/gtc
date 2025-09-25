@@ -70,6 +70,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                     <table className="w-full">
                         <thead className="border-b-2 border-t-2">
+                             <tr className="h-[90px] print-header-spacer"><td colSpan={9}></td></tr>
                             <tr className="text-left">
                                 <th className="p-2">SKU</th>
                                 <th className="p-2 w-16">Photo</th>
