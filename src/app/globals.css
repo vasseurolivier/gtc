@@ -93,11 +93,10 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 0.5in;
+    margin: 0;
   }
 
   body {
-    background-color: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -114,20 +113,21 @@ body {
     padding: 0 !important;
     margin: 0 !important;
   }
-
+  
   .print-header {
     display: table-header-group;
   }
-
+  
   .print-footer {
     display: table-footer-group;
   }
   
+  tr, td, th {
+    page-break-inside: avoid;
+  }
+
   .print-body {
      page-break-after: always;
   }
 
-  tr, td, th {
-    page-break-inside: avoid;
-  }
 }
