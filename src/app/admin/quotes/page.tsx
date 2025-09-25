@@ -111,15 +111,16 @@ function QuotesPageContent() {
             const quantity = Number(item?.quantity) || 0;
             const unitPrice = Number(item?.unitPrice) || 0;
             const newTotal = quantity * unitPrice;
-            if (item?.total !== newTotal) {
-                form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+            if (item && item.total !== newTotal) {
+                 form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
             }
         });
         
         const subTotal = items.reduce((sum, item) => sum + (item?.total || 0), 0);
         const transportCost = Number(values.transportCost) || 0;
         const commissionRate = Number(values.commissionRate) || 0;
-        const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
+        // Corrected calculation: commission is based on subTotal only
+        const commissionAmount = subTotal * (commissionRate / 100);
         const totalAmount = subTotal + transportCost + commissionAmount;
         
         form.setValue("subTotal", subTotal, { shouldValidate: true });
@@ -296,9 +297,8 @@ function QuotesPageContent() {
   }
 
   const subTotal = form.getValues('subTotal') || 0;
-  const transportCost = form.getValues('transportCost') || 0;
-  const commissionRate = form.getValues('commissionRate') || 0;
-  const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
+  // Corrected calculation: commission is based on subTotal only
+  const commissionAmount = subTotal * ((form.getValues('commissionRate') || 0) / 100);
   const totalAmount = form.getValues('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');

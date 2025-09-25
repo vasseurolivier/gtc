@@ -116,7 +116,7 @@ export default function FinancialReportPage() {
     if (!quote) return totalExpense;
     
     const transport = quote.transportCost || 0;
-    // Commission should be calculated on subTotal only, transport cost is a separate expense.
+    // Corrected calculation: commission is based on subTotal only
     const commission = (quote.subTotal) * ((quote.commissionRate || 0) / 100);
     return totalExpense + transport + commission;
   }, 0);
@@ -154,7 +154,7 @@ export default function FinancialReportPage() {
         {},
         { Metric: '--- INCOME STATEMENT ---' },
         { Metric: 'Revenue (CNY)', Value: revenue },
-        { Metric: 'Cost of Goods Sold (COGS) (CNY)', Value: costOfGoodsSold },
+        { Metric: 'Coût d\'Achat des Marchandises Vendues (COGS) (CNY)', Value: costOfGoodsSold },
         { Metric: 'Gross Profit (CNY)', Value: grossProfit },
         { Metric: 'Operating Expenses (CNY)', Value: operatingExpenses },
         { Metric: 'Net Profit (CNY)', Value: netProfit },
