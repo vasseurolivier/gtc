@@ -96,11 +96,14 @@ body {
     margin: 0;
   }
 
-  body.printing, body.printing * {
+  body, body.printing {
     background-color: #fff !important;
-    color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  
+  body *, .print-document * {
+      color: #000 !important;
   }
 
   .no-print {
@@ -110,51 +113,40 @@ body {
   .print-document {
     box-shadow: none !important;
     border: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 1.5cm !important;
+    padding: 0 !important;
     margin: 0 !important;
     font-size: 10pt;
     background-color: #fff !important;
   }
 
-  .print-header, .print-footer {
+  .print-header {
     position: fixed;
+    top: 1.5cm;
     left: 1.5cm;
     right: 1.5cm;
-    width: auto;
-  }
-  
-  .print-header {
-    top: 1.5cm;
+    height: 80px; /* Header height */
   }
 
   .print-footer {
+    position: fixed;
     bottom: 1.5cm;
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 60px; /* Footer height */
   }
-  
+
   .print-body {
-    margin-top: 110px; /* Space for header */
-    margin-bottom: 90px; /* Space for footer */
-  }
-
-  .print-body table {
-    page-break-inside: auto;
-  }
-
-  .print-body tr {
-     page-break-inside: avoid;
-     page-break-after: auto;
-  }
-
-  thead.print-table-header {
-      display: table-header-group;
-  }
-
-  tfoot.print-table-footer {
-      display: table-footer-group;
+    /* Define safe zones to prevent overlap */
+    padding-top: calc(80px + 1.5cm + 20px); /* Header height + top margin + spacing */
+    padding-bottom: calc(60px + 1.5cm + 20px); /* Footer height + bottom margin + spacing */
+    padding-left: 1.5cm;
+    padding-right: 1.5cm;
   }
   
+  .print-body table tr {
+      page-break-inside: avoid;
+  }
+
   .print-block {
     display: block !important;
   }

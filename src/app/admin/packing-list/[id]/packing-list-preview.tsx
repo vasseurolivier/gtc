@@ -78,7 +78,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             <TableHead>Remarks</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <tbody>
+                    <TableBody>
                         {packingList.items.map((item, index) => {
                             const totalCny = item.quantity * item.unitPriceCny;
                             const unitPriceConverted = item.unitPriceCny * exchangeRate;
@@ -101,7 +101,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                 </TableRow>
                             );
                         })}
-                    </tbody>
+                    </TableBody>
                 </Table>
 
                  <div className="flex justify-end pt-4">
