@@ -19,8 +19,14 @@ export default function QuotePreviewPage() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [logo, setLogo] = useState('');
 
     useEffect(() => {
+        const savedInfo = localStorage.getItem('adminCompanyInfo');
+        if (savedInfo) {
+            setLogo(JSON.parse(savedInfo).logo || '');
+        }
+
         if (!id) return;
 
         async function getQuoteData(id: string) {
@@ -90,7 +96,7 @@ export default function QuotePreviewPage() {
                   </Button>
               </div>
               
-              <QuotePreview quote={quote} customer={customer} products={products}/>
+              <QuotePreview quote={quote} customer={customer} products={products} logo={logo} />
           </div>
         </CurrencyProvider>
       </CompanyInfoProvider>

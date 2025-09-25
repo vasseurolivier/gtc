@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams } from 'next/navigation';
 import { getInvoiceById, Invoice } from '@/actions/invoices';
 import { getCustomerById, Customer } from '@/actions/customers';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
-import { CompanyInfoProvider } from '@/context/company-info-context';
+import { CompanyInfoProvider, CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyProvider } from '@/context/currency-context';
 
 
@@ -19,8 +19,14 @@ export default function InvoicePreviewPage() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [logo, setLogo] = useState('');
 
     useEffect(() => {
+        const savedInfo = localStorage.getItem('adminCompanyInfo');
+        if (savedInfo) {
+            setLogo(JSON.parse(savedInfo).logo || '');
+        }
+
         if (!id) return;
 
         async function getInvoiceData(id: string) {
@@ -91,10 +97,9 @@ export default function InvoicePreviewPage() {
                   </Button>
               </div>
               
-              <InvoicePreview invoice={invoice} customer={customer} products={products} />
+              <InvoicePreview invoice={invoice} customer={customer} products={products} logo={logo} />
           </div>
         </CurrencyProvider>
       </CompanyInfoProvider>
     );
 }
-

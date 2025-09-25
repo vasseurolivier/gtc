@@ -19,8 +19,15 @@ export default function PackingListViewPage() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [logo, setLogo] = useState('');
+
 
     useEffect(() => {
+        const savedInfo = localStorage.getItem('adminCompanyInfo');
+        if (savedInfo) {
+            setLogo(JSON.parse(savedInfo).logo || '');
+        }
+
         if (id) {
             getPackingListById(id)
                 .then(data => {
@@ -77,7 +84,7 @@ export default function PackingListViewPage() {
                         </Button>
                     </div>
                     
-                    {packingList && <PackingListPreview packingList={packingList} />}
+                    {packingList && <PackingListPreview packingList={packingList} logo={logo} />}
                 </div>
             </CurrencyProvider>
         </CompanyInfoProvider>

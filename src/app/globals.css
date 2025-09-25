@@ -114,13 +114,38 @@ body {
     padding: 0 !important;
     margin: 0 !important;
   }
+
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.27cm; /* Equivalent to 0.5in margin */
+    padding-bottom: 1rem;
+    background-color: white;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.27cm; /* Equivalent to 0.5in margin */
+    padding-top: 1rem;
+    background-color: white;
+  }
   
   .print-body {
-     page-break-inside: auto;
+    padding-top: 130px; /* Adjust based on header height */
+    padding-bottom: 150px; /* Adjust based on footer height */
+  }
+  
+  main.print-body {
+     page-break-before: always;
   }
 
   tr {
-     page-break-inside: avoid;
+     page-break-inside: avoid !important;
   }
   
   thead {
