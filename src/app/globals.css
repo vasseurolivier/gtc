@@ -91,51 +91,35 @@ body {
 }
 
 @media print {
-  @page {
-    size: A4;
-    margin: 1.5cm;
-  }
-
   body {
+    background-color: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background-color: white !important;
-    padding: 0;
-    margin: 0;
   }
 
   .no-print {
     display: none !important;
   }
   
-  .print-header, .print-footer {
-    position: fixed;
-    left: 1.5cm;
-    right: 1.5cm;
-    width: calc(100% - 3cm);
-    background-color: white !important;
-  }
-  
-  .print-header {
-    top: 0;
-    padding-top: 1.5cm;
-    height: 180px; /* Header height */
+  .printable-area {
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  .print-footer {
-    bottom: 0;
-    padding-bottom: 1.5cm;
-    height: 60px; /* Footer height */
+  .print-document {
+    box-shadow: none !important;
+    border: none !important;
   }
-  
-  .print-content {
-    padding-top: 180px; /* Space for the header */
-    padding-bottom: 60px; /* Space for the footer */
-    page-break-before: always;
+
+  thead {
+    display: table-header-group;
   }
-  
-  /* Prevent elements from breaking across pages */
-  tr, td, th, div, p, span, section {
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr, td, th {
     page-break-inside: avoid;
   }
 }
