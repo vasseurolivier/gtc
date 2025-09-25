@@ -15,6 +15,23 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 
+async function getInvoiceData(id: string) {
+    try {
+        const invoice = await getInvoiceById(id);
+        if (!invoice) {
+            return { invoice: null, customer: null, products: [] };
+        }
+        const [customer, products] = await Promise.all([
+            getCustomerById(invoice.customerId),
+            getProducts()
+        ]);
+        return { invoice, customer, products };
+    } catch (e) {
+        console.error(e);
+        return { invoice: null, customer: null, products: [] };
+    }
+}
+
 export default function InvoicePreviewPage() {
     const params = useParams();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -33,30 +50,12 @@ export default function InvoicePreviewPage() {
             }
         }
 
-        if (!id) return;
-
-        async function getInvoiceData(id: string) {
+        if (id) {
             setIsLoading(true);
-            try {
-                const invoice = await getInvoiceById(id);
-                if (!invoice) {
-                    setData({ invoice: null, customer: null, products: [] });
-                    return;
-                }
-                const [customer, products] = await Promise.all([
-                    getCustomerById(invoice.customerId),
-                    getProducts()
-                ]);
-                setData({ invoice, customer, products });
-            } catch (e) {
-                console.error(e);
-                setData({ invoice: null, customer: null, products: [] });
-            } finally {
-                setIsLoading(false);
-            }
+            getInvoiceData(id)
+                .then(setData)
+                .finally(() => setIsLoading(false));
         }
-        
-        getInvoiceData(id);
 
     }, [id]);
 
@@ -105,3 +104,4 @@ export default function InvoicePreviewPage() {
       </div>
     );
 }
+
