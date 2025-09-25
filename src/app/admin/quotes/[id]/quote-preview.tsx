@@ -44,8 +44,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
             
             <div className="print-document bg-white rounded-lg shadow-lg">
                 <header className="print-header">
-                    <div className="flex justify-between items-start pb-4 border-b">
-                        <div className="w-1/3 flex justify-center">
+                    <div className="flex justify-between items-start pt-8 pb-4 border-b">
+                        <div className="w-1/3 flex justify-start">
                             {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                         </div>
                         <div className="w-1/3 text-center">

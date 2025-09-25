@@ -104,49 +104,44 @@ body {
     background-color: transparent !important;
   }
   
-  .printable-area {
-    margin: 0;
-    padding: 0;
-  }
-
   .no-print {
     display: none !important;
   }
   
   .print-document {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    width: 100%;
+    display: block;
     box-shadow: none !important;
     border: none !important;
     padding: 50px;
     margin: 0 !important;
     font-size: 10pt;
     background-color: transparent;
-    page-break-after: always;
   }
 
   .print-document * {
     color: #000 !important;
     border-color: #ccc !important;
   }
-
-  .print-header, .print-footer {
-    flex-shrink: 0;
+  
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 50px;
+    right: 50px;
+    height: 80px;
+  }
+  
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 50px;
+    right: 50px;
+    height: 80px;
   }
 
   .print-body {
-    flex-grow: 1;
-  }
-
-  .print-header {
-    page-break-before: always;
-  }
-  
-  .print-document:first-child .print-header {
-    page-break-before: auto;
+    padding-top: 80px;
+    padding-bottom: 80px;
   }
 
   thead {
