@@ -100,6 +100,7 @@ body {
     background-color: #fff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    color: #000 !important;
   }
   
   body *, .print-document * {
@@ -122,28 +123,30 @@ body {
   .print-header {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 100px; /* Header height */
-    padding: 1.5cm;
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 100px;
+    padding-top: 1.5cm;
     padding-bottom: 0.5cm;
   }
 
   .print-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px; /* Footer height */
-    padding: 1.5cm;
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 80px;
+    padding-bottom: 1.5cm;
     padding-top: 0.5cm;
   }
 
   .print-body {
-    padding-top: 100px;
-    padding-bottom: 60px; 
+    /* These margins create the safe zones to prevent content overlap */
+    margin-top: 100px;
+    margin-bottom: 80px;
     padding-left: 1.5cm;
     padding-right: 1.5cm;
+    page-break-before: always;
   }
 
   .print-body table tr {
