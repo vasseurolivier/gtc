@@ -92,12 +92,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm; /* Augmente la marge pour laisser de la place au pied de page */
-    
-    @bottom-center {
-      content: element(footer);
-      vertical-align: bottom;
-    }
+    margin: 1.5cm 1cm 2.5cm 1cm; /* top, right, bottom, left */
   }
 
   body {
@@ -105,44 +100,53 @@ body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  
-  .print-footer {
-    position: running(footer);
-    border-top: 1px solid hsl(var(--border));
-    padding-top: 0.5rem;
-    font-size: 0.8rem;
-  }
-
-  main, .container {
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: 100% !important;
-  }
 
   .no-print {
     display: none !important;
   }
-
-  .print-block {
-    display: block !important;
-  }
-
+  
   .printable-area {
     padding: 0 !important;
+    page-break-after: always;
   }
-  
+
   .print-card {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
-    min-height: initial; /* On retire la hauteur minimale qui peut causer des sauts de page */
+    margin: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+    border-top: 1px solid hsl(var(--border));
+    background-color: white;
   }
 
   .signature-block {
     page-break-inside: avoid;
   }
-  
-  .relative.w-full.overflow-auto {
-    overflow: visible !important;
+
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
   }
 }

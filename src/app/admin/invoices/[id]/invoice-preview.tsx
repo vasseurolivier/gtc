@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -10,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
-import { formatInTimeZone } from 'date-fns-tz';
+import { format } from 'date-fns';
 import Image from 'next/image';
 
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: Customer, products: Product[] }) {
@@ -33,7 +34,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     return (
         <>
             <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-card" id="invoice-content">
-                <header className="flex justify-between items-start mb-8 border-b pb-8 print-header">
+                <header className="flex justify-between items-start mb-8 border-b pb-8">
                     <div>
                         {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
                     </div>
@@ -53,11 +54,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     <div className="text-right">
                         <div className="grid grid-cols-2">
                             <span className="font-semibold">Issue Date:</span>
-                            <span>{formatInTimeZone(new Date(invoice.issueDate), 'UTC', 'dd MMM yyyy')}</span>
+                            <span>{format(new Date(invoice.issueDate), 'dd MMM yyyy')}</span>
                         </div>
                         <div className="grid grid-cols-2 mt-1">
                             <span className="font-semibold">Due Date:</span>
-                            <span>{formatInTimeZone(new Date(invoice.dueDate), 'UTC', 'dd MMM yyyy')}</span>
+                            <span>{format(new Date(invoice.dueDate), 'dd MMM yyyy')}</span>
                         </div>
                     </div>
                 </section>
@@ -129,7 +130,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </main>
             </Card>
-            <footer className="print-footer text-center">
+            <footer className="print-footer">
                 <h3 className="font-bold text-base">{companyInfo.name}</h3>
                 <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
                 <p className="text-sm text-muted-foreground">

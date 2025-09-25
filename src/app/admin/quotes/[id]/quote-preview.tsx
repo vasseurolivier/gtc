@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
-import { formatInTimeZone } from 'date-fns-tz';
+import { format } from 'date-fns';
 import Image from 'next/image';
 
 export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
@@ -35,7 +35,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     return (
         <>
             <Card className="w-full max-w-4xl mx-auto p-8 md:p-12 shadow-lg print-card" id="proforma-content">
-                <header className="flex justify-between items-start mb-8 border-b pb-8 print-header">
+                <header className="flex justify-between items-start mb-8 border-b pb-8">
                     <div>
                         {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
                     </div>
@@ -56,11 +56,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     <div className="text-right">
                         <div className="grid grid-cols-2">
                             <span className="font-semibold">Issue Date:</span>
-                            <span>{formatInTimeZone(new Date(quote.issueDate), 'UTC', 'dd MMM yyyy')}</span>
+                            <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
                         </div>
                             <div className="grid grid-cols-2 mt-1">
                             <span className="font-semibold">Valid Until:</span>
-                            <span>{formatInTimeZone(new Date(quote.validUntil), 'UTC', 'dd MMM yyyy')}</span>
+                            <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
                         </div>
                     </div>
                 </section>
@@ -144,7 +144,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     }
                 </main>
             </Card>
-            <footer className="print-footer text-center">
+            <footer className="print-footer">
                 <h3 className="font-bold text-base">{companyInfo.name}</h3>
                 <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
                 <p className="text-sm text-muted-foreground">

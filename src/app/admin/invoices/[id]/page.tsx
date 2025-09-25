@@ -26,8 +26,8 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 }
 
 
-export default async function InvoicePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function InvoicePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { invoice, customer, products } = await getInvoiceData(id);
 
     if (!invoice || !customer) {
@@ -49,7 +49,7 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
     }
 
     return (
-        <div className="container py-8 bg-background printable-area">
+        <div className="container py-8 bg-background">
              <div className="flex justify-between items-center mb-8 no-print">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/invoices">
@@ -60,7 +60,9 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
                 <PrintButton />
             </div>
             
-            <InvoicePreview invoice={invoice} customer={customer} products={products} />
+            <div className="printable-area">
+              <InvoicePreview invoice={invoice} customer={customer} products={products} />
+            </div>
         </div>
     );
 }
