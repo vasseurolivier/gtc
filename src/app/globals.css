@@ -115,44 +115,17 @@ body {
     margin: 0 !important;
   }
 
-  .print-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 1.27cm; /* Equivalent to 0.5in margin */
-    padding-bottom: 1rem;
-    background-color: white;
-  }
-
-  .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 1.27cm; /* Equivalent to 0.5in margin */
-    padding-top: 1rem;
-    background-color: white;
-  }
-  
-  .print-body {
-    padding-top: 130px; /* Adjust based on header height */
-    padding-bottom: 150px; /* Adjust based on footer height */
-  }
-  
-  main.print-body {
-     page-break-before: always;
-  }
-
-  tr {
-     page-break-inside: avoid !important;
-  }
-  
   thead {
       display: table-header-group;
+      break-after: auto;
   }
   
   tfoot {
       display: table-footer-group;
+      break-before: auto;
+  }
+
+  tr, td, th {
+     page-break-inside: avoid !important;
   }
 }

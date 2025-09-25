@@ -1,16 +1,20 @@
 
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getInvoiceById, Invoice } from '@/actions/invoices';
-import { getCustomerById, Customer } from '@/actions/customers';
-import { getProducts, Product } from '@/actions/products';
+
+import type { Invoice } from '@/actions/invoices';
+import { getInvoiceById } from '@/actions/invoices';
+import type { Customer } from '@/actions/customers';
+import { getCustomerById } from '@/actions/customers';
+import type { Product } from '@/actions/products';
+import { getProducts } from '@/actions/products';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
-import { CompanyInfoProvider, CompanyInfoContext } from '@/context/company-info-context';
+import { CompanyInfoProvider } from '@/context/company-info-context';
 import { CurrencyProvider } from '@/context/currency-context';
 
 

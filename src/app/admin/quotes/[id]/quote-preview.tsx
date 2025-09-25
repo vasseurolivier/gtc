@@ -39,41 +39,45 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </Button>
             </div>
             
-            <header className="print-header">
-                <div className="flex justify-between items-start pb-4 border-b">
-                    <div>
-                        {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
-                    </div>
-                    <div className="text-right">
-                        <h1 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h1>
-                        <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
-                    </div>
-                </div>
-            </header>
-
-            <main className="print-body">
-                <div className="grid grid-cols-2 gap-8 my-8">
-                    <div>
-                        <h3 className="font-semibold mb-2 text-left">Bill To:</h3>
-                        <p className="font-bold text-left">{customer?.name}</p>
-                        <p className="text-muted-foreground text-left">{customer?.company}</p>
-                        <p className="text-muted-foreground text-left">{customer?.email}</p>
-                        <p className="text-muted-foreground text-left">{quote.shippingAddress}</p>
-                    </div>
-                    <div className="text-right">
-                        <div className="grid grid-cols-2">
-                            <span className="font-semibold">Issue Date:</span>
-                            <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
-                        </div>
-                        <div className="grid grid-cols-2 mt-1">
-                            <span className="font-semibold">Valid Until:</span>
-                            <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <Table>
-                    <TableHeader>
+            <div className="relative w-full">
+                <table className="w-full caption-bottom text-sm">
+                    <thead className="[&_tr]:border-b">
+                        <tr>
+                            <th colSpan={5} className="p-0">
+                                <div className="flex justify-between items-start pb-4 border-b">
+                                    <div>
+                                        {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
+                                    </div>
+                                    <div className="text-right">
+                                        <h1 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h1>
+                                        <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colSpan={5} className="p-0">
+                                <div className="grid grid-cols-2 gap-8 my-8">
+                                    <div>
+                                        <h3 className="font-semibold mb-2 text-left">Bill To:</h3>
+                                        <p className="font-bold text-left">{customer?.name}</p>
+                                        <p className="text-muted-foreground text-left">{customer?.company}</p>
+                                        <p className="text-muted-foreground text-left">{customer?.email}</p>
+                                        <p className="text-muted-foreground text-left">{quote.shippingAddress}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="grid grid-cols-2">
+                                            <span className="font-semibold">Issue Date:</span>
+                                            <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 mt-1">
+                                            <span className="font-semibold">Valid Until:</span>
+                                            <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
                         <TableRow>
                             <TableHead className="w-16">Photo</TableHead>
                             <TableHead className="w-1/2">Description</TableHead>
@@ -81,8 +85,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             <TableHead className="text-right">Unit Price</TableHead>
                             <TableHead className="text-right">Total</TableHead>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                    </thead>
+                    <tbody className="[&_tr:last-child]:border-0">
                         {quote.items.map((item, itemIndex) => {
                             const product = item.sku ? productsBySku.get(item.sku) : undefined;
                             return (
@@ -107,53 +111,56 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                 </TableRow>
                             )
                         })}
-                    </TableBody>
-                </Table>
-            </main>
-            
-            <footer className="print-footer">
-                <div className="flex justify-end pt-8">
-                    <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Subtotal</span>
-                            <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
-                        </div>
-                        {(quote.transportCost && quote.transportCost > 0) && (
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Transport Cost</span>
-                                <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
-                            </div>
-                        )}
-                        {(quote.commissionRate && quote.commissionRate > 0) && (
-                            <>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                    <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
+                    </tbody>
+                    <tfoot className="border-t bg-muted/50 font-medium [&>tr]:last:border-b-0">
+                        <tr>
+                             <td colSpan={5} className="p-0">
+                                <div className="flex justify-end pt-8">
+                                    <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Subtotal</span>
+                                            <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
+                                        </div>
+                                        {(quote.transportCost && quote.transportCost > 0) && (
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Transport Cost</span>
+                                                <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {(quote.commissionRate && quote.commissionRate > 0) && (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
+                                                    <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
+                                                </div>
+                                            </>
+                                        )}
+                                        <div className="flex justify-between font-bold text-lg">
+                                            <span>TOTAL (CNY)</span>
+                                            <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between font-bold text-lg text-primary">
+                                            <span>TOTAL ({currency.code})</span>
+                                            <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </>
-                        )}
-                        <div className="flex justify-between font-bold text-lg">
-                            <span>TOTAL (CNY)</span>
-                            <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-lg text-primary">
-                            <span>TOTAL ({currency.code})</span>
-                            <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
-                        </div>
-                    </div>
-                </div>
-                 {quote.notes && 
-                    <div className="mt-8 text-left">
-                        <h3 className="font-semibold mb-2">Notes:</h3>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
-                    </div>
-                }
-                <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-                    <p className="font-bold">{companyInfo.name}</p>
-                    <p>{companyInfo.address}</p>
-                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-                </div>
-            </footer>
+                                 {quote.notes && 
+                                    <div className="mt-8 text-left">
+                                        <h3 className="font-semibold mb-2">Notes:</h3>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
+                                    </div>
+                                }
+                                <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+                                    <p className="font-bold">{companyInfo.name}</p>
+                                    <p>{companyInfo.address}</p>
+                                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     );
 }

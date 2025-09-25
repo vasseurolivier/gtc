@@ -5,7 +5,7 @@ import { useContext } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
-import type { PackingList, PackingListItem } from '@/actions/packing-lists';
+import type { PackingList } from '@/actions/packing-lists';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Loader2, Printer } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
@@ -39,24 +39,29 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </Button>
             </div>
             
-            <header className="print-header">
-                <div className="flex justify-between items-start pb-4 border-b">
-                    <div>
-                        {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
-                    </div>
-                    <div className="text-right">
-                        <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
-                        <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
-                    </div>
-                </div>
-            </header>
-
-            <main className="print-body">
-                <div className="my-8 text-left">
-                    <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
-                </div>
-                <Table>
-                    <TableHeader>
+            <div className="relative w-full">
+                <table className="w-full caption-bottom text-sm">
+                    <thead className="[&_tr]:border-b">
+                        <tr>
+                            <th colSpan={9} className="p-0">
+                                <div className="flex justify-between items-start pb-4 border-b">
+                                    <div>
+                                        {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
+                                    </div>
+                                    <div className="text-right">
+                                        <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
+                                        <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colSpan={9} className="p-0">
+                                <div className="my-8 text-left">
+                                    <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
+                                </div>
+                            </th>
+                        </tr>
                         <TableRow>
                             <TableHead>SKU</TableHead>
                             <TableHead className="w-16">Photo</TableHead>
@@ -68,8 +73,8 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             <TableHead className="text-right">Total ({currency.code})</TableHead>
                             <TableHead>Remarks</TableHead>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                    </thead>
+                    <tbody className="[&_tr:last-child]:border-0">
                         {packingList.items.map((item, index) => {
                             const totalCny = item.quantity * item.unitPriceCny;
                             const unitPriceConverted = item.unitPriceCny * exchangeRate;
@@ -92,37 +97,40 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                 </TableRow>
                             );
                         })}
-                    </TableBody>
-                </Table>
-            </main>
-            
-            <footer className="print-footer">
-                <div className="flex justify-end pt-4">
-                    <div className="w-full md:w-1/2">
-                        <Table>
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
-                                    <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
-                                    <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
-                                    <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-                <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-                    <p className="font-bold">{companyInfo.name}</p>
-                    <p>{companyInfo.address}</p>
-                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-                </div>
-            </footer>
+                    </tbody>
+                    <tfoot className="border-t bg-muted/50 font-medium [&>tr]:last:border-b-0">
+                        <tr>
+                            <td colSpan={9} className="p-0">
+                                <div className="flex justify-end pt-4">
+                                    <div className="w-full md:w-1/2">
+                                        <table className="w-full">
+                                            <tbody className="[&_tr:last-child]:border-0">
+                                                <TableRow>
+                                                    <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
+                                                    <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
+                                                    <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
+                                                    <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
+                                                </TableRow>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+                                    <p className="font-bold">{companyInfo.name}</p>
+                                    <p>{companyInfo.address}</p>
+                                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     );
 }

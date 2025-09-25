@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation';
 import type { PackingList } from '@/actions/packing-lists';
 import { getPackingListById } from '@/actions/packing-lists';
 import { Button } from '@/components/ui/button';
-import { Loader2, Printer, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PackingListPreview } from './packing-list-preview';
 import { CompanyInfoProvider } from '@/context/company-info-context';
