@@ -1,6 +1,6 @@
 
 import { getProductById, Product } from '@/actions/products';
-import { ArrowLeft, Package, Tag, Layers, DollarSign, Warehouse, Weight, Ruler, Anchor, Globe, Calendar } from 'lucide-react';
+import { ArrowLeft, Package, Tag, Layers, DollarSign, Warehouse, Weight, Ruler, Anchor, Globe, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -11,7 +11,7 @@ import Link from 'next/link';
 export default async function ProductProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
     const { id } = await params;
     const product = await getProductById(id);
@@ -33,6 +33,11 @@ export default async function ProductProfilePage({
             </div>
         );
     }
+    
+    const marginValue = product.price - (product.purchasePrice || 0);
+    const marginPercentage = product.price > 0 ? (marginValue / product.price) * 100 : 0;
+    const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
+
 
     return (
         <div className="container py-8">
@@ -78,6 +83,25 @@ export default async function ProductProfilePage({
                             </div>
                         </CardContent>
                     </Card>
+
+                    {hasPricingInfo && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><TrendingUp /> Margin</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Margin (CNY)</span>
+                                    <span className="font-semibold">¥{marginValue.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Margin (%)</span>
+                                    <span className="font-semibold">{marginPercentage.toFixed(2)}%</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                 </div>
                 <div className="lg:col-span-2 space-y-8">
                     <Card>
