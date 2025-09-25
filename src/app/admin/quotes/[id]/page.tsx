@@ -26,8 +26,8 @@ async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer
 }
 
 
-export default async function QuotePreviewPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default async function QuotePreviewPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const { quote, customer, products } = await getQuoteData(id);
 
     if (!quote || !customer) {
@@ -49,7 +49,7 @@ export default async function QuotePreviewPage({ params }: { params: { id: strin
     }
 
     return (
-        <div className="container py-8 bg-background">
+        <div className="container py-8 bg-background printable-area">
              <div className="flex justify-between items-center mb-8 no-print">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/quotes">
@@ -60,9 +60,10 @@ export default async function QuotePreviewPage({ params }: { params: { id: strin
                 <PrintButton />
             </div>
             
-            <div className="printable-area">
+            <div className="print-content">
                 <QuotePreview quote={quote} customer={customer} products={products} />
             </div>
+            <footer className="print-footer" />
         </div>
     );
 }

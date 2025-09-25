@@ -36,8 +36,7 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
     return (
-        <>
-            <Card className="w-full max-w-4xl mx-auto shadow-lg print-card">
+            <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="packinglist-content">
                 <CardContent className="p-8">
                     <header className="flex justify-between items-start mb-8 border-b pb-8">
                         <div>
@@ -112,16 +111,6 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
                     </div>
                 </CardContent>
             </Card>
-             <footer className="print-footer">
-                <h3 className="font-bold text-base">{companyInfo.name}</h3>
-                <p className="text-sm text-muted-foreground">{companyInfo.address}</p>
-                <p className="text-sm text-muted-foreground">
-                    {companyInfo.phone && <span>{companyInfo.phone}</span>}
-                    {companyInfo.phone && companyInfo.email && <span> | </span>}
-                    {companyInfo.email && <span>{companyInfo.email}</span>}
-                </p>
-            </footer>
-        </>
     );
 }
 
@@ -176,7 +165,7 @@ export default function PackingListViewPage() {
     }
 
     return (
-        <div className="container py-8">
+        <div className="container py-8 printable-area">
             <div className="flex justify-between items-center mb-8 no-print">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/packing-list">
@@ -189,9 +178,10 @@ export default function PackingListViewPage() {
                     Export to PDF
                 </Button>
             </div>
-            <div className="printable-area">
+            <div className="print-content">
                 <PackingListPreview packingList={packingList} />
             </div>
+            <footer className="print-footer" />
         </div>
     );
 }
