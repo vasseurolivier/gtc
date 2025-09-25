@@ -35,12 +35,14 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl mx-auto print-document">
-            <div className="flex justify-end mb-4 no-print">
-                <Button onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Export to PDF
-                </Button>
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-auto print-document">
+             <div className="p-8 no-print">
+                <div className="flex justify-end mb-4">
+                    <Button onClick={handlePrint}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Export to PDF
+                    </Button>
+                </div>
             </div>
             
             <header className="print-header">

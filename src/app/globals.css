@@ -121,32 +121,35 @@ body {
 
   .print-header {
     position: fixed;
-    top: 1.5cm;
-    left: 1.5cm;
-    right: 1.5cm;
-    height: 80px; /* Header height */
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px; /* Header height */
+    padding: 1.5cm;
+    padding-bottom: 0.5cm;
   }
 
   .print-footer {
     position: fixed;
-    bottom: 1.5cm;
-    left: 1.5cm;
-    right: 1.5cm;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 60px; /* Footer height */
+    padding: 1.5cm;
+    padding-top: 0.5cm;
   }
 
   .print-body {
-    /* Define safe zones to prevent overlap */
-    padding-top: calc(80px + 1.5cm + 20px); /* Header height + top margin + spacing */
-    padding-bottom: calc(60px + 1.5cm + 20px); /* Footer height + bottom margin + spacing */
+    padding-top: 100px;
+    padding-bottom: 60px; 
     padding-left: 1.5cm;
     padding-right: 1.5cm;
   }
-  
+
   .print-body table tr {
       page-break-inside: avoid;
   }
-
+  
   .print-block {
     display: block !important;
   }
