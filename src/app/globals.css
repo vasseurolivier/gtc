@@ -90,11 +90,6 @@ body {
 }
 
 @media print {
-  @page {
-    size: A4;
-    margin: 1cm;
-  }
-
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -116,21 +111,20 @@ body {
     border-radius: 0 !important;
     background-color: white !important;
   }
-  
-  .print-header-spacer,
-  .print-footer-spacer {
-    height: 150px; /* Adjust based on your header/footer height */
-  }
 
-  .print-footer-spacer {
-      height: 50px;
-  }
-
-  .print-table thead {
+  .print-table thead, .print-table tfoot {
     display: table-header-group;
   }
 
   .print-table tfoot {
     display: table-footer-group;
   }
+
+  .print-header-spacer, .print-footer-spacer {
+      height: 150px;
+  }
+  .print-footer-spacer {
+      height: 50px;
+  }
+
 }
