@@ -46,7 +46,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
             <div className="print-document p-8">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
-                        <div className="w-1/3">
+                        <div className="w-1/3 flex justify-center">
                             {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                         </div>
                         <div className="w-1/3 text-center">
@@ -97,7 +97,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             {invoice.items.map((item, itemIndex) => {
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
-                                    <tr key={itemIndex} className="border-b" style={{ pageBreakInside: 'avoid' }}>
+                                    <tr key={itemIndex} className="border-b" style={{ pageBreakInside: 'avoid', height: '80px' }}>
                                         <td className="p-2 align-top">
                                             {product?.imageUrl && (
                                                 <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">

@@ -47,7 +47,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
             <div className="print-document p-8">
                 <header className="print-header">
                     <div className="flex justify-between items-start pb-4 border-b">
-                         <div className="w-1/3">
+                        <div className="w-1/3 flex justify-center">
                             {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                         </div>
                         <div className="w-1/3 text-center">
@@ -89,7 +89,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                 const unitPriceConverted = item.unitPriceCny * exchangeRate;
                                 const totalConverted = totalCny * exchangeRate;
                                 return (
-                                    <tr key={index} className="border-b" style={{ pageBreakInside: 'avoid' }}>
+                                    <tr key={index} className="border-b" style={{ pageBreakInside: 'avoid', height: '80px' }}>
                                         <td className="p-2 align-top">{item.sku}</td>
                                         <td className="p-2 align-top">
                                             {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
