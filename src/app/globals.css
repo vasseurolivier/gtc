@@ -101,6 +101,8 @@ body {
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    padding: 0;
+    margin: 0;
   }
 
   .no-print {
@@ -128,7 +130,7 @@ body {
     left: 1.5cm;
     right: 1.5cm;
     height: 100px; /* Header height */
-    padding-top: 2cm;
+    padding-top: 1cm;
     background-color: white;
     z-index: 10;
   }
@@ -139,7 +141,7 @@ body {
     left: 1.5cm;
     right: 1.5cm;
     height: 80px; /* Footer height */
-    padding-bottom: 2cm;
+    padding-bottom: 1cm;
     background-color: white;
     z-index: 10;
   }
