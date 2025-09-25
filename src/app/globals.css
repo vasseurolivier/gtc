@@ -124,31 +124,15 @@ body {
   }
   
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 50px;
-    right: 50px;
-    height: 80px; /* Header height */
-  }
-  
-  .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 50px;
-    right: 50px;
-    height: 80px; /* Footer height */
-  }
-
-  .print-body {
-    padding-top: 80px; /* Same as header height */
-    padding-bottom: 80px; /* Same as footer height */
-  }
-
-  thead {
     display: table-header-group;
   }
   
-  tr, table, tbody, thead {
+  .print-footer {
+    display: table-footer-group;
+  }
+
+  tr {
     page-break-inside: avoid;
   }
+
 }
