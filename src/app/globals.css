@@ -93,19 +93,14 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 0;
   }
 
-  body, body.printing {
+  body.printing, body.printing * {
     background-color: #fff !important;
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-  }
-  
-  body *, body.printing * {
-    color: #000 !important;
-    background-color: transparent !important;
   }
 
   .no-print {
@@ -117,7 +112,7 @@ body {
     border: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding: 0 !important;
+    padding: 1.5cm !important;
     margin: 0 !important;
     font-size: 10pt;
     background-color: #fff !important;
@@ -131,32 +126,32 @@ body {
   }
   
   .print-header {
-      top: 0;
+    top: 1.5cm;
   }
 
   .print-footer {
-      bottom: 0;
+    bottom: 1.5cm;
   }
   
   .print-body {
-    padding-top: 110px; /* Space for header */
-    padding-bottom: 90px; /* Space for footer */
+    margin-top: 110px; /* Space for header */
+    margin-bottom: 90px; /* Space for footer */
   }
 
-  table {
+  .print-body table {
     page-break-inside: auto;
   }
 
-  tr {
+  .print-body tr {
      page-break-inside: avoid;
      page-break-after: auto;
   }
 
-  thead {
+  thead.print-table-header {
       display: table-header-group;
   }
 
-  tfoot {
+  tfoot.print-table-footer {
       display: table-footer-group;
   }
   
