@@ -1,37 +1,64 @@
 
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { getInvoiceById, Invoice } from '@/actions/invoices';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 import { CompanyInfoProvider } from '@/context/company-info-context';
 import { CurrencyProvider } from '@/context/currency-context';
 
-async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, customer: Customer | null, products: Product[] }> {
-    try {
-        const invoice = await getInvoiceById(id);
-        if (!invoice) {
-            return { invoice: null, customer: null, products: [] };
+
+export default function InvoicePreviewPage() {
+    const params = useParams();
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!id) return;
+
+        async function getInvoiceData(id: string) {
+            setIsLoading(true);
+            try {
+                const invoice = await getInvoiceById(id);
+                if (!invoice) {
+                    setData({ invoice: null, customer: null, products: [] });
+                    return;
+                }
+                const [customer, products] = await Promise.all([
+                    getCustomerById(invoice.customerId),
+                    getProducts()
+                ]);
+                setData({ invoice, customer, products });
+            } catch (e) {
+                console.error(e);
+                setData({ invoice: null, customer: null, products: [] });
+            } finally {
+                setIsLoading(false);
+            }
         }
-        const [customer, products] = await Promise.all([
-            getCustomerById(invoice.customerId),
-            getProducts()
-        ]);
-        return { invoice, customer, products };
-    } catch (e) {
-        console.error(e);
-        return { invoice: null, customer: null, products: [] };
+        
+        getInvoiceData(id);
+
+    }, [id]);
+
+    if (isLoading) {
+        return (
+            <div className="container py-8">
+                <div className="flex h-screen items-center justify-center">
+                   <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                </div>
+            </div>
+        );
     }
-}
 
-
-export default async function InvoicePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const { invoice, customer, products } = await getInvoiceData(id);
-
-    if (!invoice || !customer) {
+    if (!data?.invoice || !data?.customer) {
         return (
             <div className="container py-8">
                  <div className="mb-8 no-print">
@@ -48,6 +75,8 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
             </div>
         );
     }
+    
+    const { invoice, customer, products } = data;
 
     return (
       <CompanyInfoProvider>
@@ -60,7 +89,6 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
                           Back to Invoices
                       </Link>
                   </Button>
-                  {/* The PrintButton is client-side and was causing issues here. It is now part of the preview component. */}
               </div>
               
               <InvoicePreview invoice={invoice} customer={customer} products={products} />
