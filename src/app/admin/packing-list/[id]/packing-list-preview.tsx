@@ -43,7 +43,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
             </div>
             <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="packinglist-content">
                 <CardContent className="p-8">
-                     <header className="print-header">
+                     <div className="print-header">
                         <div className="flex justify-between items-start mb-8 border-b pb-4">
                             <div>
                                 {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
@@ -53,11 +53,11 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                 <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
                             </div>
                         </div>
+                    </div>
+                    <main className="print-content-wrapper">
                          <div className="mb-8">
                             <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                          </div>
-                    </header>
-                    <main className="print-content-wrapper">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -98,7 +98,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                             </TableBody>
                         </Table>
                         <Separator className="my-4" />
-                        <div className="flex justify-end break-avoid">
+                        <div className="flex justify-end">
                             <div className="w-full md:w-1/2">
                                 <Table>
                                     <TableBody>

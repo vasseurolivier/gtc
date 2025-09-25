@@ -43,7 +43,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             </div>
             <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="invoice-content">
                 <CardContent className="p-8">
-                    <header className="print-header">
+                     <div className="print-header">
                         <div className="flex justify-between items-start mb-8 border-b pb-4">
                             <div>
                                 {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
@@ -53,6 +53,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <p className="text-muted-foreground mt-1"># {invoice.invoiceNumber}</p>
                             </div>
                         </div>
+                    </div>
+                    
+                    <main className="print-content-wrapper">
                         <section className="grid grid-cols-2 gap-8 mb-8">
                             <div>
                                 <h3 className="font-semibold mb-2">Bill To:</h3>
@@ -71,9 +74,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 </div>
                             </div>
                         </section>
-                    </header>
-                    
-                    <main className="print-content-wrapper">
+
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -113,7 +114,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </TableBody>
                         </Table>
 
-                        <div className="flex justify-end mt-8 break-avoid">
+                        <div className="flex justify-end mt-8">
                             <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>

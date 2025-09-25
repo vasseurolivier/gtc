@@ -45,7 +45,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </div>
             <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="proforma-content">
                 <CardContent className="p-8">
-                     <header className="print-header">
+                    <div className="print-header">
                         <div className="flex justify-between items-start mb-8 border-b pb-4">
                             <div>
                                 {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
@@ -55,6 +55,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
                             </div>
                         </div>
+                    </div>
+                    <main className="print-content-wrapper">
                         <section className="grid grid-cols-2 gap-8 mb-8">
                             <div>
                                 <h3 className="font-semibold mb-2">Bill To:</h3>
@@ -74,8 +76,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 </div>
                             </div>
                         </section>
-                    </header>
-                    <main className="print-content-wrapper">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -115,7 +115,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </TableBody>
                         </Table>
 
-                        <div className="flex justify-end mt-8 break-avoid">
+                        <div className="flex justify-end mt-8">
                             <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
@@ -147,7 +147,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         </div>
                         {quote.notes && 
-                            <div className="mt-8 text-left break-avoid">
+                            <div className="mt-8 text-left">
                                 <h3 className="font-semibold mb-2">Notes:</h3>
                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
                             </div>
