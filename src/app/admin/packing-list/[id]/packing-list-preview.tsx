@@ -62,7 +62,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     <CompanyInfoFooter />
                 </footer>
                 
-                <div>
+                <div className="print-body">
                     <div className="my-8 text-left">
                         <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                     </div>

@@ -93,7 +93,10 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 2.5cm 1.5cm 2.5cm 1.5cm;
+    margin-top: 100px;
+    margin-bottom: 80px;
+    margin-left: 50px;
+    margin-right: 50px;
 
     @top-center {
       content: element(print-header);
@@ -108,18 +111,10 @@ body {
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    padding: 0;
-    margin: 0;
   }
 
   .no-print {
     display: none !important;
-  }
-  
-  .printable-area {
-    padding: 0 !important;
-    margin: 0 !important;
-    background-color: transparent !important;
   }
   
   .print-document {
@@ -129,7 +124,7 @@ body {
     margin: 0 !important;
     font-size: 10pt;
     width: 100%;
-    background-color: white;
+    background-color: transparent;
   }
   
   .print-document * {
@@ -143,6 +138,10 @@ body {
 
   .print-footer {
     position: running(print-footer);
+  }
+  
+  .print-body {
+     padding: 0;
   }
 
   thead {

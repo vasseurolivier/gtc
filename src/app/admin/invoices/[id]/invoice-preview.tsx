@@ -61,7 +61,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                     <CompanyInfoFooter />
                 </footer>
                 
-                <div>
+                <div className="print-body">
                     <div className="grid grid-cols-2 gap-8 my-8">
                         <div>
                             <h3 className="font-semibold mb-2">Bill To:</h3>
