@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 
 import type { PackingList } from '@/actions/packing-lists';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Printer } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
@@ -16,7 +15,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
     const currencyContext = useContext(CurrencyContext);
 
     if (!currencyContext) {
-        return <Loader2 className="h-16 w-16 animate-spin text-primary" />;
+        return <Loader2 className="h-16 w-16 animate-spin" />;
     }
 
     const { currency, exchangeRate } = currencyContext;
@@ -35,7 +34,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-auto print-document">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-auto">
              <div className="p-8 no-print">
                 <div className="flex justify-end mb-4">
                     <Button onClick={handlePrint}>
@@ -45,66 +44,71 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </div>
             </div>
             
-            <header className="print-header">
-                 <div className="flex justify-between items-start pb-4 border-b">
-                    <div>
-                        {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
-                    </div>
-                    <div className="text-right">
-                        <h1 className="text-2xl font-bold text-primary">PACKING LIST</h1>
-                        <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
-                    </div>
-                </div>
-            </header>
+            <div className="print-document p-8">
+                <table className="print-table">
+                     <thead className="print-header">
+                        <tr>
+                            <th colSpan={9} className="print-header-spacer">
+                                <div className="flex justify-between items-start pb-4 border-b">
+                                    <div>
+                                        {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
+                                    </div>
+                                    <div className="text-right">
+                                        <h1 className="text-2xl font-bold">PACKING LIST</h1>
+                                        <p className="mt-1"># {packingList.listId}</p>
+                                    </div>
+                                </div>
+                                 <div className="my-8 text-left">
+                                    <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
+                                </div>
+                                <tr className="text-left">
+                                    <th className="p-2">SKU</th>
+                                    <th className="p-2 w-16">Photo</th>
+                                    <th className="p-2">Description</th>
+                                    <th className="p-2 text-right">Quantity</th>
+                                    <th className="p-2 text-right">Unit Price (CNY)</th>
+                                    <th className="p-2 text-right">Total (CNY)</th>
+                                    <th className="p-2 text-right">Unit Price ({currency.code})</th>
+                                    <th className="p-2 text-right">Total ({currency.code})</th>
+                                    <th className="p-2">Remarks</th>
+                                </tr>
+                            </th>
+                        </tr>
+                    </thead>
 
-            <footer className="print-footer">
-                <CompanyInfoFooter />
-            </footer>
-
-            <main className="print-body">
-                <div className="my-8 text-left">
-                    <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
-                </div>
-
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>SKU</TableHead>
-                            <TableHead className="w-16">Photo</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead className="text-right">Quantity</TableHead>
-                            <TableHead className="text-right">Unit Price (CNY)</TableHead>
-                            <TableHead className="text-right">Total (CNY)</TableHead>
-                            <TableHead className="text-right">Unit Price ({currency.code})</TableHead>
-                            <TableHead className="text-right">Total ({currency.code})</TableHead>
-                            <TableHead>Remarks</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                    <tfoot className="print-footer">
+                        <tr>
+                            <td colSpan={9} className="print-footer-spacer">
+                                <CompanyInfoFooter />
+                            </td>
+                        </tr>
+                    </tfoot>
+                    
+                    <tbody className="print-body">
                         {packingList.items.map((item, index) => {
                             const totalCny = item.quantity * item.unitPriceCny;
                             const unitPriceConverted = item.unitPriceCny * exchangeRate;
                             const totalConverted = totalCny * exchangeRate;
                             return (
-                                <TableRow key={index}>
-                                    <TableCell>{item.sku}</TableCell>
-                                    <TableCell>
+                                <tr key={index}>
+                                    <td className="p-2 align-top">{item.sku}</td>
+                                    <td className="p-2 align-top">
                                         {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                                             <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
                                         </div>}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{item.description}</TableCell>
-                                    <TableCell className="text-right">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
-                                    <TableCell>{item.remarks}</TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="p-2 align-top font-medium">{item.description}</td>
+                                    <td className="p-2 align-top text-right">{item.quantity}</td>
+                                    <td className="p-2 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
+                                    <td className="p-2 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                    <td className="p-2 align-top text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</td>
+                                    <td className="p-2 align-top text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</td>
+                                    <td className="p-2 align-top">{item.remarks}</td>
+                                </tr>
                             );
                         })}
-                    </TableBody>
-                </Table>
+                    </tbody>
+                </table>
 
                  <div className="flex justify-end pt-4">
                     <div className="w-full md:w-1/2">
@@ -126,7 +130,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </table>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }
@@ -137,7 +141,7 @@ function CompanyInfoFooter() {
     const { companyInfo } = companyInfoContext;
     
     return (
-        <div className="pt-4 border-t text-center text-xs text-muted-foreground">
+        <div className="pt-4 border-t text-center text-xs">
             <p className="font-bold">{companyInfo.name}</p>
             <p>{companyInfo.address}</p>
             <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
