@@ -45,139 +45,115 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </div>
             <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="proforma-content">
                 <CardContent className="p-8">
-                    <table className="w-full print-table">
-                        <thead>
-                            <tr>
-                                <td>
-                                    <div className="print-header-spacer"></div>
-                                    <header className="print-header fixed top-0 left-0 right-0 p-8 bg-white">
-                                        <div className="flex justify-between items-start mb-8 border-b pb-4">
-                                            <div>
-                                                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
-                                            </div>
-                                            <div className="text-right">
-                                                <h2 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h2>
-                                                <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
-                                            </div>
-                                        </div>
-                                        <section className="grid grid-cols-2 gap-8 mb-8">
-                                            <div>
-                                                <h3 className="font-semibold mb-2">Bill To:</h3>
-                                                <p className="font-bold">{customer?.name}</p>
-                                                <p className="text-muted-foreground">{customer?.company}</p>
-                                                <p className="text-muted-foreground">{customer?.email}</p>
-                                                <p className="text-muted-foreground">{quote.shippingAddress}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="grid grid-cols-2">
-                                                    <span className="font-semibold">Issue Date:</span>
-                                                    <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
-                                                </div>
-                                                    <div className="grid grid-cols-2 mt-1">
-                                                    <span className="font-semibold">Valid Until:</span>
-                                                    <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
-                                                </div>
-                                            </div>
-                                        </section>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="w-1/2">Description</TableHead>
-                                                    <TableHead className="text-right">Quantity</TableHead>
-                                                    <TableHead className="text-right">Unit Price</TableHead>
-                                                    <TableHead className="text-right">Total</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                        </Table>
-                                    </header>
-                                </td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <main className="print-content">
-                                        <Table>
-                                            <TableBody>
-                                                {quote.items.map((item, index) => {
-                                                    const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                                    return (
-                                                        <TableRow key={index}>
-                                                            <TableCell className="w-1/2">
-                                                                <div className="flex items-center gap-4">
-                                                                    {product?.imageUrl && (
-                                                                        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                                            <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
-                                                                        </div>
-                                                                    )}
-                                                                    <div>{item.description}</div>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell className="text-right">{item.quantity}</TableCell>
-                                                            <TableCell className="text-right">
-                                                                <div>¥{item.unitPrice.toFixed(2)}</div>
-                                                                <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                                            </TableCell>
-                                                            <TableCell className="text-right">
-                                                                <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                                                <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )
-                                                })}
-                                            </TableBody>
-                                        </Table>
-
-                                        <div className="flex justify-end mt-8">
-                                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
-                                                <div className="flex justify-between">
-                                                    <span className="text-muted-foreground">Subtotal</span>
-                                                    <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
-                                                </div>
-                                                {(quote.transportCost && quote.transportCost > 0) && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">Transport Cost</span>
-                                                        <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {(quote.commissionRate && quote.commissionRate > 0) && (
-                                                    <>
-                                                        <div className="flex justify-between">
-                                                            <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
-                                                            <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
+                     <header className="print-header">
+                        <div className="flex justify-between items-start mb-8 border-b pb-4">
+                            <div>
+                                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
+                            </div>
+                            <div className="text-right">
+                                <h2 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h2>
+                                <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
+                            </div>
+                        </div>
+                        <section className="grid grid-cols-2 gap-8 mb-8">
+                            <div>
+                                <h3 className="font-semibold mb-2">Bill To:</h3>
+                                <p className="font-bold">{customer?.name}</p>
+                                <p className="text-muted-foreground">{customer?.company}</p>
+                                <p className="text-muted-foreground">{customer?.email}</p>
+                                <p className="text-muted-foreground">{quote.shippingAddress}</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="grid grid-cols-2">
+                                    <span className="font-semibold">Issue Date:</span>
+                                    <span>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</span>
+                                </div>
+                                    <div className="grid grid-cols-2 mt-1">
+                                    <span className="font-semibold">Valid Until:</span>
+                                    <span>{format(new Date(quote.validUntil), 'dd MMM yyyy')}</span>
+                                </div>
+                            </div>
+                        </section>
+                    </header>
+                    <main className="print-content-wrapper">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-1/2">Description</TableHead>
+                                    <TableHead className="text-right">Quantity</TableHead>
+                                    <TableHead className="text-right">Unit Price</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {quote.items.map((item, index) => {
+                                    const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                    return (
+                                        <TableRow key={index}>
+                                            <TableCell className="w-1/2">
+                                                <div className="flex items-center gap-4">
+                                                    {product?.imageUrl && (
+                                                        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                            <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
                                                         </div>
-                                                    </>
-                                                )}
-                                                <Separator />
-                                                <div className="flex justify-between font-bold text-lg">
-                                                    <span>TOTAL (CNY)</span>
-                                                    <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
+                                                    )}
+                                                    <div>{item.description}</div>
                                                 </div>
-                                                <div className="flex justify-between font-bold text-lg text-primary">
-                                                    <span>TOTAL ({currency.code})</span>
-                                                    <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
-                                                </div>
-                                            </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">{item.quantity}</TableCell>
+                                            <TableCell className="text-right">
+                                                <div>¥{item.unitPrice.toFixed(2)}</div>
+                                                <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                                <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+
+                        <div className="flex justify-end mt-8 break-avoid">
+                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
+                                </div>
+                                {(quote.transportCost && quote.transportCost > 0) && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Transport Cost</span>
+                                        <span className="font-medium text-right">¥{quote.transportCost.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                {(quote.commissionRate && quote.commissionRate > 0) && (
+                                    <>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
+                                            <span className="font-medium text-right">¥{commissionAmount.toFixed(2)}</span>
                                         </div>
-                                        {quote.notes && 
-                                            <div className="mt-8 text-left">
-                                                <h3 className="font-semibold mb-2">Notes:</h3>
-                                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
-                                            </div>
-                                        }
-                                    </main>
-                                </td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td>
-                                    <div className="print-footer-spacer"></div>
-                                    <PrintFooter />
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                                    </>
+                                )}
+                                <Separator />
+                                <div className="flex justify-between font-bold text-lg">
+                                    <span>TOTAL (CNY)</span>
+                                    <span className="text-right">¥{quote.totalAmount.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-lg text-primary">
+                                    <span>TOTAL ({currency.code})</span>
+                                    <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {quote.notes && 
+                            <div className="mt-8 text-left break-avoid">
+                                <h3 className="font-semibold mb-2">Notes:</h3>
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
+                            </div>
+                        }
+                    </main>
+                   <PrintFooter />
                 </CardContent>
             </Card>
         </>
