@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1in; /* Adjust margins as needed */
+    margin: 0.5in;
   }
 
   body {
@@ -122,22 +122,18 @@ body {
   .print-header {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5in;
-    padding-bottom: 0.25in;
-    border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+    left: 0.5in;
+    right: 0.5in;
+    height: 1.5in; 
     background-color: white;
   }
 
   .print-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5in;
-    padding-top: 0.25in;
-    border-top: 1px solid #e5e7eb; /* border-gray-200 */
+    left: 0.5in;
+    right: 0.5in;
+    height: 0.5in;
     background-color: white;
     text-align: center;
     font-size: 0.75rem; /* text-xs */
@@ -145,22 +141,21 @@ body {
   }
 
   .print-body {
-    /* These paddings MUST roughly match the header/footer size to prevent overlap */
-    padding-top: 2.5in; /* header height + some space */
-    padding-bottom: 1.5in; /* footer height + some space */
+    padding-top: 1.5in;
+    padding-bottom: 0.5in;
   }
 
-  /* Ensure table headers are repeated on each page */
-  table thead {
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
     display: table-header-group;
   }
-  /* Ensure table footers are repeated on each page */
-  table tfoot {
+  tfoot {
     display: table-footer-group;
-  }
-  
-  /* Prevent elements from being broken across pages */
-  tr, td, th, h1, h2, h3, p, div {
-    page-break-inside: avoid;
   }
 }
