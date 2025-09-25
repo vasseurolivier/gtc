@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
 import { addOrder, updateOrderFromQuote } from './orders';
-import { addInvoice, updateInvoiceFromQuote } from './invoices';
+import { addInvoiceFromOrder, updateInvoiceFromQuote } from './invoices';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -115,20 +115,7 @@ export async function getQuotes(): Promise<Quote[]> {
         const data = doc.data();
         quotes.push({
           id: doc.id,
-          quoteNumber: data.quoteNumber,
-          customerId: data.customerId,
-          customerName: data.customerName,
-          items: data.items,
-          subTotal: data.subTotal,
-          transportCost: data.transportCost,
-          commissionRate: data.commissionRate,
-          totalAmount: data.totalAmount,
-          status: data.status,
-          shippingAddress: data.shippingAddress,
-          notes: data.notes,
-          issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
-          validUntil: data.validUntil?.toDate().toISOString() || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          ...data
         } as Quote);
     });
 
@@ -184,7 +171,7 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         if (!quoteSnap.exists()) {
             return { success: false, message: 'Proforma not found.' };
         }
-        const quote = { id: quoteSnap.id, ...quoteSnap.data() } as Quote;
+        const quote = { id: quoteSnap.id, ...quoteSnap.data(), issueDate: quoteSnap.data().issueDate.toDate().toISOString() } as Quote;
         const previousStatus = quote.status;
 
         await updateDoc(quoteRef, { status: validatedStatus });
@@ -195,19 +182,11 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
             if(fullQuote) {
                 const orderResult = await addOrder(fullQuote);
                 if (orderResult.success && orderResult.id) {
-                     await addInvoice({
-                        invoiceNumber: `INV-${fullQuote.quoteNumber.replace('PI-', '')}`,
+                     await addInvoiceFromOrder({
+                        ...fullQuote,
                         orderId: orderResult.id,
                         orderNumber: `O-${fullQuote.quoteNumber.replace('PI-', '')}`,
-                        customerId: fullQuote.customerId,
-                        customerName: fullQuote.customerName,
-                        issueDate: new Date(fullQuote.issueDate),
-                        dueDate: new Date(new Date(fullQuote.issueDate).getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days later
-                        items: fullQuote.items,
-                        totalAmount: fullQuote.totalAmount,
-                        status: 'unpaid',
-                        amountPaid: 0,
-                    });
+                     } as any);
                 }
             }
         }

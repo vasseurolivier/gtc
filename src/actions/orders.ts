@@ -2,18 +2,27 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, where, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Quote } from './quotes';
 
 const orderStatusSchema = z.enum(["processing", "shipped", "delivered", "cancelled"]);
+
+const orderItemSchema = z.object({
+  sku: z.string().optional(),
+  description: z.string().min(1, "Description cannot be empty."),
+  quantity: z.coerce.number().positive("Quantity must be positive."),
+  unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
+  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
+  total: z.coerce.number().nonnegative("Total cannot be negative."),
+});
 
 const orderSchema = z.object({
   orderNumber: z.string(),
   quoteId: z.string(),
   customerId: z.string(),
   customerName: z.string(),
-  items: z.array(z.any()), // Keep items flexible for now
+  items: z.array(orderItemSchema),
   totalAmount: z.coerce.number(),
   status: orderStatusSchema,
   shippingAddress: z.string().optional(),
@@ -22,13 +31,15 @@ const orderSchema = z.object({
   commissionRate: z.coerce.number().optional(),
 });
 
+export type OrderItem = z.infer<typeof orderItemSchema>;
+
 export interface Order {
     id: string;
     orderNumber: string;
     quoteId: string;
     customerId: string;
     customerName: string;
-    items: any[];
+    items: OrderItem[];
     totalAmount: number;
     status: "processing" | "shipped" | "delivered" | "cancelled";
     shippingAddress?: string;
@@ -109,18 +120,7 @@ export async function getOrders(): Promise<Order[]> {
         const data = doc.data();
         orders.push({
           id: doc.id,
-          orderNumber: data.orderNumber || '',
-          quoteId: data.quoteId || '',
-          customerId: data.customerId || '',
-          customerName: data.customerName || '',
-          items: data.items || [],
-          totalAmount: data.totalAmount || 0,
-          status: data.status || 'processing',
-          shippingAddress: data.shippingAddress || '',
-          orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
-          transportCost: data.transportCost || 0,
-          commissionRate: data.commissionRate || 0,
+          ...data,
         } as Order);
     });
 
@@ -130,6 +130,28 @@ export async function getOrders(): Promise<Order[]> {
     // Return an empty array in case of error to prevent crashing the UI
     return [];
   }
+}
+
+export async function getOrderById(id: string): Promise<Order | null> {
+    try {
+        const orderRef = doc(db, 'orders', id);
+        const orderSnap = await getDoc(orderRef);
+
+        if (!orderSnap.exists()) {
+            return null;
+        }
+
+        const orderData = orderSnap.data();
+
+        return {
+            id: orderSnap.id,
+            ...orderData,
+        } as Order;
+
+    } catch (error) {
+        console.error("Error fetching order details:", error);
+        return null;
+    }
 }
 
 export async function deleteOrder(id: string) {

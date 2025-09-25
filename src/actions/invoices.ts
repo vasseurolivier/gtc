@@ -4,7 +4,7 @@
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
-import type { Order } from './orders';
+import { getOrderById, type Order, type OrderItem } from './orders';
 import type { Quote } from './quotes';
 
 const invoiceItemSchema = z.object({
@@ -12,7 +12,7 @@ const invoiceItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().positive("Qty must be > 0."),
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
-  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
+  purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
 });
 
@@ -33,14 +33,7 @@ const invoiceSchema = z.object({
 });
 
 
-export interface InvoiceItem {
-  sku?: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  purchasePrice?: number;
-  total: number;
-}
+export type InvoiceItem = z.infer<typeof invoiceItemSchema>;
 
 export interface Invoice {
     id: string;
@@ -170,10 +163,6 @@ export async function getInvoices(): Promise<Invoice[]> {
         invoices.push({
           id: doc.id,
           ...data,
-          issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
-          dueDate: data.dueDate?.toDate().toISOString() || new Date().toISOString(),
-          paymentDate: data.paymentDate?.toDate().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice);
     });
 
@@ -198,10 +187,6 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
         return {
             id: invoiceSnap.id,
             ...invoiceData,
-            issueDate: invoiceData.issueDate?.toDate().toISOString() || new Date().toISOString(),
-            dueDate: invoiceData.dueDate?.toDate().toISOString() || new Date().toISOString(),
-            paymentDate: invoiceData.paymentDate?.toDate().toISOString(),
-            createdAt: invoiceData.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice;
 
     } catch (error) {
@@ -225,14 +210,20 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
     try {
         const validatedStatus = invoiceStatusSchema.parse(status);
         const invoiceRef = doc(db, 'invoices', id);
+        const invoiceSnap = await getDoc(invoiceRef);
+
+        if (!invoiceSnap.exists()) {
+            return { success: false, message: "Invoice not found." };
+        }
+        const invoiceData = invoiceSnap.data();
+
 
         const updateData: { status: string, paymentDate?: Date | null } = { status: validatedStatus };
         if (validatedStatus === 'paid') {
-            updateData.paymentDate = new Date();
+            updateData.paymentDate = invoiceData.paymentDate ? invoiceData.paymentDate.toDate() : new Date();
         } else {
              // If status is changed from 'paid' to something else, clear the payment date
-            const invoiceSnap = await getDoc(invoiceRef);
-            if (invoiceSnap.exists() && invoiceSnap.data().status === 'paid') {
+            if (invoiceData.status === 'paid') {
                 updateData.paymentDate = null;
             }
         }
@@ -274,11 +265,11 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
 
         if (amountPaid >= totalAmount) {
             newStatus = 'paid';
-            updateData.paymentDate = invoiceData.paymentDate || new Date(); // Keep existing payment date if available
+            updateData.paymentDate = invoiceData.paymentDate ? invoiceData.paymentDate.toDate() : new Date();
         } else if (amountPaid > 0) {
             newStatus = 'partially_paid';
             updateData.paymentDate = null; // Clear payment date if not fully paid
-        } else if (invoiceData.status !== 'cancelled' && new Date() > invoiceData.dueDate.toDate()) {
+        } else if (invoiceData.status !== 'cancelled' && invoiceData.dueDate.toDate() < new Date()) {
             newStatus = 'overdue';
             updateData.paymentDate = null;
         } else if (invoiceData.status !== 'cancelled') {
@@ -296,4 +287,3 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
-

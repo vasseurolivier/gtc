@@ -24,7 +24,7 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil } from 'lucide-react';
-import { formatInTimeZone } from 'date-fns-tz';
+import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -37,7 +37,7 @@ const quoteItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().positive("Qty must be > 0."),
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
-  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
+  purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
 });
 
@@ -334,7 +334,7 @@ function QuotesPageContent() {
           <TableRow key={quote.id}>
             <TableCell className="font-medium">{quote.quoteNumber}</TableCell>
             <TableCell>{quote.customerName}</TableCell>
-            <TableCell>{formatInTimeZone(new Date(quote.issueDate), 'UTC', 'dd MMM yyyy')}</TableCell>
+            <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
             <TableCell>
               <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
                 <SelectTrigger className="w-32">
@@ -422,13 +422,13 @@ function QuotesPageContent() {
                   <FormField control={form.control} name="issueDate" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Issue Date</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? formatInTimeZone(field.value, 'UTC', "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="validUntil" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Valid Until</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? formatInTimeZone(field.value, 'UTC', "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                 </div>

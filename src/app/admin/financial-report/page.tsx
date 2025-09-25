@@ -91,7 +91,6 @@ export default function FinancialReportPage() {
 
   const costOfGoodsSold = paidInvoices.reduce((totalCost, inv) => {
     const invoiceCost = inv.items.reduce((itemSum, item) => {
-      // Use the purchasePrice stored in the invoice item if available
       const purchasePrice = item.purchasePrice || 0;
       return itemSum + (purchasePrice * item.quantity);
     }, 0);
@@ -107,7 +106,8 @@ export default function FinancialReportPage() {
     if (!order) return totalExpense;
     
     const transport = order.transportCost || 0;
-    // Calculate subTotal of items in the order
+    
+    // The subtotal from the order items
     const subTotal = order.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     const commission = subTotal * ((order.commissionRate || 0) / 100);
     
