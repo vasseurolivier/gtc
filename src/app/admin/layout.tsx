@@ -32,8 +32,6 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { AppProviders } from '@/components/app-providers';
-import '../globals.css';
 import { CurrencyProvider, CurrencyContext } from '@/context/currency-context';
 import { CompanyInfoProvider, CompanyInfoContext, CompanyInfo } from '@/context/company-info-context';
 import { useContext, useState, useEffect } from 'react';
@@ -46,6 +44,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getSubmissions, Submission } from '@/actions/submissions';
+import { AppProviders } from '@/components/app-providers';
 
 
 function AdminSettings() {
@@ -216,6 +215,17 @@ function AdminSettings() {
     );
 }
 
+function AdminAppProviders({ children }: { children: React.ReactNode }) {
+    return (
+        <AppProviders>
+            <CompanyInfoProvider>
+                <CurrencyProvider>
+                    {children}
+                </CurrencyProvider>
+            </CompanyInfoProvider>
+        </AppProviders>
+    )
+}
 
 function ProtectedAdminLayout({
   children,
@@ -274,44 +284,42 @@ function ProtectedAdminLayout({
   const activePath = pathname;
 
   return (
-    <AppProviders>
-      <SidebarProvider>
-        <Sidebar className="no-print bg-muted/20">
-          <SidebarContent>
-            <SidebarHeader>
-              <h2 className="text-lg font-semibold">Global Trading China</h2>
-            </SidebarHeader>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <Link href={item.href} passHref>
-                    <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
-                      <span>
-                        {item.icon}
-                        <span>{item.label}</span>
-                          {item.badge && item.badge > 0 && (
-                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                        )}
-                      </span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-            <SidebarFooter>
-              <AdminSettings />
-              <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </SidebarFooter>
-          </SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-          {children}
-        </SidebarInset>
-      </SidebarProvider>
-    </AppProviders>
+    <SidebarProvider>
+      <Sidebar className="no-print bg-muted/20">
+        <SidebarContent>
+          <SidebarHeader>
+            <h2 className="text-lg font-semibold">Global Trading China</h2>
+          </SidebarHeader>
+          <SidebarMenu>
+            {navItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <Link href={item.href} passHref>
+                  <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
+                    <span>
+                      {item.icon}
+                      <span>{item.label}</span>
+                        {item.badge && item.badge > 0 && (
+                        <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                      )}
+                    </span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+          <SidebarFooter>
+            <AdminSettings />
+            <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </SidebarFooter>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 
@@ -323,15 +331,11 @@ export default function AdminRootLayout({
 }) {
   const pathname = usePathname();
   if (pathname === '/admin/login') {
-    return <>{children}</>;
+    return <AppProviders>{children}</AppProviders>;
   }
   return (
-    <CompanyInfoProvider>
-      <CurrencyProvider>
-        <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
-      </CurrencyProvider>
-    </CompanyInfoProvider>
+    <AdminAppProviders>
+      <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
+    </AdminAppProviders>
   )
 }
-
-    
