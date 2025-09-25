@@ -91,6 +91,11 @@ body {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 1in; /* Adjust margins as needed */
+  }
+
   body {
     background-color: white !important;
     -webkit-print-color-adjust: exact !important;
@@ -109,17 +114,53 @@ body {
   .print-document {
     box-shadow: none !important;
     border: none !important;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
   }
 
-  thead {
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5in;
+    padding-bottom: 0.25in;
+    border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+    background-color: white;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5in;
+    padding-top: 0.25in;
+    border-top: 1px solid #e5e7eb; /* border-gray-200 */
+    background-color: white;
+    text-align: center;
+    font-size: 0.75rem; /* text-xs */
+    color: #6b7280; /* text-gray-500 */
+  }
+
+  .print-body {
+    /* These paddings MUST roughly match the header/footer size to prevent overlap */
+    padding-top: 2.5in; /* header height + some space */
+    padding-bottom: 1.5in; /* footer height + some space */
+  }
+
+  /* Ensure table headers are repeated on each page */
+  table thead {
     display: table-header-group;
   }
-
-  tfoot {
+  /* Ensure table footers are repeated on each page */
+  table tfoot {
     display: table-footer-group;
   }
-
-  tr, td, th {
+  
+  /* Prevent elements from being broken across pages */
+  tr, td, th, h1, h2, h3, p, div {
     page-break-inside: avoid;
   }
 }
