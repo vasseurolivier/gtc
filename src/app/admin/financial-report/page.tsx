@@ -116,7 +116,8 @@ export default function FinancialReportPage() {
     if (!quote) return totalExpense;
     
     const transport = quote.transportCost || 0;
-    const commission = (quote.subTotal + transport) * ((quote.commissionRate || 0) / 100);
+    // Commission should be calculated on subTotal only, transport cost is a separate expense.
+    const commission = (quote.subTotal) * ((quote.commissionRate || 0) / 100);
     return totalExpense + transport + commission;
   }, 0);
 
