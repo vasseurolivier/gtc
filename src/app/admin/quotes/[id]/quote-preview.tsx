@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -27,7 +28,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     
     const { companyInfo } = companyInfoContext;
     const { currency, exchangeRate } = currencyContext;
-    const commissionAmount = (quote.subTotal + (quote.transportCost || 0)) * ((quote.commissionRate || 0) / 100);
+    const commissionAmount = (quote.subTotal) * ((quote.commissionRate || 0) / 100);
 
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 

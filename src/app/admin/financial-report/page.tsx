@@ -116,7 +116,6 @@ export default function FinancialReportPage() {
     if (!quote) return totalExpense;
     
     const transport = quote.transportCost || 0;
-    // Corrected calculation: commission is based on subTotal only
     const commission = (quote.subTotal) * ((quote.commissionRate || 0) / 100);
     return totalExpense + transport + commission;
   }, 0);
@@ -154,7 +153,7 @@ export default function FinancialReportPage() {
         {},
         { Metric: '--- INCOME STATEMENT ---' },
         { Metric: 'Revenue (CNY)', Value: revenue },
-        { Metric: 'Coût d\'Achat des Marchandises Vendues (COGS) (CNY)', Value: costOfGoodsSold },
+        { Metric: 'Coût des Marchandises (COGS) (CNY)', Value: costOfGoodsSold },
         { Metric: 'Gross Profit (CNY)', Value: grossProfit },
         { Metric: 'Operating Expenses (CNY)', Value: operatingExpenses },
         { Metric: 'Net Profit (CNY)', Value: netProfit },
@@ -252,7 +251,7 @@ export default function FinancialReportPage() {
                     {formatCurrency(revenue)}
                 </div>
                 <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-red-500"><TrendingDown className="h-5 w-5"/><span>Coût d'Achat des Marchandises Vendues (COGS)</span></div>
+                    <div className="flex items-center gap-2 text-red-500"><TrendingDown className="h-5 w-5"/><span>Coût des Marchandises (COGS)</span></div>
                     {formatCurrency(costOfGoodsSold)}
                 </div>
                 <Separator />
