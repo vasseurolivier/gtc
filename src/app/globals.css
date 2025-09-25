@@ -118,31 +118,30 @@ body {
     max-width: 100%;
     padding: 0 !important;
     margin: 0 !important;
+    break-after: page;
   }
 
   .print-header {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5in;
-    padding-bottom: 0;
+    left: 0.5in;
+    right: 0.5in;
+    height: 100px; /* Adjust as needed */
   }
 
   .print-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5in;
-    padding-top: 0;
+    left: 0.5in;
+    right: 0.5in;
+    height: 150px; /* Adjust as needed */
   }
 
   .print-body {
-    padding-top: 100px; /* Adjust based on header height */
-    padding-bottom: 120px; /* Adjust based on footer height */
+    padding-top: 100px;  /* Same as header height */
+    padding-bottom: 150px; /* Same as footer height */
   }
-  
+
   tbody, tr, td, th {
     page-break-inside: avoid !important;
   }
