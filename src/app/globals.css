@@ -121,7 +121,7 @@ body {
   }
 
   .print-header-spacer {
-    height: 320px; /* Adjust based on your header's height */
+    height: 350px; /* Adjust based on your header's height */
   }
 
   .print-footer-spacer {
@@ -135,6 +135,7 @@ body {
     right: 0;
     background-color: white;
     padding: 2rem; /* p-8 */
+    width: 100%;
   }
   
   .print-footer {
@@ -145,5 +146,15 @@ body {
     background-color: white;
     padding: 1rem 2rem; /* p-4 p-8 */
     border-top: 1px solid hsl(var(--border));
+    width: 100%;
   }
+
+  .print-content {
+    page-break-inside: auto;
+  }
+   .print-content tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
 }

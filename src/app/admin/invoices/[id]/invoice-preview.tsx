@@ -49,13 +49,13 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <td>
                                     <div className="print-header-spacer"></div>
                                     <header className="print-header">
-                                        <div className="flex justify-between items-start mb-8 border-b pb-8">
+                                        <div className="flex justify-between items-start mb-8 border-b pb-4">
                                             <div>
-                                                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain"/>}
+                                                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
                                             </div>
                                             <div className="text-right">
                                                 <h2 className="text-3xl font-bold text-primary">INVOICE</h2>
-                                                <p className="text-muted-foreground mt-2"># {invoice.invoiceNumber}</p>
+                                                <p className="text-muted-foreground mt-1"># {invoice.invoiceNumber}</p>
                                             </div>
                                         </div>
                                         <section className="grid grid-cols-2 gap-8 mb-8">

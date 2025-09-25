@@ -49,16 +49,18 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                 <td>
                                     <div className="print-header-spacer"></div>
                                     <header className="print-header">
-                                        <div className="flex justify-between items-start mb-8 border-b pb-8">
+                                        <div className="flex justify-between items-start mb-8 border-b pb-4">
                                             <div>
-                                                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
+                                                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
                                             </div>
                                             <div className="text-right">
                                                 <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
-                                                <p className="text-muted-foreground mt-2"># {packingList.listId}</p>
-                                                <p className="text-muted-foreground mt-1">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
+                                                <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
                                             </div>
                                         </div>
+                                         <div className="mb-8">
+                                            <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
+                                         </div>
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
