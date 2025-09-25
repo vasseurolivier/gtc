@@ -19,21 +19,8 @@ export default function InvoicePreviewPage() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [logo, setLogo] = useState('');
 
     useEffect(() => {
-        try {
-            const savedInfo = localStorage.getItem('adminCompanyInfo');
-            if (savedInfo) {
-                const parsedInfo = JSON.parse(savedInfo);
-                if (parsedInfo.logo) {
-                    setLogo(parsedInfo.logo);
-                }
-            }
-        } catch (e) {
-            console.error("Could not load logo from local storage", e);
-        }
-
         if (!id) return;
 
         async function getInvoiceData(id: string) {
@@ -104,7 +91,7 @@ export default function InvoicePreviewPage() {
                   </Button>
               </div>
               
-              <InvoicePreview invoice={invoice} customer={customer} products={products} logo={logo} />
+              <InvoicePreview invoice={invoice} customer={customer} products={products} />
           </div>
         </CurrencyProvider>
       </CompanyInfoProvider>

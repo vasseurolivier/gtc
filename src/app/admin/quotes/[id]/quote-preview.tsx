@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
-export function QuotePreview({ quote, customer, products, logo }: { quote: Quote, customer: Customer, products: Product[], logo: string }) {
+export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
 
@@ -39,23 +39,25 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </Button>
             </div>
             
-             <Table>
+             <table className="w-full">
                 <thead className="print-header">
                     <tr>
-                        <th colSpan={5} className="p-0">
+                        <td colSpan={5}>
                            <div className="flex justify-between items-start pb-4 border-b">
                                 <div>
-                                    {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
+                                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
                                 </div>
                                 <div className="text-right">
                                     <h1 className="text-3xl font-bold text-primary">PROFORMA INVOICE</h1>
                                     <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
                                 </div>
                             </div>
-                        </th>
+                        </td>
                     </tr>
+                </thead>
+                 <tbody>
                     <tr>
-                        <th colSpan={5} className="p-0">
+                        <td colSpan={5}>
                             <div className="grid grid-cols-2 gap-8 my-8">
                                 <div>
                                     <h3 className="font-semibold mb-2 text-left">Bill To:</h3>
@@ -75,22 +77,20 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     </div>
                                 </div>
                             </div>
-                        </th>
+                        </td>
                     </tr>
-                    <tr>
-                        <TableHead className="w-16 no-print-photo">Photo</TableHead>
+                    <tr className="border-b">
+                        <TableHead className="w-16">Photo</TableHead>
                         <TableHead className="w-1/2">Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit Price</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                     </tr>
-                </thead>
-                <tbody className="print-body">
                     {quote.items.map((item, itemIndex) => {
                         const product = item.sku ? productsBySku.get(item.sku) : undefined;
                         return (
                             <TableRow key={itemIndex}>
-                                <TableCell className="w-16 no-print-photo">
+                                <TableCell className="w-16">
                                     {product?.imageUrl && (
                                         <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
                                             <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
@@ -115,7 +115,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </tbody>
                  <tfoot className="print-footer">
                     <tr>
-                        <td colSpan={5} className="p-0">
+                        <td colSpan={5}>
                             <div className="flex justify-end pt-8">
                                 <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                                     <div className="flex justify-between">
@@ -152,10 +152,6 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
                                 </div>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                         <td colSpan={5} className="p-0">
                            <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
                                 <p className="font-bold">{companyInfo.name}</p>
                                 <p>{companyInfo.address}</p>
@@ -164,7 +160,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         </td>
                     </tr>
                 </tfoot>
-            </Table>
+            </table>
         </div>
     );
 }

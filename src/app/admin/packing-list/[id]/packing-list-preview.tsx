@@ -12,7 +12,7 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Button } from '@/components/ui/button';
 
-export function PackingListPreview({ packingList, logo }: { packingList: PackingList, logo: string }) {
+export function PackingListPreview({ packingList }: { packingList: PackingList }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
 
@@ -39,31 +39,33 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </Button>
             </div>
             
-            <Table>
+            <table className="w-full">
                 <thead className="print-header">
                     <tr>
-                        <th colSpan={9} className="p-0">
+                        <td colSpan={9}>
                             <div className="flex justify-between items-start pb-4 border-b">
                                 <div>
-                                    {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
+                                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
                                 </div>
                                 <div className="text-right">
                                     <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
                                     <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
                                 </div>
                             </div>
-                        </th>
+                        </td>
                     </tr>
+                </thead>
+                <tbody className="print-body">
                     <tr>
-                        <th colSpan={9} className="p-0">
+                        <td colSpan={9}>
                              <div className="my-8 text-left">
                                 <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                             </div>
-                        </th>
+                        </td>
                     </tr>
-                    <tr>
+                    <tr className="border-b">
                         <TableHead>SKU</TableHead>
-                        <TableHead className="w-16 no-print-photo">Photo</TableHead>
+                        <TableHead className="w-16">Photo</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit Price (CNY)</TableHead>
@@ -72,8 +74,6 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         <TableHead className="text-right">Total ({currency.code})</TableHead>
                         <TableHead>Remarks</TableHead>
                     </tr>
-                </thead>
-                <tbody className="print-body">
                     {packingList.items.map((item, index) => {
                         const totalCny = item.quantity * item.unitPriceCny;
                         const unitPriceConverted = item.unitPriceCny * exchangeRate;
@@ -81,7 +81,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         return (
                             <TableRow key={index}>
                                 <TableCell>{item.sku}</TableCell>
-                                <TableCell className="w-16 no-print-photo">
+                                <TableCell className="w-16">
                                     {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                                         <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
                                     </div>}
@@ -99,7 +99,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </tbody>
                 <tfoot className="print-footer">
                      <tr>
-                        <td colSpan={9} className="p-0">
+                        <td colSpan={9}>
                             <div className="flex justify-end pt-4">
                                 <div className="w-full md:w-1/2">
                                     <Table>
@@ -120,10 +120,6 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                     </Table>
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                    <tr>
-                         <td colSpan={9} className="p-0">
                             <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
                                 <p className="font-bold">{companyInfo.name}</p>
                                 <p>{companyInfo.address}</p>
@@ -132,7 +128,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </td>
                     </tr>
                 </tfoot>
-            </Table>
+            </table>
         </div>
     );
 }

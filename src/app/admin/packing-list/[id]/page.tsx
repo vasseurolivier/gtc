@@ -19,21 +19,8 @@ export default function PackingListViewPage() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [logo, setLogo] = useState('');
 
     useEffect(() => {
-        try {
-            const savedInfo = localStorage.getItem('adminCompanyInfo');
-            if (savedInfo) {
-                const parsedInfo = JSON.parse(savedInfo);
-                if (parsedInfo.logo) {
-                    setLogo(parsedInfo.logo);
-                }
-            }
-        } catch (e) {
-            console.error("Could not load logo from local storage", e);
-        }
-
         if (id) {
             getPackingListById(id)
                 .then(data => {
@@ -90,7 +77,7 @@ export default function PackingListViewPage() {
                         </Button>
                     </div>
                     
-                    {packingList && <PackingListPreview packingList={packingList} logo={logo} />}
+                    {packingList && <PackingListPreview packingList={packingList} />}
                 </div>
             </CurrencyProvider>
         </CompanyInfoProvider>
