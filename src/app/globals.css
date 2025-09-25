@@ -92,22 +92,18 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm;
+    margin: 0;
   }
 
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     background-color: white !important;
+    padding: 1.5cm; /* Add padding to body to simulate margin */
   }
   
   .no-print {
     display: none !important;
-  }
-
-  .printable-area {
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
   .print-card {
@@ -115,40 +111,40 @@ body {
     border: none !important;
     border-radius: 0 !important;
     background-color: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .print-card > .p-8 {
+    padding: 0 !important;
   }
 
-  .print-content-wrapper {
-    page-break-inside: auto;
-  }
-
-  .print-header-spacer, .print-footer-spacer {
-    display: table-header-group; /* or table-footer-group */
-    visibility: hidden;
-    height: 150px; /* Adjust as needed */
+  .print-table {
+    width: 100%;
+    border-spacing: 0;
+    table-layout: fixed;
   }
   
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 1cm;
-    background-color: white;
-    width: 100%;
-    display: block !important;
-    visibility: visible !important;
+    display: table-header-group;
   }
 
   .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 1cm;
-    padding-top: 0;
-    background-color: white;
-    width: 100%;
-    display: block !important;
-    visibility: visible !important;
+    display: table-footer-group;
+  }
+  
+  .print-body {
+    display: table-row-group;
+  }
+
+  .print-header-spacer,
+  .print-footer-spacer {
+    /* These elements now just hold the content */
+    padding: 0;
+  }
+
+  /* Prevent table rows from breaking across pages */
+  tr, td, th {
+    page-break-inside: avoid;
   }
 }
