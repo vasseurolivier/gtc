@@ -23,7 +23,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
       <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
         <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg">
+            <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-red-500">
                 {dictionary.title}
             </h1>
             <div className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-neutral-200">
