@@ -95,55 +95,39 @@ body {
     size: A4;
     margin: 0.5in;
   }
-  body {
+  
+  body, .printable-area {
+    background-color: #fff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background-color: #fff;
   }
 
   .no-print {
     display: none !important;
   }
   
-  .printable-area {
-    padding: 0 !important;
-    margin: 0 !important;
-    background-color: #fff !important;
-  }
-  
   .print-document {
     box-shadow: none !important;
     border: none !important;
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    break-after: page;
-  }
-
-  .print-header {
-    position: fixed;
-    top: 0;
-    left: 0.5in;
-    right: 0.5in;
-    height: 100px; /* Adjust as needed */
-  }
-
-  .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0.5in;
-    right: 0.5in;
-    height: 150px; /* Adjust as needed */
-  }
-
-  .print-body {
-    padding-top: 100px;  /* Same as header height */
-    padding-bottom: 150px; /* Same as footer height */
-  }
-
-  tbody, tr, td, th {
-    page-break-inside: avoid !important;
   }
   
+  .print-body {
+     page-break-inside: auto;
+  }
+
+  tr {
+     page-break-inside: avoid;
+  }
+  
+  thead {
+      display: table-header-group;
+  }
+  
+  tfoot {
+      display: table-footer-group;
+  }
 }
