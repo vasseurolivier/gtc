@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -12,7 +13,7 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
-export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: Customer, products: Product[] }) {
+export function InvoicePreview({ invoice, customer, products, logo }: { invoice: Invoice, customer: Customer, products: Product[], logo: string }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
 
@@ -27,7 +28,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const { companyInfo } = companyInfoContext;
     const { currency, exchangeRate } = currencyContext;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
-    const subTotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     
     return (
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl mx-auto print-document">
@@ -40,11 +40,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             
             <Table>
                 <thead className="print-header">
-                    <tr>
+                     <tr>
                         <th colSpan={5} className="p-0">
                             <div className="flex justify-between items-start pb-4 border-b">
                                 <div>
-                                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
+                                    {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain"/>}
                                 </div>
                                 <div className="text-right">
                                     <h1 className="text-3xl font-bold text-primary">INVOICE</h1>
@@ -76,7 +76,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </th>
                     </tr>
                     <tr>
-                        <TableHead className="w-16">Photo</TableHead>
+                        <TableHead className="w-16 no-print-photo">Photo</TableHead>
                         <TableHead className="w-1/2">Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit Price</TableHead>
@@ -88,7 +88,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         const product = item.sku ? productsBySku.get(item.sku) : undefined;
                         return (
                             <TableRow key={itemIndex}>
-                                <TableCell>
+                                <TableCell className="w-16 no-print-photo">
                                     {product?.imageUrl && (
                                         <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
                                             <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
@@ -116,10 +116,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <td colSpan={5} className="p-0">
                             <div className="flex justify-end pt-8">
                                 <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Subtotal</span>
-                                        <span className="font-medium text-right">¥{subTotal.toFixed(2)}</span>
-                                    </div>
                                     <div className="flex justify-between font-bold text-lg">
                                         <span>TOTAL (CNY)</span>
                                         <span className="text-right">¥{invoice.totalAmount.toFixed(2)}</span>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext } from 'react';
@@ -11,7 +12,7 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Button } from '@/components/ui/button';
 
-export function PackingListPreview({ packingList }: { packingList: PackingList }) {
+export function PackingListPreview({ packingList, logo }: { packingList: PackingList, logo: string }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
 
@@ -44,7 +45,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         <th colSpan={9} className="p-0">
                             <div className="flex justify-between items-start pb-4 border-b">
                                 <div>
-                                    {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
+                                    {logo && <Image src={logo} alt="Company Logo" width={100} height={100} className="object-contain" />}
                                 </div>
                                 <div className="text-right">
                                     <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
@@ -62,7 +63,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </tr>
                     <tr>
                         <TableHead>SKU</TableHead>
-                        <TableHead className="w-16">Photo</TableHead>
+                        <TableHead className="w-16 no-print-photo">Photo</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit Price (CNY)</TableHead>
@@ -80,7 +81,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         return (
                             <TableRow key={index}>
                                 <TableCell>{item.sku}</TableCell>
-                                <TableCell className="w-16">
+                                <TableCell className="w-16 no-print-photo">
                                     {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                                         <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
                                     </div>}
