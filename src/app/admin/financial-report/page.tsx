@@ -21,6 +21,7 @@ export default function FinancialReportPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('this_month');
 
@@ -39,12 +40,14 @@ export default function FinancialReportPage() {
 
     async function fetchData() {
       try {
-        const [invs, ords] = await Promise.all([
+        const [invs, ords, prods] = await Promise.all([
             getInvoices(),
             getOrders(),
+            getProducts(),
         ]);
         setInvoices(invs);
         setOrders(ords);
+        setProducts(prods);
       } catch (error) {
         console.error("Failed to fetch financial data:", error);
       } finally {
@@ -304,4 +307,3 @@ export default function FinancialReportPage() {
     </div>
   );
 }
-
