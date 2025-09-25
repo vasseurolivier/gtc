@@ -116,7 +116,7 @@ function QuotesPageContent() {
             }
         });
         
-        const subTotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
+        const subTotal = items.reduce((sum, item) => sum + (item?.total || 0), 0);
         const transportCost = Number(values.transportCost) || 0;
         const commissionRate = Number(values.commissionRate) || 0;
         const commissionAmount = (subTotal + transportCost) * (commissionRate / 100);
@@ -399,7 +399,9 @@ function QuotesPageContent() {
           <DialogContent className="max-w-4xl">
             <DialogHeader>
                 <DialogTitle>{editingQuote ? 'Edit Proforma Invoice' : 'Create a New Proforma Invoice'}</DialogTitle>
-                <DialogDescription>Fill in the details to create or update a proforma invoice.</DialogDescription>
+                <DialogDescription>
+                    Fill in the details to create or update a proforma invoice. Totals will be recalculated automatically.
+                </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
