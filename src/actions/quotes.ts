@@ -12,6 +12,7 @@ const quoteItemSchema = z.object({
   description: z.string().min(1, "Description cannot be empty."),
   quantity: z.coerce.number().positive("Quantity must be positive."),
   unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
+  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
   total: z.coerce.number().nonnegative("Total cannot be negative."),
 });
 
@@ -38,6 +39,7 @@ export interface QuoteItem {
   description: string;
   quantity: number;
   unitPrice: number;
+  purchasePrice?: number;
   total: number;
 }
 
@@ -219,3 +221,4 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+

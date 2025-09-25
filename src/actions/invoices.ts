@@ -12,6 +12,7 @@ const invoiceItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().positive("Qty must be > 0."),
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
+  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
   total: z.number(),
 });
 
@@ -32,6 +33,15 @@ const invoiceSchema = z.object({
 });
 
 
+export interface InvoiceItem {
+  sku?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  purchasePrice?: number;
+  total: number;
+}
+
 export interface Invoice {
     id: string;
     invoiceNumber: string;
@@ -39,7 +49,7 @@ export interface Invoice {
     orderNumber?: string;
     customerId: string;
     customerName: string;
-    items: any[];
+    items: InvoiceItem[];
     totalAmount: number;
     amountPaid?: number;
     status: "unpaid" | "paid" | "overdue" | "cancelled" | "partially_paid";
@@ -286,3 +296,4 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+

@@ -37,6 +37,7 @@ const quoteItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().positive("Qty must be > 0."),
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
+  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
   total: z.number(),
 });
 
@@ -82,7 +83,7 @@ function QuotesPageContent() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
+      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0 }],
       subTotal: 0,
       transportCost: 0,
       commissionRate: 0,
@@ -107,18 +108,15 @@ function QuotesPageContent() {
         if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
             const items = values.items || [];
             
-            let changed = false;
             items.forEach((item, index) => {
-                const quantity = Number(item?.quantity) || 0;
-                const unitPrice = Number(item?.unitPrice) || 0;
+                if (!item) return;
+                const quantity = Number(item.quantity) || 0;
+                const unitPrice = Number(item.unitPrice) || 0;
                 const newTotal = quantity * unitPrice;
-                if (item && item.total !== newTotal) {
+                if (item.total !== newTotal) {
                      form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
-                     changed = true;
                 }
             });
-            
-            if (changed) return;
 
             const subTotal = items.reduce((sum, item) => sum + (item?.total || 0), 0);
             const transportCost = Number(values.transportCost) || 0;
@@ -162,6 +160,7 @@ function QuotesPageContent() {
                     description: item.description,
                     quantity: item.quantity,
                     unitPrice: item.unitPriceCny,
+                    purchasePrice: item.unitPriceCny, // Assuming purchase price is same as unit price from packing list
                     total: item.quantity * item.unitPriceCny
                 }));
                 form.reset({
@@ -198,7 +197,7 @@ function QuotesPageContent() {
             quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
             issueDate: new Date(),
             validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 }],
+            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0 }],
             subTotal: 0,
             transportCost: 0,
             commissionRate: 0,
@@ -230,6 +229,7 @@ function QuotesPageContent() {
             sku: product.sku,
             description: product.name,
             unitPrice: product.price,
+            purchasePrice: product.purchasePrice || 0,
             total: quantity * product.price
         });
     }
@@ -300,7 +300,6 @@ function QuotesPageContent() {
   }
 
   const subTotal = form.getValues('subTotal') || 0;
-  // Corrected calculation: commission is based on subTotal only
   const commissionAmount = subTotal * ((form.getValues('commissionRate') || 0) / 100);
   const totalAmount = form.getValues('totalAmount') || 0;
 
@@ -474,7 +473,7 @@ function QuotesPageContent() {
                         </div>
                       ))}
                     </div>
-                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, total: 0 })}>
+                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0 })}>
                         <PlusCircle className="mr-2 h-4 w-4"/> Add Item
                     </Button>
                     <Separator className="my-4" />
@@ -604,3 +603,4 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
+

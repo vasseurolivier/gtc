@@ -21,7 +21,6 @@ export default function FinancialReportPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('this_month');
 
@@ -40,14 +39,12 @@ export default function FinancialReportPage() {
 
     async function fetchData() {
       try {
-        const [invs, ords, prods] = await Promise.all([
+        const [invs, ords] = await Promise.all([
             getInvoices(),
             getOrders(),
-            getProducts(),
         ]);
         setInvoices(invs);
         setOrders(ords);
-        setProducts(prods);
       } catch (error) {
         console.error("Failed to fetch financial data:", error);
       } finally {
@@ -89,17 +86,16 @@ export default function FinancialReportPage() {
 
   const revenue = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
-  const productsBySku = new Map(products.map(p => [p.sku, p]));
-  const ordersById = new Map(orders.map(o => [o.id, o]));
-
   const costOfGoodsSold = paidInvoices.reduce((totalCost, inv) => {
     const invoiceCost = inv.items.reduce((itemSum, item) => {
-      const product = item.sku ? productsBySku.get(item.sku) : undefined;
-      const purchasePrice = product?.purchasePrice || 0;
+      // Use the purchasePrice stored in the invoice item if available
+      const purchasePrice = item.purchasePrice || 0;
       return itemSum + (purchasePrice * item.quantity);
     }, 0);
     return totalCost + invoiceCost;
   }, 0);
+  
+  const ordersById = new Map(orders.map(o => [o.id, o]));
   
   const operatingExpenses = paidInvoices.reduce((totalExpense, inv) => {
     if (!inv.orderId) return totalExpense;
@@ -110,10 +106,11 @@ export default function FinancialReportPage() {
     const transport = order.transportCost || 0;
     // Calculate subTotal of items in the order
     const subTotal = order.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    const commission = (subTotal) * ((order.commissionRate || 0) / 100);
+    const commission = subTotal * ((order.commissionRate || 0) / 100);
     
     return totalExpense + transport + commission;
   }, 0);
+
 
   const grossProfit = revenue - costOfGoodsSold;
   const grossProfitMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
@@ -123,7 +120,15 @@ export default function FinancialReportPage() {
     .filter(inv => ['unpaid', 'partially_paid', 'overdue'].includes(inv.status))
     .reduce((sum, inv) => sum + (inv.totalAmount - (inv.amountPaid || 0)), 0);
   
-  const inventoryValue = products.reduce((sum, p) => sum + (p.stock * (p.purchasePrice || 0)), 0);
+  const [inventoryValue, setInventoryValue] = useState(0);
+  useEffect(() => {
+    async function calculateInventory() {
+        const products = await getProducts();
+        const totalValue = products.reduce((sum, p) => sum + (p.stock * (p.purchasePrice || 0)), 0);
+        setInventoryValue(totalValue);
+    }
+    calculateInventory();
+  }, []);
 
   const formatCurrency = (amount: number) => {
     return (
@@ -299,3 +304,4 @@ export default function FinancialReportPage() {
     </div>
   );
 }
+
