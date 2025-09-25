@@ -105,57 +105,29 @@ body {
   .no-print {
     display: none !important;
   }
-  
-  .printable-area {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
 
   .print-document {
     box-shadow: none !important;
     border: none !important;
     width: 100%;
     max-width: 100%;
-    padding: 0;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 0.5in;
-    right: 0.5in;
-    height: 1.5in; 
-    background-color: white;
+    display: table-header-group;
   }
 
   .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0.5in;
-    right: 0.5in;
-    height: 0.5in;
-    background-color: white;
-    text-align: center;
-    font-size: 0.75rem; /* text-xs */
-    color: #6b7280; /* text-gray-500 */
-  }
-
-  .print-body {
-    padding-top: 1.5in;
-    padding-bottom: 0.5in;
-  }
-
-  table {
-    page-break-inside: auto;
-  }
-  tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-  thead {
-    display: table-header-group;
-  }
-  tfoot {
     display: table-footer-group;
+  }
+  
+  .print-body {
+     page-break-after: always;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid;
   }
 }
