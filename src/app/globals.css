@@ -92,7 +92,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 0; /* We will control margins with padding */
+    margin: 1cm;
   }
 
   body {
@@ -115,32 +115,22 @@ body {
     border: none !important;
     border-radius: 0 !important;
     background-color: white !important;
-    min-height: 297mm; /* A4 height */
-    position: relative;
-    padding: 1cm; /* This is our new page margin */
-    display: flex;
-    flex-direction: column;
+  }
+  
+  .print-header-spacer,
+  .print-footer-spacer {
+    height: 150px; /* Adjust based on your header/footer height */
   }
 
-  .print-header-container {
-    position: fixed;
-    top: 1cm;
-    left: 1cm;
-    right: 1cm;
-    height: 150px; /* Adjust as needed for your header height */
+  .print-footer-spacer {
+      height: 50px;
   }
 
-  .main-print-content {
-    flex-grow: 1;
-    padding-top: 150px; /* Space for the fixed header */
-    padding-bottom: 50px; /* Space for the fixed footer */
+  .print-table thead {
+    display: table-header-group;
   }
 
-  .print-footer-container {
-    position: fixed;
-    bottom: 1cm;
-    left: 1cm;
-    right: 1cm;
-    height: 40px; /* Adjust as needed for your footer height */
+  .print-table tfoot {
+    display: table-footer-group;
   }
 }
