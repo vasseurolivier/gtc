@@ -43,7 +43,7 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
     }
     
     const profitValue = product.price - (product.purchasePrice || 0);
-    const profitPercentage = product.price > 0 ? (profitValue / product.price) * 100 : 0;
+    const profitPercentage = product.price > 0 && (product.purchasePrice || 0) > 0 ? (profitValue / product.price) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
 
 
@@ -82,7 +82,7 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
                                     <span className="font-semibold">¥{product.price.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Purchase Price (CNY)</span>
+                                    <span className="text-muted-foreground">Cost Price (CNY)</span>
                                     <span className="font-semibold">{product.purchasePrice ? `¥${product.purchasePrice.toFixed(2)}` : 'N/A'}</span>
                                 </div>
                                 <Separator />
@@ -96,16 +96,20 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
                         {hasPricingInfo && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><TrendingUp /> Bénéfice</CardTitle>
+                                    <CardTitle className="flex items-center gap-2"><TrendingUp /> Profit</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Bénéfice (CNY)</span>
-                                        <span className="font-semibold text-green-600">¥{profitValue.toFixed(2)}</span>
+                                        <span className="text-muted-foreground">Profit (CNY)</span>
+                                        <span className={`font-semibold ${profitValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            ¥{profitValue.toFixed(2)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Bénéfice (%)</span>
-                                        <span className="font-semibold text-green-600">{profitPercentage.toFixed(2)}%</span>
+                                        <span className="text-muted-foreground">Profit Margin (%)</span>
+                                         <span className={`font-semibold ${profitPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {profitPercentage.toFixed(2)}%
+                                        </span>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -172,5 +176,4 @@ export default async function ProductProfilePage({ params: paramsPromise }: { pa
     );
 }
 
-
-
+    

@@ -11,7 +11,7 @@ const productSchema = z.object({
   sku: z.string().min(1, { message: "SKU is required." }),
   description: z.string().optional(),
   price: z.coerce.number().nonnegative("Price cannot be negative.").default(0),
-  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
+  purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   stock: z.coerce.number().int().nonnegative("Stock cannot be negative.").default(0),
   category: z.string().optional(),
   weight: z.coerce.number().nonnegative("Weight cannot be negative.").optional().default(0),
@@ -141,3 +141,5 @@ export async function deleteProduct(id: string) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+    
