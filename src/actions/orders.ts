@@ -18,6 +18,8 @@ const orderSchema = z.object({
   status: orderStatusSchema,
   shippingAddress: z.string().optional(),
   orderDate: z.date(),
+  transportCost: z.coerce.number().optional(),
+  commissionRate: z.coerce.number().optional(),
 });
 
 export interface Order {
@@ -32,6 +34,8 @@ export interface Order {
     shippingAddress?: string;
     orderDate: string;
     createdAt: string;
+    transportCost?: number;
+    commissionRate?: number;
 }
 
 export async function addOrder(quote: Quote) {
@@ -43,10 +47,12 @@ export async function addOrder(quote: Quote) {
           customerName: quote.customerName,
           items: quote.items,
           totalAmount: quote.totalAmount,
-          status: "processing",
+          status: "processing" as const,
           shippingAddress: quote.shippingAddress || "",
           orderDate: new Date(),
           createdAt: serverTimestamp(),
+          transportCost: quote.transportCost || 0,
+          commissionRate: quote.commissionRate || 0,
         };
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
@@ -79,6 +85,8 @@ export async function updateOrderFromQuote(quote: Quote) {
             items: quote.items,
             totalAmount: quote.totalAmount,
             shippingAddress: quote.shippingAddress || "",
+            transportCost: quote.transportCost || 0,
+            commissionRate: quote.commissionRate || 0,
         };
 
         await updateDoc(orderRef, updatedOrderData);
@@ -111,6 +119,8 @@ export async function getOrders(): Promise<Order[]> {
           shippingAddress: data.shippingAddress || '',
           orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          transportCost: data.transportCost || 0,
+          commissionRate: data.commissionRate || 0,
         } as Order);
     });
 

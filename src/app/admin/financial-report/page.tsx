@@ -7,7 +7,6 @@ import * as XLSX from 'xlsx';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { getInvoices, Invoice } from '@/actions/invoices';
 import { getOrders, Order } from '@/actions/orders';
-import { getQuotes, Quote } from '@/actions/quotes';
 import { getProducts, Product } from '@/actions/products';
 import { format, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from 'date-fns';
 import { Loader2, ArrowDownUp, TrendingUp, TrendingDown, Package, Banknote, Warehouse, Scale, Receipt, FileSpreadsheet } from 'lucide-react';
@@ -22,7 +21,6 @@ export default function FinancialReportPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('this_month');
@@ -42,15 +40,13 @@ export default function FinancialReportPage() {
 
     async function fetchData() {
       try {
-        const [invs, ords, qts, prods] = await Promise.all([
+        const [invs, ords, prods] = await Promise.all([
             getInvoices(),
             getOrders(),
-            getQuotes(),
             getProducts(),
         ]);
         setInvoices(invs);
         setOrders(ords);
-        setQuotes(qts);
         setProducts(prods);
       } catch (error) {
         console.error("Failed to fetch financial data:", error);
@@ -95,7 +91,6 @@ export default function FinancialReportPage() {
 
   const productsBySku = new Map(products.map(p => [p.sku, p]));
   const ordersById = new Map(orders.map(o => [o.id, o]));
-  const quotesById = new Map(quotes.map(q => [q.id, q]));
 
   const costOfGoodsSold = paidInvoices.reduce((totalCost, inv) => {
     const invoiceCost = inv.items.reduce((itemSum, item) => {
@@ -110,13 +105,13 @@ export default function FinancialReportPage() {
     if (!inv.orderId) return totalExpense;
 
     const order = ordersById.get(inv.orderId);
-    if (!order || !order.quoteId) return totalExpense;
-
-    const quote = quotesById.get(order.quoteId);
-    if (!quote) return totalExpense;
+    if (!order) return totalExpense;
     
-    const transport = quote.transportCost || 0;
-    const commission = (quote.subTotal) * ((quote.commissionRate || 0) / 100);
+    const transport = order.transportCost || 0;
+    // Calculate subTotal of items in the order
+    const subTotal = order.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    const commission = (subTotal) * ((order.commissionRate || 0) / 100);
+    
     return totalExpense + transport + commission;
   }, 0);
 
