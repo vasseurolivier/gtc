@@ -92,12 +92,13 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm;
+    margin: 0; /* We will control margins with padding */
   }
 
   body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: white;
   }
   
   .no-print {
@@ -112,37 +113,34 @@ body {
   .print-card {
     box-shadow: none !important;
     border: none !important;
+    border-radius: 0 !important;
+    background-color: white !important;
+    min-height: 297mm; /* A4 height */
+    position: relative;
+    padding: 1cm; /* This is our new page margin */
+    display: flex;
+    flex-direction: column;
   }
 
-  .print-footer {
-    display: block !important;
+  .print-header-container {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    text-align: center;
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    border-top: 1px solid hsl(var(--border));
-    background-color: hsl(var(--background));
-    color: hsl(var(--muted-foreground));
-  }
-  
-  .print-content {
-     page-break-after: always;
-  }
-  
-  .main-content {
-    margin-bottom: 50px; /* Adjust this value based on footer height */
+    top: 1cm;
+    left: 1cm;
+    right: 1cm;
+    height: 150px; /* Adjust as needed for your header height */
   }
 
-  .signature-block, table, tr, td, th {
-    page-break-inside: avoid;
+  .main-print-content {
+    flex-grow: 1;
+    padding-top: 150px; /* Space for the fixed header */
+    padding-bottom: 50px; /* Space for the fixed footer */
   }
 
-  thead {
-    display: table-header-group;
+  .print-footer-container {
+    position: fixed;
+    bottom: 1cm;
+    left: 1cm;
+    right: 1cm;
+    height: 40px; /* Adjust as needed for your footer height */
   }
-
 }

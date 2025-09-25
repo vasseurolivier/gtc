@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
-import { PrintFooter } from '@/components/layout/print-footer';
+import { CompanyInfoProvider } from '@/context/company-info-context';
+import { CurrencyProvider } from '@/context/currency-context';
 
 async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer: Customer | null, products: Product[] }> {
     try {
@@ -27,8 +28,8 @@ async function getQuoteData(id: string): Promise<{ quote: Quote | null, customer
 }
 
 
-export default async function QuotePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function QuotePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { quote, customer, products } = await getQuoteData(id);
 
     if (!quote || !customer) {
@@ -50,21 +51,22 @@ export default async function QuotePreviewPage({ params }: { params: Promise<{ i
     }
 
     return (
-        <div className="container py-8 bg-background printable-area">
-             <div className="flex justify-between items-center mb-8 no-print">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/quotes">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Proforma Invoices
-                    </Link>
-                </Button>
-                <PrintButton />
-            </div>
-            
-            <div className="print-content main-content">
-                <QuotePreview quote={quote} customer={customer} products={products} />
-            </div>
-            <PrintFooter />
-        </div>
+      <CompanyInfoProvider>
+        <CurrencyProvider>
+          <div className="container py-8 bg-background printable-area">
+              <div className="flex justify-between items-center mb-8 no-print">
+                  <Button variant="ghost" asChild>
+                      <Link href="/admin/quotes">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to Proforma Invoices
+                      </Link>
+                  </Button>
+                  <PrintButton />
+              </div>
+              
+              <QuotePreview quote={quote} customer={customer} products={products} />
+          </div>
+        </CurrencyProvider>
+      </CompanyInfoProvider>
     );
 }

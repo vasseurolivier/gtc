@@ -7,6 +7,8 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 import { PrintFooter } from '@/components/layout/print-footer';
+import { CompanyInfoProvider } from '@/context/company-info-context';
+import { CurrencyProvider } from '@/context/currency-context';
 
 async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, customer: Customer | null, products: Product[] }> {
     try {
@@ -26,8 +28,8 @@ async function getInvoiceData(id: string): Promise<{ invoice: Invoice | null, cu
 }
 
 
-export default async function InvoicePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function InvoicePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { invoice, customer, products } = await getInvoiceData(id);
 
     if (!invoice || !customer) {
@@ -49,21 +51,22 @@ export default async function InvoicePreviewPage({ params }: { params: Promise<{
     }
 
     return (
-        <div className="container py-8 bg-background printable-area">
-             <div className="flex justify-between items-center mb-8 no-print">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/invoices">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Invoices
-                    </Link>
-                </Button>
-                <PrintButton />
-            </div>
-            
-            <div className="print-content main-content">
+      <CompanyInfoProvider>
+        <CurrencyProvider>
+          <div className="container py-8 bg-background printable-area">
+              <div className="flex justify-between items-center mb-8 no-print">
+                  <Button variant="ghost" asChild>
+                      <Link href="/admin/invoices">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to Invoices
+                      </Link>
+                  </Button>
+                  <PrintButton />
+              </div>
+              
               <InvoicePreview invoice={invoice} customer={customer} products={products} />
-            </div>
-            <PrintFooter />
-        </div>
+          </div>
+        </CurrencyProvider>
+      </CompanyInfoProvider>
     );
 }

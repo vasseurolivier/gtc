@@ -38,8 +38,8 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
 
     return (
             <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="packinglist-content">
-                <CardContent className="p-8">
-                    <header className="flex justify-between items-start mb-8 border-b pb-8">
+                <header className="print-header-container">
+                    <div className="flex justify-between items-start mb-8 border-b pb-8">
                         <div>
                             {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
                         </div>
@@ -48,7 +48,9 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
                             <p className="text-muted-foreground mt-2"># {packingList.listId}</p>
                             <p className="text-muted-foreground mt-1">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                         </div>
-                    </header>
+                    </div>
+                </header>
+                <main className='main-print-content'>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -109,7 +111,10 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
                             </Table>
                         </div>
                     </div>
-                </CardContent>
+                </main>
+                <footer className="print-footer-container">
+                    <PrintFooter />
+                </footer>
             </Card>
     );
 }
@@ -179,10 +184,7 @@ export default function PackingListViewPage() {
                 </Button>
             </div>
             
-            <div className="print-content main-content">
-              <PackingListPreview packingList={packingList} />
-            </div>
-            <PrintFooter />
+            {packingList && <PackingListPreview packingList={packingList} />}
         </div>
     );
 }
