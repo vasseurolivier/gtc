@@ -16,7 +16,6 @@ import { Loader2, Printer, ArrowLeft } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import Link from 'next/link';
-import { PrintFooter } from '@/components/layout/print-footer';
 
 function PackingListPreview({ packingList }: { packingList: PackingList }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -37,85 +36,89 @@ function PackingListPreview({ packingList }: { packingList: PackingList }) {
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
     return (
-            <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="packinglist-content">
-                <header className="print-header-container">
-                    <div className="flex justify-between items-start mb-8 border-b pb-8">
-                        <div>
-                            {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
-                        </div>
-                        <div className="text-right">
-                            <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
-                            <p className="text-muted-foreground mt-2"># {packingList.listId}</p>
-                            <p className="text-muted-foreground mt-1">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
-                        </div>
+        <Card className="w-full max-w-4xl mx-auto shadow-lg print-card" id="packinglist-content">
+            <header className="print-header-container">
+                <div className="flex justify-between items-start mb-8 border-b pb-8">
+                    <div>
+                        {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
                     </div>
-                </header>
-                <main className='main-print-content'>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>SKU</TableHead>
-                                <TableHead className="w-16">Photo</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead className="text-right">Quantity</TableHead>
-                                <TableHead className="text-right">Unit Price (CNY)</TableHead>
-                                <TableHead className="text-right">Total (CNY)</TableHead>
-                                <TableHead className="text-right">Unit Price ({currency.code})</TableHead>
-                                <TableHead className="text-right">Total ({currency.code})</TableHead>
-                                <TableHead>Remarks</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {packingList.items.map((item, index) => {
-                                const totalCny = item.quantity * item.unitPriceCny;
-                                const unitPriceConverted = item.unitPriceCny * exchangeRate;
-                                const totalConverted = totalCny * exchangeRate;
-                                return (
-                                    <TableRow key={index}>
-                                        <TableCell>{item.sku}</TableCell>
-                                        <TableCell>
-                                            {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
-                                                <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
-                                            </div>}
-                                        </TableCell>
-                                        <TableCell className="font-medium">{item.description}</TableCell>
-                                        <TableCell className="text-right">{item.quantity}</TableCell>
-                                        <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
-                                        <TableCell>{item.remarks}</TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                    <Separator className="my-4" />
-                    <div className="flex justify-end">
-                        <div className="w-full md:w-1/2">
-                            <Table>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
-                                        <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
-                                        <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
-                                        <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
+                    <div className="text-right">
+                        <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
+                        <p className="text-muted-foreground mt-2"># {packingList.listId}</p>
+                        <p className="text-muted-foreground mt-1">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                     </div>
-                </main>
-                <footer className="print-footer-container">
-                    <PrintFooter />
-                </footer>
-            </Card>
+                </div>
+            </header>
+            <main className='main-print-content'>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>SKU</TableHead>
+                            <TableHead className="w-16">Photo</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Quantity</TableHead>
+                            <TableHead className="text-right">Unit Price (CNY)</TableHead>
+                            <TableHead className="text-right">Total (CNY)</TableHead>
+                            <TableHead className="text-right">Unit Price ({currency.code})</TableHead>
+                            <TableHead className="text-right">Total ({currency.code})</TableHead>
+                            <TableHead>Remarks</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {packingList.items.map((item, index) => {
+                            const totalCny = item.quantity * item.unitPriceCny;
+                            const unitPriceConverted = item.unitPriceCny * exchangeRate;
+                            const totalConverted = totalCny * exchangeRate;
+                            return (
+                                <TableRow key={index}>
+                                    <TableCell>{item.sku}</TableCell>
+                                    <TableCell>
+                                        {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                                            <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
+                                        </div>}
+                                    </TableCell>
+                                    <TableCell className="font-medium">{item.description}</TableCell>
+                                    <TableCell className="text-right">{item.quantity}</TableCell>
+                                    <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
+                                    <TableCell>{item.remarks}</TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+                <Separator className="my-4" />
+                <div className="flex justify-end">
+                    <div className="w-full md:w-1/2">
+                        <Table>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
+                                    <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
+                                    <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
+                                    <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            </main>
+            <footer className="print-footer-container">
+                <div className="text-xs text-center border-t pt-4">
+                    <p className="font-bold">{companyInfo.name}</p>
+                    <p>{companyInfo.address}</p>
+                    <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+                </div>
+            </footer>
+        </Card>
     );
 }
 
