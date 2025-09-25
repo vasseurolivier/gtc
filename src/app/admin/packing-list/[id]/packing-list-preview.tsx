@@ -12,16 +12,6 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Button } from '@/components/ui/button';
 
-// Helper function to chunk array
-function chunk<T>(array: T[], size: number): T[][] {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
-
 export function PackingListPreview({ packingList }: { packingList: PackingList }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
@@ -39,8 +29,6 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         acc.totalAmountCny += totalCny;
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
-
-    const itemChunks = chunk(packingList.items, 6);
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl mx-auto">
@@ -64,6 +52,12 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                     <p className="text-muted-foreground mt-1"># {packingList.listId}</p>
                                 </div>
                             </div>
+                        </TableCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                     <TableRow>
+                        <TableCell colSpan={9} className="p-0">
                             <div className="my-8">
                                 <p className="font-semibold">Date: {format(new Date(packingList.date), 'dd MMM yyyy')}</p>
                             </div>
@@ -80,34 +74,29 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         <TableHead className="text-right">Total ({currency.code})</TableHead>
                         <TableHead>Remarks</TableHead>
                     </TableRow>
-                </TableHeader>
-                
-                {itemChunks.map((chunk, chunkIndex) => (
-                     <TableBody key={chunkIndex} className="print-body">
-                        {chunk.map((item, index) => {
-                            const totalCny = item.quantity * item.unitPriceCny;
-                            const unitPriceConverted = item.unitPriceCny * exchangeRate;
-                            const totalConverted = totalCny * exchangeRate;
-                            return (
-                                <TableRow key={index}>
-                                    <TableCell>{item.sku}</TableCell>
-                                    <TableCell>
-                                        {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
-                                            <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
-                                        </div>}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{item.description}</TableCell>
-                                    <TableCell className="text-right">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
-                                    <TableCell>{item.remarks}</TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                ))}
+                    {packingList.items.map((item, index) => {
+                        const totalCny = item.quantity * item.unitPriceCny;
+                        const unitPriceConverted = item.unitPriceCny * exchangeRate;
+                        const totalConverted = totalCny * exchangeRate;
+                        return (
+                            <TableRow key={index}>
+                                <TableCell>{item.sku}</TableCell>
+                                <TableCell>
+                                    {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                                        <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
+                                    </div>}
+                                </TableCell>
+                                <TableCell className="font-medium">{item.description}</TableCell>
+                                <TableCell className="text-right">{item.quantity}</TableCell>
+                                <TableCell className="text-right">¥{item.unitPriceCny.toFixed(2)}</TableCell>
+                                <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
+                                <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
+                                <TableCell>{item.remarks}</TableCell>
+                            </TableRow>
+                        );
+                    })}
+                </TableBody>
 
                 <TableFooter className="print-footer">
                     <TableRow>

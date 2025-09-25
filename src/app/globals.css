@@ -91,14 +91,10 @@ body {
 }
 
 @media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    background-color: #fff;
   }
 
   .no-print {
@@ -122,12 +118,19 @@ body {
     display: table-footer-group;
   }
   
+  thead.print-header {
+      display: table-header-group;
+  }
+
+  tfoot.print-footer {
+      display: table-footer-group;
+  }
+  
   tr, td, th {
     page-break-inside: avoid;
   }
-
-  .print-body {
-     page-break-after: always;
+  
+  tbody {
+    page-break-before: auto;
   }
-
 }

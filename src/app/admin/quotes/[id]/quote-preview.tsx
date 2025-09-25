@@ -13,16 +13,6 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
-// Helper function to chunk array
-function chunk<T>(array: T[], size: number): T[][] {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
-
 export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const currencyContext = useContext(CurrencyContext);
@@ -40,8 +30,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const commissionAmount = (quote.subTotal) * ((quote.commissionRate || 0) / 100);
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
-    const itemChunks = chunk(quote.items, 6);
-
     return (
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl mx-auto">
             <div className="flex justify-end mb-4 no-print">
@@ -64,6 +52,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <p className="text-muted-foreground mt-1"># {quote.quoteNumber}</p>
                                 </div>
                             </div>
+                        </TableCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                     <TableRow>
+                        <TableCell colSpan={4} className="p-0">
                             <div className="grid grid-cols-2 gap-8 my-8">
                                 <div>
                                     <h3 className="font-semibold mb-2">Bill To:</h3>
@@ -91,38 +85,33 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <TableHead className="text-right">Unit Price</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                     </TableRow>
-                </TableHeader>
-                
-                {itemChunks.map((chunk, chunkIndex) => (
-                    <TableBody key={chunkIndex} className="print-body">
-                        {chunk.map((item, itemIndex) => {
-                            const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                            return (
-                                <TableRow key={itemIndex}>
-                                    <TableCell className="w-1/2">
-                                        <div className="flex items-center gap-4">
-                                            {product?.imageUrl && (
-                                                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
-                                                </div>
-                                            )}
-                                            <div>{item.description}</div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">
-                                        <div>¥{item.unitPrice.toFixed(2)}</div>
-                                        <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                        <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                ))}
+                    {quote.items.map((item, itemIndex) => {
+                        const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                        return (
+                            <TableRow key={itemIndex}>
+                                <TableCell className="w-1/2">
+                                    <div className="flex items-center gap-4">
+                                        {product?.imageUrl && (
+                                            <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
+                                            </div>
+                                        )}
+                                        <div>{item.description}</div>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right">{item.quantity}</TableCell>
+                                <TableCell className="text-right">
+                                    <div>¥{item.unitPrice.toFixed(2)}</div>
+                                    <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                    <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                </TableCell>
+                            </TableRow>
+                        )
+                    })}
+                </TableBody>
 
                 <TableFooter className="print-footer">
                      <TableRow>
