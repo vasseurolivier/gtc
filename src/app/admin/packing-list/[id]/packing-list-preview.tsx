@@ -28,17 +28,23 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
+    const handlePrint = () => {
+        document.body.classList.add('printing');
+        window.print();
+        document.body.classList.remove('printing');
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl mx-auto print-document">
             <div className="flex justify-end mb-4 no-print">
-                <Button onClick={() => window.print()}>
+                <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
                     Export to PDF
                 </Button>
             </div>
             
             <header className="print-header">
-                 <div className="flex justify-between items-start">
+                 <div className="flex justify-between items-start pb-4 border-b">
                     <div>
                         {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                     </div>
@@ -49,7 +55,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </div>
             </header>
 
-            <CompanyInfoFooter />
+            <footer className="print-footer">
+                <CompanyInfoFooter />
+            </footer>
 
             <main className="print-body">
                 <div className="my-8 text-left">
@@ -99,19 +107,19 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                  <div className="flex justify-end pt-4">
                     <div className="w-full md:w-1/2">
                         <table className="w-full">
-                            <tbody className="[&_tr:last-child]:border-0">
-                                <TableRow>
-                                    <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
-                                    <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
-                                    <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
-                                    <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
-                                </TableRow>
+                            <tbody>
+                                <tr className="border-b">
+                                    <td className="font-bold py-2">TOTAL QUANTITY</td>
+                                    <td className="text-right font-bold py-2">{totals.totalQuantity}</td>
+                                </tr>
+                                <tr className="border-b">
+                                    <td className="font-bold py-2">TOTAL AMOUNT (CNY)</td>
+                                    <td className="text-right font-bold py-2">¥{totals.totalAmountCny.toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-2">TOTAL AMOUNT ({currency.code})</td>
+                                    <td className="text-right font-bold py-2">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -127,12 +135,10 @@ function CompanyInfoFooter() {
     const { companyInfo } = companyInfoContext;
     
     return (
-        <footer className="print-footer">
-            <div className="text-center text-xs text-muted-foreground">
-                <p className="font-bold">{companyInfo.name}</p>
-                <p>{companyInfo.address}</p>
-                <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-            </div>
-        </footer>
+        <div className="pt-4 border-t text-center text-xs text-muted-foreground">
+            <p className="font-bold">{companyInfo.name}</p>
+            <p>{companyInfo.address}</p>
+            <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+        </div>
     );
 }

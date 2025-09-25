@@ -27,23 +27,23 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
     const { currency, exchangeRate } = currencyContext;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
-    // Split items into chunks of 6 for pagination
-    const itemsChunks = [];
-    for (let i = 0; i < invoice.items.length; i += 6) {
-        itemsChunks.push(invoice.items.slice(i, i + 6));
-    }
+    const handlePrint = () => {
+        document.body.classList.add('printing');
+        window.print();
+        document.body.classList.remove('printing');
+    };
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl mx-auto print-document">
             <div className="flex justify-end mb-4 no-print">
-                <Button onClick={() => window.print()}>
+                <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
                     Export to PDF
                 </Button>
             </div>
             
             <header className="print-header">
-                 <div className="flex justify-between items-start">
+                 <div className="flex justify-between items-start pb-4 border-b">
                     <div>
                         {logo && <Image src={logo} alt="Company Logo" width={100} height={40} className="object-contain"/>}
                     </div>
@@ -54,7 +54,9 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                 </div>
             </header>
 
-             <CompanyInfoFooter />
+            <footer className="print-footer">
+                <CompanyInfoFooter />
+            </footer>
 
             <main className="print-body">
                 <div className="grid grid-cols-2 gap-8 my-8">
@@ -146,13 +148,10 @@ function CompanyInfoFooter() {
     const { companyInfo } = companyInfoContext;
     
     return (
-        <footer className="print-footer">
-            <div className="text-center text-xs text-muted-foreground">
-                <p className="font-bold">{companyInfo.name}</p>
-                <p>{companyInfo.address}</p>
-                <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
-            </div>
-        </footer>
+        <div className="pt-4 border-t text-center text-xs text-muted-foreground">
+            <p className="font-bold">{companyInfo.name}</p>
+            <p>{companyInfo.address}</p>
+            <p>Email: {companyInfo.email} | Phone: {companyInfo.phone}</p>
+        </div>
     );
 }
-

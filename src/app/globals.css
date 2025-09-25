@@ -95,19 +95,18 @@ body {
     size: A4;
     margin: 0;
   }
-  
-  body, .printable-area {
+
+  body.printing, body.printing .printable-area {
     background-color: #fff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    margin: 0;
-    padding: 0;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .no-print {
     display: none !important;
   }
-  
+
   .print-document {
     box-shadow: none !important;
     border: none !important;
@@ -115,52 +114,56 @@ body {
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    font-size: 10pt; /* Professional font size */
+    font-size: 10pt;
+    color: #000;
   }
-
-  .print-header, .print-footer {
-    position: fixed;
-    left: 1.5cm;
-    right: 1.5cm;
-    width: auto;
+  
+  .print-document .text-primary {
+    color: #000 !important;
+  }
+  .print-document .text-muted-foreground {
+    color: #333 !important;
   }
 
   .print-header {
+    position: fixed;
     top: 0;
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 100px;
     padding-top: 1cm;
-    padding-bottom: 0.5cm;
-    border-bottom: 1px solid #e0e0e0;
   }
 
   .print-footer {
+    position: fixed;
     bottom: 0;
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 80px;
     padding-bottom: 1cm;
-    padding-top: 0.5cm;
-    border-top: 1px solid #e0e0e0;
   }
   
   .print-body {
-    /* Define forbidden zones to avoid overlap */
-    padding-top: 100px; /* Corresponds to header height + margin */
-    padding-bottom: 80px; /* Corresponds to footer height + margin */
+    padding-top: 100px;
+    padding-bottom: 80px;
     margin-left: 1.5cm;
     margin-right: 1.5cm;
   }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
   
-  thead {
-    display: table-header-group; /* Ensures header repeats on each page */
-  }
-
-  tbody {
+  table {
     page-break-inside: auto;
   }
 
-  tr, td, th {
-     page-break-inside: avoid !important;
+  tr {
+     page-break-inside: avoid;
+     page-break-after: auto;
+  }
+
+  thead {
+      display: table-header-group;
+  }
+
+  tfoot {
+      display: table-footer-group;
   }
 }

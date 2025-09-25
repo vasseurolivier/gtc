@@ -24,7 +24,12 @@ export default function QuotePreviewPage() {
     useEffect(() => {
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
-            setLogo(JSON.parse(savedInfo).logo || '');
+            try {
+                const parsedInfo = JSON.parse(savedInfo);
+                setLogo(parsedInfo.logo || '');
+            } catch(e) {
+                console.error("Failed to parse company info from localStorage", e);
+            }
         }
 
         if (!id) return;
@@ -86,7 +91,7 @@ export default function QuotePreviewPage() {
     return (
       <CompanyInfoProvider>
         <CurrencyProvider>
-          <div className="container py-8 bg-background printable-area">
+          <div className="container py-8 bg-muted/20 printable-area">
               <div className="flex justify-between items-center mb-8 no-print">
                   <Button variant="ghost" asChild>
                       <Link href="/admin/quotes">
