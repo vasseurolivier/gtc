@@ -11,7 +11,7 @@ import Link from 'next/link';
 export default async function ProductProfilePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
     const product = await getProductById(id);
@@ -161,4 +161,5 @@ export default async function ProductProfilePage({
         </div>
     );
 }
+
 
