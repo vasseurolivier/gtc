@@ -104,31 +104,34 @@ function QuotesPageContent() {
 
   useEffect(() => {
     const subscription = form.watch((values, { name, type }) => {
-      if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
-        const items = values.items || [];
-        
-        items.forEach((item, index) => {
-            const quantity = Number(item?.quantity) || 0;
-            const unitPrice = Number(item?.unitPrice) || 0;
-            const newTotal = quantity * unitPrice;
-            if (item && item.total !== newTotal) {
-                 form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
-            }
-        });
-        
-        const subTotal = items.reduce((sum, item) => sum + (item?.total || 0), 0);
-        const transportCost = Number(values.transportCost) || 0;
-        const commissionRate = Number(values.commissionRate) || 0;
-        // Corrected calculation: commission is based on subTotal only
-        const commissionAmount = subTotal * (commissionRate / 100);
-        const totalAmount = subTotal + transportCost + commissionAmount;
-        
-        form.setValue("subTotal", subTotal, { shouldValidate: true });
-        form.setValue("totalAmount", totalAmount, { shouldValidate: true });
-      }
+        if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
+            const items = values.items || [];
+            
+            let changed = false;
+            items.forEach((item, index) => {
+                const quantity = Number(item?.quantity) || 0;
+                const unitPrice = Number(item?.unitPrice) || 0;
+                const newTotal = quantity * unitPrice;
+                if (item && item.total !== newTotal) {
+                     form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+                     changed = true;
+                }
+            });
+            
+            if (changed) return;
+
+            const subTotal = items.reduce((sum, item) => sum + (item?.total || 0), 0);
+            const transportCost = Number(values.transportCost) || 0;
+            const commissionRate = Number(values.commissionRate) || 0;
+            const commissionAmount = subTotal * (commissionRate / 100);
+            const totalAmount = subTotal + transportCost + commissionAmount;
+            
+            form.setValue("subTotal", subTotal, { shouldValidate: true });
+            form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+        }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+}, [form]);
   
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');

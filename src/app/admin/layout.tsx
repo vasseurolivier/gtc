@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -180,7 +179,7 @@ function AdminSettings() {
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="company-phone" className="text-right">Phone</Label>
-                                    <Input id-="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
+                                    <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>
                         </div>

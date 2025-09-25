@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -216,7 +216,12 @@ export default function OrdersPage() {
         <Dialog open={isAddOrderOpen} onOpenChange={setAddOrderOpen}>
           <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Order</Button></DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Create Order from Proforma Invoice</DialogTitle></DialogHeader>
+            <DialogHeader>
+                <DialogTitle>Create Order from Proforma Invoice</DialogTitle>
+                <DialogDescription>
+                    Select an accepted proforma invoice to create a new order.
+                </DialogDescription>
+            </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
                  <FormField control={form.control} name="quoteId" render={({ field }) => (
@@ -294,5 +299,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
