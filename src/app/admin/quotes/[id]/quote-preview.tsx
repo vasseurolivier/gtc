@@ -99,7 +99,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             {quote.items.map((item, itemIndex) => {
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
-                                    <tr key={itemIndex} className="border-b">
+                                    <tr key={itemIndex} className="border-b" style={{ pageBreakInside: 'avoid' }}>
                                         <td className="p-2 align-top">
                                             {product?.imageUrl && (
                                                 <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -123,7 +123,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         </tbody>
                     </table>
                     
-                    <div className="flex justify-end pt-8">
+                    <div className="flex justify-end pt-8" style={{ pageBreakInside: 'avoid' }}>
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
@@ -155,7 +155,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
 
                     {quote.notes && 
-                        <div className="mt-8 text-left border-t pt-4">
+                        <div className="mt-8 text-left border-t pt-4" style={{ pageBreakInside: 'avoid' }}>
                             <h3 className="font-semibold mb-2">Notes:</h3>
                             <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
                         </div>

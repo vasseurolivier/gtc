@@ -125,32 +125,29 @@ body {
   .print-header {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 100px; /* Adjust height as needed */
-    padding: 1.5cm;
-    padding-bottom: 1rem;
-    background-color: white; /* Ensure it has a background */
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 100px;
+    padding-top: 2cm;
+    background-color: white;
     z-index: 10;
   }
 
   .print-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px; /* Adjust height as needed */
-    padding: 1.5cm;
-    padding-top: 1rem;
-    background-color: white; /* Ensure it has a background */
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 80px; 
+    padding-bottom: 2cm;
+    background-color: white;
     z-index: 10;
   }
 
   .print-body {
-    /* These margins create the space for the fixed header and footer on EVERY page */
-    margin-top: 100px;
-    margin-bottom: 60px;
     padding: 0 1.5cm;
+    margin-top: 100px;
+    margin-bottom: 80px;
   }
 
   table {

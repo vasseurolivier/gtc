@@ -97,7 +97,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             {invoice.items.map((item, itemIndex) => {
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
-                                    <tr key={itemIndex} className="border-b">
+                                    <tr key={itemIndex} className="border-b" style={{ pageBreakInside: 'avoid' }}>
                                         <td className="p-2 align-top">
                                             {product?.imageUrl && (
                                                 <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -121,7 +121,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                         </tbody>
                     </table>
 
-                    <div className="flex justify-end pt-8">
+                    <div className="flex justify-end pt-8" style={{ pageBreakInside: 'avoid' }}>
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                             <div className="flex justify-between font-bold text-lg">
                                 <span>TOTAL (CNY)</span>

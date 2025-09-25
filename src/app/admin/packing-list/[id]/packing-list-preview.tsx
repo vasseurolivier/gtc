@@ -89,7 +89,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                 const unitPriceConverted = item.unitPriceCny * exchangeRate;
                                 const totalConverted = totalCny * exchangeRate;
                                 return (
-                                    <tr key={index} className="border-b">
+                                    <tr key={index} className="border-b" style={{ pageBreakInside: 'avoid' }}>
                                         <td className="p-2 align-top">{item.sku}</td>
                                         <td className="p-2 align-top">
                                             {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
@@ -109,7 +109,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </tbody>
                     </table>
 
-                     <div className="flex justify-end pt-4">
+                     <div className="flex justify-end pt-4" style={{ pageBreakInside: 'avoid' }}>
                         <div className="w-full md:w-1/2">
                             <table className="w-full">
                                 <tbody>
