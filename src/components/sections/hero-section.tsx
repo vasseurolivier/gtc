@@ -3,8 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useContext } from 'react';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 export function HeroSection({ dictionary }: { dictionary: any }) {
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const heroVideo = companyInfoContext?.companyInfo?.heroVideo || 'hero-video.mp4';
 
   return (
     <section className="relative w-full h-[70vh] min-h-[500px] md:h-[calc(100vh-4rem)] md:min-h-[600px] text-primary-foreground overflow-hidden">
@@ -14,8 +18,10 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
           muted
           playsInline
           className="absolute z-0 w-auto min-w-full min-h-full max-w-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-cover"
+          // Use a key to force re-render when the video source changes
+          key={heroVideo}
         >
-          <source src="/videos/hero-video.mp4" type="video/mp4" />
+          <source src={`/videos/${heroVideo}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />

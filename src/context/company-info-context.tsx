@@ -10,6 +10,7 @@ export interface CompanyInfo {
   phone: string;
   logo: string; // Base64 data URL for admin
   publicLogo?: string; // Base64 data URL for public site
+  heroVideo?: string; // Filename for the hero video
 }
 
 interface CompanyInfoContextType {
@@ -27,6 +28,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     phone: '+8613564770717',
     logo: '',
     publicLogo: '',
+    heroVideo: 'hero-video.mp4',
   });
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -35,6 +37,10 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
             const parsedInfo = JSON.parse(savedInfo);
+            // Set default for heroVideo if it's not in saved data
+            if (!parsedInfo.heroVideo) {
+              parsedInfo.heroVideo = 'hero-video.mp4';
+            }
             setCompanyInfo(parsedInfo);
         } else {
              // If no saved info, set the new default
@@ -45,6 +51,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
                 phone: '+8613564770717',
                 logo: '',
                 publicLogo: '',
+                heroVideo: 'hero-video.mp4',
             });
         }
     } catch (error) {
@@ -73,5 +80,3 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     </CompanyInfoContext.Provider>
   );
 };
-
-    

@@ -65,6 +65,7 @@ function AdminSettings() {
     const [companyPhone, setCompanyPhone] = useState('');
     const [companyLogo, setCompanyLogo] = useState('');
     const [publicLogo, setPublicLogo] = useState('');
+    const [heroVideo, setHeroVideo] = useState('');
 
     useEffect(() => {
         if (isDialogOpen) {
@@ -79,6 +80,7 @@ function AdminSettings() {
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
                 setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
+                setHeroVideo(companyInfoContext.companyInfo.heroVideo || 'hero-video.mp4');
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -136,6 +138,7 @@ function AdminSettings() {
             phone: companyPhone,
             logo: companyLogo,
             publicLogo: publicLogo,
+            heroVideo: heroVideo,
         });
 
         toast({ title: 'Success', description: 'Settings updated.'});
@@ -152,7 +155,7 @@ function AdminSettings() {
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Admin Settings</DialogTitle>
-                        <DialogDescription>Manage global settings for the admin dashboard.</DialogDescription>
+                        <DialogDescription>Manage global settings for the admin dashboard and public site.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto px-1">
                         <div>
@@ -201,6 +204,15 @@ function AdminSettings() {
                                     <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>
+                        </div>
+                        <Separator />
+                        <div>
+                            <h3 className="text-lg font-medium mb-4">Site Customization</h3>
+                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="hero-video" className="text-right">Hero Video Filename</Label>
+                                <Input id="hero-video" value={heroVideo} onChange={(e) => setHeroVideo(e.target.value)} className="col-span-3" />
+                            </div>
+                             <p className="text-sm text-muted-foreground mt-2 text-right col-start-2 col-span-3">Place the video file in the `public/videos` directory.</p>
                         </div>
                         <Separator />
                         <div>
