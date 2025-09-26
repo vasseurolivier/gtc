@@ -236,5 +236,3 @@ export function Header({ dictionary }: { dictionary: any }) {
     </header>
   );
 }
-
-    
