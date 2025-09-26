@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
-import { CompanyInfoProvider } from '@/context/company-info-context';
+import { PublicProviders } from '@/components/layout/public-providers';
 
 export default async function PublicLayout({
   children,
@@ -13,12 +13,12 @@ export default async function PublicLayout({
 }) {
   const dictionary = await getDictionary(locale);
   return (
-      <CompanyInfoProvider>
-        <div className="flex min-h-screen flex-col">
-          <Header dictionary={dictionary.header} />
-          <main className="flex-grow">{children}</main>
-          <Footer dictionary={dictionary.footer} />
-        </div>
-      </CompanyInfoProvider>
+    <PublicProviders>
+      <div className="flex min-h-screen flex-col">
+        <Header dictionary={dictionary.header} />
+        <main className="flex-grow">{children}</main>
+        <Footer dictionary={dictionary.footer} />
+      </div>
+    </PublicProviders>
   );
 }
