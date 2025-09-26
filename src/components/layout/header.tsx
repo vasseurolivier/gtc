@@ -80,23 +80,19 @@ export function Header({ dictionary }: { dictionary: any }) {
   );
   
   const linkClasses = (href: string, isServices = false) => cn(
-    "relative transition-colors font-bold text-lg",
+    "relative transition-colors font-bold text-lg text-destructive",
     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
-    isScrolled
-      ? "text-white/80 hover:text-white"
-      : "text-white/80 hover:text-white",
-    isClient && ((activePath === `/${i18n.defaultLocale}${href}`.replace(/\/$/, '') || activePath === href) || (isServices && activePath.startsWith('/services')))
-      ? "text-white font-bold after:w-full"
-      : ""
+    (isClient && ((activePath === `/${i18n.defaultLocale}${href}`.replace(/\/$/, '') || activePath === href) || (isServices && activePath.startsWith('/services'))))
+      ? "text-red-400 after:w-full"
+      : "hover:text-red-400"
   );
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-colors focus:outline-none font-bold text-lg",
+    "relative flex items-center gap-1 transition-colors focus:outline-none font-bold text-lg text-destructive",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
-    isScrolled ? "text-white/80 hover:text-white" : "text-white/80 hover:text-white",
     isClient && activePath.startsWith('/services') 
-      ? "text-white font-bold after:w-full"
-      : ""
+      ? "text-red-400 after:w-full"
+      : "hover:text-red-400"
   );
 
 
@@ -242,7 +238,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="flex items-center justify-end md:flex-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
+              <Button variant="ghost" size="icon" className={cn("text-destructive hover:text-red-400 hover:bg-red-500/10")}>
                 <Globe className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
