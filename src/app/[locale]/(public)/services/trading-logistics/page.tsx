@@ -45,7 +45,7 @@ export default async function TradingLogisticsPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground -mt-16">
+      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -249,5 +249,7 @@ export default async function TradingLogisticsPage({
     </>
   );
 }
+
+    
 
     
