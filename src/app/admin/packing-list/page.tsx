@@ -45,7 +45,7 @@ const packingListSchema = z.object({
 
 type PackingListValues = z.infer<typeof packingListSchema>;
 
-function PackingListGenerator({ editingList, onFinishedEditing, products, formKey }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[], formKey: number }) {
+function PackingListGenerator({ editingList, onFinishedEditing, products, formKey }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[], formKey: string }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currencyContext = useContext(CurrencyContext);
@@ -88,7 +88,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products, formKe
     }
   }, [editingList, form, formKey]);
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'items',
   });
@@ -427,6 +427,7 @@ function PackingListPageContent() {
   const [activeTab, setActiveTab] = useState("generator");
   const [editingList, setEditingList] = useState<PackingList | null>(null);
   const [historyKey, setHistoryKey] = useState(Date.now());
+  const [generatorKey, setGeneratorKey] = useState('new');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
@@ -446,14 +447,24 @@ function PackingListPageContent() {
   
   const handleEdit = (list: PackingList) => {
     setEditingList(list);
+    setGeneratorKey(list.id);
     setActiveTab("generator");
   };
 
   const handleFinishEditing = () => {
     setEditingList(null);
+    setGeneratorKey('new-' + Date.now());
     setHistoryKey(Date.now()); // Force re-render of history component
     setActiveTab("history");
   };
+
+  const handleTabChange = (value: string) => {
+      if (value === 'generator' && editingList) {
+          setEditingList(null); // Clear editing state when switching back to generator manually
+          setGeneratorKey('new-' + Date.now());
+      }
+      setActiveTab(value);
+  }
 
   return (
     <div className="container py-8 printable-area">
@@ -465,13 +476,7 @@ function PackingListPageContent() {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => {
-        if (value === 'generator' && editingList) {
-          setEditingList(null); // Clear editing state when switching back to generator manually
-          setHistoryKey(Date.now()); // Re-render generator with fresh state
-        }
-        setActiveTab(value);
-      }} className="no-print">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="no-print">
         <TabsList className="mb-4">
           <TabsTrigger value="generator">{editingList ? 'Edit List' : 'Generator'}</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
@@ -481,7 +486,7 @@ function PackingListPageContent() {
             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
           ) : (
             <PackingListGenerator 
-                formKey={editingList ? editingList.id.hashCode() : historyKey} 
+                formKey={generatorKey} 
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing} 
                 products={products}
@@ -497,7 +502,7 @@ function PackingListPageContent() {
         <div className="print-content-standalone">
             {/* This will be rendered only for printing */}
             {!isLoadingProducts && <PackingListGenerator 
-                formKey={editingList ? `print-${editingList.id}`.hashCode() : 'print-new'.hashCode()}
+                formKey={generatorKey}
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing}
                 products={products}
@@ -507,23 +512,6 @@ function PackingListPageContent() {
     </div>
   );
 }
-
-declare global {
-    interface String {
-        hashCode(): number;
-    }
-}
-
-String.prototype.hashCode = function() {
-    var hash = 0, i, chr;
-    if (this.length === 0) return hash;
-    for (i = 0; i < this.length; i++) {
-        chr   = this.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-};
 
 
 export default function PackingListPage() {
@@ -541,5 +529,3 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
-
-    
