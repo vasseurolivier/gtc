@@ -9,55 +9,55 @@
     {
       "id": "contact-map",
       "description": "A map showing a location in a city.",
-      "imageUrl": "https://images.unsplash.com/photo-1615840287214-7ff58936c4cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb250YWN0fGVufDB8fHx8MTc1ODM5MzkzNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1615840287214-7ff58936c4cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb250YWN0fGVufDB8fHx8MTc1ODM5MzkzNnww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "city map"
     },
     {
       "id": "about-hero",
       "description": "A modern office building with glass facade.",
-      "imageUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBidWlsZGluZ3xlbnwwfHx8fDE3NTg1ODY1MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBidWlsZGluZ3xlbnwwfHx8fDE3NTg1ODY1MjV8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "office building"
     },
     {
       "id": "sourcing-hero",
       "description": "A person inspecting products in a warehouse.",
-      "imageUrl": "https://images.unsplash.com/photo-1652204775379-2b4ace437a2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3YXJlaG91c2UlMjBpbnNwZWN0aW9ufGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1652204775379-2b4ace437a2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3YXJlaG91c2UlMjBpbnNwZWN0aW9ufGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse inspection"
     },
     {
       "id": "trading-hero",
       "description": "A professional truck being loaded with cargo at a loading dock.",
-      "imageUrl": "https://images.unsplash.com/photo-1732193933813-4da17265a36c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHJ1Y2slMjBsb2FkaW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1732193933813-4da17265a36c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHJ1Y2slMjBsb2FkaW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "truck loading"
     },
     {
       "id": "ecommerce-hero",
       "description": "Person packing boxes for an online order.",
-      "imageUrl": "https://images.unsplash.com/photo-1685119166946-d4050647b0e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlY29tbWVyY2UlMjBwYWNraW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1685119166946-d4050647b0e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlY29tbWVyY2UlMjBwYWNraW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "ecommerce packing"
     },
     {
       "id": "custom-services-hero",
       "description": "Two people discussing a blueprint.",
-      "imageUrl": "https://images.unsplash.com/photo-1618393678187-fb258b8ee191?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibHVlcHJpbnQlMjBkaXNjdXNzaW9ufGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1618393678187-fb258b8ee191?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibHVlcHJpbnQlMjBkaXNjdXNzaW9ufGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "blueprint discussion"
     },
     {
       "id": "sourcing-process",
       "description": "A bustling street market in China, showcasing a variety of goods.",
-      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568342244099-1d174442bc8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8Y2hpbmUlMjBjb21tZXJjZXxlbnwwfHx8fDE3NTgzOTI1MTR8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "China commerce"
     },
     {
       "id": "ecommerce-feature-1",
       "description": "Modern product packaging on a colorful background.",
-      "imageUrl": "https://images.unsplash.com/photo-1688561807440-8a57dfa77ee3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxlLWNvbW1lcmNlfGVufDB8fHx8MTc1ODU4MDgyMHww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1688561807440-8a57dfa77ee3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxlLWNvbW1lcmNlfGVufDB8fHx8MTc1ODU4MDgyMHww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "product packaging"
     },
     {
       "id": "ecommerce-feature-2",
       "description": "Warehouse shelves with boxes ready for shipping.",
-      "imageUrl": "https://images.unsplash.com/photo-1449247666642-264389f5f5b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8ZS1jb21tZXJjZXxlbnwwfHx8fDE3NTg1ODA4MjB8MA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1449247666642-264389f5f5b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8ZS1jb21tZXJjZXxlbnwwfHx8fDE3NTg1ODA4MjB8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "warehouse shelves"
     },
     {
@@ -81,7 +81,7 @@
     {
       "id": "custom-services-feature-4",
       "description": "A project manager at a whiteboard with sticky notes and diagrams.",
-      "imageUrl": "https://images.unsplash.com/photo-1541535881962-3bb380b08458?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1hbnxlbnwwfHx8fDE3NTgzOTM2MTl8MA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1541535881962-3bb380b08458?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1hbnxlbnwwfHx8fDE3NTgzOTM2MTl8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "project management"
     },
     {
@@ -153,8 +153,14 @@
     {
       "id": "contact-hero",
       "description": "A dark, modern office interior with a person working on a laptop.",
-      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb250YWN0JTIwYnVzaW5lc3N8ZW58MHx8fHwxNzU4NjExNjY0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb250YWN0JTIwYnVzaW5lc3N8ZW58MHx8fHwxNzU4NjExNjY0fDA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "business contact"
+    },
+    {
+      "id": "services-hero",
+      "description": "A group of professionals in a meeting discussing a project on a whiteboard.",
+      "imageUrl": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHNlcnZpY2VzfGVufDB8fHx8MTc1ODg3OTg2Nnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "business services"
     }
   ]
 }
