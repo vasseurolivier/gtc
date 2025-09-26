@@ -1,12 +1,27 @@
+
 "use client";
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { i18n } from '@/i18n-config';
+
 
 export function AboutSection({ dictionary }: { dictionary: any }) {
   const aboutImage = PlaceHolderImages.find(p => p.id === 'about-home');
+  const pathname = usePathname();
+  
+  const getCurrentLocale = () => {
+    if (!pathname) return i18n.defaultLocale;
+    const segments = pathname.split('/');
+    if (segments.length > 1 && i18n.locales.includes(segments[1] as any)) {
+      return segments[1];
+    }
+    return i18n.defaultLocale;
+  }
+  const locale = getCurrentLocale();
 
   return (
     <section className="py-16 md:py-24 bg-card">
@@ -25,7 +40,7 @@ export function AboutSection({ dictionary }: { dictionary: any }) {
               </div>
             </div>
             <Button size="lg" className="mt-8" asChild>
-                <Link href="/about">
+                <Link href={`/${locale}/about`}>
                     {dictionary.button}
                     <ArrowRight className="ml-2" />
                 </Link>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
+import { Locale, i18n } from '@/i18n-config';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -19,6 +19,8 @@ export default async function ServicesPage({
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
   const heroImage = PlaceHolderImages.find(p => p.id === 'services-hero');
+
+  const localePrefixed = (path: string) => `/${locale}${path}`;
 
   const services = [
     {
@@ -93,7 +95,7 @@ export default async function ServicesPage({
                       {service.shortDescription}
                     </CardDescription>
                     <Button asChild className="mt-6 w-fit">
-                      <Link href={service.link}>
+                      <Link href={localePrefixed(service.link)}>
                         {servicesPageDict.learnMore}
                         <ChevronRight className="ml-2 h-4 w-4"/>
                       </Link>
@@ -121,5 +123,3 @@ export default async function ServicesPage({
     </>
   );
 }
-
-    

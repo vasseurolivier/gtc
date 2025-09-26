@@ -6,10 +6,14 @@ import Link from 'next/link';
 import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { HeroContactForm } from '@/components/forms/hero-contact-form';
+import { usePathname } from 'next/navigation';
+import { i18n } from '@/i18n-config';
+
 
 export function HeroSection({ dictionary }: { dictionary: any }) {
   const companyInfoContext = useContext(CompanyInfoContext);
   const heroVideo = companyInfoContext?.companyInfo?.heroVideo;
+  const pathname = usePathname();
 
   // Key to force re-render of video element when src changes
   const [videoKey, setVideoKey] = useState(Date.now());
@@ -17,6 +21,18 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
   useEffect(() => {
     setVideoKey(Date.now());
   }, [heroVideo]);
+  
+  const getCurrentLocale = () => {
+    if (!pathname) return i18n.defaultLocale;
+    const segments = pathname.split('/');
+    if (segments.length > 1 && i18n.locales.includes(segments[1] as any)) {
+      return segments[1];
+    }
+    return i18n.defaultLocale;
+  }
+  const locale = getCurrentLocale();
+
+  const localePrefixed = (path: string) => `/${locale}${path}`;
 
   return (
     <section className="relative w-full h-screen text-primary-foreground overflow-hidden -mt-16">
@@ -45,13 +61,13 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
                 </div>
                 <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-start">
                 <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                    <Link href="/contact">
+                    <Link href={localePrefixed("/contact")}>
                         {dictionary.heroSection.ctaButton}
                         <ArrowRight className="ml-2" />
                     </Link>
                 </Button>
                 <Button size="lg" variant="secondary" asChild>
-                    <Link href="/services">
+                    <Link href={localePrefixed("/services")}>
                         {dictionary.heroSection.servicesButton}
                     </Link>
                 </Button>
