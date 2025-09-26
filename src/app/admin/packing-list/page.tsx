@@ -28,6 +28,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+export const maxDuration = 60; // Increase timeout to 60 seconds
+export const dynamic = 'force-dynamic'; // Ensure the page is always dynamically rendered
+
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
   sku: z.string().optional(),
@@ -83,11 +86,6 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     defaultValues: getInitialValues(),
   });
   
-  useEffect(() => {
-    form.reset(getInitialValues());
-  }, [editingList, form]);
-
-
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'items',
@@ -333,7 +331,7 @@ function PackingListHistory({ onEdit, onForceRefresh }: { onEdit: (list: Packing
       }
     }
     fetchLists();
-  }, [onForceRefresh]); // Re-fetch when the key changes
+  }, [onForceRefresh]);
   
   const handleDelete = async (id: string) => {
     const result = await deletePackingList(id);
