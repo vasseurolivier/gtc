@@ -124,7 +124,7 @@ export function Header({ dictionary }: { dictionary: any }) {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-16 items-center">
+      <div className="container flex h-16 items-center justify-between">
          {/* Desktop Logo & Navigation */}
         <div className="mr-4 hidden md:flex">
           <Link href={localePrefixed('/')} className="mr-6 flex items-center space-x-2">
@@ -179,7 +179,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         </div>
 
         {/* Mobile Logo */}
-        <div className="flex items-center md:hidden">
+        <div className="md:hidden">
              <Link href={localePrefixed('/')} className="flex items-center space-x-2">
                {publicLogo ? (
                  <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
@@ -190,7 +190,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         </div>
 
         {/* Mobile Menu & Language Selector */}
-        <div className="flex flex-1 items-center justify-end">
+        <div className="flex items-center">
             <div className="md:hidden">
                 <Sheet>
                 <SheetTrigger asChild>

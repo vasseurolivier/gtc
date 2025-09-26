@@ -35,7 +35,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
   const localePrefixed = (path: string) => `/${locale}${path}`;
 
   return (
-    <section className="relative w-full h-screen text-primary-foreground overflow-hidden md:-mt-16">
+    <section className="relative w-full h-screen min-h-screen text-primary-foreground overflow-hidden md:-mt-16">
       {heroVideo && (
         <video
           key={videoKey}
@@ -81,5 +81,3 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
     </section>
   );
 }
-
-    
