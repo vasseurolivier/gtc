@@ -14,9 +14,9 @@ export default async function PublicLayout({
   const dictionary = await getDictionary(locale);
   return (
     <PublicProviders>
-      <div className="min-h-screen">
+      <div className="min-h-screen flex flex-col">
         <Header dictionary={dictionary.header} />
-        <main>{children}</main>
+        <main className="flex-grow">{children}</main>
         <Footer dictionary={dictionary.footer} />
       </div>
     </PublicProviders>
