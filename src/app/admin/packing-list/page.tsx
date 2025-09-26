@@ -45,7 +45,7 @@ const packingListSchema = z.object({
 
 type PackingListValues = z.infer<typeof packingListSchema>;
 
-function PackingListGenerator({ editingList, onFinishedEditing, products, key }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[], key: number }) {
+function PackingListGenerator({ editingList, onFinishedEditing, products, formKey }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[], formKey: number }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currencyContext = useContext(CurrencyContext);
@@ -86,7 +86,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products, key }:
             items: [{ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' }],
         });
     }
-  }, [editingList, form, key]);
+  }, [editingList, form, formKey]);
 
   const { fields, append, remove, update } = useFieldArray({
     control: form.control,
@@ -481,7 +481,7 @@ function PackingListPageContent() {
             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
           ) : (
             <PackingListGenerator 
-                key={editingList ? editingList.id : historyKey} 
+                formKey={editingList ? editingList.id.hashCode() : historyKey} 
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing} 
                 products={products}
@@ -497,7 +497,7 @@ function PackingListPageContent() {
         <div className="print-content-standalone">
             {/* This will be rendered only for printing */}
             {!isLoadingProducts && <PackingListGenerator 
-                key={editingList ? `print-${editingList.id}` : 'print-new'}
+                formKey={editingList ? `print-${editingList.id}`.hashCode() : 'print-new'.hashCode()}
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing}
                 products={products}
@@ -507,6 +507,23 @@ function PackingListPageContent() {
     </div>
   );
 }
+
+declare global {
+    interface String {
+        hashCode(): number;
+    }
+}
+
+String.prototype.hashCode = function() {
+    var hash = 0, i, chr;
+    if (this.length === 0) return hash;
+    for (i = 0; i < this.length; i++) {
+        chr   = this.charCodeAt(i);
+        hash  = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
 
 
 export default function PackingListPage() {
@@ -524,3 +541,5 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
+
+    
