@@ -203,7 +203,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                       href={localePrefixed(item.href)}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary py-2",
-                        isClient && activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-foreground"
+                        isClient && (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {item.label}
@@ -241,7 +241,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                       href={localePrefixed(citiesItem.href)}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary py-2",
-                        isClient && activePath.includes(citiesItem.href) ? "text-primary font-bold" : "text-foreground"
+                        isClient && activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {citiesItem.label}
@@ -251,7 +251,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                       href={localePrefixed(contactItem.href)}
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary py-2",
-                        isClient && activePath.includes(contactItem.href) ? "text-primary font-bold" : "text-foreground"
+                        isClient && activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
                       )}
                     >
                       {contactItem.label}
