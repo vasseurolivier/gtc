@@ -80,7 +80,7 @@ export function Header({ dictionary }: { dictionary: any }) {
   );
   
   const linkClasses = (href: string, isServices = false) => cn(
-    "relative transition-colors font-bold text-3xl",
+    "relative transition-colors font-bold text-lg",
     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
     isScrolled
       ? "text-white/80 hover:text-white"
@@ -91,7 +91,7 @@ export function Header({ dictionary }: { dictionary: any }) {
   );
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-colors focus:outline-none font-bold text-3xl",
+    "relative flex items-center gap-1 transition-colors focus:outline-none font-bold text-lg",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
     isScrolled ? "text-white/80 hover:text-white" : "text-white/80 hover:text-white",
     isClient && activePath.startsWith('/services') 
