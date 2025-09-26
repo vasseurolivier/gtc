@@ -1,8 +1,9 @@
 
+
 'use client';
 
-import { useState, useContext, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useContext, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,6 +25,8 @@ import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { getProducts, Product } from '@/actions/products';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
@@ -42,7 +45,7 @@ const packingListSchema = z.object({
 
 type PackingListValues = z.infer<typeof packingListSchema>;
 
-function PackingListGenerator({ editingList, onFinishedEditing }: { editingList: PackingList | null, onFinishedEditing: () => void }) {
+function PackingListGenerator({ editingList, onFinishedEditing, products, key }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[], key: number }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currencyContext = useContext(CurrencyContext);
@@ -83,9 +86,9 @@ function PackingListGenerator({ editingList, onFinishedEditing }: { editingList:
             items: [{ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' }],
         });
     }
-  }, [editingList, form]);
+  }, [editingList, form, key]);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'items',
   });
@@ -97,6 +100,15 @@ function PackingListGenerator({ editingList, onFinishedEditing }: { editingList:
   }
   const { currency, exchangeRate } = currencyContext;
   const { companyInfo } = companyInfoContext;
+  
+  const handleProductSelect = (productId: string, index: number) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      form.setValue(`items.${index}.sku`, product.sku);
+      form.setValue(`items.${index}.description`, product.name);
+    }
+  };
+
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
@@ -135,7 +147,7 @@ function PackingListGenerator({ editingList, onFinishedEditing }: { editingList:
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });
-      onFinishedEditing(); // This will trigger a re-fetch in the parent
+      onFinishedEditing();
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -164,6 +176,16 @@ function PackingListGenerator({ editingList, onFinishedEditing }: { editingList:
                   <Card key={field.id} className="p-4 relative">
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-2 right-2 h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     <div className="space-y-2">
+                       <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a product (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {products.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                        <FormField control={form.control} name={`items.${index}.sku`} render={({ field }) => (
                         <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
@@ -401,18 +423,26 @@ function PackingListHistory({ onEdit, keyProp }: { onEdit: (list: PackingList) =
   );
 }
 
-export default function PackingListPage() {
-  const router = useRouter();
+function PackingListPageContent() {
   const [activeTab, setActiveTab] = useState("generator");
   const [editingList, setEditingList] = useState<PackingList | null>(null);
   const [historyKey, setHistoryKey] = useState(Date.now());
-  
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
-    if (isAuthenticated !== 'true') {
-      router.push('/admin/login');
+    async function fetchProducts() {
+        try {
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+        } catch (error) {
+            console.error("Failed to fetch products", error);
+        } finally {
+            setIsLoadingProducts(false);
+        }
     }
-  }, [router]);
+    fetchProducts();
+  }, []);
   
   const handleEdit = (list: PackingList) => {
     setEditingList(list);
@@ -435,13 +465,28 @@ export default function PackingListPage() {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="no-print">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        if (value === 'generator' && editingList) {
+          setEditingList(null); // Clear editing state when switching back to generator manually
+          setHistoryKey(Date.now()); // Re-render generator with fresh state
+        }
+        setActiveTab(value);
+      }} className="no-print">
         <TabsList className="mb-4">
           <TabsTrigger value="generator">{editingList ? 'Edit List' : 'Generator'}</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="generator">
-          <PackingListGenerator editingList={editingList} onFinishedEditing={handleFinishEditing} />
+          {isLoadingProducts ? (
+            <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+          ) : (
+            <PackingListGenerator 
+                key={editingList ? editingList.id : historyKey} 
+                editingList={editingList} 
+                onFinishedEditing={handleFinishEditing} 
+                products={products}
+            />
+          )}
         </TabsContent>
         <TabsContent value="history">
           <PackingListHistory onEdit={handleEdit} keyProp={historyKey} />
@@ -451,9 +496,31 @@ export default function PackingListPage() {
       <div className="hidden print-block">
         <div className="print-content-standalone">
             {/* This will be rendered only for printing */}
-            <PackingListGenerator editingList={editingList} onFinishedEditing={handleFinishEditing} />
+            {!isLoadingProducts && <PackingListGenerator 
+                key={editingList ? `print-${editingList.id}` : 'print-new'}
+                editingList={editingList} 
+                onFinishedEditing={handleFinishEditing}
+                products={products}
+            />}
         </div>
       </div>
     </div>
   );
+}
+
+
+export default function PackingListPage() {
+  const router = useRouter();
+  useEffect(() => {
+    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+    if (isAuthenticated !== 'true') {
+      router.push('/admin/login');
+    }
+  }, [router]);
+  
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+      <PackingListPageContent />
+    </Suspense>
+  )
 }
