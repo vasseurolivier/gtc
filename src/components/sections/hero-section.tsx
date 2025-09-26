@@ -50,32 +50,30 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
         </video>
       )}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
-      <div className="relative h-full flex items-center container p-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center w-full">
-            <div className="w-full max-w-xl text-center md:text-left">
-                <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
-                    {dictionary.heroSection.title}
-                </h1>
-                <div className="mt-6 max-w-2xl mx-auto md:mx-0 text-lg md:text-xl text-neutral-200">
-                    {dictionary.heroSection.subtitle}
-                </div>
-                <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                    <Link href={localePrefixed("/contact")}>
-                        {dictionary.heroSection.ctaButton}
-                        <ArrowRight className="ml-2" />
-                    </Link>
-                </Button>
-                <Button size="lg" variant="secondary" asChild>
-                    <Link href={localePrefixed("/services")}>
-                        {dictionary.heroSection.servicesButton}
-                    </Link>
-                </Button>
-                </div>
+      <div className="relative h-full flex flex-col md:flex-row items-center justify-center container p-4 pt-20 md:pt-4">
+        <div className="flex-1 w-full max-w-xl text-center md:text-left">
+            <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
+                {dictionary.heroSection.title}
+            </h1>
+            <div className="mt-6 max-w-2xl mx-auto md:mx-0 text-lg md:text-xl text-neutral-200">
+                {dictionary.heroSection.subtitle}
             </div>
-             <div className="w-full max-w-md mx-auto">
-              <HeroContactForm dictionary={dictionary.contactSection} />
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
+                <Link href={localePrefixed("/contact")}>
+                    {dictionary.heroSection.ctaButton}
+                    <ArrowRight className="ml-2" />
+                </Link>
+            </Button>
+            <Button size="lg" variant="secondary" asChild>
+                <Link href={localePrefixed("/services")}>
+                    {dictionary.heroSection.servicesButton}
+                </Link>
+            </Button>
             </div>
+        </div>
+         <div className="flex-1 w-full max-w-md mx-auto mt-10 md:mt-0">
+          <HeroContactForm dictionary={dictionary.contactSection} />
         </div>
       </div>
     </section>
