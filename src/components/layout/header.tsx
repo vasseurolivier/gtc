@@ -41,6 +41,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     };
 
     window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check on initial render
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -74,25 +75,25 @@ export function Header({ dictionary }: { dictionary: any }) {
   const headerClasses = cn(
     "sticky top-0 z-50 w-full transition-all duration-300",
     isScrolled 
-      ? "border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
       : "bg-transparent border-transparent"
   );
   
   const linkClasses = (href: string, isServices = false) => cn(
     "transition-colors",
     isScrolled
-      ? "text-muted-foreground hover:text-primary"
+      ? "text-white/80 hover:text-white"
       : "text-white/80 hover:text-white",
     isClient && ((activePath === `/${i18n.defaultLocale}${href}`.replace(/\/$/, '') || activePath === href) || (isServices && activePath.startsWith('/services')))
-      ? (isScrolled ? "text-primary font-bold" : "text-white font-bold")
+      ? "text-white font-bold"
       : ""
   );
   
   const dropdownTriggerClasses = cn(
     "flex items-center gap-1 transition-colors focus:outline-none",
-    isScrolled ? "text-muted-foreground hover:text-primary" : "text-white/80 hover:text-white",
+    isScrolled ? "text-white/80 hover:text-white" : "text-white/80 hover:text-white",
     isClient && activePath.startsWith('/services') 
-      ? (isScrolled ? "text-primary font-bold" : "text-white font-bold") 
+      ? "text-white font-bold"
       : ""
   );
 
@@ -106,8 +107,8 @@ export function Header({ dictionary }: { dictionary: any }) {
               <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
             ) : (
               <>
-                <Globe className={cn("h-6 w-6", isScrolled ? "text-primary" : "text-white")} />
-                <span className={cn("hidden font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-foreground" : "text-white")}>
+                <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
+                <span className={cn("hidden font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white")}>
                   Global Trading China
                 </span>
               </>
@@ -155,7 +156,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="md:hidden flex-1">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={cn(isScrolled ? "text-primary" : "text-white hover:text-white hover:bg-white/10")}>
+                <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
@@ -239,7 +240,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="flex items-center justify-end md:flex-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={cn(isScrolled ? "text-primary" : "text-white hover:text-white hover:bg-white/10")}>
+              <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
                 <Globe className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
