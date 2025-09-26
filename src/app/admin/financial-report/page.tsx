@@ -76,6 +76,8 @@ export default function FinancialReportPage() {
   };
 
   const { start, end } = getPeriodDateRange();
+  
+  const ordersById = new Map(orders.map(o => [o.id, o]));
 
   const paidInvoices = invoices.filter(inv => {
     if (inv.status !== 'paid' || !inv.paymentDate) return false;
@@ -90,14 +92,16 @@ export default function FinancialReportPage() {
   const revenue = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
   const costOfGoodsSold = paidInvoices.reduce((totalCost, inv) => {
-    const invoiceCost = inv.items.reduce((itemSum, item) => {
+    if (!inv.orderId) return totalCost;
+    const order = ordersById.get(inv.orderId);
+    if (!order) return totalCost;
+
+    const orderCost = order.items.reduce((itemSum, item) => {
       const purchasePrice = item.purchasePrice || 0;
       return itemSum + (purchasePrice * item.quantity);
     }, 0);
-    return totalCost + invoiceCost;
+    return totalCost + orderCost;
   }, 0);
-  
-  const ordersById = new Map(orders.map(o => [o.id, o]));
   
   const operatingExpenses = paidInvoices.reduce((totalExpense, inv) => {
     if (!inv.orderId) return totalExpense;
