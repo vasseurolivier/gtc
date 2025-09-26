@@ -23,6 +23,7 @@ import { submitContactForm } from "@/actions/contact";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().optional(),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
@@ -35,6 +36,7 @@ export function HeroContactForm({ dictionary }: { dictionary: any }) {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
       message: "",
     },
   });
@@ -109,13 +111,25 @@ export function HeroContactForm({ dictionary }: { dictionary: any }) {
                     </FormItem>
                     )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormControl>
+                            <Input placeholder={dictionary.form.phone.placeholder} {...field} className="bg-white/10 border-white/20 placeholder:text-neutral-400 focus:bg-white/20" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="message"
                     render={({ field }) => (
                     <FormItem>
                         <FormControl>
-                        <Textarea placeholder={dictionary.form.message.placeholder} {...field} rows={4} className="bg-white/10 border-white/20 placeholder:text-neutral-400 focus:bg-white/20" />
+                        <Textarea placeholder={dictionary.form.message.placeholder} {...field} rows={3} className="bg-white/10 border-white/20 placeholder:text-neutral-400 focus:bg-white/20" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
