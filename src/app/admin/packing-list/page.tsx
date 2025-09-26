@@ -200,6 +200,7 @@ function PackingListGenerator({ editingList, onFinishedEditing }: { editingList:
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
               </Button>
               <div className="flex justify-end gap-2">
+                 {editingList && <Button type="button" variant="ghost" onClick={onFinishedEditing}>Cancel</Button>}
                 <Button type="submit" disabled={isSubmitting}>
                   <Save className="mr-2 h-4 w-4" />
                   {isSubmitting ? 'Saving...' : 'Save'}
@@ -292,13 +293,14 @@ function PackingListGenerator({ editingList, onFinishedEditing }: { editingList:
   );
 }
 
-function PackingListHistory({ onEdit }: { onEdit: (list: PackingList) => void }) {
+function PackingListHistory({ onEdit, keyProp }: { onEdit: (list: PackingList) => void, keyProp: number }) {
   const [packingLists, setPackingLists] = useState<PackingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     async function fetchLists() {
+      setIsLoading(true);
       try {
         const lists = await getPackingLists();
         setPackingLists(lists);
@@ -309,7 +311,7 @@ function PackingListHistory({ onEdit }: { onEdit: (list: PackingList) => void })
       }
     }
     fetchLists();
-  }, []);
+  }, [keyProp]);
   
   const handleDelete = async (id: string) => {
     const result = await deletePackingList(id);
@@ -403,6 +405,7 @@ export default function PackingListPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("generator");
   const [editingList, setEditingList] = useState<PackingList | null>(null);
+  const [historyKey, setHistoryKey] = useState(Date.now());
   
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -418,15 +421,15 @@ export default function PackingListPage() {
 
   const handleFinishEditing = () => {
     setEditingList(null);
+    setHistoryKey(Date.now()); // Force re-render of history component
     setActiveTab("history");
-    // We need a way to force re-fetch in history, a simple key change on the component can do it
   };
 
   return (
     <div className="container py-8 printable-area">
       <div className="flex justify-between items-center mb-8 no-print">
         <h1 className="text-3xl font-bold">Packing List</h1>
-        <Button onClick={() => window.print()}>
+        <Button onClick={() => window.print()} disabled={activeTab !== 'generator'}>
           <Printer className="mr-2 h-4 w-4" />
           Export to PDF
         </Button>
@@ -434,19 +437,20 @@ export default function PackingListPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="no-print">
         <TabsList className="mb-4">
-          <TabsTrigger value="generator">Generator</TabsTrigger>
+          <TabsTrigger value="generator">{editingList ? 'Edit List' : 'Generator'}</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="generator">
           <PackingListGenerator editingList={editingList} onFinishedEditing={handleFinishEditing} />
         </TabsContent>
         <TabsContent value="history">
-          <PackingListHistory onEdit={handleEdit} />
+          <PackingListHistory onEdit={handleEdit} keyProp={historyKey} />
         </TabsContent>
       </Tabs>
       
       <div className="hidden print-block">
         <div className="print-content-standalone">
+            {/* This will be rendered only for printing */}
             <PackingListGenerator editingList={editingList} onFinishedEditing={handleFinishEditing} />
         </div>
       </div>
