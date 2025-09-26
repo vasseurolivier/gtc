@@ -9,7 +9,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   phone: z.string().optional(),
-  subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
+  subject: z.string().optional(),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
@@ -18,6 +18,7 @@ export async function submitContactForm(values: z.infer<typeof formSchema>) {
     const validatedData = formSchema.parse(values);
     await addDoc(collection(db, 'contactSubmissions'), {
       ...validatedData,
+      subject: validatedData.subject || 'New Contact from Hero Form', // Add a default subject
       createdAt: serverTimestamp(),
       read: false,
     });
