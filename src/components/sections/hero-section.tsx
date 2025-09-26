@@ -18,7 +18,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
   }, [heroVideo]);
 
   return (
-    <section className="relative w-full h-screen text-primary-foreground overflow-hidden">
+    <section className="relative w-full h-screen text-primary-foreground overflow-hidden -mt-16">
       {heroVideo && (
         <video
           key={videoKey}
