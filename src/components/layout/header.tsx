@@ -125,67 +125,56 @@ export function Header({ dictionary }: { dictionary: any }) {
   return (
     <header className={headerClasses}>
       <div className="container flex h-16 items-center">
-        <div className="hidden md:flex items-center">
-          <Link href={localePrefixed('/')} className="mr-6 flex items-center space-x-2">
-            {publicLogo ? (
-              <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-            ) : (
-              <>
-                <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
-                <span className={cn("font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white")}>
-                  Global Trading China
-                </span>
-              </>
-            )}
-          </Link>
-          <nav className="flex items-center space-x-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={localePrefixed(item.href)}
-                className={linkClasses(item.href)}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <DropdownMenu>
-              <DropdownMenuTrigger className={dropdownTriggerClasses}>
-                {dictionary.services} <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {servicesItems.map((item) => (
-                  <DropdownMenuItem key={item.href} asChild>
-                    <Link href={localePrefixed(item.href)}>{item.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <Link href={localePrefixed('/')} className="mr-6 flex items-center space-x-2">
+          {publicLogo ? (
+            <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
+          ) : (
+            <>
+              <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
+            </>
+          )}
+          <span className={cn("font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white")}>
+            Global Trading China
+          </span>
+        </Link>
+        <nav className="hidden md:flex items-center space-x-6 ml-auto">
+          {navItems.map((item) => (
             <Link
-                key={citiesItem.href}
-                href={localePrefixed(citiesItem.href)}
-                className={linkClasses(citiesItem.href)}
-              >
-                {citiesItem.label}
-              </Link>
-              <Link
-                key={contactItem.href}
-                href={localePrefixed(contactItem.href)}
-                className={linkClasses(contactItem.href)}
-              >
-                {contactItem.label}
-              </Link>
-          </nav>
-        </div>
-        <div className="flex flex-1 items-center justify-between md:justify-end">
-          <Link href={localePrefixed('/')} className="flex items-center space-x-2 md:hidden">
-            {publicLogo ? (
-              <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-            ) : (
-                <Globe className="h-6 w-6 text-white" />
-            )}
-            <span className="font-bold font-headline text-lg text-white">Global Trading China</span>
-          </Link>
-          <div className="flex items-center gap-2">
+              key={item.href}
+              href={localePrefixed(item.href)}
+              className={linkClasses(item.href)}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger className={dropdownTriggerClasses}>
+              {dictionary.services} <ChevronDown className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {servicesItems.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link href={localePrefixed(item.href)}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Link
+              key={citiesItem.href}
+              href={localePrefixed(citiesItem.href)}
+              className={linkClasses(citiesItem.href)}
+            >
+              {citiesItem.label}
+            </Link>
+            <Link
+              key={contactItem.href}
+              href={localePrefixed(contactItem.href)}
+              className={linkClasses(contactItem.href)}
+            >
+              {contactItem.label}
+            </Link>
+        </nav>
+        <div className="flex items-center gap-2 ml-auto md:ml-6">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className={cn("text-white hover:text-white/90 hover:bg-white/10")}>
@@ -285,9 +274,10 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetContent>
                 </Sheet>
             </div>
-          </div>
         </div>
       </div>
     </header>
   );
 }
+
+    
