@@ -82,6 +82,11 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     resolver: zodResolver(packingListSchema),
     defaultValues: getInitialValues(),
   });
+  
+  useEffect(() => {
+    form.reset(getInitialValues());
+  }, [editingList, form]);
+
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -503,7 +508,7 @@ function PackingListPageContent() {
           )}
         </TabsContent>
         <TabsContent value="history">
-          <PackingListHistory onEdit={handleEdit} onForceRefresh={historyRefreshKey} />
+          <PackingListHistory onEdit={handleEdit} onForceRefresh={() => setHistoryRefreshKey(k => k + 1)} />
         </TabsContent>
       </Tabs>
       
