@@ -51,8 +51,8 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
       )}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
       <div className="relative h-full flex flex-col justify-center items-center container p-4 pt-16 md:pt-4">
-        <div className="flex flex-col md:flex-row items-center justify-center w-full gap-8 md:gap-16">
-            <div className="w-full md:w-1/2 max-w-xl text-center md:text-left">
+        <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8 md:gap-16">
+            <div className="w-full md:w-1/2 max-w-xl md:text-left">
                 <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
                     {dictionary.heroSection.title}
                 </h1>
