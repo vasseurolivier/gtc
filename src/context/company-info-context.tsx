@@ -8,7 +8,8 @@ export interface CompanyInfo {
   address: string;
   email: string;
   phone: string;
-  logo: string; // Base64 data URL
+  logo: string; // Base64 data URL for admin
+  publicLogo?: string; // Base64 data URL for public site
 }
 
 interface CompanyInfoContextType {
@@ -25,6 +26,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     email: 'info@globaltradingchina.com',
     phone: '+8613564770717',
     logo: '',
+    publicLogo: '',
   });
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -42,6 +44,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
                 email: 'info@globaltradingchina.com',
                 phone: '+8613564770717',
                 logo: '',
+                publicLogo: '',
             });
         }
     } catch (error) {

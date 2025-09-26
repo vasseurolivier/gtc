@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,12 +21,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { i18n } from '@/i18n-config';
+import Image from 'next/image';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 
 export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isClient, setIsClient] = useState(false);
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
 
   useEffect(() => {
     setIsClient(true);
@@ -64,10 +68,16 @@ export function Header({ dictionary }: { dictionary: any }) {
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Globe className="h-6 w-6 text-primary" />
-            <span className="hidden font-bold sm:inline-block font-headline text-lg">
-              Global Trading China
-            </span>
+            {publicLogo ? (
+              <Image src={publicLogo} alt="Company Logo" width={120} height={40} className="object-contain" />
+            ) : (
+              <>
+                <Globe className="h-6 w-6 text-primary" />
+                <span className="hidden font-bold sm:inline-block font-headline text-lg">
+                  Global Trading China
+                </span>
+              </>
+            )}
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             {navItems.map((item) => (
@@ -120,7 +130,7 @@ export function Header({ dictionary }: { dictionary: any }) {
           </nav>
         </div>
 
-        <div className="md:hidden">
+        <div className="md:hidden flex-1">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -130,8 +140,14 @@ export function Header({ dictionary }: { dictionary: any }) {
               </SheetTrigger>
               <SheetContent side="left" className="w-full max-w-xs">
                 <Link href="/" className="mb-8 flex items-center space-x-2">
-                  <Globe className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline text-lg">Global Trading China</span>
+                   {publicLogo ? (
+                    <Image src={publicLogo} alt="Company Logo" width={120} height={40} className="object-contain" />
+                  ) : (
+                    <>
+                      <Globe className="h-6 w-6 text-primary" />
+                      <span className="font-bold font-headline text-lg">Global Trading China</span>
+                    </>
+                  )}
                 </Link>
                 <nav className="flex flex-col space-y-2">
                   {navItems.map((item) => (
@@ -198,7 +214,7 @@ export function Header({ dictionary }: { dictionary: any }) {
             </Sheet>
           </div>
         
-        <div className="flex flex-1 items-center justify-end">
+        <div className="flex items-center justify-end md:flex-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
