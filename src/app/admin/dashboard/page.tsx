@@ -25,13 +25,19 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
-    if (isAuthenticated !== 'true') {
+    const authStatus = sessionStorage.getItem('isAdminAuthenticated');
+    if (authStatus !== 'true') {
       router.push('/admin/login');
-      return;
+    } else {
+      setIsAuthenticated(true);
     }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
     async function fetchData() {
       try {
@@ -48,7 +54,7 @@ export default function DashboardPage() {
       }
     }
     fetchData();
-  }, [router]);
+  }, [isAuthenticated]);
   
   const getStatusBadgeVariant = (status: any) => {
     switch (status) {
@@ -100,7 +106,7 @@ export default function DashboardPage() {
   const recentOrders = orders.slice(0, 5);
 
 
-  if (isLoading) {
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -224,3 +230,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
