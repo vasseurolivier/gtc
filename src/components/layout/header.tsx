@@ -69,7 +69,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             {publicLogo ? (
-              <Image src={publicLogo} alt="Company Logo" width={80} height={30} className="object-contain" />
+              <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
             ) : (
               <>
                 <Globe className="h-6 w-6 text-primary" />
@@ -141,7 +141,7 @@ export function Header({ dictionary }: { dictionary: any }) {
               <SheetContent side="left" className="w-full max-w-xs">
                 <Link href="/" className="mb-8 flex items-center space-x-2">
                    {publicLogo ? (
-                    <Image src={publicLogo} alt="Company Logo" width={80} height={30} className="object-contain" />
+                    <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
                   ) : (
                     <>
                       <Globe className="h-6 w-6 text-primary" />
