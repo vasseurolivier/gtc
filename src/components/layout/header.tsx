@@ -29,11 +29,19 @@ export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isClient, setIsClient] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
 
   useEffect(() => {
     setIsClient(true);
+    
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -63,8 +71,34 @@ export function Header({ dictionary }: { dictionary: any }) {
     return segments.join('/')
   }
 
+  const headerClasses = cn(
+    "sticky top-0 z-50 w-full transition-all duration-300",
+    isScrolled 
+      ? "border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      : "bg-transparent border-transparent"
+  );
+  
+  const linkClasses = (href: string, isServices = false) => cn(
+    "transition-colors",
+    isScrolled
+      ? "text-muted-foreground hover:text-primary"
+      : "text-white/80 hover:text-white",
+    isClient && ((activePath === `/${i18n.defaultLocale}${href}`.replace(/\/$/, '') || activePath === href) || (isServices && activePath.startsWith('/services')))
+      ? (isScrolled ? "text-primary font-bold" : "text-white font-bold")
+      : ""
+  );
+  
+  const dropdownTriggerClasses = cn(
+    "flex items-center gap-1 transition-colors focus:outline-none",
+    isScrolled ? "text-muted-foreground hover:text-primary" : "text-white/80 hover:text-white",
+    isClient && activePath.startsWith('/services') 
+      ? (isScrolled ? "text-primary font-bold" : "text-white font-bold") 
+      : ""
+  );
+
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={headerClasses}>
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -72,8 +106,8 @@ export function Header({ dictionary }: { dictionary: any }) {
               <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
             ) : (
               <>
-                <Globe className="h-6 w-6 text-primary" />
-                <span className="hidden font-bold sm:inline-block font-headline text-lg">
+                <Globe className={cn("h-6 w-6", isScrolled ? "text-primary" : "text-white")} />
+                <span className={cn("hidden font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-foreground" : "text-white")}>
                   Global Trading China
                 </span>
               </>
@@ -84,19 +118,13 @@ export function Header({ dictionary }: { dictionary: any }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "transition-colors hover:text-primary",
-                  isClient && (activePath === `/${i18n.defaultLocale}${item.href}`.replace(/\/$/, '') || activePath === item.href) ? "text-primary font-bold" : "text-muted-foreground"
-                )}
+                className={linkClasses(item.href)}
               >
                 {item.label}
               </Link>
             ))}
             <DropdownMenu>
-              <DropdownMenuTrigger className={cn(
-                  "flex items-center gap-1 transition-colors hover:text-primary focus:outline-none",
-                  isClient && activePath.startsWith('/services') ? "text-primary font-bold" : "text-muted-foreground"
-                )}>
+              <DropdownMenuTrigger className={dropdownTriggerClasses}>
                 {dictionary.services} <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -110,20 +138,14 @@ export function Header({ dictionary }: { dictionary: any }) {
             <Link
                 key={citiesItem.href}
                 href={citiesItem.href}
-                className={cn(
-                  "transition-colors hover:text-primary",
-                  isClient && activePath.includes(citiesItem.href) ? "text-primary font-bold" : "text-muted-foreground"
-                )}
+                className={linkClasses(citiesItem.href)}
               >
                 {citiesItem.label}
               </Link>
               <Link
                 key={contactItem.href}
                 href={contactItem.href}
-                className={cn(
-                  "transition-colors hover:text-primary",
-                  isClient && activePath.includes(contactItem.href) ? "text-primary font-bold" : "text-muted-foreground"
-                )}
+                className={linkClasses(contactItem.href)}
               >
                 {contactItem.label}
               </Link>
@@ -133,7 +155,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="md:hidden flex-1">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className={cn(isScrolled ? "text-primary" : "text-white hover:text-white hover:bg-white/10")}>
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
@@ -217,7 +239,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="flex items-center justify-end md:flex-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className={cn(isScrolled ? "text-primary" : "text-white hover:text-white hover:bg-white/10")}>
                 <Globe className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
