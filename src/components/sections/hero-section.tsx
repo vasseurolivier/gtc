@@ -51,7 +51,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
       )}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
       <div className="relative h-full flex items-center container p-4">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
             <div className="max-w-xl">
                 <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
                     {dictionary.heroSection.title}
@@ -73,7 +73,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
                 </Button>
                 </div>
             </div>
-             <div className="hidden md:block">
+             <div>
               <HeroContactForm dictionary={dictionary.contactSection} />
             </div>
         </div>
