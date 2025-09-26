@@ -80,7 +80,7 @@ function AdminSettings() {
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
                 setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
-                setHeroVideo(companyInfoContext.companyInfo.heroVideo || 'hero-video.mp4');
+                setHeroVideo(companyInfoContext.companyInfo.heroVideo || '');
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -92,24 +92,20 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { setCompanyInfo } = companyInfoContext;
     
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>, logoType: 'admin' | 'public') => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFileState: React.Dispatch<React.SetStateAction<string>>, maxSizeMB: number, fileType: 'image' | 'video') => {
         const file = e.target.files?.[0];
         if (file) {
-            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+            if (file.size > maxSizeMB * 1024 * 1024) {
                 toast({
                     variant: 'destructive',
                     title: 'File too large',
-                    description: 'Please upload a logo smaller than 2MB.',
+                    description: `Please upload a ${fileType} smaller than ${maxSizeMB}MB.`,
                 });
                 return;
             }
             const reader = new FileReader();
             reader.onloadend = () => {
-                if (logoType === 'admin') {
-                    setCompanyLogo(reader.result as string);
-                } else {
-                    setPublicLogo(reader.result as string);
-                }
+                setFileState(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -175,7 +171,7 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="company-logo" type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={(e) => handleLogoChange(e, 'admin')} className="w-auto" />
+                                        <Input id="company-logo" type="file" accept="image/*" onChange={(e) => handleFileChange(e, setCompanyLogo, 2, 'image')} className="w-auto" />
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
@@ -188,7 +184,7 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="public-logo" type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={(e) => handleLogoChange(e, 'public')} className="w-auto" />
+                                        <Input id="public-logo" type="file" accept="image/*" onChange={(e) => handleFileChange(e, setPublicLogo, 2, 'image')} className="w-auto" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
@@ -208,11 +204,20 @@ function AdminSettings() {
                         <Separator />
                         <div>
                             <h3 className="text-lg font-medium mb-4">Site Customization</h3>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="hero-video" className="text-right">Hero Video Filename</Label>
-                                <Input id="hero-video" value={heroVideo} onChange={(e) => setHeroVideo(e.target.value)} className="col-span-3" />
+                            <div className="grid grid-cols-4 items-start gap-4">
+                                <Label htmlFor="hero-video" className="text-right pt-2">Hero Video</Label>
+                                <div className="col-span-3 flex items-center gap-4">
+                                    <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                                        {heroVideo ? (
+                                            <video src={heroVideo} className="object-contain rounded-md" muted playsInline />
+                                        ) : (
+                                            <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                        )}
+                                    </div>
+                                    <Input id="hero-video" type="file" accept="video/mp4,video/webm" onChange={(e) => handleFileChange(e, setHeroVideo, 5, 'video')} className="w-auto" />
+                                </div>
                             </div>
-                             <p className="text-sm text-muted-foreground mt-2 text-right col-start-2 col-span-3">Place the video file in the `public/videos` directory.</p>
+                            <p className="text-sm text-muted-foreground mt-2 text-right col-start-2 col-span-3">Short video (&lt; 5MB) recommended for performance.</p>
                         </div>
                         <Separator />
                         <div>
