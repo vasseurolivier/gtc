@@ -125,21 +125,22 @@ export function Header({ dictionary }: { dictionary: any }) {
   return (
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
-         {/* Desktop Logo & Navigation */}
-        <div className="mr-4 hidden md:flex">
-          <Link href={localePrefixed('/')} className="mr-6 flex items-center space-x-2">
-            {publicLogo ? (
-              <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-            ) : (
-              <>
-                <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
-                <span className={cn("hidden font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white")}>
+        <div className="flex items-center">
+            <Link href={localePrefixed('/')} className="mr-6 flex items-center space-x-2">
+                {publicLogo ? (
+                <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
+                ) : (
+                <>
+                    <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
+                </>
+                )}
+                 <span className={cn("font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white", "md:hidden")}>
                   Global Trading China
                 </span>
-              </>
-            )}
-          </Link>
-          <nav className="flex items-center space-x-6">
+            </Link>
+        </div>
+
+        <nav className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -175,22 +176,25 @@ export function Header({ dictionary }: { dictionary: any }) {
               >
                 {contactItem.label}
               </Link>
-          </nav>
-        </div>
+        </nav>
 
-        {/* Mobile Logo */}
-        <div className="md:hidden">
-             <Link href={localePrefixed('/')} className="flex items-center space-x-2">
-               {publicLogo ? (
-                 <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-               ) : (
-                 <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
-               )}
-            </Link>
-        </div>
-
-        {/* Mobile Menu & Language Selector */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className={cn("text-white hover:text-white/90 hover:bg-white/10")}>
+                    <Globe className="h-5 w-5" />
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                {i18n.locales.map(l => (
+                    <DropdownMenuItem key={l} asChild>
+                    <Link href={redirectedPathName(l)}>
+                        {l === 'en' ? 'English' : 'Français'}
+                    </Link>
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
             <div className="md:hidden">
                 <Sheet>
                 <SheetTrigger asChild>
@@ -206,9 +210,9 @@ export function Header({ dictionary }: { dictionary: any }) {
                     ) : (
                         <>
                         <Globe className="h-6 w-6 text-primary" />
-                        <span className="font-bold font-headline text-lg">Global Trading China</span>
                         </>
                     )}
+                    <span className="font-bold font-headline text-lg">Global Trading China</span>
                     </Link>
                     <nav className="flex flex-col space-y-2">
                     {navItems.map((item) => (
@@ -274,23 +278,6 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetContent>
                 </Sheet>
             </div>
-            
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className={cn("text-white hover:text-white/90 hover:bg-white/10")}>
-                    <Globe className="h-5 w-5" />
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                {i18n.locales.map(l => (
-                    <DropdownMenuItem key={l} asChild>
-                    <Link href={redirectedPathName(l)}>
-                        {l === 'en' ? 'English' : 'Français'}
-                    </Link>
-                    </DropdownMenuItem>
-                ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
         </div>
       </div>
     </header>
