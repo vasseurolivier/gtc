@@ -80,19 +80,19 @@ export function Header({ dictionary }: { dictionary: any }) {
   );
   
   const linkClasses = (href: string, isServices = false) => cn(
-    "relative transition-colors font-bold text-lg text-red-700",
-    "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
+    "relative transition-colors font-semibold text-lg text-white",
+    "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     (isClient && ((activePath === `/${i18n.defaultLocale}${href}`.replace(/\/$/, '') || activePath === href) || (isServices && activePath.startsWith('/services'))))
-      ? "text-red-500 after:w-full"
-      : "hover:text-red-500"
+      ? "text-white after:w-full"
+      : "hover:text-white/90"
   );
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-colors focus:outline-none font-bold text-lg text-red-700",
-     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
+    "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
+     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     isClient && activePath.startsWith('/services') 
-      ? "text-red-500 after:w-full"
-      : "hover:text-red-500"
+      ? "text-white after:w-full"
+      : "hover:text-white/90"
   );
 
 
@@ -238,7 +238,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="flex items-center justify-end md:flex-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={cn("text-red-700 hover:text-red-500 hover:bg-red-500/10")}>
+              <Button variant="ghost" size="icon" className={cn("text-white hover:text-white/90 hover:bg-white/10")}>
                 <Globe className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
