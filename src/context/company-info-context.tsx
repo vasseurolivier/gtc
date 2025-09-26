@@ -20,7 +20,7 @@ export const CompanyInfoContext = createContext<CompanyInfoContextType | undefin
 
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: 'Global Trading China',
+    name: 'Yiwu Hunagqing Trading',
     address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
     email: 'info@globaltradingchina.com',
     phone: '+8613564770717',
@@ -33,20 +33,16 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
             const parsedInfo = JSON.parse(savedInfo);
-            // Quick check to see if it's the old info
-            if (parsedInfo.name !== 'Global Trading China') {
-                // If it's old info, we can either merge or replace.
-                // For this change, we'll replace to ensure consistency with user request.
-                setCompanyInfo({
-                    name: 'Global Trading China',
-                    address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
-                    email: 'info@globaltradingchina.com',
-                    phone: '+8613564770717',
-                    logo: parsedInfo.logo || '', // keep old logo if it exists
-                });
-            } else {
-                setCompanyInfo(parsedInfo);
-            }
+            setCompanyInfo(parsedInfo);
+        } else {
+             // If no saved info, set the new default
+            setCompanyInfo({
+                name: 'Yiwu Hunagqing Trading',
+                address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
+                email: 'info@globaltradingchina.com',
+                phone: '+8613564770717',
+                logo: '',
+            });
         }
     } catch (error) {
         console.error('Failed to load company info from localStorage', error);
