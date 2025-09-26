@@ -43,7 +43,7 @@ export default async function EcommerceSolutionsPage({
 
   return (
     <>
-      <section className="relative w-full h-[40vh] min-h-[300px] text-primary-foreground">
+      <section className="relative w-full h-[60vh] text-primary-foreground -mt-16">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
