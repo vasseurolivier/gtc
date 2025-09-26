@@ -45,16 +45,27 @@ const packingListSchema = z.object({
 
 type PackingListValues = z.infer<typeof packingListSchema>;
 
-function PackingListGenerator({ editingList, onFinishedEditing, products, formKey }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[], formKey: string }) {
+function PackingListGenerator({ editingList, onFinishedEditing, products }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[] }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currencyContext = useContext(CurrencyContext);
   const companyInfoContext = useContext(CompanyInfoContext);
 
-  const form = useForm<PackingListValues>({
-    resolver: zodResolver(packingListSchema),
-    defaultValues: {
-      listId: '',
+  const getInitialValues = () => {
+    if (editingList) {
+        return {
+            ...editingList,
+            date: new Date(editingList.date),
+            items: editingList.items.map(item => ({
+                ...item,
+                photo: item.photo || '',
+                sku: item.sku || '',
+                remarks: item.remarks || '',
+            }))
+        };
+    }
+    return {
+      listId: `PL-${Date.now().toString().slice(-6)}`,
       date: new Date(),
       items: [{
         photo: '',
@@ -64,29 +75,13 @@ function PackingListGenerator({ editingList, onFinishedEditing, products, formKe
         unitPriceCny: 0,
         remarks: '',
       }],
-    },
+    };
+  };
+
+  const form = useForm<PackingListValues>({
+    resolver: zodResolver(packingListSchema),
+    defaultValues: getInitialValues(),
   });
-  
-  useEffect(() => {
-    if (editingList) {
-        form.reset({
-            ...editingList,
-            date: new Date(editingList.date),
-            items: editingList.items.map(item => ({
-                ...item,
-                photo: item.photo || '',
-                sku: item.sku || '',
-                remarks: item.remarks || '',
-            }))
-        });
-    } else {
-        form.reset({
-            listId: `PL-${Date.now().toString().slice(-6)}`,
-            date: new Date(),
-            items: [{ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' }],
-        });
-    }
-  }, [editingList, form, formKey]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -315,7 +310,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products, formKe
   );
 }
 
-function PackingListHistory({ onEdit, keyProp }: { onEdit: (list: PackingList) => void, keyProp: number }) {
+function PackingListHistory({ onEdit, onForceRefresh }: { onEdit: (list: PackingList) => void, onForceRefresh: () => void }) {
   const [packingLists, setPackingLists] = useState<PackingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -333,7 +328,7 @@ function PackingListHistory({ onEdit, keyProp }: { onEdit: (list: PackingList) =
       }
     }
     fetchLists();
-  }, [keyProp]);
+  }, [onForceRefresh]); // Re-fetch when the key changes
   
   const handleDelete = async (id: string) => {
     const result = await deletePackingList(id);
@@ -426,8 +421,8 @@ function PackingListHistory({ onEdit, keyProp }: { onEdit: (list: PackingList) =
 function PackingListPageContent() {
   const [activeTab, setActiveTab] = useState("generator");
   const [editingList, setEditingList] = useState<PackingList | null>(null);
-  const [historyKey, setHistoryKey] = useState(Date.now());
-  const [generatorKey, setGeneratorKey] = useState('new');
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [generatorKey, setGeneratorKey] = useState('new-0');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
@@ -447,33 +442,47 @@ function PackingListPageContent() {
   
   const handleEdit = (list: PackingList) => {
     setEditingList(list);
-    setGeneratorKey(list.id);
+    setGeneratorKey(`edit-${list.id}-${Date.now()}`); // Use a unique key to force re-mount
     setActiveTab("generator");
   };
 
   const handleFinishEditing = () => {
     setEditingList(null);
-    setGeneratorKey('new-' + Date.now());
-    setHistoryKey(Date.now()); // Force re-render of history component
+    setGeneratorKey(`new-${Date.now()}`); // Force re-mount for a new form
+    setHistoryRefreshKey(prev => prev + 1); // Force re-render of history component
     setActiveTab("history");
   };
+  
+  const handleNewList = () => {
+    setEditingList(null);
+    setGeneratorKey(`new-${Date.now()}`);
+    setActiveTab("generator");
+  }
 
   const handleTabChange = (value: string) => {
-      if (value === 'generator' && editingList) {
-          setEditingList(null); // Clear editing state when switching back to generator manually
-          setGeneratorKey('new-' + Date.now());
+      if (value === 'generator' && activeTab === 'generator') {
+         handleNewList();
+      } else {
+        setActiveTab(value);
       }
-      setActiveTab(value);
   }
 
   return (
     <div className="container py-8 printable-area">
       <div className="flex justify-between items-center mb-8 no-print">
         <h1 className="text-3xl font-bold">Packing List</h1>
-        <Button onClick={() => window.print()} disabled={activeTab !== 'generator'}>
-          <Printer className="mr-2 h-4 w-4" />
-          Export to PDF
-        </Button>
+        <div className="flex gap-2">
+            <Button onClick={() => window.print()} disabled={activeTab !== 'generator'}>
+              <Printer className="mr-2 h-4 w-4" />
+              Export to PDF
+            </Button>
+            {activeTab === 'generator' && editingList && (
+                <Button variant="outline" onClick={handleNewList}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create New List
+                </Button>
+            )}
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="no-print">
@@ -486,7 +495,7 @@ function PackingListPageContent() {
             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
           ) : (
             <PackingListGenerator 
-                formKey={generatorKey} 
+                key={generatorKey}
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing} 
                 products={products}
@@ -494,19 +503,21 @@ function PackingListPageContent() {
           )}
         </TabsContent>
         <TabsContent value="history">
-          <PackingListHistory onEdit={handleEdit} keyProp={historyKey} />
+          <PackingListHistory onEdit={handleEdit} onForceRefresh={historyRefreshKey} />
         </TabsContent>
       </Tabs>
       
       <div className="hidden print-block">
         <div className="print-content-standalone">
             {/* This will be rendered only for printing */}
-            {!isLoadingProducts && <PackingListGenerator 
-                formKey={generatorKey}
+            {!isLoadingProducts && 
+              <PackingListGenerator 
+                key={generatorKey} // Use the same key to ensure it reflects the current state
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing}
                 products={products}
-            />}
+              />
+            }
         </div>
       </div>
     </div>
