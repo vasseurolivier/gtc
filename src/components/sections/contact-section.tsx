@@ -88,14 +88,7 @@ export function ContactSection({ dictionary }: { dictionary: any }) {
   return (
     <section id="contact" className="py-16 md:py-24 bg-card">
       <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            {dictionary.title}
-          </h2>
-          <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            {dictionary.subtitle}
-          </div>
-        </div>
+        
 
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <Card className="shadow-lg flex flex-col">
