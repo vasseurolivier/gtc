@@ -26,6 +26,7 @@ const contractSchema = z.object({
   productDescription: z.string().min(1, 'Product Description is required.'),
   productPrice: z.string().min(1, 'Price is required.'),
   paymentTerms: z.string().min(1, 'Payment Terms are required.'),
+  paymentTermsChinese: z.string().min(1, 'Chinese Payment Terms are required.'),
   deliveryLeadTime: z.string().min(1, 'Delivery Lead Time is required.'),
   qualityControl: z.string().min(1, 'Quality Control terms are required.'),
   contractDate: z.date(),
@@ -54,6 +55,7 @@ export default function SupplierContractPage() {
       productDescription: '',
       productPrice: '',
       paymentTerms: '30% T/T upon order confirmation, 70% T/T balance before shipment after successful inspection.',
+      paymentTermsChinese: '订单确认后支付30% T/T定金，检验合格后出货前付清70% T/T余款。',
       deliveryLeadTime: '30-45 days after receipt of the initial payment.',
       qualityControl: 'Final inspection based on AQL Level II, Major 2.5, Minor 4.0.',
       contractDate: new Date(),
@@ -76,10 +78,6 @@ export default function SupplierContractPage() {
         </div>
     );
   }
-  
-  const paymentTermsChinese = watchedValues.paymentTerms === '30% T/T upon order confirmation, 70% T/T balance before shipment after successful inspection.' 
-    ? '订单确认后支付30% T/T定金，检验合格后出货前付清70% T/T余款。' 
-    : '';
   
   const qualityControlChinese = watchedValues.qualityControl === 'Final inspection based on AQL Level II, Major 2.5, Minor 4.0.'
     ? '根据AQL II级标准进行最终检验，主缺陷2.5，次缺陷4.0。'
@@ -119,6 +117,9 @@ export default function SupplierContractPage() {
                 )} />
                  <FormField control={form.control} name="paymentTerms" render={({ field }) => (
                   <FormItem><FormLabel>Payment Terms</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="paymentTermsChinese" render={({ field }) => (
+                  <FormItem><FormLabel>Payment Terms (Chinese)</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="deliveryLeadTime" render={({ field }) => (
                   <FormItem><FormLabel>Delivery Lead Time</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -196,7 +197,7 @@ export default function SupplierContractPage() {
                           <p>The payment terms are as follows:</p>
                           <p>付款条件如下：</p>
                           <p>{watchedValues.paymentTerms}</p>
-                          <p>{paymentTermsChinese}</p>
+                          <p>{watchedValues.paymentTermsChinese}</p>
                       </div>
                        <div>
                           <h3 className="font-bold">ARTICLE 5: DELIVERY LEAD TIME</h3>
