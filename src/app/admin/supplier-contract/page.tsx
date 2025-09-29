@@ -240,8 +240,8 @@ export default function SupplierContractPage() {
                        <div>
                           <h3 className="font-bold">ARTICLE 10: GOVERNING LAW AND JURISDICTION</h3>
                           <h3 className="font-bold">第十条：适用法律与管辖权</h3>
-                          <p>This Agreement shall be governed by the law of [e.g., China/France]. Any dispute relating to its execution shall be submitted to the exclusive jurisdiction of the competent court of [Your City] or to arbitration in [Place of Arbitration, e.g., CIETAC in Shanghai].</p>
-                          <p>本协议受[例如：中国/法国]法律管辖。任何与本协议执行相关的争议应提交至[您的城市]有管辖权的法院或在[仲裁地，如：上海CIETAC]进行仲裁。</p>
+                          <p>This Agreement shall be governed by the law of China. Any dispute relating to its execution shall be submitted to the exclusive jurisdiction of the competent court of Yiwu.</p>
+                          <p>本协议受中国法律管辖。任何与本协议执行相关的争议应提交至义乌市有管辖权的法院。</p>
                       </div>
                   </div>
 
@@ -274,4 +274,3 @@ export default function SupplierContractPage() {
     </div>
   );
 }
-
