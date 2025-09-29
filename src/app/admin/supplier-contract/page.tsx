@@ -146,8 +146,8 @@ export default function SupplierContractPage() {
                       <p>{companyInfo?.name || '[Your Company Name]'}</p>
                       <p>Address: {companyInfo?.address || '[Your Company Address]'}</p>
                       <p>地址：{companyInfo?.address || '[您的公司地址]'}</p>
-                      <p>Represented by: [Your Name], in their capacity as [Your Title].</p>
-                      <p>代表人：[您的姓名]，职位：[您的职位]。</p>
+                      <p>Represented by: VASSEUR OLIVIER, PIERRE, in their capacity as legal representative.</p>
+                      <p>代表人：VASSEUR OLIVIER, PIERRE，职位：法定代表人。</p>
                       <p>Hereinafter referred to as "the Client".</p>
                       <p>以下简称“客户”。</p>
                   </div>
@@ -256,8 +256,8 @@ export default function SupplierContractPage() {
                               <p>For the Client (客户方):</p>
                               <p className="mt-2">[Signature / 签名]</p>
                               <div className="border-b border-black mt-16"></div>
-                              <p>{companyInfo?.name || '[Your Name]'}</p>
-                              <p>[Your Title / 职位]</p>
+                              <p>VASSEUR OLIVIER, PIERRE</p>
+                              <p>legal representative</p>
                           </div>
                           <div>
                               <p>For the Supplier (供应商方):</p>
@@ -275,4 +275,3 @@ export default function SupplierContractPage() {
   );
 }
 
-    
