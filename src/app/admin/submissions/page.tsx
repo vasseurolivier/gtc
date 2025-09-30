@@ -133,6 +133,12 @@ export default function SubmissionsPage() {
                               <div className="font-semibold">From:</div>
                               <div>{submission.name} &lt;{submission.email}&gt;</div>
                           </div>
+                           {submission.phone && (
+                            <div>
+                                <div className="font-semibold">Téléphone:</div>
+                                <div>{submission.phone}</div>
+                            </div>
+                           )}
                            <div>
                               <div className="font-semibold">Subject:</div>
                               <div>{submission.subject}</div>

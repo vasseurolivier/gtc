@@ -8,6 +8,7 @@ export interface Submission {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   subject: string;
   message: string;
   createdAt: string;
@@ -26,6 +27,7 @@ export async function getSubmissions(): Promise<Submission[]> {
           id: doc.id,
           name: data.name || '',
           email: data.email || '',
+          phone: data.phone || '',
           subject: data.subject || '',
           message: data.message || '',
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
