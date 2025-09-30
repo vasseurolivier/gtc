@@ -13,7 +13,7 @@
     "contact": "Contact"
   },
   "footer": {
-    "tagline": "Votre partenaire pour le sourcing et le commerce mondial depuis la Chine.",
+    "tagline": "Votre partenaire expert pour le sourcing, l'import et le commerce depuis la Chine.",
     "navigation": "Navigation",
     "home": "Accueil",
     "about": "À propos",
@@ -27,54 +27,54 @@
     "rightsReserved": "Tous droits réservés."
   },
   "heroSection": {
-    "title": "Votre Pont vers le Commerce Mondial",
-    "subtitle": "Solutions expertes de sourcing, de négoce et d'e-commerce depuis le cœur de la Chine vers le monde entier.",
-    "ctaButton": "Commencer",
+    "title": "Votre Partenaire Stratégique pour le Sourcing en Chine",
+    "subtitle": "Solutions expertes de sourcing, trading, contrôle qualité et logistique. Simplifiez vos importations depuis la Chine avec un partenaire de confiance.",
+    "ctaButton": "Demander un Devis",
     "servicesButton": "Nos Services"
   },
   "servicesSection": {
-    "title": "Nos Services Principaux",
-    "subtitle": "Des solutions complètes pour dynamiser votre activité mondiale.",
+    "title": "Nos Services d'Import-Export",
+    "subtitle": "Des solutions complètes pour sécuriser et optimiser votre chaîne d'approvisionnement depuis la Chine.",
     "sourcing": {
-      "title": "Sourcing",
-      "description": "Nous trouvons et validons les meilleurs fabricants en Chine pour vos produits, en garantissant la qualité et des prix compétitifs."
+      "title": "Sourcing & Achat",
+      "description": "Trouvez et auditez les meilleurs fournisseurs en Chine pour vos produits, en garantissant la qualité et des prix compétitifs."
     },
     "trading": {
-      "title": "Négoce",
-      "description": "Faciliter des opérations d'import/export fluides, en gérant toute la logistique et les douanes pour une expérience commerciale sans faille."
+      "title": "Trading & Logistique",
+      "description": "Facilitez vos opérations d'import-export. Nous gérons le transport, le dédouanement et la consolidation pour une expédition sans faille."
     },
     "ecommerce": {
       "title": "Solutions E-commerce",
-      "description": "Un soutien de bout en bout pour votre boutique en ligne, du sourcing de produits au stockage et à l'exécution des commandes."
+      "description": "Du sourcing de produits à la préparation FBA et au dropshipping, nous offrons un support complet pour votre boutique en ligne."
     },
     "custom": {
-      "title": "Services sur Mesure",
-      "description": "Des solutions personnalisées adaptées à vos besoins commerciaux uniques, y compris les audits d'usine et le contrôle qualité."
+      "title": "Contrôle Qualité & Audit",
+      "description": "Services sur mesure incluant les audits d'usine, le contrôle qualité AQL et la gestion de projets pour sécuriser vos productions."
     }
   },
   "aboutSection": {
-    "title": "Votre Partenaire de Confiance en Chine",
-    "p1": "Fondée sur les principes de confiance et d'efficacité, Global Trading China est plus qu'une société de négoce. Nous sommes vos yeux et vos oreilles sur le terrain, dédiés à simplifier les complexités du commerce international.",
-    "p2": "Notre mission est de connecter les entreprises du monde entier aux vastes opportunités de la Chine, en offrant une expertise locale, un contrôle qualité rigoureux et une communication transparente à chaque étape.",
+    "title": "Votre Partenaire de Confiance pour Importer de Chine",
+    "p1": "Fondée sur les principes de confiance et d'efficacité, Global Trading China est votre agent de sourcing en Chine. Nous sommes vos yeux et vos oreilles sur le terrain, dédiés à simplifier les complexités de l'import-export.",
+    "p2": "Notre mission est de connecter les entreprises du monde entier aux vastes opportunités en Chine, en offrant une expertise locale, un contrôle qualité rigoureux et une communication transparente à chaque étape de votre achat.",
     "button": "En savoir plus sur nous"
   },
   "processSection": {
-    "title": "Notre Processus de A à Z",
-    "subtitle": "Un parcours transparent et efficace, de votre idée à votre porte.",
+    "title": "Notre Processus de Sourcing de A à Z",
+    "subtitle": "Un parcours transparent et efficace, de la recherche de votre produit à sa livraison.",
     "step1": {
-      "title": "Contact Initial",
-      "description": "Vous nous contactez avec vos besoins."
+      "title": "Définition du Besoin",
+      "description": "Vous nous contactez avec votre cahier des charges."
     },
     "step2": {
       "title": "Sourcing & Devis",
-      "description": "Nous trouvons des fournisseurs et vous proposons un devis détaillé."
+      "description": "Nous trouvons les fournisseurs et vous proposons un devis détaillé."
     },
     "step3": {
       "title": "Contrôle Qualité",
-      "description": "Notre équipe effectue des contrôles qualité rigoureux."
+      "description": "Notre équipe effectue des contrôles qualité rigoureux en usine."
     },
     "step4": {
-      "title": "Logistique",
+      "title": "Logistique Import-Export",
       "description": "Nous gérons l'expédition, les douanes et les documents."
     },
     "step5": {
@@ -84,7 +84,7 @@
   },
   "contactSection": {
     "title": "Nous contacter",
-    "subtitle": "Vous avez une question ou un projet en tête ? Nous serions ravis d'en discuter avec vous.",
+    "subtitle": "Vous avez une question ou un projet d'importation ? Nous serions ravis d'en discuter avec vous.",
     "form": {
       "name": {
         "label": "Votre nom",
@@ -100,11 +100,11 @@
       },
       "subject": {
         "label": "Sujet",
-        "placeholder": "Demande de sourcing"
+        "placeholder": "Demande de sourcing en Chine"
       },
       "message": {
         "label": "Votre message",
-        "placeholder": "Parlez-nous de votre projet..."
+        "placeholder": "Parlez-nous de votre projet, des produits recherchés..."
       },
       "submit": "Envoyer le message"
     },
@@ -128,47 +128,47 @@
   },
   "aboutPage": {
     "hero": {
-      "title": "Notre Mission : Simplifier le Commerce avec la Chine",
-      "subtitle": "Nous sommes votre partenaire de confiance, dédié à transformer les opportunités du marché chinois en succès pour votre entreprise."
+      "title": "Notre Mission : Simplifier et Sécuriser vos Achats en Chine",
+      "subtitle": "Nous sommes votre partenaire de sourcing dédié, transformant les opportunités du marché chinois en succès pour votre entreprise."
     },
     "aboutUs": {
       "title": "Qui Sommes-Nous ?",
-      "p1": "Global Trading China est née de la conviction que l'accès au marché chinois, vaste et complexe, devrait être simple et sécurisé pour toute entreprise, quelle que soit sa taille. Fondée par des experts du commerce international avec des années d'expérience sur le terrain, notre société sert de pont entre les ambitions des entrepreneurs mondiaux et l'incroyable potentiel de production de la Chine.",
-      "p2": "Nous ne sont pas de simples intermédiaires. Nous sommes une extension de votre équipe, vos yeux et vos oreilles en Chine. Notre mission est de défendre vos intérêts, de garantir la qualité de vos produits et d'optimiser votre chaîne d'approvisionnement pour une croissance durable."
+      "p1": "Global Trading China est née de la conviction que l'accès au vaste et complexe marché chinois devrait être simple et sécurisé pour toute entreprise. Fondée par des experts du commerce international avec des années d'expérience sur le terrain, notre société sert de pont entre les ambitions des entrepreneurs mondiaux et l'incroyable potentiel de production de la Chine.",
+      "p2": "Nous ne sommes pas de simples intermédiaires. Nous sommes une extension de votre équipe, votre agent de sourcing en Chine. Notre mission est de défendre vos intérêts, de garantir la qualité de vos produits grâce à des audits et des contrôles rigoureux, et d'optimiser votre chaîne d'approvisionnement pour une croissance durable."
     },
     "values": {
       "value1": {
         "title": "Partenariat",
-        "description": "Nous construisons des relations à long terme basées sur la confiance et la transparence."
+        "description": "Nous construisons des relations à long terme basées sur la confiance et la transparence pour tous vos projets d'import."
       },
       "value2": {
         "title": "Rigueur",
-        "description": "Chaque étape, du sourcing au contrôle qualité, est menée avec la plus grande exigence."
+        "description": "Chaque étape, du sourcing au contrôle qualité, est menée avec la plus grande exigence pour garantir votre satisfaction."
       },
       "value3": {
         "title": "Expertise Locale",
-        "description": "Notre présence sur le terrain est votre meilleur atout pour naviguer le marché chinois."
+        "description": "Notre présence en Chine est votre meilleur atout pour naviguer le marché, trouver les bons fournisseurs et négocier efficacement."
       }
     },
     "advantages": {
-      "title": "Pourquoi Travailler Avec Nous ?",
-      "subtitle": "Découvrez les avantages clés qui font de nous votre partenaire idéal en Chine.",
+      "title": "Pourquoi Travailler Avec un Agent de Sourcing ?",
+      "subtitle": "Découvrez les avantages clés qui font de nous votre partenaire idéal pour vos achats en Chine.",
       "advantage1": {
         "title": "Interlocuteur Unique",
-        "description": "Simplifiez vos opérations. Nous centralisons la communication et gérons pour vous l'ensemble des acteurs, des fournisseurs aux transporteurs."
+        "description": "Simplifiez vos opérations d'import. Nous centralisons la communication et gérons pour vous l'ensemble des acteurs, des fournisseurs aux transporteurs."
       },
       "advantage2": {
         "title": "Sécurisation des Risques",
-        "description": "Nous protégeons vos investissements grâce à des contrôles qualité rigoureux, des audits d'usines et une gestion sécurisée des paiements."
+        "description": "Nous protégeons vos investissements grâce à des contrôles qualité AQL, des audits d'usines et une gestion sécurisée des paiements."
       },
       "advantage3": {
         "title": "Présence sur le Terrain",
-        "description": "Notre équipe en Chine lève la barrière de la langue, comprend la culture locale et réagit en temps réel à tout imprévu."
+        "description": "Notre équipe en Chine lève la barrière de la langue, comprend la culture locale et réagit en temps réel à tout imprévu de production."
       }
     },
     "productSectors": {
-      "title": "Nos Secteurs de Produits",
-      "subtitle": "Notre expertise couvre un large éventail d'industries, nous permettant de répondre à des besoins variés et spécifiques.",
+      "title": "Nos Secteurs de Sourcing",
+      "subtitle": "Notre expertise en approvisionnement couvre un large éventail d'industries, nous permettant de répondre à des besoins variés et spécifiques.",
       "sectors": {
         "textiles": "Textile & Habillement",
         "electronics": "Électronique",
@@ -183,51 +183,51 @@
       }
     }
   },
-   "servicesPage": {
+  "servicesPage": {
     "hero": {
-      "title": "Des Solutions Complètes pour Votre Entreprise",
-      "subtitle": "De la recherche du bon fournisseur à la livraison chez vous, découvrez comment nous pouvons vous aider à chaque étape de votre chaîne d'approvisionnement."
+      "title": "Solutions Complètes pour votre Chaîne d'Approvisionnement",
+      "subtitle": "De la recherche de fournisseur à la livraison, découvrez comment nous sécurisons chaque étape de votre importation depuis la Chine."
     },
     "learnMore": "En savoir plus",
     "services": {
       "sourcing": {
         "title": "Sourcing et Achat",
-        "shortDescription": "Trouvez et évaluez les meilleurs fournisseurs pour vos produits.",
+        "shortDescription": "Trouvez et évaluez les meilleurs fournisseurs chinois pour vos produits.",
         "details": [
-          { "title": "Identification de Fournisseurs", "description": "Recherche et sélection de fabricants qualifiés correspondant à votre cahier des charges." },
-          { "title": "Vérification et Audit d'Usine", "description": "Inspections sur site pour évaluer la capacité de production, les certifications et la conformité sociale." },
-          { "title": "Négociation des Prix", "description": "Obtention des meilleures conditions tarifaires grâce à notre connaissance du marché local." },
-          { "title": "Échantillonnage", "description": "Gestion de la création et de l'envoi d'échantillons pour validation avant production de masse." }
+          { "title": "Identification de Fournisseurs Qualifiés", "description": "Recherche et sélection de fabricants correspondant à votre cahier des charges et à vos exigences de qualité." },
+          { "title": "Vérification et Audit d'Usine", "description": "Inspections sur site pour évaluer la capacité de production, les certifications et la conformité sociale (BSCI)." },
+          { "title": "Négociation de Prix et Conditions", "description": "Obtention des meilleures conditions tarifaires et de paiement grâce à notre connaissance du marché local." },
+          { "title": "Gestion des Échantillons", "description": "Coordination de la création et de l'envoi d'échantillons pour validation avant toute production de masse." }
         ]
       },
       "trading": {
-        "title": "Trading et Logistique",
-        "shortDescription": "Facilitez vos opérations d'import-export avec une gestion complète.",
+        "title": "Trading et Logistique Internationale",
+        "shortDescription": "Facilitez vos opérations d'import-export avec une gestion logistique complète.",
         "details": [
-          { "title": "Gestion des Commandes", "description": "Suivi de la production et communication constante avec les fournisseurs pour respecter les délais." },
-          { "title": "Contrôle Qualité", "description": "Inspections pré-production, en cours de production et finales pour garantir la conformité de vos produits." },
-          { "title": "Logistique Internationale", "description": "Organisation du transport (aérien, maritime), du dédouanement et de la documentation nécessaire." },
-          { "title": "Consolidation des Expéditions", "description": "Regroupement de commandes de différents fournisseurs pour optimiser les coûts de transport." }
+          { "title": "Gestion et Suivi des Commandes", "description": "Suivi rigoureux de la production et communication constante avec les fournisseurs pour garantir le respect des délais." },
+          { "title": "Contrôle Qualité (AQL)", "description": "Inspections pré-production, en cours de production et finales pour assurer la conformité totale de vos produits." },
+          { "title": "Logistique et Dédouanement", "description": "Organisation du transport (aérien, maritime, ferroviaire), gestion du dédouanement et de la documentation nécessaire." },
+          { "title": "Consolidation des Expéditions", "description": "Regroupement de vos commandes de différents fournisseurs pour optimiser les coûts de transport depuis la Chine." }
         ]
       },
       "ecommerce": {
-        "title": "Solutions E-commerce",
-        "shortDescription": "Un soutien de bout en bout pour votre boutique en ligne.",
+        "title": "Solutions E-commerce & Dropshipping",
+        "shortDescription": "Un soutien de bout en bout pour votre boutique en ligne, d'Amazon FBA à Shopify.",
         "details": [
-          { "title": "Sourcing de Produits Gagnants", "description": "Identification de produits tendance et à fort potentiel pour les plateformes comme Amazon FBA, Shopify, etc." },
-          { "title": "Branding et Packaging Personnalisé", "description": "Création de votre identité de marque, de la conception du logo à l'emballage sur mesure." },
-          { "title": "Préparation FBA et 3PL", "description": "Étiquetage, emballage et préparation des produits selon les standards Amazon ou autres centres logistiques." },
-          { "title": "Dropshipping et Fulfillment", "description": "Gestion des stocks et expédition directe à vos clients finaux depuis nos entrepôts en Chine." }
+          { "title": "Sourcing de Produits Gagnants", "description": "Identification de produits tendance à fort potentiel pour les plateformes comme Amazon FBA, Shopify, etc." },
+          { "title": "Branding et Packaging Personnalisé", "description": "Création de votre identité de marque, du logo à l'emballage sur mesure pour vous différencier." },
+          { "title": "Préparation FBA et 3PL Conforme", "description": "Étiquetage, emballage et préparation des produits selon les standards stricts d'Amazon ou autres centres logistiques." },
+          { "title": "Dropshipping et Fulfillment depuis la Chine", "description": "Gestion des stocks et expédition directe à vos clients finaux depuis nos entrepôts, optimisant vos flux." }
         ]
       },
       "custom": {
-        "title": "Services sur Mesure",
-        "shortDescription": "Des solutions personnalisées pour vos besoins uniques.",
+        "title": "Services sur Mesure & Conseil",
+        "shortDescription": "Des solutions personnalisées pour vos besoins uniques d'importation.",
         "details": [
-          { "title": "Développement de Produit", "description": "Accompagnement de l'idée au prototype, incluant la conception, l'ingénierie et la recherche de matériaux." },
-          { "title": "Assistance pour les Salons Professionnels", "description": "Accompagnement et traduction lors de vos visites sur les salons comme la Foire de Canton." },
-          { "title": "Conseil en Stratégie d'Achat", "description": "Analyse de votre chaîne d'approvisionnement actuelle et proposition de pistes d'optimisation." },
-          { "title": "Gestion de Projets Complexes", "description": "Prise en charge de projets spécifiques nécessitant une coordination multi-fournisseurs et des compétences techniques pointues." }
+          { "title": "Développement de Produit (OEM/ODM)", "description": "Accompagnement de l'idée au prototype, incluant la conception, l'ingénierie et la recherche de matériaux." },
+          { "title": "Assistance Salons (Foire de Canton)", "description": "Accompagnement et traduction lors de vos visites sur les salons professionnels en Chine." },
+          { "title": "Conseil en Stratégie d'Achat", "description": "Analyse de votre chaîne d'approvisionnement et proposition de pistes d'optimisation pour réduire les coûts et les risques." },
+          { "title": "Gestion de Projets d'Importation Complexes", "description": "Prise en charge de projets spécifiques nécessitant une coordination multi-fournisseurs et des compétences techniques pointues." }
         ]
       }
     }
@@ -235,11 +235,11 @@
   "sourcingPage": {
     "hero": {
       "title": "Sourcing et Achat Stratégique en Chine",
-      "subtitle": "De l'identification du fournisseur idéal à la négociation des meilleures conditions, nous sommes votre expert sur le terrain."
+      "subtitle": "De l'identification du fournisseur idéal à la négociation des meilleures conditions, nous sommes votre agent expert sur le terrain."
     },
     "approach": {
-      "title": "Notre Approche du Sourcing",
-      "subtitle": "Nous transformons la complexité du marché chinois en une opportunité claire et sécurisée pour votre entreprise."
+      "title": "Notre Approche du Sourcing en Chine",
+      "subtitle": "Nous transformons la complexité du marché des fournisseurs chinois en une opportunité claire et sécurisée pour votre entreprise."
     },
     "features": {
       "feature1": {
@@ -248,7 +248,7 @@
       },
       "feature2": {
         "title": "Vérification et Audit d'Usine Approfondis",
-        "description": "Nos audits sur site sont exhaustifs. Nous vérifions les licences, les certifications (ISO, BSCI, etc.), la stabilité financière, les conditions de travail et l'impact environnemental pour vous garantir un partenaire fiable et éthique."
+        "description": "Nos audits d'usine sur site sont exhaustifs. Nous vérifions les licences, les certifications (ISO, BSCI, etc.), la stabilité financière et les conditions de travail pour vous garantir un partenaire fiable et éthique."
       },
       "feature3": {
         "title": "Négociation Experte",
@@ -260,79 +260,79 @@
       }
     },
     "partnerships": {
-      "title": "Exemples de Partenariats Industriels",
-      "subtitle": "Notre expertise s'étend à de nombreux secteurs. Voici quelques exemples concrets de notre savoir-faire.",
+      "title": "Notre Expertise de Sourcing par Secteur",
+      "subtitle": "Notre savoir-faire s'étend à de nombreuses industries. Voici quelques exemples concrets de nos partenariats.",
       "partner1": {
         "title": "Textile & Habillement",
-        "description": "Nous collaborons avec des usines comme T*xworld à Shaoxing, spécialisées dans la confection, du prêt-à-porter à la haute couture. Notre expertise couvre le sourcing de tissus spécifiques (coton bio, soie, tissus techniques), le suivi des patronages, et le contrôle qualité des coutures et finitions."
+        "description": "Nous collaborons avec des usines spécialisées dans la confection, du prêt-à-porter à la haute couture, en assurant un contrôle qualité des tissus et des finitions."
       },
       "partner2": {
         "title": "Électronique & High-Tech",
-        "description": "Le sourcing de composants chez Huaqiangbei et l'assemblage de produits finis chez F*xconn exigent une rigueur extrême. Nous assurons la conformité aux normes (CE, RoHS, FCC) et gérons les tests pour garantir la fiabilité de vos appareils."
+        "description": "Le sourcing de composants et l'assemblage de produits finis exigent une rigueur extrême. Nous assurons la conformité aux normes (CE, RoHS) et gérons les tests."
       },
       "partner3": {
         "title": "Mobilier & Décoration",
-        "description": "Qu'il s'agisse de mobilier de Lecong ou de céramique de Jingdezhen, nous identifions des artisans et des usines comme Q*lityFurn capables de produire en série tout en respectant un haut niveau de finition. La logistique pour ces articles volumineux est une de nos forces."
+        "description": "Nous identifions des artisans et des usines capables de produire en série tout en respectant un haut niveau de finition. La logistique pour ces articles volumineux est notre force."
       },
       "partner4": {
         "title": "Jouets & Puériculture",
-        "description": "La sécurité est la priorité. Nous sélectionnons des usines comme K*d'sJoy qui respectent les normes internationales (EN71, ASTM). Nos inspections se concentrent sur la non-toxicité des matériaux et la solidité des assemblages."
+        "description": "La sécurité est la priorité. Nous sélectionnons des usines qui respectent les normes internationales (EN71, ASTM) et contrôlons la non-toxicité des matériaux."
       }
     },
     "cta": {
-      "title": "Prêt à trouver le partenaire de fabrication parfait ?",
+      "title": "Prêt à trouver le fournisseur chinois parfait ?",
       "subtitle": "Contactez-nous dès aujourd'hui pour discuter de vos besoins en sourcing. Notre équipe est prête à vous aider à naviguer le paysage manufacturier chinois avec confiance."
     }
   },
   "tradingLogisticsPage": {
     "hero": {
-      "title": "Trading et Logistique Sans Faille",
-      "subtitle": "De l'usine à votre porte, nous gérons chaque détail de vos opérations d'import-export pour une tranquillité d'esprit totale."
+      "title": "Trading et Logistique Internationale Sans Faille",
+      "subtitle": "De l'usine à votre porte, nous gérons chaque détail de vos opérations d'import-export depuis la Chine pour une tranquillité d'esprit totale."
     },
     "supplyChain": {
-      "title": "La Maîtrise de la Chaîne Logistique",
-      "subtitle": "Nous transformons les défis logistiques et commerciaux en un processus simple, transparent et efficace."
+      "title": "La Maîtrise de Votre Chaîne Logistique",
+      "subtitle": "Nous transformons les défis de la logistique d'importation en un processus simple, transparent et efficace."
     },
     "features": {
       "feature1": {
         "title": "Gestion des Commandes Proactive",
-        "description": "Nous agissons comme votre bureau local. Nous assurons un suivi quotidien de la production, anticipons les retards potentiels et communiquons de manière transparente avec vous et vos fournisseurs pour garantir le respect des délais."
+        "description": "Nous agissons comme votre bureau d'achat local. Nous assurons un suivi quotidien de la production, anticipons les retards et communiquons de manière transparente pour garantir le respect des délais."
       },
       "feature2": {
-        "title": "Contrôle Qualité Multi-Étapes",
-        "description": "Notre processus de contrôle qualité est intransigeant. Nous effectuons des inspections sur les matières premières (IQC), en cours de production (IPQC) et sur les produits finis (FQC) selon les normes AQL que vous définissez, vous assurant une qualité constante."
+        "title": "Contrôle Qualité Multi-Étapes (AQL)",
+        "description": "Notre processus de contrôle qualité est intransigeant. Nous réalisons des inspections sur les matières premières, en cours de production, et sur les produits finis selon les standards AQL que vous définissez."
       },
       "feature3": {
         "title": "Logistique Internationale Optimisée",
-        "description": "Nous sélectionnons les meilleures options de fret (aérien, maritime, ferroviaire) en fonction de votre budget et de vos délais. Nous gérons toutes les formalités douanières (export en Chine, import dans votre pays) pour une livraison fluide."
+        "description": "Nous sélectionnons les meilleures options de fret (aérien, maritime, ferroviaire) et nous occupons de toutes les formalités douanières (export de Chine, import dans votre pays) pour une livraison fluide."
       },
       "feature4": {
         "title": "Consolidation Intelligente",
-        "description": "Regroupez des commandes de plusieurs fournisseurs en une seule expédition pour réduire drastiquement vos coûts de transport. Nous gérons la collecte, l'entreposage temporaire et le chargement coordonné de vos marchandises."
+        "description": "Regroupez les commandes de plusieurs fournisseurs chinois en une seule expédition pour réduire drastiquement vos coûts de transport. Nous gérons la collecte, l'entreposage et le chargement."
       }
     },
     "logisticsProcess": {
       "title": "Notre Processus Logistique Détaillé",
       "steps": [
-        { "title": "Confirmation et Suivi", "description": "Confirmation de commande et suivi proactif de la production." },
-        { "title": "Collecte & Consolidation", "description": "Regroupement de vos marchandises dans notre entrepôt." },
-        { "title": "Inspection Qualité", "description": "Inspection finale détaillée avec rapport photos/vidéos." },
+        { "title": "Confirmation et Suivi de Production", "description": "Suivi proactif de la fabrication chez votre fournisseur." },
+        { "title": "Collecte & Consolidation", "description": "Regroupement de vos marchandises dans notre entrepôt à Yiwu." },
+        { "title": "Inspection Qualité Finale", "description": "Inspection détaillée avec rapport photos/vidéos avant paiement du solde." },
         { "title": "Emballage & Entreposage", "description": "Conditionnement pour l'export et stockage sécurisé." },
-        { "title": "Réservation du Fret", "description": "Sélection et réservation du transporteur optimal." },
-        { "title": "Dédouanement Export", "description": "Gestion de toute la documentation pour la sortie de Chine." },
-        { "title": "Expédition", "description": "Chargement et envoi de votre cargaison." },
-        { "title": "Suivi & Livraison", "description": "Tracking en temps réel jusqu'à votre porte." }
+        { "title": "Réservation du Fret", "description": "Sélection et réservation du transporteur optimal (maritime, aérien, ferroviaire)." },
+        { "title": "Dédouanement Export en Chine", "description": "Gestion de toute la documentation pour la sortie du territoire." },
+        { "title": "Expédition Internationale", "description": "Chargement et envoi de votre cargaison vers sa destination finale." },
+        { "title": "Suivi & Livraison", "description": "Tracking en temps réel de votre marchandise jusqu'à votre porte." }
       ]
     },
     "shippingOptions": {
-      "title": "Délais & Coûts : Choisir la Bonne Option",
-      "subtitle": "Chaque expédition est unique. Nous vous aidons à choisir la meilleure méthode de transport en fonction de vos priorités.",
+      "title": "Délais & Coûts : Quelle solution de transport choisir ?",
+      "subtitle": "Chaque expédition depuis la Chine est unique. Nous vous aidons à choisir le meilleur mode de transport.",
       "duration": "Durée estimée",
       "cost": "Coût relatif",
       "options": [
-        { "title": "Fret Maritime", "duration": "50-60 jours", "cost": "€", "bestFor": "Commandes volumineuses, non urgentes. Le plus rentable pour les gros volumes." },
-        { "title": "Fret Aérien", "duration": "7-12 jours", "cost": "€€€", "bestFor": "Commandes urgentes, de grande valeur ou de faible volume. Le plus rapide." },
-        { "title": "Fret Ferroviaire (vers l'Europe)", "duration": "30-40 jours", "cost": "€€", "bestFor": "Excellent compromis entre le coût du maritime et la rapidité de l'aérien." }
+        { "title": "Fret Maritime", "duration": "50-60 jours", "cost": "€", "bestFor": "Idéal pour les commandes volumineuses et non urgentes. La solution la plus rentable pour les gros volumes." },
+        { "title": "Fret Aérien", "duration": "7-12 jours", "cost": "€€€", "bestFor": "Pour les commandes urgentes, de grande valeur ou de faible volume. La solution la plus rapide." },
+        { "title": "Fret Ferroviaire (vers l'Europe)", "duration": "30-40 jours", "cost": "€€", "bestFor": "Excellent compromis entre le coût du fret maritime et la rapidité du fret aérien." }
       ]
     },
     "qualityCommitment": {
@@ -340,14 +340,14 @@
       "subtitle": "La qualité n'est pas une option, c'est notre promesse. Découvrez comment nous protégeons votre investissement et votre réputation.",
       "item1": { "title": "Inspection sur Mesure", "description": "Nous développons une check-list d'inspection spécifique à votre produit, couvrant l'esthétique, les dimensions, la fonctionnalité, l'emballage et l'étiquetage." },
       "item2": { "title": "Normes AQL", "description": "Nous appliquons les standards internationaux AQL (Acceptable Quality Limit) pour une évaluation objective et statistique de la qualité de vos lots de production." },
-      "item3": { "title": "Rapports Détaillés", "description": "Vous recevez un rapport complet avec photos et vidéos après chaque inspection, vous donnant une vision claire de la situation avant même que la marchandise ne quitte l'usine." }
+      "item3": { "title": "Rapports Détaillés", "description": "Vous recevez un rapport complet avec photos et vidéos après chaque inspection, vous donnant une vision claire avant même que la marchandise ne quitte l'usine." }
     },
     "customs": {
       "title": "Douanes & Documentation : Naviguer la Complexité",
       "subtitle": "Nous gérons la paperasse pour que vous n'ayez pas à le faire. Une documentation correcte est la clé d'une expédition sans heurt.",
       "export": {
         "title": "Documentation d'Exportation",
-        "items": ["Facture Commerciale", "Liste de Colisage", "Connaissement (Bill of Lading) ou Lettre de Transport Aérien (AWB)", "Certificat d'Origine (si nécessaire)"]
+        "items": ["Facture Commerciale", "Liste de Colisage (Packing List)", "Connaissement (Bill of Lading) ou LTA", "Certificat d'Origine (si nécessaire)"]
       },
       "compliance": {
         "title": "Conformité & Certifications",
@@ -355,7 +355,7 @@
       }
     },
     "faq": {
-      "title": "Questions Fréquentes",
+      "title": "Questions Fréquentes sur l'Import de Chine",
       "subtitle": "Quelques réponses aux questions que nous recevons le plus souvent.",
       "questions": [
         { "question": "Qu'est-ce que l'AQL et comment le définissez-vous ?", "answer": "AQL (Acceptable Quality Limit) est une norme statistique pour déterminer la taille de l'échantillon à inspecter et le nombre de défauts acceptables. Nous travaillons avec vous pour définir un niveau d'AQL (par exemple, 2.5) adapté à votre produit et à vos exigences de qualité." },
@@ -480,33 +480,33 @@
   },
   "tradeCitiesPage": {
     "hero": {
-      "title": "Pôles Commerciaux Stratégiques en Chine",
-      "subtitle": "Découvrez les villes clés qui sont au cœur du commerce mondial et comment nous vous y donnons accès."
+      "title": "Pôles Commerciaux Stratégiques pour le Sourcing en Chine",
+      "subtitle": "Découvrez les villes clés au cœur du commerce mondial et comment nous vous y donnons un accès privilégié."
     },
     "cities": {
       "guangzhou": {
         "name": "Guangzhou (Canton)",
         "subtitle": "La Capitale Mondiale du Commerce Traditionnel",
-        "description": "Historiquement l'un des plus anciens ports de commerce de Chine, Guangzhou est un hub incontournable. Célèbre pour la Foire de Canton, la plus grande foire commerciale au monde, la ville excelle dans une vaste gamme de produits, notamment le textile, les vêtements, les articles en cuir et l'électronique.",
+        "description": "Port commercial historique, Guangzhou est un hub essentiel, célèbre pour la Foire de Canton. La ville excelle dans le sourcing de textile, vêtements, maroquinerie et électronique grand public.",
         "specialties": ["Textile & Habillement", "Foire de Canton", "Électronique", "Articles en cuir"]
       },
       "shenzhen": {
         "name": "Shenzhen",
-        "subtitle": "La Silicon Valley de l'Hardware",
-        "description": "Voisine de Hong Kong, Shenzhen est le cœur battant de l'innovation technologique en Chine. C'est l'épicentre mondial de la fabrication électronique, des composants aux produits finis. Si votre projet concerne les startups, la haute technologie, les gadgets ou tout ce qui est alimenté par une batterie, Shenzhen est votre destination.",
+        "subtitle": "La Silicon Valley du Hardware",
+        "description": "Voisine de Hong Kong, Shenzhen est l'épicentre mondial de la fabrication électronique, des composants aux produits finis. Si votre projet concerne la high-tech, les gadgets ou les startups, Shenzhen est la ville de sourcing incontournable.",
         "specialties": ["Électronique grand public", "Composants", "Startups Tech", "Innovation"]
       },
       "yiwu": {
         "name": "Yiwu",
         "subtitle": "Le plus Grand Marché de Gros au Monde",
-        "description": "Yiwu est une ville-marché unique, abritant l'immense 'International Trade City'. C'est le paradis pour le sourcing de petits articles, de biens de consommation courante, de jouets, de bijoux, de décorations et de papeterie. Idéal pour les acheteurs cherchant à commander de petites quantités (MOQ bas) sur une très grande variété de produits.",
+        "description": "Yiwu abrite l'immense 'International Trade City'. C'est le paradis pour le sourcing de petits articles, biens de consommation, jouets, et bijoux. Idéal pour les acheteurs cherchant de faibles MOQ sur une très grande variété de produits.",
         "specialties": ["Petites marchandises", "Jouets & Gadgets", "Bijoux & Accessoires", "Faibles MOQ"]
       }
     }
   },
   "blogPage": {
-    "title": "Blog",
-    "content": "Bientôt disponible..."
+    "title": "Blog sur le Sourcing en Chine",
+    "content": "Nos articles et conseils sur l'import-export, le contrôle qualité et la logistique depuis la Chine seront bientôt disponibles..."
   },
   "legalNoticePage": {
     "title": "Mentions Légales",
@@ -573,5 +573,3 @@
     }
   }
 }
-
-    
