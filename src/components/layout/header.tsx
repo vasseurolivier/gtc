@@ -272,7 +272,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 {contactItem.label}
             </Link>
         </nav>
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2 ml-4">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent">

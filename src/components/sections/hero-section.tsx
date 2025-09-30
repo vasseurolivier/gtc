@@ -36,7 +36,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
 
   return (
     <section className="relative w-full h-screen text-primary-foreground overflow-hidden">
-       <div className="absolute inset-0 bg-black/60 min-h-screen">
+       <div className="absolute inset-0 bg-black/60">
           {heroVideo && (
             <video
               key={videoKey}
@@ -53,8 +53,8 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
       </div>
       <div className="relative h-full flex flex-col justify-center container pt-16">
-        <div className="flex flex-col md:flex-row items-center gap-10 md:gap-8">
-            <div className="w-full md:w-1/2 max-w-2xl text-left">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-8 items-center">
+            <div className="max-w-2xl text-left">
                 <h1 className="text-3xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
                     {dictionary.heroSection.title}
                 </h1>
@@ -75,7 +75,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
                 </Button>
                 </div>
             </div>
-             <div className="w-full md:w-1/2 max-w-md md:ml-auto">
+             <div className="w-full max-w-md md:ml-auto">
               <HeroContactForm dictionary={dictionary.contactSection} />
             </div>
         </div>
