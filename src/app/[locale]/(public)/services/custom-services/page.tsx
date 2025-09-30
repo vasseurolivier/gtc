@@ -87,7 +87,7 @@ export default async function CustomServicesPage({
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
         <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
           <div className="max-w-4xl">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
+              <h1 className="text-3xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   {customServicesDict.hero.title}
               </h1>
               <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
