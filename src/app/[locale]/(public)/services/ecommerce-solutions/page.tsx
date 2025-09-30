@@ -43,7 +43,7 @@ export default async function EcommerceSolutionsPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -69,7 +69,7 @@ export default async function EcommerceSolutionsPage({
 
       <section className="py-16 md:py-24">
         <div className="container">
-           <div className="text-center mb-16">
+           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {ecommerceDict.accelerator.title}
             </h2>
@@ -78,8 +78,8 @@ export default async function EcommerceSolutionsPage({
             </div>
           </div>
 
-          <div className="space-y-16">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-12 md:space-y-16">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
               <div>
                 {ecommerceFeatures[0].icon}
                 <h3 className="font-headline text-2xl font-bold mt-4">
@@ -98,15 +98,15 @@ export default async function EcommerceSolutionsPage({
                 </div>
               </div>
               {featureImage1 && 
-                <div className="relative h-96 rounded-xl overflow-hidden">
+                <div className="relative h-80 md:h-96 rounded-xl overflow-hidden">
                     <Image src={featureImage1.imageUrl} alt={featureImage1.description} data-ai-hint={featureImage1.imageHint} fill className="object-cover"/>
                 </div>
               }
             </div>
 
-             <div className="grid md:grid-cols-2 gap-12 items-center">
+             <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
               {featureImage2 && 
-                <div className="relative h-96 rounded-xl overflow-hidden md:order-last">
+                <div className="relative h-80 md:h-96 rounded-xl overflow-hidden md:order-last">
                     <Image src={featureImage2.imageUrl} alt={featureImage2.description} data-ai-hint={featureImage2.imageHint} fill className="object-cover"/>
                 </div>
               }
@@ -146,7 +146,3 @@ export default async function EcommerceSolutionsPage({
     </>
   );
 }
-
-    
-
-    

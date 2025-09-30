@@ -73,7 +73,7 @@ export default async function CustomServicesPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -99,7 +99,7 @@ export default async function CustomServicesPage({
 
       <section className="py-16 md:py-24">
         <div className="container">
-           <div className="text-center mb-16">
+           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {customServicesDict.extraMile.title}
             </h2>
@@ -108,7 +108,7 @@ export default async function CustomServicesPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {customServicesFeatures.map((feature, index) => (
                   <Card key={index} className="w-full flex flex-col md:flex-row items-center p-6 gap-6 shadow-lg hover:shadow-xl transition-shadow">
                       <div className="flex-shrink-0">
@@ -131,14 +131,14 @@ export default async function CustomServicesPage({
       </section>
       
        <section className="py-16 md:py-24 bg-secondary/30">
-        <div className="container space-y-20">
+        <div className="container space-y-16 md:space-y-20">
           {detailedServices.map((service, index) => {
             const image = PlaceHolderImages.find(p => p.id === service.imageUrlId);
             const isOdd = index % 2 !== 0;
 
             return (
-              <div key={service.id} className="grid md:grid-cols-2 gap-12 items-center">
-                <div className={`relative h-96 rounded-xl overflow-hidden shadow-lg ${isOdd ? 'md:order-last' : ''}`}>
+              <div key={service.id} className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div className={`relative h-80 md:h-96 rounded-xl overflow-hidden shadow-lg ${isOdd ? 'md:order-last' : ''}`}>
                     {image && <Image src={image.imageUrl} alt={service.title} data-ai-hint={image.imageHint} fill className="object-cover"/>}
                 </div>
                 <div>
@@ -178,7 +178,3 @@ export default async function CustomServicesPage({
     </>
   );
 }
-
-    
-
-    

@@ -49,7 +49,7 @@ export default async function TradeCitiesPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -74,14 +74,14 @@ export default async function TradeCitiesPage({
       </section>
 
       <section className="py-16 md:py-24 bg-secondary/30">
-        <div className="container space-y-20">
+        <div className="container space-y-16 md:space-y-20">
           {cities.map((city, index) => {
             const image = PlaceHolderImages.find(p => p.id === city.imageUrlId);
             const isOdd = index % 2 !== 0;
 
             return (
-              <div key={city.id} className="grid md:grid-cols-2 gap-12 items-center">
-                <div className={`relative h-96 rounded-xl overflow-hidden shadow-lg ${isOdd ? 'md:order-last' : ''}`}>
+              <div key={city.id} className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div className={`relative h-80 md:h-96 rounded-xl overflow-hidden shadow-lg ${isOdd ? 'md:order-last' : ''}`}>
                     {image && <Image src={image.imageUrl} alt={city.name} data-ai-hint={image.imageHint ?? ''} fill className="object-cover"/>}
                 </div>
                 <div>
@@ -113,7 +113,3 @@ export default async function TradeCitiesPage({
     </>
   );
 }
-
-    
-
-    

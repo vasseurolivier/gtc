@@ -45,7 +45,7 @@ export default async function TradingLogisticsPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -71,7 +71,7 @@ export default async function TradingLogisticsPage({
 
       <section className="py-16 md:py-24">
         <div className="container">
-           <div className="text-center mb-16">
+           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {tradingLogisticsDict.supplyChain.title}
             </h2>
@@ -102,8 +102,8 @@ export default async function TradingLogisticsPage({
 
        <section className="py-16 md:py-24 bg-secondary/30">
         <div className="container">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div className="relative h-full min-h-[500px] rounded-lg overflow-hidden shadow-lg">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div className="relative h-96 md:h-full min-h-[500px] rounded-lg overflow-hidden shadow-lg">
                     {logisticsImage && 
                         <Image src={logisticsImage.imageUrl} alt={logisticsImage.description} data-ai-hint={logisticsImage.imageHint} fill className="object-cover" />
                     }
@@ -128,7 +128,7 @@ export default async function TradingLogisticsPage({
       
       <section className="py-16 md:py-24">
         <div className="container">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12 md:mb-16">
                 <h2 className="text-3xl md:text-4xl font-headline font-bold">{tradingLogisticsDict.shippingOptions.title}</h2>
                 <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">{tradingLogisticsDict.shippingOptions.subtitle}</div>
             </div>
@@ -139,7 +139,7 @@ export default async function TradingLogisticsPage({
                            <CardTitle className="text-xl font-headline">{option.title}</CardTitle>
                            {option.title === "Sea Freight" || option.title === "Fret Maritime" ? <Ship className="h-8 w-8 text-primary" /> : option.title === "Air Freight" || option.title === "Fret Aérien" ? <Globe className="h-8 w-8 text-primary" /> : <Timer className="h-8 w-8 text-primary" />}
                         </CardHeader>
-                        <CardContent className="flex-grow flex flex-col justify-between">
+                        <CardContent className="flex-grow flex flex-col justify-between p-6">
                             <div>
                                 <div className="text-2xl font-bold text-muted-foreground">{option.duration}</div>
                                 <div className="text-xs text-muted-foreground uppercase font-semibold">{tradingLogisticsDict.shippingOptions.duration}</div>
@@ -157,7 +157,7 @@ export default async function TradingLogisticsPage({
 
       <section className="py-16 md:py-24 bg-card">
           <div className="container">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12 md:mb-16">
                 <h2 className="text-3xl md:text-4xl font-headline font-bold">{tradingLogisticsDict.qualityCommitment.title}</h2>
                 <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">{tradingLogisticsDict.qualityCommitment.subtitle}</div>
             </div>
@@ -183,7 +183,7 @@ export default async function TradingLogisticsPage({
 
       <section className="py-16 md:py-24 bg-secondary/30">
           <div className="container">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12 md:mb-16">
                 <h2 className="text-3xl md:text-4xl font-headline font-bold">{tradingLogisticsDict.customs.title}</h2>
                 <div className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">{tradingLogisticsDict.customs.subtitle}</div>
             </div>
@@ -249,7 +249,3 @@ export default async function TradingLogisticsPage({
     </>
   );
 }
-
-    
-
-    

@@ -55,7 +55,7 @@ export default async function ServicesPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -84,7 +84,7 @@ export default async function ServicesPage({
           {services.map((service) => (
             <Card key={service.title} className="overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
               <div className="grid md:grid-cols-12">
-                <div className="md:col-span-4 p-8 bg-secondary/30 flex flex-col justify-center">
+                <div className="md:col-span-4 p-6 md:p-8 bg-secondary/30 flex flex-col justify-center">
                     <div className="flex items-center gap-4">
                       {service.icon}
                       <CardTitle className="font-headline text-2xl">
@@ -101,11 +101,11 @@ export default async function ServicesPage({
                       </Link>
                     </Button>
                 </div>
-                <div className="md:col-span-8 p-8">
+                <div className="md:col-span-8 p-6 md:p-8">
                   <Accordion type="single" collapsible className="w-full">
                     {service.details.map((detail, i) => (
                       <AccordionItem value={`item-${service.title}-${i}`} key={i}>
-                        <AccordionTrigger className="font-semibold hover:no-underline text-left">
+                        <AccordionTrigger className="font-semibold hover:no-underline text-left text-base">
                           {detail.title}
                         </AccordionTrigger>
                         <AccordionContent className="text-muted-foreground">
@@ -123,5 +123,3 @@ export default async function ServicesPage({
     </>
   );
 }
-
-    

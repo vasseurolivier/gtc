@@ -87,7 +87,7 @@ export function Header({ dictionary }: { dictionary: any }) {
   const headerClasses = cn(
     "sticky top-0 z-50 w-full transition-all duration-300",
     isScrolled 
-      ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
+      ? "border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
       : "bg-transparent border-transparent"
   );
   
@@ -103,177 +103,192 @@ export function Header({ dictionary }: { dictionary: any }) {
     } else {
         isActive = activePath.startsWith(fullPath);
     }
-     if (!isClient) return "relative transition-colors font-semibold text-lg text-white after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full hover:text-white/90";
+     if (!isClient) return "relative transition-colors font-medium text-foreground/80 after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full hover:text-foreground";
 
 
     return cn(
-      "relative transition-colors font-semibold text-lg text-white",
+      "relative transition-colors font-medium text-foreground/80",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-      isActive ? "text-white after:w-full" : "hover:text-white/90"
+      isActive ? "text-primary after:w-full" : "hover:text-foreground"
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
+    "relative flex items-center gap-1 transition-colors focus:outline-none font-medium text-foreground/80",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     isClient && activePath.startsWith(`/${locale}/services`)
-      ? "text-white after:w-full"
-      : "hover:text-white/90"
+      ? "text-primary after:w-full"
+      : "hover:text-foreground"
   );
 
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-16 items-center justify-between">
-        <Link href={localePrefixed('/')} className="flex items-center space-x-2">
+      <div className="container flex h-16 items-center">
+        <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
           {publicLogo ? (
             <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
           ) : (
-            <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
+            <Globe className={cn("h-6 w-6 text-primary")} />
           )}
-          <span className={cn("font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white")}>
+          <span className={cn("font-bold sm:inline-block font-headline text-lg")}>
             Global Trading China
           </span>
         </Link>
-        <div className="flex items-center gap-2">
-            <nav className="hidden md:flex items-center space-x-6">
+        
+        <div className="flex items-center gap-2 ml-auto md:hidden">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent">
+                    <Globe className="h-5 w-5" />
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                {i18n.locales.map(l => (
+                    <DropdownMenuItem key={l} asChild>
+                    <Link href={redirectedPathName(l)}>
+                        {l === 'en' ? 'English' : 'Français'}
+                    </Link>
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Sheet>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle Menu</span>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-full max-w-xs">
+                <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
+                {publicLogo ? (
+                    <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
+                ) : (
+                    <Globe className="h-6 w-6 text-primary" />
+                )}
+                <span className="font-bold font-headline text-lg">Global Trading China</span>
+                </Link>
+                <nav className="flex flex-col space-y-2">
                 {navItems.map((item) => (
-                <Link
+                    <Link
                     key={item.href}
                     href={localePrefixed(item.href)}
-                    className={linkClasses(item.href)}
-                >
+                    className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary py-2",
+                        isClient && (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
+                    )}
+                    >
                     {item.label}
-                </Link>
+                    </Link>
                 ))}
-                <DropdownMenu>
-                <DropdownMenuTrigger className={dropdownTriggerClasses}>
-                    {dictionary.services} <ChevronDown className="h-4 w-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    {servicesItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
-                        <Link href={localePrefixed(item.href)}>{item.label}</Link>
-                    </DropdownMenuItem>
-                    ))}
-                </DropdownMenuContent>
-                </DropdownMenu>
-                <Link
+                
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="services" className="border-b-0">
+                        <AccordionTrigger className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
+                        isClient && activePath.startsWith(`/${locale}/services`) ? "text-primary font-bold" : "text-foreground"
+                        )}>
+                        {dictionary.services}
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0 pl-4">
+                        <nav className="flex flex-col space-y-2">
+                            {servicesItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={localePrefixed(item.href)}
+                                className={cn(
+                                "text-base font-medium transition-colors hover:text-primary py-2",
+                                isClient && activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-muted-foreground"
+                                )}
+                            >
+                                {item.label}
+                            </Link>
+                            ))}
+                        </nav>
+                        </AccordionContent>
+                    </AccordionItem>
+                    </Accordion>
+                    <Link
                     key={citiesItem.href}
                     href={localePrefixed(citiesItem.href)}
-                    className={linkClasses(citiesItem.href)}
-                >
+                    className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary py-2",
+                        isClient && activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
+                    )}
+                    >
                     {citiesItem.label}
-                </Link>
-                <Link
+                    </Link>
+                    <Link
                     key={contactItem.href}
                     href={localePrefixed(contactItem.href)}
-                    className={linkClasses(contactItem.href)}
-                >
+                    className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary py-2",
+                        isClient && activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
+                    )}
+                    >
                     {contactItem.label}
-                </Link>
-            </nav>
-            <div className="flex items-center gap-2">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn("text-white hover:text-white/90 hover:bg-white/10")}>
-                        <Globe className="h-5 w-5" />
-                    </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                    {i18n.locales.map(l => (
-                        <DropdownMenuItem key={l} asChild>
-                        <Link href={redirectedPathName(l)}>
-                            {l === 'en' ? 'English' : 'Français'}
-                        </Link>
-                        </DropdownMenuItem>
-                    ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <div className="md:hidden">
-                    <Sheet>
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
-                        <Menu className="h-6 w-6" />
-                        <span className="sr-only">Toggle Menu</span>
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-full max-w-xs">
-                        <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
-                        {publicLogo ? (
-                            <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-                        ) : (
-                            <>
-                            <Globe className="h-6 w-6 text-primary" />
-                            </>
-                        )}
-                        <span className="font-bold font-headline text-lg">Global Trading China</span>
-                        </Link>
-                        <nav className="flex flex-col space-y-2">
-                        {navItems.map((item) => (
-                            <Link
-                            key={item.href}
-                            href={localePrefixed(item.href)}
-                            className={cn(
-                                "text-lg font-medium transition-colors hover:text-primary py-2",
-                                isClient && (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
-                            )}
-                            >
-                            {item.label}
-                            </Link>
-                        ))}
-                        
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="services" className="border-b-0">
-                                <AccordionTrigger className={cn(
-                                "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                                isClient && activePath.startsWith(`/${locale}/services`) ? "text-primary font-bold" : "text-foreground"
-                                )}>
-                                {dictionary.services}
-                                </AccordionTrigger>
-                                <AccordionContent className="pb-0 pl-4">
-                                <nav className="flex flex-col space-y-2">
-                                    {servicesItems.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={localePrefixed(item.href)}
-                                        className={cn(
-                                        "text-base font-medium transition-colors hover:text-primary py-2",
-                                        isClient && activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-muted-foreground"
-                                        )}
-                                    >
-                                        {item.label}
-                                    </Link>
-                                    ))}
-                                </nav>
-                                </AccordionContent>
-                            </AccordionItem>
-                            </Accordion>
-                            <Link
-                            key={citiesItem.href}
-                            href={localePrefixed(citiesItem.href)}
-                            className={cn(
-                                "text-lg font-medium transition-colors hover:text-primary py-2",
-                                isClient && activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
-                            )}
-                            >
-                            {citiesItem.label}
-                            </Link>
-                            <Link
-                            key={contactItem.href}
-                            href={localePrefixed(contactItem.href)}
-                            className={cn(
-                                "text-lg font-medium transition-colors hover:text-primary py-2",
-                                isClient && activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
-                            )}
-                            >
-                            {contactItem.label}
-                            </Link>
-                        </nav>
-                    </SheetContent>
-                    </Sheet>
-                </div>
-            </div>
+                    </Link>
+                </nav>
+            </SheetContent>
+            </Sheet>
+        </div>
+
+        <nav className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+            <Link
+                key={item.href}
+                href={localePrefixed(item.href)}
+                className={linkClasses(item.href)}
+            >
+                {item.label}
+            </Link>
+            ))}
+            <DropdownMenu>
+            <DropdownMenuTrigger className={dropdownTriggerClasses}>
+                {dictionary.services} <ChevronDown className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                {servicesItems.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                    <Link href={localePrefixed(item.href)}>{item.label}</Link>
+                </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+            </DropdownMenu>
+            <Link
+                key={citiesItem.href}
+                href={localePrefixed(citiesItem.href)}
+                className={linkClasses(citiesItem.href)}
+            >
+                {citiesItem.label}
+            </Link>
+            <Link
+                key={contactItem.href}
+                href={localePrefixed(contactItem.href)}
+                className={linkClasses(contactItem.href)}
+            >
+                {contactItem.label}
+            </Link>
+        </nav>
+        <div className="hidden md:flex items-center gap-2 ml-auto">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent">
+                    <Globe className="h-5 w-5" />
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                {i18n.locales.map(l => (
+                    <DropdownMenuItem key={l} asChild>
+                    <Link href={redirectedPathName(l)}>
+                        {l === 'en' ? 'English' : 'Français'}
+                    </Link>
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </div>
     </header>

@@ -1,5 +1,4 @@
 
-
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -88,11 +87,9 @@ export function ContactSection({ dictionary }: { dictionary: any }) {
   return (
     <section id="contact" className="py-16 md:py-24 bg-card">
       <div className="container">
-        
-
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <Card className="shadow-lg flex flex-col">
-            <CardContent className="p-8 flex-grow">
+            <CardContent className="p-6 md:p-8 flex-grow">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex flex-col h-full">
                   <div className="space-y-6 flex-grow">
@@ -164,7 +161,7 @@ export function ContactSection({ dictionary }: { dictionary: any }) {
                       )}
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
+                  <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                     {isLoading ? <Loader2 className="animate-spin" /> : dictionary.form.submit}
                   </Button>
                 </form>
@@ -174,7 +171,7 @@ export function ContactSection({ dictionary }: { dictionary: any }) {
           <div className="flex flex-col space-y-8 h-full">
              <div className="flex flex-col flex-grow justify-between h-full">
                 <div>
-                    <h3 className="text-xl font-headline font-semibold mb-6">
+                    <h3 className="text-2xl md:text-3xl font-headline font-semibold mb-6">
                       {dictionary.office.title}
                     </h3>
                     <div className="space-y-4 text-muted-foreground">

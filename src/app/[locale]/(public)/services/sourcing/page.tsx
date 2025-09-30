@@ -66,7 +66,7 @@ export default async function SourcingPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -92,7 +92,7 @@ export default async function SourcingPage({
 
       <section className="py-16 md:py-24">
         <div className="container">
-           <div className="text-center mb-16">
+           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {sourcingPageDict.approach.title}
             </h2>
@@ -101,7 +101,7 @@ export default async function SourcingPage({
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
             <div className="space-y-10">
                 {sourcingFeatures.map((feature, index) => (
                 <div key={feature.title} className="flex gap-6">
@@ -121,7 +121,7 @@ export default async function SourcingPage({
                 </div>
                 ))}
             </div>
-            <div className="relative h-full min-h-[400px] rounded-xl overflow-hidden">
+            <div className="relative h-80 md:h-full min-h-[400px] rounded-xl overflow-hidden">
                  {processImage && (
                     <Image
                         src={processImage.imageUrl}
@@ -138,7 +138,7 @@ export default async function SourcingPage({
 
       <section className="py-16 md:py-24 bg-secondary/30">
         <div className="container">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {sourcingPageDict.partnerships.title}
             </h2>
@@ -179,7 +179,3 @@ export default async function SourcingPage({
     </>
   );
 }
-
-    
-
-    

@@ -84,7 +84,7 @@ export default async function AboutPage({
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0">
+      <section className="relative w-full h-[50vh] md:h-[60vh] text-primary-foreground pt-16 md:pt-0">
         {aboutHero && (
           <Image
             src={aboutHero.imageUrl}
@@ -110,7 +110,7 @@ export default async function AboutPage({
 
       <section className="py-16 md:py-24">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-headline font-bold text-primary">
                 {aboutPageDict.aboutUs.title}
@@ -144,7 +144,7 @@ export default async function AboutPage({
 
       <section className="py-16 md:py-24 bg-secondary/30">
         <div className="container">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {aboutPageDict.advantages.title}
             </h2>
@@ -154,7 +154,7 @@ export default async function AboutPage({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {advantages.map((advantage) => (
-              <Card key={advantage.title} className="text-center p-8">
+              <Card key={advantage.title} className="text-center p-6 md:p-8">
                 <div className="flex justify-center mb-4">
                   {advantage.icon}
                 </div>
@@ -206,7 +206,7 @@ export default async function AboutPage({
       
       <section className="py-16 md:py-24">
         <div className="container">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">
               {aboutPageDict.productSectors.title}
             </h2>
@@ -229,7 +229,3 @@ export default async function AboutPage({
     </>
   );
 }
-
-    
-
-    
