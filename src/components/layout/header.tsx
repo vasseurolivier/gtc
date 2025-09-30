@@ -235,7 +235,7 @@ export function Header({ dictionary }: { dictionary: any }) {
             </Sheet>
         </div>
 
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6 ml-auto">
             {navItems.map((item) => (
             <Link
                 key={item.href}
