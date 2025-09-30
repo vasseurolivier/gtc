@@ -124,7 +124,7 @@ export function Header({ dictionary }: { dictionary: any }) {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-16 items-center">
+      <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
           {publicLogo ? (
             <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
@@ -272,7 +272,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 {contactItem.label}
             </Link>
         </nav>
-        <div className="hidden md:flex items-center gap-2 ml-auto">
+        <div className="hidden md:flex items-center gap-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent">
