@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import { i18n, type Locale } from '@/i18n-config';
+import { PublicProviders } from '@/components/layout/public-providers';
 
 export const metadata: Metadata = {
   title: 'Global Trading China',
@@ -23,7 +24,9 @@ export default function RootLayout({
       </head>
       <body className="font-body bg-background text-foreground antialiased">
         <AppProviders>
-          {children}
+          <PublicProviders>
+            {children}
+          </PublicProviders>
         </AppProviders>
       </body>
     </html>

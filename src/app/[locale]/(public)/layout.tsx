@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/footer';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 import { PublicProviders } from '@/components/layout/public-providers';
+import { Favicon } from '@/components/layout/favicon';
 
 export default async function PublicLayout({
   children,
@@ -14,6 +15,7 @@ export default async function PublicLayout({
   const dictionary = await getDictionary(locale);
   return (
     <PublicProviders>
+      <Favicon />
       <div className="min-h-screen">
         <Header dictionary={dictionary.header} />
         <main>{children}</main>
