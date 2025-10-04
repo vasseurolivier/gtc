@@ -104,26 +104,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     if (product) {
       form.setValue(`items.${index}.sku`, product.sku);
       form.setValue(`items.${index}.description`, product.name);
-    }
-  };
-
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: 'Please upload an image smaller than 2MB.',
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue(`items.${index}.photo`, reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      form.setValue(`items.${index}.photo`, product.imageUrl || '');
     }
   };
 
@@ -189,12 +170,12 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                       )} />
                       <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                         <FormItem>
-                          <FormLabel>Photo</FormLabel>
+                          <FormLabel>Photo URL</FormLabel>
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                               {photoField.value ? <Image src={photoField.value} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
                             </div>
-                            <FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoChange(e, index)} className="w-auto" /></FormControl>
+                            <FormControl><Input placeholder="https://example.com/image.jpg" {...photoField} /></FormControl>
                           </div>
                         </FormItem>
                       )} />
@@ -543,3 +524,5 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
+
+    
