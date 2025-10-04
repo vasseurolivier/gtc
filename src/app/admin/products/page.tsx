@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
-import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
@@ -133,26 +133,6 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          variant: 'destructive',
-          title: 'Image too large',
-          description: `Please upload an image smaller than 5MB.`,
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue('imageUrl', reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     const result = editingProduct
@@ -253,20 +233,9 @@ export default function ProductsPage() {
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Image</FormLabel>
-                           <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                {field.value ? (
-                                    <Image src={field.value} alt="Product preview" width={96} height={96} className="object-contain" />
-                                ) : (
-                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={handleFileChange} className="w-auto" />
-                            </FormControl>
-                           </div>
-                           <FormMessage />
+                            <FormLabel>Image URL</FormLabel>
+                            <FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl>
+                            <FormMessage />
                         </FormItem>
                       )}
                     />

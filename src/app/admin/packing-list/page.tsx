@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Printer, Loader2, PlusCircle, Trash2, UploadCloud, Save, Eye, FileUp, Pencil } from 'lucide-react';
+import { Printer, Loader2, PlusCircle, Trash2, Save, Eye, FileUp, Pencil } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { useToast } from '@/hooks/use-toast';
@@ -91,26 +91,6 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     name: 'items',
   });
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          variant: 'destructive',
-          title: 'Image too large',
-          description: `Please upload an image smaller than 5MB.`,
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue(`items.${index}.photo`, reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
   const watchedItems = form.watch('items');
 
   if (!currencyContext || !companyInfoContext) {
@@ -190,19 +170,9 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                       )} />
                       <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                         <FormItem>
-                          <FormLabel>Photo</FormLabel>
-                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                {photoField.value ? (
-                                    <Image src={photoField.value} alt="Item preview" width={64} height={64} className="object-contain" />
-                                ) : (
-                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
-                                )}
-                            </div>
-                           <FormControl>
-                             <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} className="w-auto" />
-                           </FormControl>
-                           </div>
+                            <FormLabel>Photo URL</FormLabel>
+                            <FormControl><Input placeholder="https://example.com/image.jpg" {...photoField} /></FormControl>
+                            <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
