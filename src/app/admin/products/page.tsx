@@ -77,8 +77,6 @@ export default function ProductsPage() {
     },
   });
 
-  const watchImageUrl = form.watch("imageUrl");
-
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
@@ -237,18 +235,9 @@ export default function ProductsPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Image URL</FormLabel>
-                          <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                {watchImageUrl ? (
-                                    <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" />
-                                ) : (
-                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input placeholder="https://example.com/image.png" {...field} />
-                            </FormControl>
-                          </div>
+                          <FormControl>
+                            <Input placeholder="https://example.com/image.png" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -438,3 +427,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
