@@ -136,11 +136,11 @@ export default function ProductsPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 4.5 * 1024 * 1024) { // ~4.5MB limit to be safe with base64 encoding
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
           variant: 'destructive',
           title: 'Image too large',
-          description: `Please upload an image smaller than 4.5MB.`,
+          description: `Please upload an image smaller than 5MB.`,
         });
         return;
       }

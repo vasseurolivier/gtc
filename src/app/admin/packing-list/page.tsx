@@ -94,11 +94,11 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 4.5 * 1024 * 1024) { // ~4.5MB limit
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
           variant: 'destructive',
           title: 'Image too large',
-          description: `Please upload an image smaller than 4.5MB.`,
+          description: `Please upload an image smaller than 5MB.`,
         });
         return;
       }
