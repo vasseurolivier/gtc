@@ -292,12 +292,7 @@ function ProtectedAdminLayout({
             console.error("Failed to fetch submissions for count:", error);
         }
     }
-    // Fetch count on initial load
     fetchUnreadCount();
-
-    // Also fetch when path changes to /admin/submissions to update the badge
-    const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5s
-    return () => clearInterval(interval);
   }, [pathname]);
 
   const handleLogout = () => {
