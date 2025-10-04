@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
-import { Loader2, PlusCircle, Trash2, Pencil, Eye } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, Eye, UploadCloud } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
@@ -76,6 +76,28 @@ export default function ProductsPage() {
       imageUrl: "",
     },
   });
+  
+  const watchedImageUrl = form.watch("imageUrl");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          variant: "destructive",
+          title: "Image too large",
+          description: "Please upload an image smaller than 5MB.",
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue("imageUrl", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -228,17 +250,16 @@ export default function ProductsPage() {
 
                 <div>
                     <h3 className="text-lg font-medium mb-2">Product Image</h3>
-                     <FormField
-                      control={form.control}
-                      name="imageUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Image URL</FormLabel>
-                            <FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="flex items-center gap-4">
+                        <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                            {watchedImageUrl ? (
+                                <Image src={watchedImageUrl} alt="Product preview" width={96} height={96} className="object-contain rounded-md" />
+                            ) : (
+                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                            )}
+                        </div>
+                        <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} className="w-auto" />
+                    </div>
                 </div>
 
                 <Separator />
