@@ -133,6 +133,25 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 4.5 * 1024 * 1024) { // ~4.5MB limit to be safe with base64 encoding
+        toast({
+          variant: 'destructive',
+          title: 'Image too large',
+          description: `Please upload an image smaller than 4.5MB.`,
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue('imageUrl', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -229,16 +248,25 @@ export default function ProductsPage() {
 
                 <div>
                     <h3 className="text-lg font-medium mb-2">Product Image</h3>
-                    <FormField
+                     <FormField
                       control={form.control}
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Image URL</FormLabel>
-                          <FormControl>
-                            <Input placeholder="https://example.com/image.png" {...field} />
-                          </FormControl>
-                          <FormMessage />
+                          <FormLabel>Image</FormLabel>
+                           <div className="flex items-center gap-4">
+                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                {field.value ? (
+                                    <Image src={field.value} alt="Product preview" width={96} height={96} className="object-contain" />
+                                ) : (
+                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <Input type="file" accept="image/*" onChange={handleFileChange} className="w-auto" />
+                            </FormControl>
+                           </div>
+                           <FormMessage />
                         </FormItem>
                       )}
                     />
