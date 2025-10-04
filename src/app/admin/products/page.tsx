@@ -135,25 +135,6 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-          toast({
-              variant: 'destructive',
-              title: 'File too large',
-              description: 'Please upload an image smaller than 2MB.',
-          });
-          return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-          form.setValue("imageUrl", reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -255,7 +236,7 @@ export default function ProductsPage() {
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Image</FormLabel>
+                          <FormLabel>Image URL</FormLabel>
                           <div className="flex items-center gap-4">
                             <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                                 {watchImageUrl ? (
@@ -265,7 +246,7 @@ export default function ProductsPage() {
                                 )}
                             </div>
                             <FormControl>
-                                <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-auto" />
+                                <Input placeholder="https://example.com/image.png" {...field} />
                             </FormControl>
                           </div>
                           <FormMessage />
