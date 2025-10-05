@@ -23,6 +23,9 @@ import { Loader2, PlusCircle, Trash2, Pencil, Eye, UploadCloud } from 'lucide-re
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
+export const maxDuration = 60; // Increase timeout to 60 seconds
+export const dynamic = 'force-dynamic'; // Ensure the page is always dynamically rendered
+
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   sku: z.string().min(1, { message: "SKU is required." }),

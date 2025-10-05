@@ -362,7 +362,7 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  if (pathname === '/admin/login') {
+  if (pathname === '/admin/login' || pathname === '/admin') {
     return <AppProviders>{children}</AppProviders>;
   }
   return (

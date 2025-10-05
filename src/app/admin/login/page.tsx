@@ -2,7 +2,7 @@
 // Do not use this in a real application.
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,14 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated
+    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
+      router.replace('/admin/dashboard');
+    }
+  }, [router]);
+
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

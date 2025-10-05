@@ -29,6 +29,11 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const { search } = request.nextUrl
 
+  // Redirect from /admin to /admin/login
+  if (pathname === '/admin') {
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
   // Ignore files in public folder
   if (
     [
@@ -38,12 +43,16 @@ export function middleware(request: NextRequest) {
   )
     return NextResponse.next()
   
-  // Handle i18n for public routes
   const pathnameIsMissingLocale = i18n.locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   )
 
   if (pathnameIsMissingLocale) {
+    // Check if the path is an admin path
+    if (pathname.startsWith('/admin/')) {
+        return NextResponse.next()
+    }
+
     const locale = getLocale(request)
     return NextResponse.redirect(
       new URL(
@@ -58,5 +67,5 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Matcher ignoring `/_next/` and `/api/`
-  matcher: ['/((?!api|admin|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }
