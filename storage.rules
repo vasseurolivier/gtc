@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow read and write access for all users on all paths.
+    // In a real application, you should restrict this.
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
