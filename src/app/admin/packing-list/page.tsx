@@ -24,6 +24,7 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
+import { uploadImage } from '@/actions/upload';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -51,6 +52,8 @@ type PackingListValues = z.infer<typeof packingListSchema>;
 function PackingListGenerator({ editingList, onFinishedEditing, products }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[] }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+
   const currencyContext = useContext(CurrencyContext);
   const companyInfoContext = useContext(CompanyInfoContext);
 
@@ -99,6 +102,24 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
   const { currency, exchangeRate } = currencyContext;
   const { companyInfo } = companyInfoContext;
   
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingIndex(index);
+      const formData = new FormData();
+      formData.append('file', file);
+      const result = await uploadImage(formData);
+      setUploadingIndex(null);
+
+      if (result.success && result.url) {
+        form.setValue(`items.${index}.photo`, result.url);
+        toast({ title: 'Success', description: 'Image uploaded.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: result.message || 'Failed to upload image.' });
+      }
+    }
+  };
+
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
@@ -169,13 +190,20 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                         <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       
-                      <FormField control={form.control} name={`items.${index}.photo`} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Photo URL</FormLabel>
-                           <FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                       <FormItem>
+                            <FormLabel htmlFor={`photo-upload-${index}`}>Photo</FormLabel>
+                            <div className='flex gap-2 items-center'>
+                                <Input id={`photo-upload-${index}`} type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} disabled={uploadingIndex === index} className="w-full"/>
+                                <div className="w-12 h-12 rounded-md border flex items-center justify-center bg-muted flex-shrink-0">
+                                {uploadingIndex === index ? <Loader2 className="h-5 w-5 animate-spin"/> :
+                                    watchedItems[index]?.photo ? (
+                                        <Image src={watchedItems[index].photo} alt="preview" width={48} height={48} className="object-contain rounded-md" />
+                                    ) : (
+                                        <UploadCloud className="h-5 w-5 text-muted-foreground" />
+                                    )}
+                                </div>
+                            </div>
+                      </FormItem>
                       
                       <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
                         <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -522,7 +550,3 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
-
-    
-
-    

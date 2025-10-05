@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
+import { uploadImage } from '@/actions/upload';
 import { Loader2, PlusCircle, Trash2, Pencil, Eye, UploadCloud } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
@@ -48,6 +49,8 @@ export default function ProductsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const currencyContext = useContext(CurrencyContext);
 
   if (!currencyContext) {
@@ -134,6 +137,25 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        const result = await uploadImage(formData);
+        setIsUploading(false);
+
+        if (result.success && result.url) {
+            form.setValue('imageUrl', result.url);
+            toast({ title: 'Success', description: 'Image uploaded successfully.' });
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: result.message || 'Failed to upload image.' });
+        }
+    }
+  };
+
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     const result = editingProduct
@@ -168,6 +190,9 @@ export default function ProductsPage() {
       </div>
     );
   }
+  
+  const currentImageUrl = form.watch('imageUrl');
+
 
   return (
     <div className="container py-8">
@@ -229,15 +254,27 @@ export default function ProductsPage() {
 
                 <div>
                     <h3 className="text-lg font-medium mb-2">Product Image</h3>
-                     <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Image URL</FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://example.com/image.jpg" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                         <div className="space-y-2">
+                             <FormLabel htmlFor="image-upload">Upload Image</FormLabel>
+                             <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isUploading} />
+                             {isUploading && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Uploading...</div>}
+                             <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="sr-only">Image URL</FormLabel>
+                                    <FormControl><Input placeholder="Or paste image URL here" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                         </div>
+                         <div className="w-full h-40 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                            {currentImageUrl ? (
+                                <Image src={currentImageUrl} alt="Product preview" width={160} height={160} className="object-contain rounded-md h-full w-full" />
+                            ) : (
+                                <UploadCloud className="h-12 w-12 text-muted-foreground" />
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <Separator />
@@ -326,7 +363,7 @@ export default function ProductsPage() {
 
                 <DialogFooter className="pt-4">
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" disabled={isSubmitting || isUploading}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {editingProduct ? 'Save Changes' : 'Add Product'}
                     </Button>
@@ -423,7 +460,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    
-
-    
