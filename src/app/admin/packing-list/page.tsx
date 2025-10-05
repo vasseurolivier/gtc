@@ -29,9 +29,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export const maxDuration = 60; // Increase timeout to 60 seconds
-export const dynamic = 'force-dynamic'; // Ensure the page is always dynamically rendered
-
 const packingListItemSchema = z.object({
   photo: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
   sku: z.string().optional(),
@@ -550,3 +547,5 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
+
+    
