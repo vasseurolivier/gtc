@@ -18,7 +18,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
-import { uploadImage } from '@/actions/upload';
 import { Loader2, PlusCircle, Trash2, Pencil, Eye, UploadCloud } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
@@ -37,7 +36,7 @@ const formSchema = z.object({
   length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
   hsCode: z.string().optional(),
   countryOfOrigin: z.string().optional(),
-  imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+  imageUrl: z.string().optional(),
 });
 
 
@@ -137,21 +136,21 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
-        const result = await uploadImage(formData);
-        setIsUploading(false);
-
-        if (result.success && result.url) {
-            form.setValue('imageUrl', result.url);
-            toast({ title: 'Success', description: 'Image uploaded successfully.' });
-        } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.message || 'Failed to upload image.' });
-        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            form.setValue('imageUrl', reader.result as string);
+            setIsUploading(false);
+            toast({ title: 'Success', description: 'Image ready for saving.' });
+        };
+        reader.onerror = () => {
+            setIsUploading(false);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
+        };
+        reader.readAsDataURL(file);
     }
   };
 
@@ -460,5 +459,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    

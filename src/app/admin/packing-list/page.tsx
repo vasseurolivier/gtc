@@ -24,13 +24,12 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
-import { uploadImage } from '@/actions/upload';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const packingListItemSchema = z.object({
-  photo: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+  photo: z.string().optional(),
   sku: z.string().optional(),
   description: z.string().min(1, 'Description is required.'),
   quantity: z.coerce.number().positive('Quantity must be positive.'),
@@ -99,21 +98,21 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
   const { currency, exchangeRate } = currencyContext;
   const { companyInfo } = companyInfoContext;
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploadingIndex(index);
-      const formData = new FormData();
-      formData.append('file', file);
-      const result = await uploadImage(formData);
-      setUploadingIndex(null);
-
-      if (result.success && result.url) {
-        form.setValue(`items.${index}.photo`, result.url);
-        toast({ title: 'Success', description: 'Image uploaded.' });
-      } else {
-        toast({ variant: 'destructive', title: 'Error', description: result.message || 'Failed to upload image.' });
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+          form.setValue(`items.${index}.photo`, reader.result as string);
+          setUploadingIndex(null);
+          toast({ title: 'Success', description: 'Image ready for saving.' });
+      };
+      reader.onerror = () => {
+          setUploadingIndex(null);
+          toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -547,5 +546,3 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
-
-    
