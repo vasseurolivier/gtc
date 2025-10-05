@@ -36,7 +36,7 @@ const formSchema = z.object({
   length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
   hsCode: z.string().optional(),
   countryOfOrigin: z.string().optional(),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
 });
 
 
@@ -98,26 +98,6 @@ export default function ProductsPage() {
     }
     fetchProducts();
   }, [router, toast]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 4.5 * 1024 * 1024) { // ~4.5MB limit
-        toast({
-          variant: "destructive",
-          title: "Image too large",
-          description: "Please upload an image smaller than 4.5MB.",
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        fieldChange(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
 
   const handleOpenDialog = (product: Product | null = null) => {
     setEditingProduct(product);
@@ -251,33 +231,10 @@ export default function ProductsPage() {
                     <h3 className="text-lg font-medium mb-2">Product Image</h3>
                      <FormField control={form.control} name="imageUrl" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Image</FormLabel>
-                            <div className="flex items-center gap-4">
-                                <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                    {field.value ? (
-                                        <Image src={field.value} alt="Product image" width={96} height={96} className="object-contain rounded-md" />
-                                    ) : (
-                                        <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                    )}
-                                </div>
-                                <FormControl>
-                                    <Input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        onChange={(e) => handleFileChange(e, field.onChange)} 
-                                        className="w-auto"
-                                    />
-                                </FormControl>
-                            </div>
-                            <FormDescription>
-                                You can also paste an image URL directly.
-                                <Input 
-                                  placeholder="https://example.com/image.jpg" 
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value)} 
-                                  className="mt-2"
-                                />
-                            </FormDescription>
+                            <FormLabel>Image URL</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://example.com/image.jpg" {...field} />
+                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -466,5 +423,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
 
     

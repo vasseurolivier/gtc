@@ -32,7 +32,7 @@ export const maxDuration = 60; // Increase timeout to 60 seconds
 export const dynamic = 'force-dynamic'; // Ensure the page is always dynamically rendered
 
 const packingListItemSchema = z.object({
-  photo: z.string().optional(),
+  photo: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
   sku: z.string().optional(),
   description: z.string().min(1, 'Description is required.'),
   quantity: z.coerce.number().positive('Quantity must be positive.'),
@@ -108,25 +108,6 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 4.5 * 1024 * 1024) { // ~4.5MB limit
-        toast({
-          variant: "destructive",
-          title: "Image too large",
-          description: "Please upload an image smaller than 4.5MB.",
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        fieldChange(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const totals = watchedItems.reduce((acc, item) => {
     const quantity = Number(item.quantity) || 0;
     const unitPrice = Number(item.unitPriceCny) || 0;
@@ -188,26 +169,10 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                         <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       
-                      <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
+                      <FormField control={form.control} name={`items.${index}.photo`} render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Photo</FormLabel>
-                          <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                              {photoField.value ? (
-                                <Image src={photoField.value} alt="Item photo" width={96} height={96} className="object-contain rounded-md" />
-                              ) : (
-                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                              )}
-                            </div>
-                            <FormControl>
-                              <Input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(e, photoField.onChange)}
-                                className="w-auto"
-                              />
-                            </FormControl>
-                          </div>
+                          <FormLabel>Photo URL</FormLabel>
+                           <FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
@@ -557,5 +522,7 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
+
+    
 
     
