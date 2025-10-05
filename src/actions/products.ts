@@ -55,7 +55,7 @@ export async function addProduct(values: z.infer<typeof productSchema>) {
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
-        return { success: false, message: 'An unexpected error occurred.' };
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }
 
@@ -70,7 +70,7 @@ export async function updateProduct(id: string, values: z.infer<typeof productSc
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
-        return { success: false, message: 'An unexpected error occurred.' };
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }
 
@@ -141,3 +141,5 @@ export async function deleteProduct(id: string) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+    

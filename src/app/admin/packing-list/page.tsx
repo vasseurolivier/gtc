@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Printer, Loader2, PlusCircle, Trash2, Save, Eye, FileUp, Pencil } from 'lucide-react';
+import { Printer, Loader2, PlusCircle, Trash2, Save, Eye, FileUp, Pencil, UploadCloud } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { useToast } from '@/hooks/use-toast';
@@ -108,6 +108,25 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 4.5 * 1024 * 1024) { // ~4.5MB limit
+        toast({
+          variant: "destructive",
+          title: "Image too large",
+          description: "Please upload an image smaller than 4.5MB.",
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        fieldChange(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const totals = watchedItems.reduce((acc, item) => {
     const quantity = Number(item.quantity) || 0;
     const unitPrice = Number(item.unitPriceCny) || 0;
@@ -128,7 +147,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
       toast({ title: 'Success', description: result.message });
       onFinishedEditing();
     } else {
-      toast({ variant: 'destructive', title: 'Error', description: result.message });
+      toast({ variant: 'destructive', title: 'Error', description: result.message || 'An unexpected error occurred.' });
     }
     setIsSubmitting(false);
   };
@@ -169,11 +188,27 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                         <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       
-                      <FormField control={form.control} name={`items.${index}.photo`} render={({ field }) => (
+                      <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                         <FormItem>
-                            <FormLabel>Photo URL</FormLabel>
-                            <FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl>
-                            <FormMessage />
+                          <FormLabel>Photo</FormLabel>
+                          <div className="flex items-center gap-4">
+                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                              {photoField.value ? (
+                                <Image src={photoField.value} alt="Item photo" width={96} height={96} className="object-contain rounded-md" />
+                              ) : (
+                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                              )}
+                            </div>
+                            <FormControl>
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, photoField.onChange)}
+                                className="w-auto"
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
                         </FormItem>
                       )} />
                       

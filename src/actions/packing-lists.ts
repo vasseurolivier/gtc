@@ -43,7 +43,7 @@ export async function addPackingList(values: z.infer<typeof packingListSchema>) 
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
-        return { success: false, message: 'An unexpected error occurred.' };
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }
 
@@ -58,7 +58,7 @@ export async function updatePackingList(id: string, values: z.infer<typeof packi
         if (error instanceof z.ZodError) {
             return { success: false, message: 'Validation failed.', errors: error.errors };
         }
-        return { success: false, message: 'An unexpected error occurred.' };
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }
 
@@ -118,3 +118,5 @@ export async function deletePackingList(id: string) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+    
