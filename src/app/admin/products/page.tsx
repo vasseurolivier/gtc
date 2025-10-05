@@ -18,7 +18,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
-import { uploadImage } from '@/actions/upload';
 import { Loader2, PlusCircle, Trash2, Pencil, Eye, UploadCloud } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
@@ -49,7 +48,6 @@ export default function ProductsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   
   const currencyContext = useContext(CurrencyContext);
 
@@ -137,24 +135,23 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-        setIsUploading(true);
-        try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                const base64data = reader.result as string;
-                const downloadURL = await uploadImage(base64data, file.name);
-                form.setValue('imageUrl', downloadURL);
-                toast({ title: 'Success', description: 'Image uploaded successfully.' });
-            };
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to upload image.' });
-        } finally {
-            setIsUploading(false);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        if (base64data.length > 1048487) {
+            toast({
+                variant: "destructive",
+                title: "Image trop grande",
+                description: "L'image est trop volumineuse pour être enregistrée. Veuillez choisir une image de moins de 1 Mo.",
+            });
+            return;
         }
+        form.setValue('imageUrl', base64data);
+      };
     }
   };
 
@@ -260,15 +257,8 @@ export default function ProductsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                          <div className="space-y-2">
                              <FormLabel htmlFor="image-upload">Upload Image</FormLabel>
-                             <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isUploading} />
-                             {isUploading && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Uploading...</div>}
-                             <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="sr-only">Image URL</FormLabel>
-                                    <FormControl><Input placeholder="Or paste image URL here" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                             <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} />
+                             <p className="text-xs text-muted-foreground">Image must be less than 1MB.</p>
                          </div>
                          <div className="w-full h-40 rounded-md border border-dashed flex items-center justify-center bg-muted">
                             {currentImageUrl ? (
@@ -366,7 +356,7 @@ export default function ProductsPage() {
 
                 <DialogFooter className="pt-4">
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting || isUploading}>
+                    <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {editingProduct ? 'Save Changes' : 'Add Product'}
                     </Button>
@@ -463,3 +453,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    

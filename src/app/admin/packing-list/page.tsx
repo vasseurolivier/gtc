@@ -24,7 +24,6 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
-import { uploadImage } from '@/actions/upload';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,7 +48,6 @@ type PackingListValues = z.infer<typeof packingListSchema>;
 function PackingListGenerator({ editingList, onFinishedEditing, products }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[] }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   const currencyContext = useContext(CurrencyContext);
   const companyInfoContext = useContext(CompanyInfoContext);
@@ -99,24 +97,23 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
   const { currency, exchangeRate } = currencyContext;
   const { companyInfo } = companyInfoContext;
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadingIndex(index);
-      try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = async () => {
-          const base64data = reader.result as string;
-          const downloadURL = await uploadImage(base64data, file.name);
-          form.setValue(`items.${index}.photo`, downloadURL);
-          toast({ title: 'Success', description: 'Image uploaded.' });
-        };
-      } catch (error) {
-          toast({ variant: 'destructive', title: 'Error', description: 'Failed to upload image.' });
-      } finally {
-        setUploadingIndex(null);
-      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+         if (base64data.length > 1048487) {
+            toast({
+                variant: "destructive",
+                title: "Image trop grande",
+                description: "L'image est trop volumineuse pour être enregistrée. Veuillez choisir une image de moins de 1 Mo.",
+            });
+            return;
+        }
+        form.setValue(`items.${index}.photo`, base64data);
+      };
     }
   };
 
@@ -193,16 +190,16 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                        <FormItem>
                             <FormLabel htmlFor={`photo-upload-${index}`}>Photo</FormLabel>
                             <div className='flex gap-2 items-center'>
-                                <Input id={`photo-upload-${index}`} type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} disabled={uploadingIndex === index} className="w-full"/>
+                                <Input id={`photo-upload-${index}`} type="file" accept="image/*" onChange={(e) => handleFileChange(e, index)} className="w-full"/>
                                 <div className="w-12 h-12 rounded-md border flex items-center justify-center bg-muted flex-shrink-0">
-                                {uploadingIndex === index ? <Loader2 className="h-5 w-5 animate-spin"/> :
-                                    watchedItems[index]?.photo ? (
+                                    {watchedItems[index]?.photo ? (
                                         <Image src={watchedItems[index].photo!} alt="preview" width={48} height={48} className="object-contain rounded-md" />
                                     ) : (
                                         <UploadCloud className="h-5 w-5 text-muted-foreground" />
                                     )}
                                 </div>
                             </div>
+                            <p className="text-xs text-muted-foreground">Image must be less than 1MB.</p>
                       </FormItem>
                       
                       <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
@@ -550,3 +547,5 @@ export default function PackingListPage() {
     </Suspense>
   )
 }
+
+    
