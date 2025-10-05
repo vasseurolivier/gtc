@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
+import { uploadImage } from '@/actions/upload';
 import { Loader2, PlusCircle, Trash2, Pencil, Eye, UploadCloud } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
@@ -136,21 +137,24 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
         setIsUploading(true);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            form.setValue('imageUrl', reader.result as string);
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async () => {
+                const base64data = reader.result as string;
+                const downloadURL = await uploadImage(base64data, file.name);
+                form.setValue('imageUrl', downloadURL);
+                toast({ title: 'Success', description: 'Image uploaded successfully.' });
+            };
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to upload image.' });
+        } finally {
             setIsUploading(false);
-            toast({ title: 'Success', description: 'Image ready for saving.' });
-        };
-        reader.onerror = () => {
-            setIsUploading(false);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
-        };
-        reader.readAsDataURL(file);
+        }
     }
   };
 

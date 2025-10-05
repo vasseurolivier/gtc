@@ -24,6 +24,7 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
+import { uploadImage } from '@/actions/upload';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -98,21 +99,24 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
   const { currency, exchangeRate } = currencyContext;
   const { companyInfo } = companyInfoContext;
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploadingIndex(index);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-          form.setValue(`items.${index}.photo`, reader.result as string);
-          setUploadingIndex(null);
-          toast({ title: 'Success', description: 'Image ready for saving.' });
-      };
-      reader.onerror = () => {
-          setUploadingIndex(null);
-          toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
-      };
-      reader.readAsDataURL(file);
+      try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async () => {
+          const base64data = reader.result as string;
+          const downloadURL = await uploadImage(base64data, file.name);
+          form.setValue(`items.${index}.photo`, downloadURL);
+          toast({ title: 'Success', description: 'Image uploaded.' });
+        };
+      } catch (error) {
+          toast({ variant: 'destructive', title: 'Error', description: 'Failed to upload image.' });
+      } finally {
+        setUploadingIndex(null);
+      }
     }
   };
 
@@ -193,7 +197,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                                 <div className="w-12 h-12 rounded-md border flex items-center justify-center bg-muted flex-shrink-0">
                                 {uploadingIndex === index ? <Loader2 className="h-5 w-5 animate-spin"/> :
                                     watchedItems[index]?.photo ? (
-                                        <Image src={watchedItems[index].photo} alt="preview" width={48} height={48} className="object-contain rounded-md" />
+                                        <Image src={watchedItems[index].photo!} alt="preview" width={48} height={48} className="object-contain rounded-md" />
                                     ) : (
                                         <UploadCloud className="h-5 w-5 text-muted-foreground" />
                                     )}
