@@ -1,9 +1,7 @@
-
 "use client";
 
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
-import { useContext, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { i18n } from '@/i18n-config';
@@ -30,7 +28,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
+                <Image src="https://placehold.co/40x40/png" alt="Company Logo" width={40} height={40} className="object-contain" />
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>

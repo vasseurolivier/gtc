@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -117,7 +116,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
-          <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
+          <Image src="https://placehold.co/40x40/png" alt="Company Logo" width={40} height={40} className="object-contain invert brightness-0" />
           <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
           </span>
@@ -186,7 +185,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
                     <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
-                     <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
+                     <Image src="https://placehold.co/40x40/png" alt="Company Logo" width={40} height={40} className="object-contain" />
                     <span className="font-bold font-headline text-lg">Global Trading China</span>
                     </Link>
                     <nav className="flex flex-col space-y-2">
