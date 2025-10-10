@@ -5,22 +5,13 @@ import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useContext, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { CompanyInfoContext } from '@/context/company-info-context';
 import { usePathname } from 'next/navigation';
 import { i18n } from '@/i18n-config';
 
 
 export function Footer({ dictionary }: { dictionary: any }) {
-  const companyInfoContext = useContext(CompanyInfoContext);
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
   
-  const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
-
   const getCurrentLocale = () => {
     if (!pathname) return i18n.defaultLocale;
     const segments = pathname.split('/');
@@ -39,11 +30,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                {isClient && publicLogo ? (
-                    <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-                ) : (
-                    <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
-                )}
+                <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>

@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,22 +22,11 @@ import {
 } from "@/components/ui/accordion"
 import { i18n } from '@/i18n-config';
 import Image from 'next/image';
-import { CompanyInfoContext } from '@/context/company-info-context';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-
 
 export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
-  const companyInfoContext = useContext(CompanyInfoContext);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -128,11 +117,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
-          {isClient && publicLogo ? (
-            <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-          ) : (
-             <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
-          )}
+          <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
           <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
           </span>
