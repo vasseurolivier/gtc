@@ -23,6 +23,7 @@ import {
 import { i18n } from '@/i18n-config';
 import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 export function Header({ dictionary }: { dictionary: any }) {
@@ -31,10 +32,16 @@ export function Header({ dictionary }: { dictionary: any }) {
   const [isClient, setIsClient] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
+  
+  // Use state to manage the logo, ensuring it's only accessed on the client
+  const [publicLogo, setPublicLogo] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     setIsClient(true);
+    
+    if (companyInfoContext?.companyInfo?.publicLogo) {
+      setPublicLogo(companyInfoContext.companyInfo.publicLogo);
+    }
     
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -43,7 +50,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     window.addEventListener('scroll', handleScroll);
     handleScroll(); // Check on initial render
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [companyInfoContext]);
 
   useEffect(() => {
     setActivePath(pathname);
@@ -86,7 +93,7 @@ export function Header({ dictionary }: { dictionary: any }) {
 
   const headerClasses = cn(
     "sticky top-0 z-50 w-full transition-all duration-300",
-    isScrolled 
+    isScrolled || activePath !== localePrefixed('/')
       ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
       : "bg-transparent border-transparent"
   );
@@ -125,13 +132,13 @@ export function Header({ dictionary }: { dictionary: any }) {
   return (
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
-        <Link href={localePrefixed('/')} className="flex items-center space-x-2">
-          {publicLogo ? (
+        <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
+          {isClient && publicLogo ? (
             <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
           ) : (
-            <Globe className={cn("h-6 w-6", isScrolled ? "text-white" : "text-white")} />
+            <Globe className={cn("h-6 w-6 text-primary")} />
           )}
-          <span className={cn("font-bold sm:inline-block font-headline text-lg", isScrolled ? "text-white" : "text-white")}>
+          <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
           </span>
         </Link>
@@ -199,7 +206,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
                     <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
-                    {publicLogo ? (
+                    {isClient && publicLogo ? (
                         <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
                     ) : (
                         <>
