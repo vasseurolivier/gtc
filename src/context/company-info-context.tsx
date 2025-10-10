@@ -11,6 +11,7 @@ export interface CompanyInfo {
   logo: string; // Base64 data URL for admin
   publicLogo?: string; // Base64 data URL for public site
   heroVideo?: string; // Base64 data URL for the hero video
+  bankInfo?: string; // Multiline bank information
 }
 
 interface CompanyInfoContextType {
@@ -29,6 +30,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     logo: '',
     publicLogo: '',
     heroVideo: '',
+    bankInfo: '',
   });
   const [isLoaded, setIsLoaded] = useState(false);
   

@@ -12,6 +12,20 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
+function BankInfo() {
+    const companyInfoContext = useContext(CompanyInfoContext);
+    if (!companyInfoContext?.companyInfo?.bankInfo) return null;
+
+    const { bankInfo } = companyInfoContext.companyInfo;
+
+    return (
+        <div className="mt-8 text-left border-t pt-4">
+            <h3 className="font-semibold mb-2">Payment Details:</h3>
+            <div className="text-xs whitespace-pre-wrap">{bankInfo}</div>
+        </div>
+    );
+}
+
 export function QuotePreview({ quote, customer, products, logo }: { quote: Quote, customer: Customer, products: Product[], logo: string }) {
     const currencyContext = useContext(CurrencyContext);
 
@@ -116,8 +130,17 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </tbody>
                         </table>
                         
-                        <div className="flex justify-end pt-8">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
+                        <div className="flex justify-between pt-8">
+                             <div className="w-full md:w-1/3">
+                                {quote.notes && 
+                                    <div className="mt-8 text-left border-t pt-4">
+                                        <h3 className="font-semibold mb-2">Notes:</h3>
+                                        <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
+                                    </div>
+                                }
+                                <BankInfo />
+                             </div>
+                            <div className="w-full md:w-1/3 space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
                                     <span className="font-medium text-right">¥{quote.subTotal.toFixed(2)}</span>
@@ -146,13 +169,6 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                 </div>
                             </div>
                         </div>
-
-                        {quote.notes && 
-                            <div className="mt-8 text-left border-t pt-4">
-                                <h3 className="font-semibold mb-2">Notes:</h3>
-                                <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
-                            </div>
-                        }
                     </div>
                 </section>
                 <footer className="print-footer">

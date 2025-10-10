@@ -66,6 +66,8 @@ function AdminSettings() {
     const [companyLogo, setCompanyLogo] = useState('');
     const [publicLogo, setPublicLogo] = useState('');
     const [heroVideo, setHeroVideo] = useState('');
+    const [bankInfo, setBankInfo] = useState('');
+
 
     useEffect(() => {
         if (isDialogOpen) {
@@ -81,6 +83,7 @@ function AdminSettings() {
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
                 setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
                 setHeroVideo(companyInfoContext.companyInfo.heroVideo || '');
+                setBankInfo(companyInfoContext.companyInfo.bankInfo || '');
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -135,6 +138,7 @@ function AdminSettings() {
             logo: companyLogo,
             publicLogo: publicLogo,
             heroVideo: heroVideo,
+            bankInfo: bankInfo,
         });
 
         toast({ title: 'Success', description: 'Settings updated.'});
@@ -201,6 +205,24 @@ function AdminSettings() {
                                 </div>
                             </div>
                         </div>
+
+                        <Separator />
+
+                        <div>
+                            <h3 className="text-lg font-medium mb-4">Bank Information</h3>
+                             <div className="grid grid-cols-4 items-start gap-4">
+                                <Label htmlFor="bank-info" className="text-right pt-2">Bank Details</Label>
+                                <Textarea 
+                                    id="bank-info" 
+                                    value={bankInfo} 
+                                    onChange={(e) => setBankInfo(e.target.value)} 
+                                    className="col-span-3" 
+                                    rows={5}
+                                    placeholder="Bank Name&#10;Account Holder&#10;IBAN&#10;SWIFT/BIC..."
+                                />
+                            </div>
+                        </div>
+
                         <Separator />
                         <div>
                             <h3 className="text-lg font-medium mb-4">Site Customization</h3>
