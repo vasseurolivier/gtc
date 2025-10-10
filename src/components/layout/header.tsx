@@ -30,6 +30,14 @@ export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,7 +128,11 @@ export function Header({ dictionary }: { dictionary: any }) {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
-          <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
+          {isClient && publicLogo ? (
+            <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
+          ) : (
+             <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
+          )}
           <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
           </span>
