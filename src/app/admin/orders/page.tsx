@@ -75,6 +75,17 @@ export default function OrdersPage() {
     fetchData();
   }, [router, toast]);
   
+  const handleOpenCreateDialog = async () => {
+    try {
+      const freshQuotes = await getQuotes();
+      const acceptedQuotes = freshQuotes.filter(q => q.status === 'accepted');
+      setQuotes(acceptedQuotes);
+      setAddOrderOpen(true);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch latest proforma invoices.' });
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     const selectedQuote = quotes.find(q => q.id === values.quoteId);
@@ -213,40 +224,40 @@ export default function OrdersPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Orders</h1>
-        <Dialog open={isAddOrderOpen} onOpenChange={setAddOrderOpen}>
-          <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" />Create Order</Button></DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Create Order from Proforma Invoice</DialogTitle>
-                <DialogDescription>
-                    Select an accepted proforma invoice to create a new order.
-                </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
-                 <FormField control={form.control} name="quoteId" render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Accepted Proforma Invoice</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger>
-                            <SelectValue placeholder="Select an accepted proforma" />
-                          </SelectTrigger></FormControl>
-                          <SelectContent>
-                            {quotes.length > 0 ? quotes.map(q => <SelectItem key={q.id} value={q.id}>
-                                {q.quoteNumber} - {q.customerName} - ¥{q.totalAmount.toFixed(2)}
-                            </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted proformas found.</p>}
-                          </SelectContent>
-                      </Select><FormMessage /></FormItem>
-                  )} />
-                <DialogFooter>
-                    <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Order</Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleOpenCreateDialog}><PlusCircle className="mr-2 h-4 w-4" />Create Order</Button>
       </div>
+      <Dialog open={isAddOrderOpen} onOpenChange={setAddOrderOpen}>
+        <DialogContent>
+          <DialogHeader>
+              <DialogTitle>Create Order from Proforma Invoice</DialogTitle>
+              <DialogDescription>
+                  Select an accepted proforma invoice to create a new order.
+              </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
+                <FormField control={form.control} name="quoteId" render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Accepted Proforma Invoice</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger>
+                          <SelectValue placeholder="Select an accepted proforma" />
+                        </SelectTrigger></FormControl>
+                        <SelectContent>
+                          {quotes.length > 0 ? quotes.map(q => <SelectItem key={q.id} value={q.id}>
+                              {q.quoteNumber} - {q.customerName} - ¥{q.totalAmount.toFixed(2)}
+                          </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted proformas found.</p>}
+                        </SelectContent>
+                    </Select><FormMessage /></FormItem>
+                )} />
+              <DialogFooter>
+                  <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
+                  <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create Order</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
        <Tabs defaultValue="ongoing">
         <TabsList className="mb-4">
             <TabsTrigger value="ongoing">En cours</TabsTrigger>

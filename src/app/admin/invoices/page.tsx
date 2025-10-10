@@ -74,9 +74,26 @@ export default function InvoicesPage() {
     fetchData();
   }, [router, toast]);
   
+  const handleOpenCreateDialog = async () => {
+    try {
+      const [freshOrders, freshInvoices] = await Promise.all([
+        getOrders(),
+        getInvoices(),
+      ]);
+      const invoicedOrderIds = new Set(freshInvoices.map(i => i.orderId));
+      const ordersWithoutInvoice = freshOrders.filter(o => !invoicedOrderIds.has(o.id));
+      setOrders(ordersWithoutInvoice); // This will be the filtered list
+      setInvoices(freshInvoices);
+      setIsDialogOpen(true);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch latest data.' });
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof createInvoiceSchema>) => {
     setIsSubmitting(true);
-    const selectedOrder = orders.find(o => o.id === values.orderId);
+    const allOrders = await getOrders(); // fetch all orders again to be sure
+    const selectedOrder = allOrders.find(o => o.id === values.orderId);
 
     if (!selectedOrder) {
         toast({ variant: 'destructive', title: 'Error', description: 'Selected order not found.' });
@@ -295,7 +312,7 @@ export default function InvoicesPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Invoices</h1>
-        <Button onClick={() => setIsDialogOpen(true)}><PlusCircle className="mr-2 h-4 w-4" />Create Invoice</Button>
+        <Button onClick={handleOpenCreateDialog}><PlusCircle className="mr-2 h-4 w-4" />Create Invoice</Button>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
@@ -315,7 +332,7 @@ export default function InvoicesPage() {
                             <SelectValue placeholder="Select an order" />
                           </SelectTrigger></FormControl>
                           <SelectContent>
-                            {ordersWithoutInvoice.length > 0 ? ordersWithoutInvoice.map(o => <SelectItem key={o.id} value={o.id}>
+                            {orders.length > 0 ? orders.map(o => <SelectItem key={o.id} value={o.id}>
                                 {o.orderNumber} - {o.customerName} - ¥{o.totalAmount.toFixed(2)}
                             </SelectItem>) : <div className="p-4 text-sm text-muted-foreground">All orders have been invoiced.</div>}
                           </SelectContent>
