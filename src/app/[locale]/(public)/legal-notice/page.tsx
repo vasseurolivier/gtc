@@ -2,11 +2,11 @@
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function LegalNoticePage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function LegalNoticePage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const pageDict = dictionary.legalNoticePage;
 
@@ -43,3 +43,5 @@ export default async function LegalNoticePage({
     </div>
   );
 }
+
+    

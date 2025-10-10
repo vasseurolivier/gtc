@@ -5,13 +5,12 @@ import { Locale } from '@/i18n-config';
 import { PublicProviders } from '@/components/layout/public-providers';
 import { Favicon } from '@/components/layout/favicon';
 
-export default async function PublicLayout({
-  children,
-  params: { locale },
-}: {
+type Props = {
   children: React.ReactNode;
   params: { locale: Locale };
-}) {
+};
+
+export default async function PublicLayout({ children, params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   return (
     <PublicProviders>
@@ -24,3 +23,5 @@ export default async function PublicLayout({
     </PublicProviders>
   );
 }
+
+    

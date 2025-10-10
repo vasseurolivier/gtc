@@ -5,11 +5,11 @@ import { Locale } from "@/i18n-config";
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default async function ContactPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function ContactPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const heroImage = PlaceHolderImages.find(p => p.id === 'contact-hero');
   
@@ -42,3 +42,5 @@ export default async function ContactPage({
     </>
   );
 }
+
+    

@@ -10,11 +10,11 @@ import { Locale, i18n } from '@/i18n-config';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default async function ServicesPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function ServicesPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
   const heroImage = PlaceHolderImages.find(p => p.id === 'services-hero');
@@ -122,3 +122,5 @@ export default async function ServicesPage({
     </>
   );
 }
+
+    

@@ -6,11 +6,11 @@ import { AboutSection } from '@/components/sections/about-section';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function Home({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function Home({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   return (
     <>
@@ -21,3 +21,5 @@ export default async function Home({
     </>
   );
 }
+
+    

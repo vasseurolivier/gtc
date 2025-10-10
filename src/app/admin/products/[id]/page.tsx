@@ -18,8 +18,11 @@ async function getProductData(id: string): Promise<Product | null> {
     }
 }
 
+type Props = {
+    params: { id: string };
+};
 
-export default async function ProductProfilePage({ params }: { params: { id: string } }) {
+export default async function ProductProfilePage({ params }: Props) {
     const { id } = params;
     const product = await getProductData(id);
 
@@ -174,3 +177,5 @@ export default async function ProductProfilePage({ params }: { params: { id: str
         </div>
     );
 }
+
+    

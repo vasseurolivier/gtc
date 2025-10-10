@@ -6,11 +6,11 @@ import { Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lam
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function SourcingPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function SourcingPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 
@@ -178,3 +178,5 @@ export default async function SourcingPage({
     </>
   );
 }
+
+    

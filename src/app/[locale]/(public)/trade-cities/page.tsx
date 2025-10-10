@@ -6,11 +6,11 @@ import { Building, Wifi, Package } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function TradeCitiesPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function TradeCitiesPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const tradeCitiesDict = dictionary.tradeCitiesPage;
 
@@ -112,3 +112,5 @@ export default async function TradeCitiesPage({
     </>
   );
 }
+
+    

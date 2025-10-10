@@ -7,11 +7,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function TradingLogisticsPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function TradingLogisticsPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const tradingLogisticsDict = dictionary.tradingLogisticsPage;
 
@@ -248,3 +248,5 @@ export default async function TradingLogisticsPage({
     </>
   );
 }
+
+    

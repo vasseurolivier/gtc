@@ -2,11 +2,11 @@
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function PrivacyPolicyPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function PrivacyPolicyPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const pageDict = dictionary.privacyPolicyPage;
 
@@ -43,3 +43,5 @@ export default async function PrivacyPolicyPage({
     </div>
   );
 }
+
+    

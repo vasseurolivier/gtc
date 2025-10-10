@@ -6,11 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function CustomServicesPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function CustomServicesPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   const customServicesDict = dictionary.customServicesPage;
   
@@ -177,3 +177,5 @@ export default async function CustomServicesPage({
     </>
   );
 }
+
+    

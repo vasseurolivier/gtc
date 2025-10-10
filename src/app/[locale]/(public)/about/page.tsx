@@ -14,11 +14,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 
-export default async function AboutPage({
-  params: { locale },
-}: {
+type Props = {
   params: { locale: Locale };
-}) {
+};
+
+export default async function AboutPage({ params: { locale } }: Props) {
   const dictionary = await getDictionary(locale);
   
   const aboutPageDict = dictionary.aboutPage;
@@ -228,3 +228,5 @@ export default async function AboutPage({
     </>
   );
 }
+
+    
