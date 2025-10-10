@@ -30,6 +30,7 @@ const invoiceSchema = z.object({
   totalAmount: z.coerce.number(),
   amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
   status: invoiceStatusSchema,
+  notes: z.string().optional(),
 });
 
 
@@ -50,6 +51,7 @@ export interface Invoice {
     dueDate: string;
     paymentDate?: string;
     createdAt: string;
+    notes?: string;
 }
 
 export async function addInvoiceFromOrder(order: Order) {
@@ -66,6 +68,7 @@ export async function addInvoiceFromOrder(order: Order) {
           totalAmount: order.totalAmount,
           status: 'unpaid' as const,
           amountPaid: 0,
+          notes: order.notes || "",
         };
         
         const validatedData = invoiceSchema.parse(newInvoiceData);
@@ -138,6 +141,7 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
             customerName: quote.customerName,
             items: quote.items,
             totalAmount: quote.totalAmount,
+            notes: quote.notes || "",
             // We don't update status or amountPaid from here, as those are managed separately
         };
         

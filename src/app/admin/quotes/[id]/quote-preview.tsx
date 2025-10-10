@@ -133,12 +133,11 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         <div className="flex justify-between pt-8">
                              <div className="w-full md:w-1/3">
                                 {quote.notes && 
-                                    <div className="mt-8 text-left border-t pt-4">
+                                    <div className="mt-8 text-left">
                                         <h3 className="font-semibold mb-2">Notes:</h3>
                                         <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
                                     </div>
                                 }
-                                <BankInfo />
                              </div>
                             <div className="w-full md:w-1/3 space-y-2">
                                 <div className="flex justify-between">
@@ -168,6 +167,9 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <span className="text-right">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</span>
                                 </div>
                             </div>
+                        </div>
+                        <div className="w-full">
+                           <BankInfo />
                         </div>
                     </div>
                 </section>

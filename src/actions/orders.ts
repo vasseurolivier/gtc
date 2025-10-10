@@ -47,6 +47,7 @@ export interface Order {
     createdAt: string;
     transportCost?: number;
     commissionRate?: number;
+    notes?: string;
 }
 
 export async function addOrder(quote: Quote) {
@@ -64,6 +65,7 @@ export async function addOrder(quote: Quote) {
           createdAt: serverTimestamp(),
           transportCost: quote.transportCost || 0,
           commissionRate: quote.commissionRate || 0,
+          notes: quote.notes || "",
         };
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
@@ -98,6 +100,7 @@ export async function updateOrderFromQuote(quote: Quote) {
             shippingAddress: quote.shippingAddress || "",
             transportCost: quote.transportCost || 0,
             commissionRate: quote.commissionRate || 0,
+            notes: quote.notes || "",
         };
 
         await updateDoc(orderRef, updatedOrderData);
