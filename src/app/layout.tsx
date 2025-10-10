@@ -24,9 +24,7 @@ export default function RootLayout({
       </head>
       <body className="font-body bg-background text-foreground antialiased">
         <AppProviders>
-          <PublicProviders>
             {children}
-          </PublicProviders>
         </AppProviders>
       </body>
     </html>
