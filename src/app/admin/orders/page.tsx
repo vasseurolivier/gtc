@@ -17,12 +17,13 @@ import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, Order } from '@/actions/orders';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import Link from 'next/link';
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a proforma invoice."),
@@ -193,6 +194,11 @@ export default function OrdersPage() {
                 <div className="text-xs text-muted-foreground">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</div>
             </TableCell>
             <TableCell className="text-right">
+                <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/admin/orders/${order.id}`}>
+                        <Eye className="h-4 w-4" />
+                    </Link>
+                </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                     <AlertDialogContent>
