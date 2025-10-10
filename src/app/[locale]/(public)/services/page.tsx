@@ -11,11 +11,10 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default async function ServicesPage({
-  params,
+  params: { locale },
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
   const heroImage = PlaceHolderImages.find(p => p.id === 'services-hero');

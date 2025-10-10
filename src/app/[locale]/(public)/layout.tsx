@@ -7,12 +7,11 @@ import { Favicon } from '@/components/layout/favicon';
 
 export default async function PublicLayout({
   children,
-  params,
+  params: { locale },
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   return (
     <PublicProviders>
