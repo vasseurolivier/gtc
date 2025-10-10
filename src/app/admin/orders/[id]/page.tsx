@@ -43,6 +43,8 @@ export default function OrderProfilePage() {
                 }
             }
             fetchData();
+        } else {
+            setIsLoading(false);
         }
     }, [id]);
 
@@ -221,4 +223,3 @@ export default function OrderProfilePage() {
         </div>
     );
 }
-
