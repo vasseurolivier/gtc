@@ -29,20 +29,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
-  const [isClient, setIsClient] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const companyInfoContext = useContext(CompanyInfoContext);
-  
-  // Use state to manage the logo, ensuring it's only accessed on the client
-  const [publicLogo, setPublicLogo] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    setIsClient(true);
-    
-    if (companyInfoContext?.companyInfo?.publicLogo) {
-      setPublicLogo(companyInfoContext.companyInfo.publicLogo);
-    }
-    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -50,7 +39,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     window.addEventListener('scroll', handleScroll);
     handleScroll(); // Check on initial render
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [companyInfoContext]);
+  }, []);
 
   useEffect(() => {
     setActivePath(pathname);
@@ -110,8 +99,6 @@ export function Header({ dictionary }: { dictionary: any }) {
     } else {
         isActive = activePath.startsWith(fullPath);
     }
-     if (!isClient) return "relative transition-colors font-semibold text-lg text-white after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full hover:text-white/90";
-
 
     return cn(
       "relative transition-colors font-semibold text-lg text-white",
@@ -123,7 +110,7 @@ export function Header({ dictionary }: { dictionary: any }) {
   const dropdownTriggerClasses = cn(
     "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-    isClient && activePath.startsWith(`/${locale}/services`)
+    activePath.startsWith(`/${locale}/services`)
       ? "text-white after:w-full"
       : "hover:text-white/90"
   );
@@ -133,11 +120,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
-          {isClient && publicLogo ? (
-            <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-          ) : (
-            <Globe className={cn("h-6 w-6 text-primary")} />
-          )}
+          <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
           <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
           </span>
@@ -206,13 +189,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
                     <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
-                    {isClient && publicLogo ? (
-                        <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-                    ) : (
-                        <>
-                        <Globe className="h-6 w-6 text-primary" />
-                        </>
-                    )}
+                     <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
                     <span className="font-bold font-headline text-lg">Global Trading China</span>
                     </Link>
                     <nav className="flex flex-col space-y-2">
@@ -222,7 +199,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         href={localePrefixed(item.href)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            isClient && (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
+                            (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {item.label}
@@ -233,7 +210,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
                             "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                            isClient && activePath.startsWith(`/${locale}/services`) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(`/${locale}/services`) ? "text-primary font-bold" : "text-foreground"
                             )}>
                             {dictionary.services}
                             </AccordionTrigger>
@@ -245,7 +222,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                                     href={localePrefixed(item.href)}
                                     className={cn(
                                     "text-base font-medium transition-colors hover:text-primary py-2",
-                                    isClient && activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-muted-foreground"
+                                    activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-muted-foreground"
                                     )}
                                 >
                                     {item.label}
@@ -260,7 +237,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         href={localePrefixed(citiesItem.href)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            isClient && activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {citiesItem.label}
@@ -270,7 +247,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         href={localePrefixed(contactItem.href)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            isClient && activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {contactItem.label}

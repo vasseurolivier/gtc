@@ -12,7 +12,6 @@ import { i18n } from '@/i18n-config';
 
 export function Footer({ dictionary }: { dictionary: any }) {
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo?.publicLogo;
   const pathname = usePathname();
 
   const getCurrentLocale = () => {
@@ -33,11 +32,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                {publicLogo ? (
-                  <Image src={publicLogo} alt="Company Logo" width={40} height={15} className="object-contain" />
-                ) : (
-                  <Globe className="h-7 w-7 text-primary" />
-                )}
+                <Image src="/logo.png" alt="Company Logo" width={40} height={15} className="object-contain" />
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>
