@@ -79,7 +79,7 @@ function AdminSettings() {
             }
             if (companyInfoContext) {
                 setCompanyName(companyInfoContext.companyInfo.name);
-                setCompanyAddress(companyInfoInfo.companyInfo.address);
+                setCompanyAddress(companyInfoContext.companyInfo.address);
                 setCompanyEmail(companyInfoContext.companyInfo.email);
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
