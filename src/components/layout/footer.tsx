@@ -5,10 +5,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { i18n } from '@/i18n-config';
+import { useContext, useEffect, useState } from 'react';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 
 export function Footer({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+  
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const publicLogo = companyInfoContext?.companyInfo.publicLogo;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const getCurrentLocale = () => {
     if (!pathname) return i18n.defaultLocale;
@@ -28,7 +38,11 @@ export function Footer({ dictionary }: { dictionary: any }) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                <Image src="https://placehold.co/40x40/png" alt="Company Logo" width={40} height={40} className="object-contain" />
+                {isClient && publicLogo ? (
+                  <Image src={publicLogo} alt="Company Logo" width={150} height={40} className="object-contain" />
+                ) : (
+                  <div style={{width: '150px', height: '40px'}} />
+                )}
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
             <div className="text-sm text-muted-foreground">{dictionary.tagline}</div>

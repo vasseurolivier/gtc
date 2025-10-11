@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,11 +21,20 @@ import {
 } from "@/components/ui/accordion"
 import { i18n } from '@/i18n-config';
 import Image from 'next/image';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const publicLogo = companyInfoContext?.companyInfo.publicLogo;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,7 +125,11 @@ export function Header({ dictionary }: { dictionary: any }) {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
-          <Image src="https://placehold.co/40x40/png" alt="Company Logo" width={40} height={40} className="object-contain invert brightness-0" />
+          {isClient && publicLogo ? (
+            <Image src={publicLogo} alt="Company Logo" width={150} height={40} className="object-contain invert brightness-0" />
+          ) : (
+            <div style={{width: '150px', height: '40px'}} />
+          )}
           <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
           </span>
@@ -185,7 +198,11 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
                     <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
-                     <Image src="https://placehold.co/40x40/png" alt="Company Logo" width={40} height={40} className="object-contain" />
+                     {isClient && publicLogo ? (
+                        <Image src={publicLogo} alt="Company Logo" width={150} height={40} className="object-contain" />
+                     ) : (
+                        <div style={{width: '150px', height: '40px'}} />
+                     )}
                     <span className="font-bold font-headline text-lg">Global Trading China</span>
                     </Link>
                     <nav className="flex flex-col space-y-2">
