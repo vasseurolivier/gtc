@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -46,8 +45,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { uploadFileClientSide } from '@/actions/upload';
-
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -95,44 +92,33 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { companyInfo, setCompanyInfo } = companyInfoContext;
     
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo" | "heroVideo") => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo" | "heroVideo") => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setIsUploading(field);
-        
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const result = await uploadFileClientSide(formData);
-
-            if (result.success && result.url) {
-                if (field === 'logo') setCompanyLogo(result.url);
-                else if (field === 'publicLogo') setPublicLogo(result.url);
-                else if (field === 'heroVideo') setHeroVideo(result.url);
-
-                toast({
-                    title: 'Upload Successful',
-                    description: 'Your file has been saved.',
-                });
-            } else {
-                 toast({
-                    variant: 'destructive',
-                    title: 'Upload Failed',
-                    description: result.message || 'Could not upload the file.',
-                });
-            }
-
-        } catch (error: any) {
-             toast({
-                variant: 'destructive',
-                title: 'Upload Failed',
-                description: error.message || 'An unexpected error occurred.',
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result as string;
+            if (field === 'logo') setCompanyLogo(result);
+            else if (field === 'publicLogo') setPublicLogo(result);
+            else if (field === 'heroVideo') setHeroVideo(result);
+            
+            toast({
+                title: 'File Ready',
+                description: 'Your file has been loaded. Click "Save changes" to apply.',
             });
-        } finally {
             setIsUploading(null);
-        }
+        };
+        reader.onerror = () => {
+            toast({
+                variant: 'destructive',
+                title: 'File Read Failed',
+                description: 'Could not read the selected file.',
+            });
+            setIsUploading(null);
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSave = () => {
@@ -400,5 +386,3 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
-
-    
