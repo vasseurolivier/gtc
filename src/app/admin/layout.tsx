@@ -46,7 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { uploadFile } from '@/actions/upload';
+import { clientStorage } from '@/lib/firebase-client';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
 function AdminSettings() {
@@ -102,31 +103,25 @@ function AdminSettings() {
         setIsUploading(field);
         
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-            const result = await uploadFile(formData);
-            
-            if (result.success && result.url) {
-                if (field === 'logo') setCompanyLogo(result.url);
-                else if (field === 'publicLogo') setPublicLogo(result.url);
-                else if (field === 'heroVideo') setHeroVideo(result.url);
+            const storageRef = ref(clientStorage, `company-assets/${Date.now()}-${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file, { contentType: file.type });
+            const downloadURL = await getDownloadURL(snapshot.ref);
 
-                toast({
-                    title: 'Upload Successful',
-                    description: 'Your file has been saved.',
-                });
-            } else {
-                toast({
-                    variant: 'destructive',
-                    title: 'Upload Failed',
-                    description: result.message || 'There was a problem uploading your file.',
-                });
-            }
+            if (field === 'logo') setCompanyLogo(downloadURL);
+            else if (field === 'publicLogo') setPublicLogo(downloadURL);
+            else if (field === 'heroVideo') setHeroVideo(downloadURL);
+
+            toast({
+                title: 'Upload Successful',
+                description: 'Your file has been saved.',
+            });
         } catch (error: any) {
              toast({
                 variant: 'destructive',
-                title: 'Upload Error',
-                description: error.message || 'Could not upload the file.',
+                title: 'Upload Failed',
+                description: error.message.includes('storage/unauthorized') 
+                    ? 'File upload failed. This is likely a CORS configuration issue on your Firebase Storage bucket. Please check your Firebase console settings to allow uploads from this domain.'
+                    : error.message || 'Could not upload the file.',
             });
         } finally {
             setIsUploading(null);

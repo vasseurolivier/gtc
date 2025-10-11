@@ -1,13 +1,10 @@
-// This file is intended for server-side Firebase initialization.
-// For client-side, please use firebase-client.ts
-
+// src/lib/firebase-client.ts
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   "projectId": "studio-4928604682-ea1ec",
-  "appId": "1:913801169761:web:0a43c3c13f0549b99c9320",
+  "appId": "1:913801169761:web:0a43_c3c13f0549b99c9320",
   "apiKey": "AIzaSyDbIhhHeFmrFsHAL6U-ht1AgTQjvGG3otw",
   "authDomain": "studio-4928604682-ea1ec.firebaseapp.com",
   "storageBucket": "studio-4928604682-ea1ec.appspot.com",
@@ -15,11 +12,7 @@ const firebaseConfig = {
   "messagingSenderId": "913801169761"
 };
 
+const clientApp = getApps().length ? getApp() : initializeApp(firebaseConfig, "client");
+const clientStorage = getStorage(clientApp);
 
-// Initialize Firebase for SERVER-SIDE
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-
-export { app, db, storage };
+export { clientApp, clientStorage };
