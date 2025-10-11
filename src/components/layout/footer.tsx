@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
@@ -42,9 +43,9 @@ export function Footer({ dictionary }: { dictionary: any }) {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
                 {isClient && publicLogo ? (
-                  <Image src={publicLogo} alt="Company Logo" width={150} height={40} className="object-contain" />
+                  <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                 ) : (
-                  <div style={{width: '150px', height: '40px'}} />
+                  <div style={{width: '50px', height: '12px'}} />
                 )}
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>
