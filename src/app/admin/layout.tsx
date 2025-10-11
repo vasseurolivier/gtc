@@ -79,7 +79,7 @@ function AdminSettings() {
             }
             if (companyInfoContext) {
                 setCompanyName(companyInfoContext.companyInfo.name);
-                setCompanyAddress(companyInfoContext.companyInfo.address);
+                setCompanyAddress(companyInfoInfo.companyInfo.address);
                 setCompanyEmail(companyInfoContext.companyInfo.email);
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
@@ -94,7 +94,7 @@ function AdminSettings() {
     }
 
     const { setCurrency, setExchangeRate } = currencyContext;
-    const { setCompanyInfo } = companyInfoContext;
+    const { companyInfo, setCompanyInfo } = companyInfoContext;
     
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'logo' | 'publicLogo' | 'heroVideo') => {
         const file = e.target.files?.[0];
@@ -116,13 +116,25 @@ function AdminSettings() {
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            if (fileType === 'logo') setCompanyLogo(downloadURL);
-            if (fileType === 'publicLogo') setPublicLogo(downloadURL);
-            if (fileType === 'heroVideo') setHeroVideo(downloadURL);
+            let newInfo = { ...companyInfo };
+            if (fileType === 'logo') {
+                setCompanyLogo(downloadURL);
+                newInfo.logo = downloadURL;
+            }
+            if (fileType === 'publicLogo') {
+                setPublicLogo(downloadURL);
+                newInfo.publicLogo = downloadURL;
+            }
+            if (fileType === 'heroVideo') {
+                setHeroVideo(downloadURL);
+                newInfo.heroVideo = downloadURL;
+            }
+            
+            setCompanyInfo(newInfo); // Immediately update context and localStorage
             
             toast({
                 title: 'Upload Successful',
-                description: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} has been uploaded.`,
+                description: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} has been uploaded and saved.`,
             });
         } catch (error) {
             console.error("File upload error:", error);
@@ -174,7 +186,7 @@ function AdminSettings() {
                 accept={type === 'heroVideo' ? 'video/*' : 'image/*'} 
                 onChange={(e) => handleFileChange(e, type)} 
                 className="w-auto" 
-                disabled={isUploading === type}
+                disabled={!!isUploading}
             />
             {isUploading === type && <Loader2 className="h-4 w-4 animate-spin"/>}
         </>
@@ -289,7 +301,7 @@ function AdminSettings() {
                     </div>
                     <DialogFooter>
                         <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={handleSave} disabled={!!isUploading}>
+                        <Button onClick={handleSave}>
                             {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save changes
                         </Button>

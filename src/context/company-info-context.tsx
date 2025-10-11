@@ -48,13 +48,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
   useEffect(() => {
     if (isLoaded) {
         try {
-            // Don't save large data URIs to localStorage
-            const infoToSave = { ...companyInfo };
-            if (infoToSave.logo?.startsWith('data:')) infoToSave.logo = '';
-            if (infoToSave.publicLogo?.startsWith('data:')) infoToSave.publicLogo = '';
-            if (infoToSave.heroVideo?.startsWith('data:')) infoToSave.heroVideo = '';
-
-            localStorage.setItem('adminCompanyInfo', JSON.stringify(infoToSave));
+            localStorage.setItem('adminCompanyInfo', JSON.stringify(companyInfo));
         } catch (error) {
             console.error('Failed to save company info to localStorage', error);
         }
