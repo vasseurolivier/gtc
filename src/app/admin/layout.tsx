@@ -46,8 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadFile } from '@/actions/upload';
+
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -101,35 +101,40 @@ function AdminSettings() {
 
         setIsUploading(field);
         
-        const fileRef = ref(storage, `company-assets/${Date.now()}-${file.name}`);
-        
-        try {
-            const snapshot = await uploadBytes(fileRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-
-            if (field === 'logo') {
-                setCompanyLogo(downloadURL);
-            } else if (field === 'publicLogo') {
-                setPublicLogo(downloadURL);
-            } else if (field === 'heroVideo') {
-                setHeroVideo(downloadURL);
-            }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const fileDataUrl = reader.result as string;
             
-            toast({
-                title: 'Upload Successful',
-                description: 'Your file has been saved.',
-            });
+            const result = await uploadFile(fileDataUrl, file.name);
 
-        } catch (error) {
-            console.error("File upload error:", error);
+            if (result.success && result.url) {
+                if (field === 'logo') setCompanyLogo(result.url);
+                else if (field === 'publicLogo') setPublicLogo(result.url);
+                else if (field === 'heroVideo') setHeroVideo(result.url);
+
+                toast({
+                    title: 'Upload Successful',
+                    description: 'Your file has been saved.',
+                });
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: 'Upload Failed',
+                    description: result.message || 'There was a problem uploading your file.',
+                });
+            }
+             setIsUploading(null);
+        };
+        reader.onerror = (error) => {
+            console.error('Error reading file:', error);
             toast({
                 variant: 'destructive',
-                title: 'Upload Failed',
-                description: 'There was a problem uploading your file. Please try again.',
+                title: 'File Read Error',
+                description: 'Could not read the selected file.',
             });
-        } finally {
             setIsUploading(null);
-        }
+        };
     };
 
     const handleSave = () => {
@@ -397,5 +402,3 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
-
-    
