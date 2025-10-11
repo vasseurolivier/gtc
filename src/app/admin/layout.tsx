@@ -130,7 +130,7 @@ function AdminSettings() {
                 newInfo.heroVideo = downloadURL;
             }
             
-            setCompanyInfo(newInfo); // Immediately update context and localStorage
+            setCompanyInfo(newInfo);
             
             toast({
                 title: 'Upload Successful',
@@ -436,3 +436,5 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
+
+    
