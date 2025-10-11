@@ -46,8 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { clientStorage } from '@/lib/firebase-client';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadFileClientSide } from '@/actions/upload';
 
 
 function AdminSettings() {
@@ -102,26 +101,34 @@ function AdminSettings() {
 
         setIsUploading(field);
         
+        const formData = new FormData();
+        formData.append('file', file);
+
         try {
-            const storageRef = ref(clientStorage, `company-assets/${Date.now()}-${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file, { contentType: file.type });
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            const result = await uploadFileClientSide(formData);
 
-            if (field === 'logo') setCompanyLogo(downloadURL);
-            else if (field === 'publicLogo') setPublicLogo(downloadURL);
-            else if (field === 'heroVideo') setHeroVideo(downloadURL);
+            if (result.success && result.url) {
+                if (field === 'logo') setCompanyLogo(result.url);
+                else if (field === 'publicLogo') setPublicLogo(result.url);
+                else if (field === 'heroVideo') setHeroVideo(result.url);
 
-            toast({
-                title: 'Upload Successful',
-                description: 'Your file has been saved.',
-            });
+                toast({
+                    title: 'Upload Successful',
+                    description: 'Your file has been saved.',
+                });
+            } else {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Upload Failed',
+                    description: result.message || 'Could not upload the file.',
+                });
+            }
+
         } catch (error: any) {
              toast({
                 variant: 'destructive',
                 title: 'Upload Failed',
-                description: error.message.includes('storage/unauthorized') 
-                    ? 'File upload failed. This is likely a CORS configuration issue on your Firebase Storage bucket. Please check your Firebase console settings to allow uploads from this domain.'
-                    : error.message || 'Could not upload the file.',
+                description: error.message || 'An unexpected error occurred.',
             });
         } finally {
             setIsUploading(null);
@@ -178,7 +185,7 @@ function AdminSettings() {
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="logo" className="text-right pt-2">Admin Logo URL</Label>
+                                    <Label htmlFor="logo" className="text-right pt-2">Admin Logo</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {isUploading === 'logo' ? <Loader2 className="h-8 w-8 animate-spin" /> : companyLogo ? (
@@ -187,11 +194,11 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="logo" type="file" onChange={(e) => handleFileChange(e, 'logo')} className="col-span-3" />
+                                        <Input id="logo" type="file" onChange={(e) => handleFileChange(e, 'logo')} className="col-span-3" disabled={isUploading === 'logo'}/>
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo URL</Label>
+                                    <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {isUploading === 'publicLogo' ? <Loader2 className="h-8 w-8 animate-spin" /> : publicLogo ? (
@@ -200,7 +207,7 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="publicLogo" type="file" onChange={(e) => handleFileChange(e, 'publicLogo')} className="col-span-3" />
+                                        <Input id="publicLogo" type="file" onChange={(e) => handleFileChange(e, 'publicLogo')} className="col-span-3" disabled={isUploading === 'publicLogo'}/>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
@@ -221,7 +228,7 @@ function AdminSettings() {
                         <div>
                             <h3 className="text-lg font-medium mb-4">Site Customization</h3>
                             <div className="grid grid-cols-4 items-start gap-4">
-                                <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video URL</Label>
+                                <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video</Label>
                                 <div className="col-span-3 flex items-center gap-4">
                                     <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                         {isUploading === 'heroVideo' ? <Loader2 className="h-8 w-8 animate-spin" /> : heroVideo ? (
@@ -230,7 +237,7 @@ function AdminSettings() {
                                             <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                         )}
                                     </div>
-                                    <Input id="heroVideo" type="file" onChange={(e) => handleFileChange(e, 'heroVideo')} className="col-span-3" />
+                                    <Input id="heroVideo" type="file" accept="video/mp4,video/webm" onChange={(e) => handleFileChange(e, 'heroVideo')} className="col-span-3" disabled={isUploading === 'heroVideo'} />
                                 </div>
                             </div>
                         </div>
@@ -393,3 +400,5 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
+
+    

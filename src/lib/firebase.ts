@@ -1,3 +1,4 @@
+
 // This file is intended for server-side Firebase initialization.
 // For client-side, please use firebase-client.ts
 
@@ -17,9 +18,17 @@ const firebaseConfig = {
 
 
 // Initialize Firebase for SERVER-SIDE
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let app: FirebaseApp;
+if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp();
+}
+
 const db = getFirestore(app);
 const storage = getStorage(app);
 
 
 export { app, db, storage };
+
+    
