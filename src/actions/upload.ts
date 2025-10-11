@@ -4,15 +4,19 @@ import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export async function uploadFile(
-  fileBuffer: ArrayBuffer,
-  fileName: string,
-  contentType: string
+  formData: FormData
 ): Promise<{ success: boolean; url?: string; message?: string }> {
   try {
-    const storageRef = ref(storage, `company-assets/${Date.now()}-${fileName}`);
+    const file = formData.get('file') as File;
+    if (!file) {
+      return { success: false, message: 'No file provided.' };
+    }
+
+    const fileBuffer = await file.arrayBuffer();
+    const storageRef = ref(storage, `company-assets/${Date.now()}-${file.name}`);
     
     const snapshot = await uploadBytes(storageRef, fileBuffer, {
-      contentType: contentType,
+      contentType: file.type,
     });
     
     const downloadURL = await getDownloadURL(snapshot.ref);

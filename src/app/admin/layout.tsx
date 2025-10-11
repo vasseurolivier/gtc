@@ -102,8 +102,9 @@ function AdminSettings() {
         setIsUploading(field);
         
         try {
-            const fileBuffer = await file.arrayBuffer();
-            const result = await uploadFile(fileBuffer, file.name, file.type);
+            const formData = new FormData();
+            formData.append('file', file);
+            const result = await uploadFile(formData);
             
             if (result.success && result.url) {
                 if (field === 'logo') setCompanyLogo(result.url);
