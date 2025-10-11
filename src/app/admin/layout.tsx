@@ -101,13 +101,10 @@ function AdminSettings() {
 
         setIsUploading(field);
         
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-            const fileDataUrl = reader.result as string;
+        try {
+            const fileBuffer = await file.arrayBuffer();
+            const result = await uploadFile(fileBuffer, file.name, file.type);
             
-            const result = await uploadFile(fileDataUrl, file.name);
-
             if (result.success && result.url) {
                 if (field === 'logo') setCompanyLogo(result.url);
                 else if (field === 'publicLogo') setPublicLogo(result.url);
@@ -124,17 +121,15 @@ function AdminSettings() {
                     description: result.message || 'There was a problem uploading your file.',
                 });
             }
-             setIsUploading(null);
-        };
-        reader.onerror = (error) => {
-            console.error('Error reading file:', error);
-            toast({
+        } catch (error: any) {
+             toast({
                 variant: 'destructive',
-                title: 'File Read Error',
-                description: 'Could not read the selected file.',
+                title: 'Upload Error',
+                description: error.message || 'Could not upload the file.',
             });
+        } finally {
             setIsUploading(null);
-        };
+        }
     };
 
     const handleSave = () => {
