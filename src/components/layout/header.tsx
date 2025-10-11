@@ -131,9 +131,9 @@ export function Header({ dictionary }: { dictionary: any }) {
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
           {isClient && publicLogo ? (
-            <Image src={publicLogo} alt="Company Logo" width={60} height={15} className="object-contain invert brightness-0" />
+            <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain invert brightness-0" />
           ) : (
-            <div style={{width: '60px', height: '15px'}} />
+            <div style={{width: '50px', height: '12px'}} />
           )}
           <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
             Global Trading China
@@ -204,9 +204,9 @@ export function Header({ dictionary }: { dictionary: any }) {
                 <SheetContent side="left" className="w-full max-w-xs">
                     <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
                      {isClient && publicLogo ? (
-                        <Image src={publicLogo} alt="Company Logo" width={60} height={15} className="object-contain" />
+                        <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                      ) : (
-                        <div style={{width: '60px', height: '15px'}} />
+                        <div style={{width: '50px', height: '12px'}} />
                      )}
                     <span className="font-bold font-headline text-lg">Global Trading China</span>
                     </Link>
