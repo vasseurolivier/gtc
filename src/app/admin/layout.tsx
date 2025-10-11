@@ -46,7 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -54,6 +55,7 @@ function AdminSettings() {
     const { toast } = useToast();
     
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState<"logo" | "publicLogo" | "heroVideo" | null>(null);
 
     // Currency state
     const [selectedCurrency, setSelectedCurrency] = useState('EUR');
@@ -93,6 +95,42 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { companyInfo, setCompanyInfo } = companyInfoContext;
     
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo" | "heroVideo") => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(field);
+        
+        const fileRef = ref(storage, `company-assets/${Date.now()}-${file.name}`);
+        
+        try {
+            const snapshot = await uploadBytes(fileRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            if (field === 'logo') {
+                setCompanyLogo(downloadURL);
+            } else if (field === 'publicLogo') {
+                setPublicLogo(downloadURL);
+            } else if (field === 'heroVideo') {
+                setHeroVideo(downloadURL);
+            }
+            
+            toast({
+                title: 'Upload Successful',
+                description: 'Your file has been saved.',
+            });
+
+        } catch (error) {
+            console.error("File upload error:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Upload Failed',
+                description: 'There was a problem uploading your file. Please try again.',
+            });
+        } finally {
+            setIsUploading(null);
+        }
+    };
 
     const handleSave = () => {
         const newRate = parseFloat(localRate);
@@ -147,26 +185,26 @@ function AdminSettings() {
                                     <Label htmlFor="logo" className="text-right pt-2">Admin Logo URL</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                            {companyLogo ? (
+                                            {isUploading === 'logo' ? <Loader2 className="h-8 w-8 animate-spin" /> : companyLogo ? (
                                                 <Image src={companyLogo} alt="Company Logo" width={96} height={96} className="object-contain rounded-md" />
                                             ) : (
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="logo" value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} placeholder="https://..." />
+                                        <Input id="logo" type="file" onChange={(e) => handleFileChange(e, 'logo')} className="col-span-3" />
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
                                     <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo URL</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                            {publicLogo ? (
+                                            {isUploading === 'publicLogo' ? <Loader2 className="h-8 w-8 animate-spin" /> : publicLogo ? (
                                                 <Image src={publicLogo} alt="Public Site Logo" width={96} height={96} className="object-contain rounded-md" />
                                             ) : (
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="publicLogo" value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} placeholder="https://..." />
+                                        <Input id="publicLogo" type="file" onChange={(e) => handleFileChange(e, 'publicLogo')} className="col-span-3" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
@@ -190,13 +228,13 @@ function AdminSettings() {
                                 <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video URL</Label>
                                 <div className="col-span-3 flex items-center gap-4">
                                     <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                        {heroVideo ? (
+                                        {isUploading === 'heroVideo' ? <Loader2 className="h-8 w-8 animate-spin" /> : heroVideo ? (
                                             <video src={heroVideo} className="object-contain rounded-md" muted playsInline />
                                         ) : (
                                             <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                         )}
                                     </div>
-                                    <Input id="heroVideo" value={heroVideo} onChange={(e) => setHeroVideo(e.target.value)} placeholder="https://..." />
+                                    <Input id="heroVideo" type="file" onChange={(e) => handleFileChange(e, 'heroVideo')} className="col-span-3" />
                                 </div>
                             </div>
                         </div>
@@ -359,3 +397,5 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
+
+    
