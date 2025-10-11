@@ -6,10 +6,20 @@ import Link from 'next/link';
 import { HeroContactForm } from '@/components/forms/hero-contact-form';
 import { usePathname } from 'next/navigation';
 import { i18n } from '@/i18n-config';
+import { useContext, useEffect, useState } from 'react';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 
 export function HeroSection({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
+  const [heroVideo, setHeroVideo] = useState('');
+  const companyInfoContext = useContext(CompanyInfoContext);
+
+  useEffect(() => {
+    if (companyInfoContext) {
+      setHeroVideo(companyInfoContext.companyInfo.heroVideo || '');
+    }
+  }, [companyInfoContext]);
   
   const getCurrentLocale = () => {
     if (!pathname) return i18n.defaultLocale;
@@ -27,13 +37,14 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
     <section className="relative w-full h-screen text-primary-foreground overflow-hidden md:-mt-16">
        <div className="absolute inset-0 bg-black/60 min-h-screen">
           <video
+            key={heroVideo}
             autoPlay
             loop
             muted
             playsInline
             className="absolute z-0 w-auto min-w-full min-h-full max-w-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-cover"
           >
-            <source src="/hero-video.mp4" type="video/mp4" />
+            <source src={heroVideo || "/hero-video.mp4"} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />

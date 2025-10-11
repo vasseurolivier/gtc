@@ -11,14 +11,17 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 
 export function Footer({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
+  const [publicLogo, setPublicLogo] = useState('');
   const [isClient, setIsClient] = useState(false);
   
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo.publicLogo;
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (companyInfoContext) {
+      setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
+    }
+  }, [companyInfoContext]);
   
   const getCurrentLocale = () => {
     if (!pathname) return i18n.defaultLocale;

@@ -45,6 +45,9 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Loader2 } from 'lucide-react';
 
 
 function AdminSettings() {
@@ -53,6 +56,7 @@ function AdminSettings() {
     const { toast } = useToast();
     
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState<('logo' | 'publicLogo' | 'heroVideo' | null)>(null);
 
     // Currency state
     const [selectedCurrency, setSelectedCurrency] = useState('EUR');
@@ -92,22 +96,43 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { setCompanyInfo } = companyInfoContext;
     
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFileState: React.Dispatch<React.SetStateAction<string>>, maxSizeMB: number, fileType: 'image' | 'video') => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'logo' | 'publicLogo' | 'heroVideo') => {
         const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast({
-                    variant: 'destructive',
-                    title: 'File too large',
-                    description: `Please upload a ${fileType} smaller than ${maxSizeMB}MB.`,
-                });
-                return;
-            }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFileState(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        const maxSizeMB = fileType === 'heroVideo' ? 5 : 2;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast({
+                variant: 'destructive',
+                title: 'File too large',
+                description: `Please upload a file smaller than ${maxSizeMB}MB.`,
+            });
+            return;
+        }
+
+        setIsUploading(fileType);
+        try {
+            const storageRef = ref(storage, `site-assets/${fileType}_${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            if (fileType === 'logo') setCompanyLogo(downloadURL);
+            if (fileType === 'publicLogo') setPublicLogo(downloadURL);
+            if (fileType === 'heroVideo') setHeroVideo(downloadURL);
+            
+            toast({
+                title: 'Upload Successful',
+                description: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} has been uploaded.`,
+            });
+        } catch (error) {
+            console.error("File upload error:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Upload Failed',
+                description: 'An error occurred while uploading the file. Please try again.',
+            });
+        } finally {
+            setIsUploading(null);
         }
     };
 
@@ -141,6 +166,20 @@ function AdminSettings() {
         setIsDialogOpen(false);
     };
     
+    const renderUploadButton = (type: 'logo' | 'publicLogo' | 'heroVideo') => (
+        <>
+            <Input 
+                id={type} 
+                type="file" 
+                accept={type === 'heroVideo' ? 'video/*' : 'image/*'} 
+                onChange={(e) => handleFileChange(e, type)} 
+                className="w-auto" 
+                disabled={isUploading === type}
+            />
+            {isUploading === type && <Loader2 className="h-4 w-4 animate-spin"/>}
+        </>
+    );
+    
     return (
         <>
             <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
@@ -162,7 +201,7 @@ function AdminSettings() {
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="company-logo" className="text-right pt-2">Admin Logo</Label>
+                                    <Label htmlFor="logo" className="text-right pt-2">Admin Logo</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {companyLogo ? (
@@ -171,11 +210,13 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="company-logo" type="file" accept="image/*" onChange={(e) => handleFileChange(e, setCompanyLogo, 2, 'image')} className="w-auto" />
+                                        <div className="flex items-center gap-2">
+                                            {renderUploadButton('logo')}
+                                        </div>
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="public-logo" className="text-right pt-2">Public Site Logo</Label>
+                                    <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {publicLogo ? (
@@ -184,7 +225,9 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="public-logo" type="file" accept="image/*" onChange={(e) => handleFileChange(e, setPublicLogo, 2, 'image')} className="w-auto" />
+                                        <div className="flex items-center gap-2">
+                                            {renderUploadButton('publicLogo')}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
@@ -205,7 +248,7 @@ function AdminSettings() {
                         <div>
                             <h3 className="text-lg font-medium mb-4">Site Customization</h3>
                             <div className="grid grid-cols-4 items-start gap-4">
-                                <Label htmlFor="hero-video" className="text-right pt-2">Hero Video</Label>
+                                <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video</Label>
                                 <div className="col-span-3 flex items-center gap-4">
                                     <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                         {heroVideo ? (
@@ -214,7 +257,9 @@ function AdminSettings() {
                                             <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                         )}
                                     </div>
-                                    <Input id="hero-video" type="file" accept="video/mp4,video/webm" onChange={(e) => handleFileChange(e, setHeroVideo, 5, 'video')} className="w-auto" />
+                                    <div className="flex items-center gap-2">
+                                        {renderUploadButton('heroVideo')}
+                                    </div>
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-2 text-right col-start-2 col-span-3">Short video (&lt; 5MB) recommended for performance.</p>
@@ -244,7 +289,10 @@ function AdminSettings() {
                     </div>
                     <DialogFooter>
                         <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={handleSave}>Save changes</Button>
+                        <Button onClick={handleSave} disabled={!!isUploading}>
+                            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save changes
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

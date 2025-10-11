@@ -27,14 +27,18 @@ export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [publicLogo, setPublicLogo] = useState('');
   const [isClient, setIsClient] = useState(false);
-  
+
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo.publicLogo;
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (companyInfoContext) {
+      setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
+    }
+  }, [companyInfoContext]);
+
 
   useEffect(() => {
     const handleScroll = () => {

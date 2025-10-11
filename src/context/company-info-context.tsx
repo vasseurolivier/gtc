@@ -8,9 +8,9 @@ export interface CompanyInfo {
   address: string;
   email: string;
   phone: string;
-  logo: string; // Base64 data URL for admin
-  publicLogo?: string; // Base64 data URL for public site
-  heroVideo?: string; // Base64 data URL for the hero video
+  logo: string; 
+  publicLogo?: string;
+  heroVideo?: string;
 }
 
 interface CompanyInfoContextType {
@@ -48,14 +48,15 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
   useEffect(() => {
     if (isLoaded) {
         try {
-            localStorage.setItem('adminCompanyInfo', JSON.stringify(companyInfo));
+            // Don't save large data URIs to localStorage
+            const infoToSave = { ...companyInfo };
+            if (infoToSave.logo?.startsWith('data:')) infoToSave.logo = '';
+            if (infoToSave.publicLogo?.startsWith('data:')) infoToSave.publicLogo = '';
+            if (infoToSave.heroVideo?.startsWith('data:')) infoToSave.heroVideo = '';
+
+            localStorage.setItem('adminCompanyInfo', JSON.stringify(infoToSave));
         } catch (error) {
-            // This can happen if the video is too large for localStorage
-            if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
-                 alert("Could not save settings. The video file might be too large. Please use a smaller video.");
-            } else {
-                console.error('Failed to save company info to localStorage', error);
-            }
+            console.error('Failed to save company info to localStorage', error);
         }
     }
   }, [companyInfo, isLoaded]);
