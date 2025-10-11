@@ -45,8 +45,6 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
-import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Loader2 } from 'lucide-react';
 
 
@@ -56,7 +54,6 @@ function AdminSettings() {
     const { toast } = useToast();
     
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isUploading, setIsUploading] = useState<('logo' | 'publicLogo' | 'heroVideo' | null)>(null);
 
     // Currency state
     const [selectedCurrency, setSelectedCurrency] = useState('EUR');
@@ -96,58 +93,6 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { companyInfo, setCompanyInfo } = companyInfoContext;
     
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'logo' | 'publicLogo' | 'heroVideo') => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const maxSizeMB = fileType === 'heroVideo' ? 5 : 2;
-        if (file.size > maxSizeMB * 1024 * 1024) {
-            toast({
-                variant: 'destructive',
-                title: 'File too large',
-                description: `Please upload a file smaller than ${maxSizeMB}MB.`,
-            });
-            return;
-        }
-
-        setIsUploading(fileType);
-        try {
-            const storageRef = ref(storage, `site-assets/${fileType}_${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-
-            let newInfo = { ...companyInfo };
-            if (fileType === 'logo') {
-                setCompanyLogo(downloadURL);
-                newInfo.logo = downloadURL;
-            }
-            if (fileType === 'publicLogo') {
-                setPublicLogo(downloadURL);
-                newInfo.publicLogo = downloadURL;
-            }
-            if (fileType === 'heroVideo') {
-                setHeroVideo(downloadURL);
-                newInfo.heroVideo = downloadURL;
-            }
-            
-            setCompanyInfo(newInfo);
-            
-            toast({
-                title: 'Upload Successful',
-                description: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} has been uploaded and saved.`,
-            });
-        } catch (error) {
-            console.error("File upload error:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Upload Failed',
-                description: 'An error occurred while uploading the file. Please try again.',
-            });
-        } finally {
-            setIsUploading(null);
-        }
-    };
-
 
     const handleSave = () => {
         const newRate = parseFloat(localRate);
@@ -178,20 +123,6 @@ function AdminSettings() {
         setIsDialogOpen(false);
     };
     
-    const renderUploadButton = (type: 'logo' | 'publicLogo' | 'heroVideo') => (
-        <>
-            <Input 
-                id={type} 
-                type="file" 
-                accept={type === 'heroVideo' ? 'video/*' : 'image/*'} 
-                onChange={(e) => handleFileChange(e, type)} 
-                className="w-auto" 
-                disabled={!!isUploading}
-            />
-            {isUploading === type && <Loader2 className="h-4 w-4 animate-spin"/>}
-        </>
-    );
-    
     return (
         <>
             <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
@@ -213,7 +144,7 @@ function AdminSettings() {
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="logo" className="text-right pt-2">Admin Logo</Label>
+                                    <Label htmlFor="logo" className="text-right pt-2">Admin Logo URL</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {companyLogo ? (
@@ -222,13 +153,11 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            {renderUploadButton('logo')}
-                                        </div>
+                                        <Input id="logo" value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} placeholder="https://..." />
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo</Label>
+                                    <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo URL</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {publicLogo ? (
@@ -237,9 +166,7 @@ function AdminSettings() {
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            {renderUploadButton('publicLogo')}
-                                        </div>
+                                        <Input id="publicLogo" value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} placeholder="https://..." />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
@@ -260,7 +187,7 @@ function AdminSettings() {
                         <div>
                             <h3 className="text-lg font-medium mb-4">Site Customization</h3>
                             <div className="grid grid-cols-4 items-start gap-4">
-                                <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video</Label>
+                                <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video URL</Label>
                                 <div className="col-span-3 flex items-center gap-4">
                                     <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                         {heroVideo ? (
@@ -269,12 +196,9 @@ function AdminSettings() {
                                             <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        {renderUploadButton('heroVideo')}
-                                    </div>
+                                    <Input id="heroVideo" value={heroVideo} onChange={(e) => setHeroVideo(e.target.value)} placeholder="https://..." />
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-2 text-right col-start-2 col-span-3">Short video (&lt; 5MB) recommended for performance.</p>
                         </div>
                         <Separator />
                         <div>
@@ -302,7 +226,6 @@ function AdminSettings() {
                     <DialogFooter>
                         <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
                         <Button onClick={handleSave}>
-                            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save changes
                         </Button>
                     </DialogFooter>
@@ -436,5 +359,3 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
-
-    
