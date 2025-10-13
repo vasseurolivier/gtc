@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,6 +28,7 @@ import {
   FileSignature,
   ClipboardList,
   FileUp,
+  Factory,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -45,6 +47,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
+import { uploadFileFromBase64 } from '@/actions/upload';
+
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -92,33 +96,41 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { companyInfo, setCompanyInfo } = companyInfoContext;
     
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo" | "heroVideo") => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo" | "heroVideo") => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setIsUploading(field);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const result = reader.result as string;
-            if (field === 'logo') setCompanyLogo(result);
-            else if (field === 'publicLogo') setPublicLogo(result);
-            else if (field === 'heroVideo') setHeroVideo(result);
-            
-            toast({
-                title: 'File Ready',
-                description: 'Your file has been loaded. Click "Save changes" to apply.',
-            });
-            setIsUploading(null);
-        };
-        reader.onerror = () => {
+        
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async () => {
+                const base64String = reader.result as string;
+                const result = await uploadFileFromBase64(base64String, file.name, file.type);
+
+                if (result.success && result.url) {
+                    if (field === 'logo') setCompanyLogo(result.url);
+                    else if (field === 'publicLogo') setPublicLogo(result.url);
+                    else if (field === 'heroVideo') setHeroVideo(result.url);
+                    
+                    toast({
+                        title: 'File uploaded',
+                        description: 'Your file has been uploaded. Click "Save changes" to apply.',
+                    });
+                } else {
+                    throw new Error(result.message || 'An unknown error occurred');
+                }
+                setIsUploading(null);
+            };
+        } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: 'File Read Failed',
-                description: 'Could not read the selected file.',
+                title: 'File Upload Failed',
+                description: error.message || 'Could not upload the selected file.',
             });
             setIsUploading(null);
-        };
-        reader.readAsDataURL(file);
+        }
     };
 
     const handleSave = () => {
@@ -207,23 +219,6 @@ function AdminSettings() {
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="company-phone" className="text-right">Phone</Label>
                                     <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
-                                </div>
-                            </div>
-                        </div>
-                        <Separator />
-                        <div>
-                            <h3 className="text-lg font-medium mb-4">Site Customization</h3>
-                            <div className="grid grid-cols-4 items-start gap-4">
-                                <Label htmlFor="heroVideo" className="text-right pt-2">Hero Video</Label>
-                                <div className="col-span-3 flex items-center gap-4">
-                                    <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                        {isUploading === 'heroVideo' ? <Loader2 className="h-8 w-8 animate-spin" /> : heroVideo ? (
-                                            <video src={heroVideo} className="object-contain rounded-md" muted playsInline />
-                                        ) : (
-                                            <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                        )}
-                                    </div>
-                                    <Input id="heroVideo" type="file" accept="video/mp4,video/webm" onChange={(e) => handleFileChange(e, 'heroVideo')} className="col-span-3" disabled={isUploading === 'heroVideo'} />
                                 </div>
                             </div>
                         </div>
@@ -321,6 +316,7 @@ function ProtectedAdminLayout({
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
+    { href: '/admin/factory-pi', icon: <Factory />, label: 'Proformas Usine' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
     { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
@@ -386,3 +382,5 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
+
+    
