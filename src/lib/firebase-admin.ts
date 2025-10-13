@@ -2,8 +2,11 @@
 import 'dotenv/config';
 import admin from 'firebase-admin';
 
-// Check if the app is already initialized to prevent errors
-if (!admin.apps.length) {
+function getAdminApp() {
+    if (admin.apps.length > 0) {
+        return admin.apps[0]!;
+    }
+
     const serviceAccount = {
         "type": process.env.FIREBASE_TYPE,
         "project_id": process.env.FIREBASE_PROJECT_ID,
@@ -17,15 +20,12 @@ if (!admin.apps.length) {
         "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL,
     } as admin.ServiceAccount;
 
-    admin.initializeApp({
+    const app = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         storageBucket: "studio-4928604682-ea1ec.appspot.com"
     });
+    
+    return app;
 }
 
-export const getAdminApp = () => {
-    if (!admin.apps.length) {
-        throw new Error("Firebase Admin SDK not initialized");
-    }
-    return admin.apps[0]!;
-};
+export { getAdminApp };
