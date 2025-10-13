@@ -47,7 +47,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { uploadFileFromBase64 } from '@/actions/upload';
 
 
 function AdminSettings() {
@@ -107,6 +106,8 @@ function AdminSettings() {
             reader.readAsDataURL(file);
             reader.onloadend = async () => {
                 const base64String = reader.result as string;
+                // Dynamically import the action
+                const { uploadFileFromBase64 } = await import('@/actions/upload');
                 const result = await uploadFileFromBase64(base64String, file.name, file.type);
 
                 if (result.success && result.url) {
@@ -382,5 +383,3 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
-
-    
