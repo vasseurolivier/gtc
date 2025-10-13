@@ -1,3 +1,4 @@
+
 "use client";
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
   const localePrefixed = (path: string) => `/${locale}${path}`;
 
   return (
-    <section className="relative w-full h-screen text-primary-foreground overflow-hidden md:-mt-16">
+    <section className="relative w-full h-screen text-primary-foreground overflow-hidden">
       {heroImage && (
         <Image
             src={heroImage.imageUrl}
