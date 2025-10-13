@@ -25,6 +25,7 @@ const contractSchema = z.object({
   supplierRepresentative: z.string().min(1, 'Representative Name is required.'),
   productDescription: z.string().min(1, 'Product Description is required.'),
   productPrice: z.string().min(1, 'Price is required.'),
+  commissionPercentage: z.coerce.number().min(0, 'Commission cannot be negative.').optional().default(0),
   paymentTerms: z.string().min(1, 'Payment Terms are required.'),
   paymentTermsChinese: z.string().min(1, 'Chinese Payment Terms are required.'),
   deliveryLeadTime: z.string().min(1, 'Delivery Lead Time is required.'),
@@ -54,6 +55,7 @@ export default function SupplierContractPage() {
       supplierRepresentative: '',
       productDescription: '',
       productPrice: '',
+      commissionPercentage: 5,
       paymentTerms: '30% T/T upon order confirmation, 70% T/T balance before shipment after successful inspection.',
       paymentTermsChinese: '订单确认后支付30% T/T定金，检验合格后出货前付清70% T/T余款。',
       deliveryLeadTime: '30-45 days after receipt of the initial payment.',
@@ -112,9 +114,14 @@ export default function SupplierContractPage() {
                 <FormField control={form.control} name="productDescription" render={({ field }) => (
                   <FormItem><FormLabel>Product Description</FormLabel><FormControl><Textarea rows={5} {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
-                <FormField control={form.control} name="productPrice" render={({ field }) => (
-                  <FormItem><FormLabel>Price and Currency</FormLabel><FormControl><Input placeholder="e.g., 15,000 USD" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="productPrice" render={({ field }) => (
+                    <FormItem><FormLabel>Price and Currency</FormLabel><FormControl><Input placeholder="e.g., 15,000 USD" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="commissionPercentage" render={({ field }) => (
+                    <FormItem><FormLabel>Commission (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                 </div>
                  <FormField control={form.control} name="paymentTerms" render={({ field }) => (
                   <FormItem><FormLabel>Payment Terms</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
@@ -215,9 +222,17 @@ export default function SupplierContractPage() {
                           <p>{watchedValues.qualityControl}. The Client reserves the right to appoint a third party to conduct this inspection. In case of major non-conformity, the Supplier undertakes to rework and correct the production at its own expense.</p>
                           <p>{qualityControlChinese} 客户保留委托第三方进行检验的权利。如发现重大不符，供应商承诺自费返工并修正。</p>
                       </div>
+                       {watchedValues.commissionPercentage > 0 && (
+                        <div>
+                            <h3 className="font-bold">ARTICLE 7: COMMISSION</h3>
+                            <h3 className="font-bold">第七条：佣金</h3>
+                            <p>The Supplier agrees to pay the Client a commission of {watchedValues.commissionPercentage}% on the total amount of the order, excluding transport costs. This commission will be deducted from the final payment made by the Client.</p>
+                            <p>供应商同意向客户支付订单总额（不含运输费用）的{watchedValues.commissionPercentage}%作为佣金。该佣金将从客户支付的最终款项中扣除。</p>
+                        </div>
+                      )}
                       <div>
-                          <h3 className="font-bold">ARTICLE 7: SUPPLIER'S OBLIGATIONS</h3>
-                          <h3 className="font-bold">第七条：供应商的义务</h3>
+                          <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '8' : '7'}: SUPPLIER'S OBLIGATIONS</h3>
+                          <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '八' : '七'}条：供应商的义务</h3>
                           <ul className="list-disc pl-5">
                               <li>To deliver products that conform to the agreed specifications and quality standards.<br/>交付符合约定规格和质量标准的产品。</li>
                               <li>To respect the delivery lead times.<br/>遵守交货时间。</li>
@@ -225,22 +240,22 @@ export default function SupplierContractPage() {
                           </ul>
                       </div>
                        <div>
-                          <h3 className="font-bold">ARTICLE 8: CLIENT'S OBLIGATIONS</h3>
-                          <h3 className="font-bold">第八条：客户的义务</h3>
+                          <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '9' : '8'}: CLIENT'S OBLIGATIONS</h3>
+                          <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '九' : '八'}条：客户的义务</h3>
                           <ul className="list-disc pl-5">
                               <li>To make payments according to the agreed schedule.<br/>按照约定的时间表付款。</li>
                               <li>To approve or reject samples and inspection reports within a reasonable timeframe.<br/>在合理的时间内确认或拒绝样品及检验报告。</li>
                           </ul>
                       </div>
                       <div>
-                          <h3 className="font-bold">ARTICLE 9: CONFIDENTIALITY</h3>
-                          <h3 className="font-bold">第九条：保密条款</h3>
+                          <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '10' : '9'}: CONFIDENTIALITY</h3>
+                          <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '十' : '九'}条：保密条款</h3>
                           <p>The Parties agree not to disclose any confidential information exchanged within the framework of this agreement.</p>
                           <p>双方同意不泄露在本协议框架内交换的任何机密信息。</p>
                       </div>
                        <div>
-                          <h3 className="font-bold">ARTICLE 10: GOVERNING LAW AND JURISDICTION</h3>
-                          <h3 className="font-bold">第十条：适用法律与管辖权</h3>
+                          <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '11' : '10'}: GOVERNING LAW AND JURISDICTION</h3>
+                          <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '十一' : '十'}条：适用法律与管辖权</h3>
                           <p>This Agreement shall be governed by the law of China. Any dispute relating to its execution shall be submitted to the exclusive jurisdiction of the competent court of Yiwu.</p>
                           <p>本协议受中国法律管辖。任何与本协议执行相关的争议应提交至义乌市有管辖权的法院。</p>
                       </div>
