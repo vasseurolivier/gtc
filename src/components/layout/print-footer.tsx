@@ -16,10 +16,10 @@ export function PrintFooter() {
 
     return (
         <footer className="print-footer fixed bottom-0 left-0 right-0 p-8 text-center bg-white">
-            <div className="text-xs">
-                <div className="font-bold">{companyInfo.name}</div>
-                <div>{companyInfo.address}</div>
-                <div>Email: {companyInfo.email} | Phone: {companyInfo.phone}</div>
+            <div className="pt-8 mt-8 border-t text-center text-xs text-muted-foreground">
+                <p>Merci de votre confiance</p>
+                <p>{companyInfo?.address}</p>
+                <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
             </div>
         </footer>
     );

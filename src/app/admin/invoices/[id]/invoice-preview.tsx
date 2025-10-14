@@ -11,6 +11,7 @@ import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 export function InvoicePreview({ invoice, customer, products, logo }: { invoice: Invoice, customer: Customer, products: Product[], logo: string }) {
     const currencyContext = useContext(CurrencyContext);
@@ -181,15 +182,8 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </div>
                     </div>
                 </section>
-
                 <footer className="print-footer">
-                    <div className="print-footer-content">
-                        <div className="pt-8 mt-8 border-t text-center text-xs text-muted-foreground">
-                            <p>Merci de votre confiance</p>
-                            <p>{companyInfo?.address}</p>
-                            <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
-                        </div>
-                    </div>
+                    <PrintFooter />
                 </footer>
             </div>
         </main>

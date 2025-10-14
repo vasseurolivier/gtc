@@ -137,6 +137,10 @@ body {
   .print-footer {
     display: table-footer-group;
     height: 50px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
 
   .print-body {

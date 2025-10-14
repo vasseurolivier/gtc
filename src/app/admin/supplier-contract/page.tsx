@@ -18,6 +18,7 @@ import { Printer, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { useToast } from '@/hooks/use-toast';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 const contractSchema = z.object({
   supplierName: z.string().min(1, 'Supplier Name is required.'),
@@ -283,6 +284,9 @@ export default function SupplierContractPage() {
                               <p>[Representative Title / 代表职位]</p>
                           </div>
                       </div>
+                  </div>
+                  <div className="print-footer">
+                    <PrintFooter />
                   </div>
             </div>
         </div>

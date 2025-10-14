@@ -9,6 +9,7 @@ import type { FactoryPi } from '@/actions/factory-pi';
 import { Loader2, Printer } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { Button } from '@/components/ui/button';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, logo: string }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -128,17 +129,9 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                 </section>
 
                 <footer className="print-footer">
-                    <div className="print-footer-content">
-                        <div className="pt-8 mt-8 border-t text-center text-xs text-muted-foreground">
-                            <p>Merci de votre confiance</p>
-                            <p>{companyInfo?.address}</p>
-                            <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
-                        </div>
-                    </div>
+                    <PrintFooter />
                 </footer>
             </div>
         </main>
     );
 }
-
-    
