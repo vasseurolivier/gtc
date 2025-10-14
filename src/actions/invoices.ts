@@ -62,7 +62,10 @@ export async function addInvoiceFromOrder(order: Order) {
           customerName: order.customerName,
           issueDate: new Date(),
           dueDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days later
-          items: order.items,
+          items: order.items.map(item => ({
+            ...item,
+            purchasePrice: item.purchasePrice || 0
+          })),
           totalAmount: order.totalAmount,
           status: 'unpaid' as const,
           amountPaid: 0,
@@ -136,7 +139,10 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
         const updatedInvoiceData = {
             customerId: quote.customerId,
             customerName: quote.customerName,
-            items: quote.items,
+            items: quote.items.map(item => ({
+                ...item,
+                purchasePrice: item.purchasePrice || 0
+            })),
             totalAmount: quote.totalAmount,
             // We don't update status or amountPaid from here, as those are managed separately
         };

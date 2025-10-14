@@ -56,7 +56,10 @@ export async function addOrder(quote: Quote) {
           quoteId: quote.id,
           customerId: quote.customerId,
           customerName: quote.customerName,
-          items: quote.items,
+          items: quote.items.map(item => ({
+            ...item,
+            purchasePrice: item.purchasePrice || 0
+          })),
           totalAmount: quote.totalAmount,
           status: "processing" as const,
           shippingAddress: quote.shippingAddress || "",
@@ -93,7 +96,10 @@ export async function updateOrderFromQuote(quote: Quote) {
         const updatedOrderData = {
             customerId: quote.customerId,
             customerName: quote.customerName,
-            items: quote.items,
+            items: quote.items.map(item => ({
+                ...item,
+                purchasePrice: item.purchasePrice || 0
+            })),
             totalAmount: quote.totalAmount,
             shippingAddress: quote.shippingAddress || "",
             transportCost: quote.transportCost || 0,
