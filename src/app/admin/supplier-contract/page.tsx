@@ -291,7 +291,9 @@ export default function SupplierContractPage() {
                   </div>
                 </section>
                 <footer className="print-footer">
-                    <PrintFooter />
+                    <div className="print-footer-content">
+                        <PrintFooter />
+                    </div>
                 </footer>
             </div>
         </div>
