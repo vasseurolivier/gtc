@@ -101,6 +101,7 @@ body {
     color: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    font-size: 9pt;
   }
   
   .no-print {
@@ -115,12 +116,11 @@ body {
     border: none !important;
     padding: 0;
     margin: 0;
-    font-size: 9pt;
   }
 
   .print-header {
     display: table-header-group;
-    height: 100px;
+    height: 70px;
   }
   
   .print-body {
@@ -128,7 +128,7 @@ body {
   }
 
   .print-body-content {
-     padding-top: 100px;
+     padding-top: 80px;
      padding-bottom: 50px;
   }
   
