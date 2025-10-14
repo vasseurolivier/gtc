@@ -21,6 +21,7 @@ import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '
 import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
+import { uploadFileFromBase64 } from '@/actions/upload';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -48,6 +49,7 @@ export default function ProductsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const currencyContext = useContext(CurrencyContext);
 
   if (!currencyContext) {
@@ -135,22 +137,45 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-          toast({
-              variant: 'destructive',
-              title: 'File too large',
-              description: 'Please upload an image smaller than 2MB.',
-          });
-          return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-          form.setValue("imageUrl", reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+            variant: 'destructive',
+            title: 'File too large',
+            description: 'Please upload an image smaller than 10MB.',
+        });
+        return;
+    }
+
+    setIsUploading(true);
+    try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async () => {
+            const base64String = reader.result as string;
+            const result = await uploadFileFromBase64(base64String, file.name, file.type);
+
+            if (result.success && result.url) {
+                form.setValue("imageUrl", result.url);
+                toast({
+                    title: 'Image uploaded',
+                    description: 'Your image has been successfully uploaded.',
+                });
+            } else {
+                throw new Error(result.message || 'An unknown error occurred during upload.');
+            }
+            setIsUploading(false);
+        };
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Upload Failed',
+            description: error.message,
+        });
+        setIsUploading(false);
     }
   };
 
@@ -258,14 +283,14 @@ export default function ProductsPage() {
                           <FormLabel>Image</FormLabel>
                           <div className="flex items-center gap-4">
                             <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                {watchImageUrl ? (
+                                {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : watchImageUrl ? (
                                     <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" />
                                 ) : (
                                     <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                 )}
                             </div>
                             <FormControl>
-                                <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-auto" />
+                                <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-auto" disabled={isUploading} />
                             </FormControl>
                           </div>
                           <FormMessage />
@@ -360,9 +385,9 @@ export default function ProductsPage() {
 
                 <DialogFooter className="pt-4">
                     <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {editingProduct ? 'Save Changes' : 'Add Product'}
+                    <Button type="submit" disabled={isSubmitting || isUploading}>
+                        {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isUploading ? 'Uploading...' : isSubmitting ? 'Saving...' : editingProduct ? 'Save Changes' : 'Add Product'}
                     </Button>
                 </DialogFooter>
               </form>
@@ -457,3 +482,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
