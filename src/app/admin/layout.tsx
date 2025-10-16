@@ -27,7 +27,6 @@ import {
   Landmark,
   FileSignature,
   ClipboardList,
-  FileUp,
   Factory,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -47,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
+import { uploadFileFromBase64 } from '@/actions/upload';
 
 
 function AdminSettings() {
