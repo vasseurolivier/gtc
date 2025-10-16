@@ -107,44 +107,39 @@ body {
   .no-print {
     display: none !important;
   }
-  
+
   .print-document {
-    box-shadow: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
+    display: grid;
+    grid-template-rows: 3.5cm 1fr 2.5cm;
     min-height: 29.7cm;
-    position: relative;
+    width: 21cm;
+    margin: 0 auto;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
   }
 
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5in;
-    height: 3.5cm;
-  }
-
-  .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5in;
-    height: 2cm;
+    grid-row: 1;
+    padding: 0 1cm;
   }
   
   .print-body {
-    padding-top: 3.5cm; /* Same as header height */
-    padding-bottom: 2cm; /* Same as footer height */
-    padding-left: 0.5in;
-    padding-right: 0.5in;
-    page-break-before: always;
+    grid-row: 2;
+    padding: 0 1cm;
+    overflow: auto; /* Important for content flow */
+  }
+
+  .print-footer {
+     grid-row: 3;
+     padding: 0 1cm;
   }
   
+  /* Utilities for breaking pages */
+  .print-page-break {
+    page-break-after: always;
+  }
+
   table {
     page-break-inside: auto;
   }
