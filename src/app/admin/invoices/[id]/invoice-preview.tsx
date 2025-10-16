@@ -4,7 +4,8 @@
 import type { Invoice } from '@/actions/invoices';
 import type { Customer } from '@/actions/customers';
 import type { Product } from '@/actions/products';
-import { useContext } from 'react';
+import { getOrderById, Order } from '@/actions/orders';
+import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer } from 'lucide-react';
@@ -16,6 +17,13 @@ import { PrintFooter } from '@/components/layout/print-footer';
 export function InvoicePreview({ invoice, customer, products, logo }: { invoice: Invoice, customer: Customer, products: Product[], logo: string }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
+    const [order, setOrder] = useState<Order | null>(null);
+
+    useEffect(() => {
+        if (invoice.orderId) {
+            getOrderById(invoice.orderId).then(setOrder);
+        }
+    }, [invoice.orderId]);
 
     if (!currencyContext || !companyInfoContext) {
         return (
@@ -29,7 +37,11 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
     const { companyInfo } = companyInfoContext;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     const balanceDue = invoice.totalAmount - (invoice.amountPaid || 0);
-    const downPayment = invoice.totalAmount * 0.3; // Assuming 30% down payment
+
+    const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
+    const commissionRate = order?.commissionRate || 0;
+    const commissionAmount = subTotal * (commissionRate / 100);
+    const transportCost = order?.transportCost || 0;
     
     const handlePrint = () => {
         document.body.classList.add('printing');
@@ -134,15 +146,24 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Sous-total :</span>
                                     <span className="font-medium text-right">
-                                        <div>¥{invoice.totalAmount.toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</div>
+                                        <div>¥{subTotal.toFixed(2)}</div>
+                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(subTotal * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
+                                {commissionRate > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
+                                        <span className="font-medium text-right">
+                                            <div>¥{commissionAmount.toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Frais de port :</span>
                                      <span className="font-medium text-right">
-                                        <div>¥0.00</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}0.00</div>
+                                        <div>¥{transportCost.toFixed(2)}</div>
+                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(transportCost * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
@@ -153,10 +174,10 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                     </span>
                                 </div>
                                 <div className="flex justify-between mt-4">
-                                    <span className="text-muted-foreground">Acompte à payer :</span>
+                                    <span className="text-muted-foreground">Montant Payé :</span>
                                     <span className="font-medium text-right">
-                                        <div>¥{downPayment.toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(downPayment * exchangeRate).toFixed(2)}</div>
+                                        <div>¥{(invoice.amountPaid || 0).toFixed(2)}</div>
+                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-bold">
@@ -191,3 +212,5 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
         </main>
     );
 }
+
+    

@@ -28,6 +28,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
     const { currency, exchangeRate } = currencyContext;
     const { companyInfo } = companyInfoContext;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
+    
+    const commissionAmount = quote.subTotal * ((quote.commissionRate || 0) / 100);
     const downPayment = quote.totalAmount * 0.3; // Assuming 30% down payment
     const remainingBalance = quote.totalAmount - downPayment;
     
@@ -138,6 +140,15 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                         <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
+                                {(quote.commissionRate || 0) > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
+                                        <span className="font-medium text-right">
+                                            <div>¥{commissionAmount.toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Frais de port :</span>
                                      <span className="font-medium text-right">
@@ -192,3 +203,5 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
         </main>
     );
 }
+
+    
