@@ -137,7 +137,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                 </section>
 
-                <footer className="print-footer">
+                <footer>
                     <PrintFooter />
                 </footer>
             </div>

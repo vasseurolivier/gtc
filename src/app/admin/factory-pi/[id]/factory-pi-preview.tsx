@@ -128,7 +128,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                     </div>
                 </section>
 
-                <footer className="print-footer">
+                <footer>
                     <PrintFooter />
                 </footer>
             </div>
