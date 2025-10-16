@@ -57,127 +57,130 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             <p className="mt-1 text-muted-foreground">N° {quote.quoteNumber}</p>
                         </div>
                     </div>
+                     <div className="grid grid-cols-2 gap-8 my-8">
+                        <div>
+                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">ÉMIS PAR</h3>
+                            <p className="font-bold">{companyInfo?.name}</p>
+                            <p className="whitespace-pre-wrap text-sm">{companyInfo?.address}</p>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">FACTURÉ À</h3>
+                            <p className="font-bold">{customer?.name}</p>
+                            {customer?.company && <p>{customer.company}</p>}
+                            <p className="whitespace-pre-wrap text-sm">{quote.shippingAddress || customer?.address}</p>
+                        </div>
+                    </div>
+
+                     <div className="grid grid-cols-2 gap-8 my-8">
+                        <div>
+                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">DATE DE LA PROFORMA</h3>
+                            <p>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">NUMÉRO DE RÉFÉRENCE</h3>
+                            <p>{quote.quoteNumber}</p>
+                        </div>
+                    </div>
                 </header>
                 
                 <section className="print-body">
                     <div className="print-body-content">
-                        <div className="grid grid-cols-2 gap-8 my-8">
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">ÉMIS PAR</h3>
-                                <p className="font-bold">{companyInfo?.name}</p>
-                                <p className="whitespace-pre-wrap text-sm">{companyInfo?.address}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">FACTURÉ À</h3>
-                                <p className="font-bold">{customer?.name}</p>
-                                {customer?.company && <p>{customer.company}</p>}
-                                <p className="whitespace-pre-wrap text-sm">{quote.shippingAddress || customer?.address}</p>
-                            </div>
-                        </div>
 
-                         <div className="grid grid-cols-2 gap-8 my-8">
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">DATE DE LA PROFORMA</h3>
-                                <p>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p>{quote.quoteNumber}</p>
-                            </div>
-                        </div>
-
-                        <table className="w-full">
-                            <thead>
-                                <tr className="text-left text-muted-foreground border-b-2 border-t-2 text-sm">
-                                    <th className="p-2 font-semibold">Image</th>
-                                    <th className="w-1/2 p-2 font-semibold">Description</th>
-                                    <th className="text-right p-2 font-semibold">Quantité</th>
-                                    <th className="text-right p-2 font-semibold">Prix Unitaire</th>
-                                    <th className="text-right p-2 font-semibold">Total</th>
-                                </tr>
-                            </thead>
+                        <div className="page-1-content">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="text-left text-muted-foreground border-b-2 border-t-2 text-sm">
+                                        <th className="p-2 font-semibold">Image</th>
+                                        <th className="w-1/2 p-2 font-semibold">Description</th>
+                                        <th className="text-right p-2 font-semibold">Quantité</th>
+                                        <th className="text-right p-2 font-semibold">Prix Unitaire</th>
+                                        <th className="text-right p-2 font-semibold">Total</th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    {quote.items.map((item, itemIndex) => {
+                                        const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                        return (
+                                            <tr key={itemIndex} className="border-b" style={{ height: 'auto' }}>
+                                                <td className="p-2 align-top">
+                                                    {product?.imageUrl && (
+                                                        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                            <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="p-2 align-top">
+                                                    <p className="font-medium">{item.description}</p>
+                                                    {product?.description && <p className="text-xs text-muted-foreground">{product.description}</p>}
+                                                </td>
+                                                <td className="p-2 align-top text-right">{item.quantity}</td>
+                                                <td className="p-2 align-top text-right">
+                                                    <div>¥{item.unitPrice.toFixed(2)}</div>
+                                                    <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                                </td>
+                                                <td className="p-2 align-top text-right font-medium">
+                                                    <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                                    <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
                             
-                            <tbody>
-                                {quote.items.map((item, itemIndex) => {
-                                    const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                    return (
-                                        <tr key={itemIndex} className="border-b" style={{ height: '80px' }}>
-                                            <td className="p-2 align-top">
-                                                {product?.imageUrl && (
-                                                    <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <Image src={product.imageUrl} alt={item.description} width={64} height={64} className="object-contain"/>
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="p-2 align-top">
-                                                <p className="font-medium">{item.description}</p>
-                                                {product?.description && <p className="text-xs text-muted-foreground">{product.description}</p>}
-                                            </td>
-                                            <td className="p-2 align-top text-right">{item.quantity}</td>
-                                            <td className="p-2 align-top text-right">
-                                                <div>¥{item.unitPrice.toFixed(2)}</div>
-                                                <div className="text-xs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                            </td>
-                                            <td className="p-2 align-top text-right font-medium">
-                                                <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                                <div className="text-xs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                        
-                        <div className="flex justify-end pt-8">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Sous-total :</span>
-                                    <span className="font-medium text-right">
-                                        <div>¥{quote.subTotal.toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)}</div>
-                                    </span>
-                                </div>
-                                {(quote.commissionRate || 0) > 0 && (
+                            <div className="flex justify-end pt-8">
+                                <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
+                                        <span className="text-muted-foreground">Sous-total :</span>
                                         <span className="font-medium text-right">
-                                            <div>¥{commissionAmount.toFixed(2)}</div>
-                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                            <div>¥{quote.subTotal.toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)}</div>
                                         </span>
                                     </div>
-                                )}
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Frais de port :</span>
-                                     <span className="font-medium text-right">
-                                        <div>¥{(quote.transportCost || 0).toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)}</div>
-                                    </span>
-                                </div>
-                                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                                    <span>TOTAL :</span>
-                                    <span className="text-right">
-                                        <div>¥{quote.totalAmount.toFixed(2)}</div>
-                                        <div className="text-sm font-normal text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
-                                    </span>
-                                </div>
-                                <div className="flex justify-between mt-4">
-                                    <span className="text-muted-foreground">Acompte à payer :</span>
-                                    <span className="font-medium text-right">
-                                        <div>¥{downPayment.toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(downPayment * exchangeRate).toFixed(2)}</div>
-                                    </span>
-                                </div>
-                                <div className="flex justify-between font-bold">
-                                    <span>Solde restant :</span>
-                                    <span className="text-right">
-                                        <div>¥{remainingBalance.toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
-                                    </span>
+                                    {(quote.commissionRate || 0) > 0 && (
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
+                                            <span className="font-medium text-right">
+                                                <div>¥{commissionAmount.toFixed(2)}</div>
+                                                <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Frais de port :</span>
+                                        <span className="font-medium text-right">
+                                            <div>¥{(quote.transportCost || 0).toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                                        <span>TOTAL :</span>
+                                        <span className="text-right">
+                                            <div>¥{quote.totalAmount.toFixed(2)}</div>
+                                            <div className="text-sm font-normal text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between mt-4">
+                                        <span className="text-muted-foreground">Acompte à payer :</span>
+                                        <span className="font-medium text-right">
+                                            <div>¥{downPayment.toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(downPayment * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between font-bold">
+                                        <span>Solde restant :</span>
+                                        <span className="text-right">
+                                            <div>¥{remainingBalance.toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-12 text-left border-t pt-4">
+                        <div className="page-2-content">
+                            <div className="mt-12 text-left border-t pt-4">
                                 <h3 className="font-semibold mb-2">Coordonnées Bancaires :</h3>
                                 <div className="text-sm text-muted-foreground space-y-1">
                                     <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
@@ -189,6 +192,13 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <p className="mt-2"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                                 </div>
                             </div>
+                            
+                             <div className="signature-block">
+                                <p>Date: {format(new Date(), 'dd/MM/yyyy')}</p>
+                                <p>Signature:</p>
+                                <p className="mt-12">Vasseur Olivier</p>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 
