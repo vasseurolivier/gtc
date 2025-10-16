@@ -48,7 +48,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
             
             <div className="print-document bg-white rounded-lg shadow-lg">
                 <header className="print-header">
-                     <div className="print-header-content pt-8 pb-4 border-b flex justify-between items-start">
+                     <div className="pt-8 pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
                             {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
                         </div>
@@ -138,9 +138,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </section>
 
                 <footer className="print-footer">
-                    <div className="print-footer-content">
-                        <PrintFooter />
-                    </div>
+                    <PrintFooter />
                 </footer>
             </div>
         </main>

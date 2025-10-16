@@ -141,15 +141,15 @@ export default function SupplierContractPage() {
         </Card>
 
         <div className="lg:col-span-2">
-            <div className="print-document bg-white rounded-lg shadow-lg p-8 font-sans leading-relaxed text-sm">
+            <div className="print-document bg-white rounded-lg shadow-lg">
                 <header className="print-header">
-                    <div className="print-header-content text-center mb-6">
-                        <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
-                        <p className="font-bold">采购协议</p>
-                    </div>
+                  <div className="text-center pt-8 pb-4">
+                      <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
+                      <p className="font-bold">采购协议</p>
+                  </div>
                 </header>
                 <section className="print-body">
-                  <div className="print-body-content">
+                  <div className="print-body-content font-sans leading-relaxed text-sm">
                       <p className="mb-4">BETWEEN: <br/> 双方：</p>
 
                       <div className="mb-4">
@@ -291,9 +291,7 @@ export default function SupplierContractPage() {
                   </div>
                 </section>
                 <footer className="print-footer">
-                    <div className="print-footer-content">
-                        <PrintFooter />
-                    </div>
+                    <PrintFooter />
                 </footer>
             </div>
         </div>

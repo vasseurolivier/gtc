@@ -50,18 +50,17 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
             
             <div className="print-document bg-white rounded-lg shadow-lg">
                 <header className="print-header">
-                    <div className="print-header-content pt-8 pb-4 border-b flex justify-between items-start">
+                    <div className="pt-8 pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
                             {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
                         </div>
-                        
                         <div className="w-1/3 text-right">
                             <h1 className="text-3xl font-bold text-black">PROFORMA</h1>
                             <p className="mt-1 text-muted-foreground">N° {quote.quoteNumber}</p>
                         </div>
                     </div>
                 </header>
-                    
+                
                 <section className="print-body">
                     <div className="print-body-content">
                         <div className="grid grid-cols-2 gap-8 my-8">
@@ -194,10 +193,9 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </div>
                     </div>
                 </section>
+                
                 <footer className="print-footer">
-                    <div className="print-footer-content">
-                        <PrintFooter />
-                    </div>
+                    <PrintFooter />
                 </footer>
             </div>
         </main>

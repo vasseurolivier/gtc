@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 0.5in;
+    margin: 0;
   }
 
   body, html {
@@ -109,9 +109,6 @@ body {
   }
 
   .print-document {
-    display: table;
-    width: 100%;
-    height: 100%;
     box-shadow: none !important;
     border: none !important;
     padding: 0;
@@ -119,27 +116,31 @@ body {
   }
 
   .print-header {
-    display: table-header-group;
-    height: 70px;
-  }
-  
-  .print-body {
-    display: table-row-group;
+    position: fixed;
+    top: 0;
+    left: 0.5in;
+    right: 0.5in;
+    height: 70px; /* Header height */
   }
 
-  .print-body-content {
-     padding-top: 1rem;
-     padding-bottom: 50px;
-  }
-  
   .print-footer {
-    display: table-footer-group;
-    height: 50px;
+    position: fixed;
+    bottom: 0;
+    left: 0.5in;
+    right: 0.5in;
+    height: 50px; /* Footer height */
   }
   
-  .print-document * {
-    color-adjust: exact;
-    -webkit-print-color-adjust: exact;
+  .print-body-content {
+    padding-top: 80px; /* Header height + some space */
+    padding-bottom: 60px; /* Footer height + some space */
+    padding-left: 0.5in;
+    padding-right: 0.5in;
+    page-break-before: always;
+  }
+
+  .print-body-content:first-child {
+    page-break-before: auto;
   }
   
   table {
