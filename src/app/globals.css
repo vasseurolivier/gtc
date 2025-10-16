@@ -115,33 +115,27 @@ body {
     margin: 0;
     width: 100%;
     height: auto;
+    display: table;
   }
 
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 1.5cm;
-    right: 1.5cm;
-    height: 2cm;
     display: table-header-group;
+    height: 2cm;
   }
 
   .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 1.5cm;
-    right: 1.5cm;
-    height: 1.5cm;
     display: table-footer-group;
+    height: 1.5cm;
   }
   
   .print-body {
-    padding-top: 0;
-    padding-bottom: 0;
+    display: table-row-group;
   }
 
   .print-body-content {
     page-break-before: always;
+    padding-top: 1cm;
+    padding-bottom: 1cm;
   }
   
   .print-document > .print-body > .print-body-content:first-child {
