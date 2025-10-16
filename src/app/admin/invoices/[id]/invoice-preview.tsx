@@ -212,5 +212,3 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
         </main>
     );
 }
-
-    

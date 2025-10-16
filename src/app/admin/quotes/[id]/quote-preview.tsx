@@ -203,5 +203,3 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
         </main>
     );
 }
-
-    
