@@ -21,7 +21,8 @@ import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '
 import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
-import { uploadFileFromBase64 } from '@/actions/upload';
+import { clientStorage } from '@/lib/firebase-client';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -152,29 +153,23 @@ export default function ProductsPage() {
 
     setIsUploading(true);
     try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = async () => {
-            const base64String = reader.result as string;
-            const result = await uploadFileFromBase64(base64String, file.name, file.type);
+        const storageRef = ref(clientStorage, `products/${Date.now()}-${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        
+        form.setValue("imageUrl", downloadURL);
+        toast({
+            title: 'Image uploaded',
+            description: 'Your image has been successfully uploaded.',
+        });
 
-            if (result.success && result.url) {
-                form.setValue("imageUrl", result.url);
-                toast({
-                    title: 'Image uploaded',
-                    description: 'Your image has been successfully uploaded.',
-                });
-            } else {
-                throw new Error(result.message || 'An unknown error occurred during upload.');
-            }
-            setIsUploading(false);
-        };
     } catch (error: any) {
         toast({
             variant: 'destructive',
             title: 'Upload Failed',
             description: error.message,
         });
+    } finally {
         setIsUploading(false);
     }
   };
@@ -482,5 +477,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    
