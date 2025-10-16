@@ -46,7 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { uploadFileFromBase64 } from '@/actions/upload';
+import { clientStorage } from '@/lib/firebase-client';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 function AdminSettings() {
@@ -102,34 +103,25 @@ function AdminSettings() {
         setIsUploading(field);
         
         try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                const base64String = reader.result as string;
-                // Dynamically import the action
-                const { uploadFileFromBase64 } = await import('@/actions/upload');
-                const result = await uploadFileFromBase64(base64String, file.name, file.type);
+            const storageRef = ref(clientStorage, `uploads/${Date.now()}-${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
 
-                if (result.success && result.url) {
-                    if (field === 'logo') setCompanyLogo(result.url);
-                    else if (field === 'publicLogo') setPublicLogo(result.url);
-                    else if (field === 'heroVideo') setHeroVideo(result.url);
-                    
-                    toast({
-                        title: 'File uploaded',
-                        description: 'Your file has been uploaded. Click "Save changes" to apply.',
-                    });
-                } else {
-                    throw new Error(result.message || 'An unknown error occurred');
-                }
-                setIsUploading(null);
-            };
+            if (field === 'logo') setCompanyLogo(downloadURL);
+            else if (field === 'publicLogo') setPublicLogo(downloadURL);
+            else if (field === 'heroVideo') setHeroVideo(downloadURL);
+            
+            toast({
+                title: 'File uploaded',
+                description: 'Your file has been uploaded. Click "Save changes" to apply.',
+            });
         } catch (error: any) {
             toast({
                 variant: 'destructive',
                 title: 'File Upload Failed',
                 description: error.message || 'Could not upload the selected file.',
             });
+        } finally {
             setIsUploading(null);
         }
     };

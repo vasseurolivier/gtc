@@ -14,14 +14,13 @@ const firebaseConfig = {
 };
 
 let clientApp: FirebaseApp;
-if (getApps().length) {
-    clientApp = getApp("client");
+// This guard prevents re-initialization on hot reloads
+if (!getApps().some(app => app.name === "client")) {
+  clientApp = initializeApp(firebaseConfig, "client");
 } else {
-    clientApp = initializeApp(firebaseConfig, "client");
+  clientApp = getApp("client");
 }
 
 const clientStorage = getStorage(clientApp);
 
 export { clientApp, clientStorage };
-
-    
