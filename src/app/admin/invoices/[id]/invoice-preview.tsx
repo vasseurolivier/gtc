@@ -44,9 +44,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
     const transportCost = order?.transportCost || 0;
     
     const handlePrint = () => {
-        document.body.classList.add('printing');
         window.print();
-        document.body.classList.remove('printing');
     };
 
     return (
@@ -203,7 +201,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </div>
                     </div>
                 </section>
-                <footer>
+                <footer className="print-footer">
                     <PrintFooter />
                 </footer>
             </div>

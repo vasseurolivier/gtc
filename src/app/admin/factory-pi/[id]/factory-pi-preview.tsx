@@ -29,9 +29,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
     const handlePrint = () => {
-        document.body.classList.add('printing');
         window.print();
-        document.body.classList.remove('printing');
     };
 
     return (
@@ -128,7 +126,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                     </div>
                 </section>
 
-                <footer>
+                <footer className="print-footer">
                     <PrintFooter />
                 </footer>
             </div>

@@ -32,9 +32,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
     const handlePrint = () => {
-        document.body.classList.add('printing');
         window.print();
-        document.body.classList.remove('printing');
     };
 
     return (
@@ -137,7 +135,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                 </section>
 
-                <footer>
+                <footer className="print-footer">
                     <PrintFooter />
                 </footer>
             </div>

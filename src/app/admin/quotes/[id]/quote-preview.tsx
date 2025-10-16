@@ -34,9 +34,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
     const remainingBalance = quote.totalAmount - downPayment;
     
     const handlePrint = () => {
-        document.body.classList.add('printing');
         window.print();
-        document.body.classList.remove('printing');
     };
 
     return (
@@ -194,7 +192,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                 </section>
                 
-                <footer>
+                <footer className="print-footer">
                     <PrintFooter />
                 </footer>
             </div>

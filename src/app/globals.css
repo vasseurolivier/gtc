@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 0.5in;
+    margin: 0;
   }
 
   body, html {
@@ -107,33 +107,42 @@ body {
   .no-print {
     display: none !important;
   }
-
+  
   .print-document {
-    display: table;
-    width: 100%;
-    height: 100%;
-    border-collapse: collapse;
     box-shadow: none !important;
     border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: 29.7cm;
+    position: relative;
   }
 
   .print-header {
-    display: table-header-group;
-    height: 3.5cm; /* Reserve space for header */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5in;
+    height: 3.5cm;
   }
 
-  .print-document > footer {
-    display: table-footer-group;
-    height: 2cm; /* Reserve space for footer */
-  }
-
-  .print-body {
-    display: table-row-group;
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5in;
+    height: 2cm;
   }
   
-  .print-body-content {
-    padding-top: 1cm;
-    padding-bottom: 1cm;
+  .print-body {
+    padding-top: 3.5cm; /* Same as header height */
+    padding-bottom: 2cm; /* Same as footer height */
+    padding-left: 0.5in;
+    padding-right: 0.5in;
+    page-break-before: always;
   }
   
   table {

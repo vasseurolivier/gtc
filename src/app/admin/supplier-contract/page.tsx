@@ -69,9 +69,7 @@ export default function SupplierContractPage() {
   const { companyInfo } = companyInfoContext || {};
 
   const handlePrint = () => {
-    document.body.classList.add('printing');
     window.print();
-    document.body.classList.remove('printing');
   };
   
   if (!companyInfoContext) {
@@ -290,7 +288,7 @@ export default function SupplierContractPage() {
                       </div>
                   </div>
                 </section>
-                <footer>
+                <footer className="print-footer">
                     <PrintFooter />
                 </footer>
             </div>
