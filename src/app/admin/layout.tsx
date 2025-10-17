@@ -144,12 +144,12 @@ function AdminSettings() {
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {companyLogo ? (
-                                                <Image src={companyLogo} alt="Company Logo" width={96} height={96} className="object-contain rounded-md" />
+                                                <img src={companyLogo} alt="Company Logo" className="object-contain rounded-md h-full w-full" />
                                             ) : (
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="logo-url" placeholder="https://..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="col-span-3" />
+                                        <Input id="logo-url" placeholder="https://..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} />
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
@@ -157,12 +157,12 @@ function AdminSettings() {
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
                                             {publicLogo ? (
-                                                <Image src={publicLogo} alt="Public Site Logo" width={96} height={96} className="object-contain rounded-md" />
+                                                <img src={publicLogo} alt="Public Site Logo" className="object-contain rounded-md h-full w-full" />
                                             ) : (
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="public-logo-url" placeholder="https://..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="col-span-3" />
+                                        <Input id="public-logo-url" placeholder="https://..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
