@@ -21,8 +21,8 @@ import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '
 import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
-import { clientStorage } from '@/lib/firebase-client';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
+import { app as firebaseApp } from '@/lib/firebase';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -40,6 +40,14 @@ const formSchema = z.object({
   countryOfOrigin: z.string().optional(),
   imageUrl: z.string().optional(),
 });
+
+let storageInstance: FirebaseStorage | null = null;
+function getStorageInstance() {
+    if (!storageInstance) {
+        storageInstance = getStorage(firebaseApp);
+    }
+    return storageInstance;
+}
 
 
 export default function ProductsPage() {
@@ -153,7 +161,8 @@ export default function ProductsPage() {
 
     setIsUploading(true);
     try {
-        const storageRef = ref(clientStorage, `products/${Date.now()}-${file.name}`);
+        const storage = getStorageInstance();
+        const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         

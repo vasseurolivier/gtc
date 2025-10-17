@@ -46,8 +46,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { clientApp } from '@/lib/firebase-client';
+import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
+import { app as firebaseApp } from '@/lib/firebase';
+
+
+let storageInstance: FirebaseStorage | null = null;
+function getStorageInstance() {
+    if (!storageInstance) {
+        storageInstance = getStorage(firebaseApp);
+    }
+    return storageInstance;
+}
 
 
 function AdminSettings() {
@@ -102,7 +111,7 @@ function AdminSettings() {
         setIsUploading(field);
         
         try {
-            const storage = getStorage(clientApp);
+            const storage = getStorageInstance();
             const storageRef = ref(storage, `logos/${Date.now()}-${file.name}`);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
@@ -373,5 +382,3 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
-
-    
