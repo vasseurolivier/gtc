@@ -109,7 +109,7 @@ body {
   }
 
   .print-document {
-    display: table;
+    display: block !important;
     width: 100%;
     height: 100%;
     box-shadow: none !important;
@@ -123,41 +123,12 @@ body {
   
   .signature-block {
      position: absolute;
-     bottom: 3.5cm; /* Position above footer */
+     bottom: 3.5cm;
      left: 1cm;
      right: 1cm;
   }
 
   tr {
      page-break-inside: avoid;
-  }
-
-  thead {
-    display: table-header-group;
-  }
-  
-  tfoot {
-    display: table-footer-group;
-  }
-
-  .print-header {
-    display: table-header-group;
-    height: 6cm; 
-  }
-
-  .print-footer {
-    display: table-footer-group;
-    height: 2.5cm;
-    position: relative;
-    bottom: 0;
-  }
-  
-  .print-body {
-    display: table-row-group;
-  }
-
-  .print-body-content {
-    padding-top: 6cm;
-    padding-bottom: 3cm;
   }
 }

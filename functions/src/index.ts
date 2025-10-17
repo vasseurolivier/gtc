@@ -1,3 +1,4 @@
+
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import puppeteer from "puppeteer";
@@ -606,5 +607,3 @@ export const generatePdf = functions
       }
     }
   });
-
-    

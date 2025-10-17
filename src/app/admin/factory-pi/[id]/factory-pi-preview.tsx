@@ -65,7 +65,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
     };
 
     return (
-        <main className="w-full mx-auto">
+        <main className="w-full mx-auto print-document">
              <div className="p-8 no-print flex justify-end">
                 <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf}>
                     {isGeneratingPdf ? (
@@ -128,11 +128,11 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                                                     </div>
                                                 }
                                             </td>
-                                            <td className="p-2 align-top font-medium">{item.description}</td>
+                                            <td className="p-2 align-top font-medium">${item.description}</td>
                                             <td className="p-2 align-top text-right">{item.sku}</td>
                                             <td className="p-2 align-top text-right">{item.quantity}</td>
-                                            <td className="p-2 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                            <td className="p-2 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                            <td className="p-2 align-top text-right">¥${item.unitPriceCny.toFixed(2)}</td>
+                                            <td className="p-2 align-top text-right font-semibold">¥${totalCny.toFixed(2)}</td>
                                         </tr>
                                     );
                                 })}
@@ -143,13 +143,13 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                             <div className="w-full md:w-2/3 lg:w-1/2 space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Total Quantity :</span>
-                                    <span className="font-medium text-right">{totals.totalQuantity}</span>
+                                    <span className="font-medium text-right">${totals.totalQuantity}</span>
                                 </div>
                                
                                 <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
                                     <span>TOTAL (CNY) :</span>
                                     <span className="text-right">
-                                        <div>¥{totals.totalAmountCny.toFixed(2)}</div>
+                                        <div>¥${totals.totalAmountCny.toFixed(2)}</div>
                                     </span>
                                 </div>
                             </div>
@@ -157,7 +157,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
 
                          <div className="mt-8 border-t pt-4">
                             <h4 className="font-semibold mb-2">Notes:</h4>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{factoryPi.notes}</p>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">${factoryPi.notes}</p>
                         </div>
                     </div>
                 </section>
@@ -165,13 +165,11 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                 <footer>
                      <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
                         <p>Merci de votre confiance</p>
-                        <p>{companyInfo?.address}</p>
-                        <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+                        <p>${companyInfo?.address}</p>
+                        <p>Email: ${companyInfo?.email} | WhatsApp: ${companyInfo?.phone}</p>
                     </div>
                 </footer>
             </div>
         </main>
     );
 }
-
-    
