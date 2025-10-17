@@ -50,12 +50,11 @@ import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "f
 import { app as firebaseApp } from '@/lib/firebase';
 
 
-let storageInstance: FirebaseStorage | null = null;
-function getStorageInstance() {
-    if (!storageInstance) {
-        storageInstance = getStorage(firebaseApp);
-    }
-    return storageInstance;
+let storage: FirebaseStorage;
+try {
+    storage = getStorage(firebaseApp);
+} catch (e) {
+    console.error("Firebase Storage initialization error", e);
 }
 
 
@@ -108,10 +107,18 @@ function AdminSettings() {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        if (!storage) {
+            toast({
+                variant: 'destructive',
+                title: 'Upload Failed',
+                description: 'Firebase Storage is not configured correctly.',
+            });
+            return;
+        }
+
         setIsUploading(field);
         
         try {
-            const storage = getStorageInstance();
             const storageRef = ref(storage, `logos/${Date.now()}-${file.name}`);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
