@@ -544,12 +544,12 @@ const generateDocumentHTML = (data: {
 export const generatePdf = functions
   .runWith({ timeoutSeconds: 120, memory: "1GB" })
   .https.onRequest(async (request, response) => {
-    // Handle CORS
+    // Handle CORS preflight requests
     response.set('Access-Control-Allow-Origin', '*');
+    response.set('Access-Control-Allow-Methods', 'GET, POST');
+    response.set('Access-Control-Allow-Headers', 'Content-Type');
+
     if (request.method === 'OPTIONS') {
-        response.set('Access-Control-Allow-Methods', 'POST');
-        response.set('Access-Control-Allow-Headers', 'Content-Type');
-        response.set('Access-Control-Max-Age', '3600');
         response.status(204).send('');
         return;
     }
