@@ -46,8 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { clientStorage } from '@/lib/firebase-client';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { clientApp } from '@/lib/firebase-client';
 
 
 function AdminSettings() {
@@ -56,7 +56,7 @@ function AdminSettings() {
     const { toast } = useToast();
     
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isUploading, setIsUploading] = useState<"logo" | "publicLogo" | "heroVideo" | null>(null);
+    const [isUploading, setIsUploading] = useState<"logo" | "publicLogo" | null>(null);
 
     // Currency state
     const [selectedCurrency, setSelectedCurrency] = useState('EUR');
@@ -69,7 +69,7 @@ function AdminSettings() {
     const [companyPhone, setCompanyPhone] = useState('');
     const [companyLogo, setCompanyLogo] = useState('');
     const [publicLogo, setPublicLogo] = useState('');
-    const [heroVideo, setHeroVideo] = useState('');
+    
 
     useEffect(() => {
         if (isDialogOpen) {
@@ -84,7 +84,6 @@ function AdminSettings() {
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
                 setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
-                setHeroVideo(companyInfoContext.companyInfo.heroVideo || '');
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -96,20 +95,20 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { companyInfo, setCompanyInfo } = companyInfoContext;
     
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo" | "heroVideo") => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo") => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setIsUploading(field);
         
         try {
-            const storageRef = ref(clientStorage, `uploads/${Date.now()}-${file.name}`);
+            const storage = getStorage(clientApp);
+            const storageRef = ref(storage, `logos/${Date.now()}-${file.name}`);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
             if (field === 'logo') setCompanyLogo(downloadURL);
             else if (field === 'publicLogo') setPublicLogo(downloadURL);
-            else if (field === 'heroVideo') setHeroVideo(downloadURL);
             
             toast({
                 title: 'File uploaded',
@@ -148,7 +147,6 @@ function AdminSettings() {
             phone: companyPhone,
             logo: companyLogo,
             publicLogo: publicLogo,
-            heroVideo: heroVideo,
         });
 
         toast({ title: 'Success', description: 'Settings updated.'});
@@ -375,3 +373,5 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
+
+    

@@ -10,7 +10,6 @@ export interface CompanyInfo {
   phone: string;
   logo: string; 
   publicLogo?: string;
-  heroVideo?: string;
 }
 
 interface CompanyInfoContextType {
@@ -28,7 +27,6 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     phone: '+8613564770717',
     logo: '',
     publicLogo: '',
-    heroVideo: '',
   });
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -65,3 +63,5 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     </CompanyInfoContext.Provider>
   );
 };
+
+    

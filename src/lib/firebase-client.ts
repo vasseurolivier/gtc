@@ -1,7 +1,6 @@
 
 // src/lib/firebase-client.ts
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   "projectId": "studio-4928604682-ea1ec",
@@ -21,6 +20,7 @@ if (!getApps().some(app => app.name === "client")) {
   clientApp = getApp("client");
 }
 
-const clientStorage = getStorage(clientApp);
 
-export { clientApp, clientStorage };
+export { clientApp };
+
+    
