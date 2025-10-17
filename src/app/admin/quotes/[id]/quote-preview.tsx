@@ -4,18 +4,21 @@
 import type { Quote } from '@/actions/quotes';
 import type { Customer } from '@/actions/customers';
 import type { Product } from '@/actions/products';
-import { useContext, useState } from 'react';
+import { useContext, useState, useRef } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export function QuotePreview({ quote, customer, products, logo }: { quote: Quote, customer: Customer, products: Product[], logo: string }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
 
     if (!currencyContext || !companyInfoContext) {
         return (
@@ -35,47 +38,39 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
 
     const handleGeneratePdf = async () => {
         setIsGeneratingPdf(true);
-        try {
-            // This is a placeholder for your actual function URL
-            // In a real app, get this from Firebase config or environment variables
-            const functionUrl = 'https://us-central1-studio-4928604682-ea1ec.cloudfunctions.net/generatePdf';
+        const input = printRef.current;
+        if (input) {
+            try {
+                const canvas = await html2canvas(input, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                const width = pdfWidth;
+                const height = width / ratio;
+                let position = 0;
+                let heightLeft = height;
 
-            const response = await fetch(functionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    documentType: 'PROFORMA',
-                    logoUrl: logo,
-                    document: quote, 
-                    customer,
-                    products,
-                    companyInfo,
-                    currency,
-                    exchangeRate
-                }),
-            });
+                pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+                heightLeft -= pdfHeight;
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`PDF generation failed: ${errorText}`);
+                while (heightLeft > 0) {
+                    position = heightLeft - height;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, width, height);
+                    heightLeft -= pdfHeight;
+                }
+                
+                pdf.save(`Proforma_${quote.quoteNumber}.pdf`);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                alert("An error occurred while generating the PDF.");
             }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Proforma_${quote.quoteNumber}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('Failed to generate PDF. See console for details.');
-        } finally {
-            setIsGeneratingPdf(false);
         }
+        setIsGeneratingPdf(false);
     };
     
 
@@ -92,7 +87,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </Button>
             </div>
             
-            <div className="bg-white rounded-lg shadow-lg p-8 border">
+            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border">
                 <header>
                     <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
@@ -224,7 +219,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </div>
                         </div>
 
-                        <div className="page-2-content">
+                        <div className="page-2-content" style={{breakBefore: 'page'}}>
                             <div className="mt-12 text-left border-t pt-4">
                                 <h3 className="font-semibold mb-2">Coordonnées Bancaires :</h3>
                                 <div className="text-sm text-muted-foreground space-y-1">
@@ -238,17 +233,17 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                 </div>
                             </div>
                             
-                             <div className="signature-block">
+                             <div className="signature-block" style={{position: 'absolute', bottom: '100px', width: '100%'}}>
                                 <p>Date: {format(new Date(), 'dd/MM/yyyy')}</p>
                                 <p>Signature:</p>
-                                <p className="mt-12">Vasseur Olivier</p>
+                                <p style={{marginTop: '60px'}}>Vasseur Olivier</p>
                             </div>
                         </div>
                     </div>
                 </section>
                 
-                <footer>
-                     <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
+                <footer style={{position: 'absolute', bottom: '20px', width: 'calc(100% - 64px)'}}>
+                     <div className="pt-4 border-t text-center text-xs text-muted-foreground">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>
                         <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
@@ -258,5 +253,3 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
         </main>
     );
 }
-
-    

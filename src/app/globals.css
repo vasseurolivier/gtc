@@ -107,28 +107,9 @@ body {
   .no-print {
     display: none !important;
   }
-
+  
   .print-document {
-    display: block !important;
-    width: 100%;
-    height: 100%;
     box-shadow: none !important;
-    border-radius: 0 !important;
     border: none !important;
-  }
-  
-  .page-2-content {
-     page-break-before: always;
-  }
-  
-  .signature-block {
-     position: absolute;
-     bottom: 3.5cm;
-     left: 1cm;
-     right: 1cm;
-  }
-
-  tr {
-     page-break-inside: avoid;
   }
 }

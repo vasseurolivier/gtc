@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext, useState } from 'react';
+import { useContext, useState, useRef } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
@@ -10,11 +10,14 @@ import { Loader2, Printer } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Button } from '@/components/ui/button';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export function PackingListPreview({ packingList, logo }: { packingList: PackingList, logo: string }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
 
 
     if (!currencyContext || !companyInfoContext) {
@@ -33,40 +36,39 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
 
     const handleGeneratePdf = async () => {
         setIsGeneratingPdf(true);
-        try {
-            const functionUrl = 'https://us-central1-studio-4928604682-ea1ec.cloudfunctions.net/generatePdf';
-            const response = await fetch(functionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    documentType: 'PACKING_LIST',
-                    logoUrl: logo,
-                    document: packingList, 
-                    companyInfo,
-                    currency,
-                    exchangeRate
-                }),
-            });
+        const input = printRef.current;
+        if (input) {
+            try {
+                const canvas = await html2canvas(input, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                const width = pdfWidth;
+                const height = width / ratio;
+                let position = 0;
+                let heightLeft = height;
 
-            if (!response.ok) {
-                throw new Error(`PDF generation failed: ${await response.text()}`);
+                pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+                heightLeft -= pdfHeight;
+
+                while (heightLeft > 0) {
+                    position = heightLeft - height;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, width, height);
+                    heightLeft -= pdfHeight;
+                }
+                
+                pdf.save(`PackingList_${packingList.listId}.pdf`);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                alert("An error occurred while generating the PDF.");
             }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `PackingList_${packingList.listId}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('Failed to generate PDF. See console for details.');
-        } finally {
-            setIsGeneratingPdf(false);
         }
+        setIsGeneratingPdf(false);
     };
 
     return (
@@ -82,7 +84,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 </Button>
             </div>
             
-            <div className="bg-white rounded-lg shadow-lg p-8 border">
+            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border">
                 <header>
                      <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
@@ -173,7 +175,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     </div>
                 </section>
 
-                <footer>
+                <footer style={{position: 'absolute', bottom: '20px', width: 'calc(100% - 64px)'}}>
                     <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
                         <p>Merci de votre confiance</p>
                         <p>${companyInfo?.address}</p>
