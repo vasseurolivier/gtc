@@ -45,27 +45,12 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
                 const canvasWidth = canvas.width;
                 const canvasHeight = canvas.height;
                 const ratio = canvasWidth / canvasHeight;
-                const width = pdfWidth;
-                const height = width / ratio;
-
-                const pageHeight = pdfHeight - 20; // Margin
-                let position = 0;
-                let heightLeft = height;
-
-                pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-                heightLeft -= pdfHeight;
-
-                while (heightLeft > 0) {
-                    position = heightLeft - height;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, width, height);
-                    heightLeft -= pdfHeight;
-                }
+                const pdfHeight = canvasHeight * pdfWidth / canvasWidth;
                 
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save(`Proforma_${quote.quoteNumber}.pdf`);
             } catch (error) {
                 console.error("Error generating PDF:", error);
@@ -89,45 +74,53 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </Button>
             </div>
             
-            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border relative" style={{ paddingBottom: '70px' }}>
-                <header>
-                    <div className="pb-4 border-b flex justify-between items-start">
-                        <div className="w-1/3 flex justify-start">
-                            {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
+            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border">
+                <div style={{ display: 'table', width: '100%' }}>
+                    <header style={{ display: 'table-header-group' }}>
+                        <div className="pb-4 border-b flex justify-between items-start">
+                            <div className="w-1/3 flex justify-start">
+                                {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
+                            </div>
+                            <div className="w-1/3 text-right">
+                                <h1 className="text-3xl font-bold text-black">PROFORMA</h1>
+                                <p className="mt-1 text-muted-foreground">N° {quote.quoteNumber}</p>
+                            </div>
                         </div>
-                        <div className="w-1/3 text-right">
-                            <h1 className="text-3xl font-bold text-black">PROFORMA</h1>
-                            <p className="mt-1 text-muted-foreground">N° {quote.quoteNumber}</p>
+                         <div className="grid grid-cols-2 gap-8 my-8">
+                            <div>
+                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">ÉMIS PAR</h3>
+                                <p className="font-bold">{companyInfo?.name}</p>
+                                <p className="whitespace-pre-wrap text-sm">{companyInfo?.address}</p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">FACTURÉ À</h3>
+                                <p className="font-bold">{customer?.name}</p>
+                                {customer?.company && <p>{customer.company}</p>}
+                                <p className="whitespace-pre-wrap text-sm">{quote.shippingAddress || customer?.address}</p>
+                            </div>
                         </div>
-                    </div>
-                     <div className="grid grid-cols-2 gap-8 my-8">
-                        <div>
-                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">ÉMIS PAR</h3>
-                            <p className="font-bold">{companyInfo?.name}</p>
-                            <p className="whitespace-pre-wrap text-sm">{companyInfo?.address}</p>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">FACTURÉ À</h3>
-                            <p className="font-bold">{customer?.name}</p>
-                            {customer?.company && <p>{customer.company}</p>}
-                            <p className="whitespace-pre-wrap text-sm">{quote.shippingAddress || customer?.address}</p>
-                        </div>
-                    </div>
 
-                     <div className="grid grid-cols-2 gap-8 my-8">
-                        <div>
-                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">DATE DE LA PROFORMA</h3>
-                            <p>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
+                         <div className="grid grid-cols-2 gap-8 my-8">
+                            <div>
+                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">DATE DE LA PROFORMA</h3>
+                                <p>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-muted-foreground mb-2 text-sm">NUMÉRO DE RÉFÉRENCE</h3>
+                                <p>{quote.quoteNumber}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-muted-foreground mb-2 text-sm">NUMÉRO DE RÉFÉRENCE</h3>
-                            <p>{quote.quoteNumber}</p>
+                    </header>
+                    
+                    <footer style={{ display: 'table-footer-group' }}>
+                         <div className="pt-4 border-t text-center text-xs text-muted-foreground">
+                            <p>Merci de votre confiance</p>
+                            <p>{companyInfo?.address}</p>
+                            <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
                         </div>
-                    </div>
-                </header>
+                    </footer>
                 
-                <section>
-                    <div>
+                    <section style={{ display: 'table-row-group' }}>
                         <div className="page-1-content">
                             <table className="w-full">
                                 <thead>
@@ -221,7 +214,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </div>
                         </div>
 
-                        <div className="page-2-content" style={{breakBefore: 'page'}}>
+                        <div className="page-2-content" style={{pageBreakBefore: 'always'}}>
                             <div className="mt-12 text-left border-t pt-4">
                                 <h3 className="font-semibold mb-2">Coordonnées Bancaires :</h3>
                                 <div className="text-sm text-muted-foreground space-y-1">
@@ -235,16 +228,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
-                
-                <footer style={{position: 'fixed', bottom: '0', left: '0', right: '0', height: '50px', padding: '1rem', borderTop: '1px solid #e5e7eb', textAlign: 'center', fontSize: '0.75rem', color: '#6b7280', background: 'white'}}>
-                     <div className="pt-4 border-t text-center text-xs text-muted-foreground">
-                        <p>Merci de votre confiance</p>
-                        <p>{companyInfo?.address}</p>
-                        <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
-                    </div>
-                </footer>
+                    </section>
+                </div>
             </div>
         </main>
     );
