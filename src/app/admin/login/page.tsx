@@ -2,7 +2,7 @@
 // Do not use this in a real application.
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -12,16 +12,21 @@ import { Label } from '@/components/ui/label';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/admin/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, use a secure password and proper session management.
     if (password === 'admin123') {
-      // WARNING: This is not secure session management.
       sessionStorage.setItem('isAdminAuthenticated', 'true');
-      router.push('/admin/dashboard');
+      setIsAuthenticated(true);
     } else {
       toast({
         variant: 'destructive',
