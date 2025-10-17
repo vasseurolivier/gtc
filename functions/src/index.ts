@@ -42,6 +42,8 @@ const generateHTML = (data: {
             font-family: sans-serif;
             font-size: 12px;
             color: #333;
+            /* This is crucial for page number counters */
+            counter-reset: page;
           }
 
           /* Styles applied only when printing */
@@ -167,12 +169,12 @@ export const generatePdf = functions
         title: "Invoice #12345",
         logoUrl: "https://via.placeholder.com/150x50.png?text=YourLogo",
         // This is a long string of HTML to simulate multi-page content
-        bodyContent: `
+        bodyContent: \`
           <h1>Invoice Details</h1>
           <p>This is the main body of the PDF. It can contain tables, lists, and other HTML elements.</p>
-          `.concat("<p>More content... </p>".repeat(100)) + `
+          \`.concat("<p>More content... </p>".repeat(100)) + \`
           <p>End of content.</p>
-        `,
+        \`,
         copyright: "© 2024 Your Company",
         confidentiality: "Confidential",
       };
@@ -185,10 +187,19 @@ export const generatePdf = functions
       // Generate the PDF from the page content.
       // The `printBackground: true` is crucial for styles to apply.
       // The `format: 'A4'` sets the page size.
+      // The header and footer are rendered by the browser's print engine based on CSS.
       const pdfBuffer = await page.pdf({
         format: "A4",
         printBackground: true,
-        // We don't need to specify margins here as they are handled by `@page` in CSS
+        headerTemplate: "<div/>", // We use CSS for header, so disable puppeteer's
+        footerTemplate: "<div/>", // We use CSS for footer, so disable puppeteer's
+        displayHeaderFooter: true, // MUST be true for CSS position:fixed to work
+        margin: {
+            top: "0px",
+            right: "0px",
+            bottom: "0px",
+            left: "0px"
+        }
       });
 
       // --- 4. Close the browser ---
