@@ -16,6 +16,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
+    const footerRef = useRef<HTMLDivElement>(null);
 
 
     if (!companyInfoContext) {
@@ -33,19 +34,50 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
 
     const handleGeneratePdf = async () => {
         setIsGeneratingPdf(true);
-        const input = printRef.current;
-        if (input) {
+        const mainContent = printRef.current;
+        const footerContent = footerRef.current;
+
+        if (mainContent && footerContent) {
             try {
-                const canvas = await html2canvas(input, { scale: 2 });
-                const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const ratio = canvasWidth / canvasHeight;
-                const pdfHeight = canvasHeight * pdfWidth / canvasWidth;
+                const pdfHeight = pdf.internal.pageSize.getHeight();
                 
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                // --- Process Main Content ---
+                const mainCanvas = await html2canvas(mainContent, { scale: 2 });
+                const mainImgData = mainCanvas.toDataURL('image/png');
+                const mainImgProps = pdf.getImageProperties(mainImgData);
+                const mainRatio = mainImgProps.height / mainImgProps.width;
+                let mainImgHeight = pdfWidth * mainRatio;
+                let mainHeightLeft = mainImgHeight;
+                let mainPosition = 0;
+                
+                // --- Process Footer ---
+                const footerCanvas = await html2canvas(footerContent, { scale: 2 });
+                const footerImgData = footerCanvas.toDataURL('image/png');
+                const footerImgProps = pdf.getImageProperties(footerImgData);
+                const footerRatio = footerImgProps.height / footerImgProps.width;
+                const footerHeight = pdfWidth * footerRatio;
+                const footerY = pdfHeight - footerHeight - 5; 
+
+                // Add main content pages
+                let pageCount = 0;
+                while (mainHeightLeft > 0) {
+                    if (pageCount > 0) {
+                        pdf.addPage();
+                    }
+                    pdf.addImage(mainImgData, 'PNG', 0, mainPosition, pdfWidth, mainImgHeight);
+                    mainHeightLeft -= pdfHeight;
+                    mainPosition -= pdfHeight;
+                    pageCount++;
+                }
+
+                // Add footer to each page
+                for (let i = 1; i <= pdf.getNumberOfPages(); i++) {
+                    pdf.setPage(i);
+                    pdf.addImage(footerImgData, 'PNG', 0, footerY, pdfWidth, footerHeight);
+                }
+                
                 pdf.save(`FactoryPI_${factoryPi.piNumber}.pdf`);
             } catch (error) {
                 console.error("Error generating PDF:", error);
@@ -68,9 +100,9 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                 </Button>
             </div>
             
-            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border">
-                <div style={{ display: 'table', width: '100%' }}>
-                    <header style={{ display: 'table-header-group' }}>
+            <div className="bg-white rounded-lg shadow-lg p-8 border">
+                <div ref={printRef}>
+                    <header>
                         <div className="pb-4 border-b flex justify-between items-start">
                             <div className="w-1/3 flex justify-start">
                                 {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
@@ -83,15 +115,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                         </div>
                     </header>
                     
-                    <footer style={{ display: 'table-footer-group' }}>
-                        <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
-                            <p>Merci de votre confiance</p>
-                            <p>{companyInfo?.address}</p>
-                            <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
-                        </div>
-                    </footer>
-                
-                    <section style={{ display: 'table-row-group' }}>
+                    <section>
                         <div>
                              <div className="grid grid-cols-2 gap-8 my-8">
                                 <div>
@@ -161,6 +185,17 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                             </div>
                         </div>
                     </section>
+                </div>
+            </div>
+
+            {/* Footer element, visually hidden but present for capture */}
+            <div className="absolute -left-[9999px] top-auto">
+                <div ref={footerRef} className="p-8 w-[210mm]">
+                    <div className="pt-4 border-t text-center text-xs text-gray-500">
+                        <p>Merci de votre confiance</p>
+                        <p>{companyInfo?.address}</p>
+                        <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+                    </div>
                 </div>
             </div>
         </main>
