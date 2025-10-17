@@ -51,6 +51,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 const ratio = canvasWidth / canvasHeight;
                 const width = pdfWidth;
                 const height = width / ratio;
+
+                const pageHeight = pdfHeight - 20; // Margin
                 let position = 0;
                 let heightLeft = height;
 
@@ -87,7 +89,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </Button>
             </div>
             
-            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border">
+            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border relative pb-24">
                 <header>
                     <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
@@ -242,7 +244,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                 </section>
                 
-                <footer style={{position: 'absolute', bottom: '20px', width: 'calc(100% - 64px)'}}>
+                <footer style={{position: 'absolute', bottom: '20px', left: '32px', right: '32px'}}>
                      <div className="pt-4 border-t text-center text-xs text-muted-foreground">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>

@@ -46,9 +46,12 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                 const ratio = canvasWidth / canvasHeight;
                 const width = pdfWidth;
                 const height = width / ratio;
+
+                // Calcul pour gérer plusieurs pages
+                const pageHeight = pdfHeight - 20; // Margin
                 let position = 0;
                 let heightLeft = height;
-
+                
                 pdf.addImage(imgData, 'PNG', 0, 0, width, height);
                 heightLeft -= pdfHeight;
 
@@ -81,7 +84,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                 </Button>
             </div>
             
-            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border">
+            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border relative pb-24">
                 <header>
                      <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
@@ -166,7 +169,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                     </div>
                 </section>
 
-                <footer style={{position: 'absolute', bottom: '20px', width: 'calc(100% - 64px)'}}>
+                <footer style={{position: 'absolute', bottom: '20px', left: '32px', right: '32px'}}>
                      <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
                         <p>Merci de votre confiance</p>
                         <p>${companyInfo?.address}</p>
