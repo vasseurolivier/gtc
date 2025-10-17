@@ -3,8 +3,11 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import puppeteer from "puppeteer";
 import { format } from "date-fns";
+import cors from "cors";
 
 admin.initializeApp();
+
+const corsHandler = cors({ origin: true });
 
 const PDF_OPTIONS = {
   HEADER_HEIGHT: "80px",
@@ -544,66 +547,58 @@ const generateDocumentHTML = (data: {
 export const generatePdf = functions
   .runWith({ timeoutSeconds: 120, memory: "1GB" })
   .https.onRequest(async (request, response) => {
-    // Handle CORS preflight requests
-    response.set('Access-Control-Allow-Origin', '*');
-    response.set('Access-Control-Allow-Methods', 'GET, POST');
-    response.set('Access-Control-Allow-Headers', 'Content-Type');
+    corsHandler(request, response, async () => {
+      try {
+        const data = request.body;
+        let htmlContent = '';
 
-    if (request.method === 'OPTIONS') {
-        response.status(204).send('');
-        return;
-    }
-      
-    try {
-      const data = request.body;
-      let htmlContent = '';
-
-      switch (data.documentType) {
-        case 'PROFORMA':
-          htmlContent = generateProformaHTML(data);
-          break;
-        case 'INVOICE':
-           htmlContent = generateInvoiceHTML(data);
-           break;
-        case 'PACKING_LIST':
-            htmlContent = generatePackingListHTML(data);
+        switch (data.documentType) {
+          case 'PROFORMA':
+            htmlContent = generateProformaHTML(data);
             break;
-        case 'FACTORY_PI':
-            htmlContent = generateFactoryPiHTML(data);
+          case 'INVOICE':
+            htmlContent = generateInvoiceHTML(data);
             break;
-        default:
-          throw new Error('Invalid document type');
+          case 'PACKING_LIST':
+              htmlContent = generatePackingListHTML(data);
+              break;
+          case 'FACTORY_PI':
+              htmlContent = generateFactoryPiHTML(data);
+              break;
+          default:
+            throw new Error('Invalid document type');
+        }
+
+        const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+        const page = await browser.newPage();
+
+        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+        const pdfBuffer = await page.pdf({
+          format: "A4",
+          printBackground: true,
+          headerTemplate: `<div/>`, // Let CSS handle fixed header
+          footerTemplate: `<div/>`, // Let CSS handle fixed footer
+          displayHeaderFooter: true,
+          margin: { top: 0, right: 0, bottom: 0, left: 0 }
+        });
+
+        await browser.close();
+
+        response.setHeader("Content-Type", "application/pdf");
+        response.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${data.documentType}_${data.document.id}.pdf`
+        );
+        response.status(200).send(pdfBuffer);
+
+      } catch (error) {
+        functions.logger.error("PDF generation failed", error);
+        if (error instanceof Error) {
+          response.status(500).send(`Error generating PDF: ${error.message}`);
+        } else {
+          response.status(500).send("Error generating PDF.");
+        }
       }
-
-      const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-      const page = await browser.newPage();
-
-      await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        headerTemplate: `<div/>`, // Let CSS handle fixed header
-        footerTemplate: `<div/>`, // Let CSS handle fixed footer
-        displayHeaderFooter: true,
-        margin: { top: 0, right: 0, bottom: 0, left: 0 }
-      });
-
-      await browser.close();
-
-      response.setHeader("Content-Type", "application/pdf");
-      response.setHeader(
-        "Content-Disposition",
-        `attachment; filename=${data.documentType}_${data.document.id}.pdf`
-      );
-      response.status(200).send(pdfBuffer);
-
-    } catch (error) {
-      functions.logger.error("PDF generation failed", error);
-      if (error instanceof Error) {
-        response.status(500).send(`Error generating PDF: ${error.message}`);
-      } else {
-        response.status(500).send("Error generating PDF.");
-      }
-    }
+    });
   });
