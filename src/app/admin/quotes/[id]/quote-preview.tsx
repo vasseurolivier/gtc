@@ -89,7 +89,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 </Button>
             </div>
             
-            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border relative pb-24">
+            <div ref={printRef} className="bg-white rounded-lg shadow-lg p-8 border relative" style={{ paddingBottom: '70px' }}>
                 <header>
                     <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
@@ -234,17 +234,11 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <p className="mt-2"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                                 </div>
                             </div>
-                            
-                             <div className="signature-block" style={{position: 'absolute', bottom: '100px', width: '100%'}}>
-                                <p>Date: {format(new Date(), 'dd/MM/yyyy')}</p>
-                                <p>Signature:</p>
-                                <p style={{marginTop: '60px'}}>Vasseur Olivier</p>
-                            </div>
                         </div>
                     </div>
                 </section>
                 
-                <footer style={{position: 'absolute', bottom: '20px', left: '32px', right: '32px'}}>
+                <footer style={{position: 'fixed', bottom: '0', left: '0', right: '0', height: '50px', padding: '1rem', borderTop: '1px solid #e5e7eb', textAlign: 'center', fontSize: '0.75rem', color: '#6b7280', background: 'white'}}>
                      <div className="pt-4 border-t text-center text-xs text-muted-foreground">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>

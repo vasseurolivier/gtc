@@ -139,7 +139,7 @@ export default function SupplierContractPage() {
         </Card>
 
         <div className="lg:col-span-2">
-            <div className="print-document bg-white rounded-lg shadow-lg">
+            <div className="print-document bg-white rounded-lg shadow-lg" style={{ paddingBottom: '70px' }}>
                 <header className="print-header">
                   <div className="text-center pt-8 pb-4">
                       <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
@@ -264,25 +264,14 @@ export default function SupplierContractPage() {
                       </div>
 
                       <div className="signature-block mt-10">
-                          <p>Done in __________, on {format(watchedValues.contractDate, 'MMMM d, yyyy', { locale: enUS })}.</p>
-                          <p>签订于 __________，日期为 {format(watchedValues.contractDate, 'yyyy年MM月dd日')}。</p>
-                          <p className="mt-4">In two original copies, one for each Party.</p>
-                          <p>本合同一式两份，双方各执一份。</p>
-
                           <div className="grid grid-cols-2 gap-8 mt-12">
                               <div>
                                   <p>For the Client (客户方):</p>
-                                  <p className="mt-2">[Signature / 签名]</p>
                                   <div className="border-b border-black mt-16"></div>
-                                  <p>VASSEUR OLIVIER, PIERRE</p>
-                                  <p>legal representative</p>
                               </div>
                               <div>
                                   <p>For the Supplier (供应商方):</p>
-                                  <p className="mt-2">[Signature / 签名]</p>
                                   <div className="border-b border-black mt-16"></div>
-                                  <p>{watchedValues.supplierRepresentative || '[Supplier Representative Name]'}</p>
-                                  <p>[Representative Title / 代表职位]</p>
                               </div>
                           </div>
                       </div>
