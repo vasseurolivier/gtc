@@ -46,9 +46,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
-import { app as firebaseApp } from '@/lib/firebase';
-
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -56,7 +53,6 @@ function AdminSettings() {
     const { toast } = useToast();
     
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isUploading, setIsUploading] = useState<"logo" | "publicLogo" | null>(null);
 
     // Currency state
     const [selectedCurrency, setSelectedCurrency] = useState('EUR');
@@ -95,48 +91,6 @@ function AdminSettings() {
     const { setCurrency, setExchangeRate } = currencyContext;
     const { companyInfo, setCompanyInfo } = companyInfoContext;
     
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "publicLogo") => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        let storage: FirebaseStorage;
-        try {
-            storage = getStorage(firebaseApp);
-        } catch (e) {
-            console.error("Firebase Storage initialization error", e);
-             toast({
-                variant: 'destructive',
-                title: 'Upload Failed',
-                description: 'Firebase Storage is not configured correctly.',
-            });
-            return;
-        }
-
-        setIsUploading(field);
-        
-        try {
-            const storageRef = ref(storage, `logos/${Date.now()}-${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-
-            if (field === 'logo') setCompanyLogo(downloadURL);
-            else if (field === 'publicLogo') setPublicLogo(downloadURL);
-            
-            toast({
-                title: 'File uploaded',
-                description: 'Your file has been uploaded. Click "Save changes" to apply.',
-            });
-        } catch (error: any) {
-            toast({
-                variant: 'destructive',
-                title: 'File Upload Failed',
-                description: error.message || 'Could not upload the selected file.',
-            });
-        } finally {
-            setIsUploading(null);
-        }
-    };
-
     const handleSave = () => {
         const newRate = parseFloat(localRate);
         if (isNaN(newRate) || newRate <= 0) {
@@ -186,29 +140,29 @@ function AdminSettings() {
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="logo" className="text-right pt-2">Admin Logo</Label>
+                                    <Label htmlFor="logo-url" className="text-right pt-2">Admin Logo URL</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                            {isUploading === 'logo' ? <Loader2 className="h-8 w-8 animate-spin" /> : companyLogo ? (
+                                            {companyLogo ? (
                                                 <Image src={companyLogo} alt="Company Logo" width={96} height={96} className="object-contain rounded-md" />
                                             ) : (
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="logo" type="file" onChange={(e) => handleFileChange(e, 'logo')} className="col-span-3" disabled={isUploading === 'logo'}/>
+                                        <Input id="logo-url" placeholder="https://..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="col-span-3" />
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="publicLogo" className="text-right pt-2">Public Site Logo</Label>
+                                    <Label htmlFor="public-logo-url" className="text-right pt-2">Public Site Logo URL</Label>
                                     <div className="col-span-3 flex items-center gap-4">
                                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                            {isUploading === 'publicLogo' ? <Loader2 className="h-8 w-8 animate-spin" /> : publicLogo ? (
+                                            {publicLogo ? (
                                                 <Image src={publicLogo} alt="Public Site Logo" width={96} height={96} className="object-contain rounded-md" />
                                             ) : (
                                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                                             )}
                                         </div>
-                                        <Input id="publicLogo" type="file" onChange={(e) => handleFileChange(e, 'publicLogo')} className="col-span-3" disabled={isUploading === 'publicLogo'}/>
+                                        <Input id="public-logo-url" placeholder="https://..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="col-span-3" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
@@ -280,17 +234,20 @@ function ProtectedAdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // This is a client-side check. The middleware should handle the primary security.
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
-    if (isAuthenticated !== 'true') {
+    const authStatus = sessionStorage.getItem('isAdminAuthenticated');
+    if (authStatus !== 'true') {
       router.push('/admin/login');
+    } else {
+      setIsAuthenticated(true);
     }
   }, [router, pathname]);
 
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     async function fetchUnreadCount() {
         try {
             const submissions = await getSubmissions();
@@ -306,7 +263,7 @@ function ProtectedAdminLayout({
     // Also fetch when path changes to /admin/submissions to update the badge
     const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5s
     return () => clearInterval(interval);
-  }, [pathname]);
+  }, [pathname, isAuthenticated]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('isAdminAuthenticated');
@@ -328,6 +285,14 @@ function ProtectedAdminLayout({
   ];
   
   const activePath = pathname;
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -385,5 +350,3 @@ export default function AdminRootLayout({
     </AdminAppProviders>
   )
 }
-
-    
