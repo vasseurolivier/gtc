@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -115,10 +116,10 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                 </Button>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-8 border">
-                <div ref={printRef}>
-                    <header>
-                        <div className="pb-4 border-b flex justify-between items-start">
+            <div className="bg-white rounded-lg shadow-lg border">
+                <div ref={printRef} className="px-12 py-8">
+                    <header className="pb-8 mb-8 border-b">
+                        <div className="flex justify-between items-start">
                             <div className="w-1/3 flex justify-start">
                                 {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
                             </div>
@@ -264,7 +265,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
 
             {/* Footer element, visually hidden but present for capture */}
             <div className="absolute -left-[9999px] top-auto">
-                <div ref={footerRef} className="p-8 w-[210mm]">
+                <div ref={footerRef} className="px-12 py-4 w-[210mm]">
                     <div className="pt-4 border-t text-center text-xs text-gray-500">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>
