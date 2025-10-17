@@ -21,7 +21,7 @@ import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '
 import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
-import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { app as firebaseApp } from '@/lib/firebase';
 
 const formSchema = z.object({
@@ -40,14 +40,6 @@ const formSchema = z.object({
   countryOfOrigin: z.string().optional(),
   imageUrl: z.string().optional(),
 });
-
-let storageInstance: FirebaseStorage | null = null;
-function getStorageInstance() {
-    if (!storageInstance) {
-        storageInstance = getStorage(firebaseApp);
-    }
-    return storageInstance;
-}
 
 
 export default function ProductsPage() {
@@ -161,7 +153,7 @@ export default function ProductsPage() {
 
     setIsUploading(true);
     try {
-        const storage = getStorageInstance();
+        const storage = getStorage(firebaseApp);
         const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
@@ -486,3 +478,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
