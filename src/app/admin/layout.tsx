@@ -50,14 +50,6 @@ import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "f
 import { app as firebaseApp } from '@/lib/firebase';
 
 
-let storage: FirebaseStorage;
-try {
-    storage = getStorage(firebaseApp);
-} catch (e) {
-    console.error("Firebase Storage initialization error", e);
-}
-
-
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -107,8 +99,12 @@ function AdminSettings() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (!storage) {
-            toast({
+        let storage: FirebaseStorage;
+        try {
+            storage = getStorage(firebaseApp);
+        } catch (e) {
+            console.error("Firebase Storage initialization error", e);
+             toast({
                 variant: 'destructive',
                 title: 'Upload Failed',
                 description: 'Firebase Storage is not configured correctly.',
