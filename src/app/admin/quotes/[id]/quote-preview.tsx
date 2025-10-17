@@ -4,18 +4,18 @@
 import type { Quote } from '@/actions/quotes';
 import type { Customer } from '@/actions/customers';
 import type { Product } from '@/actions/products';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { PrintFooter } from '@/components/layout/print-footer';
 
 export function QuotePreview({ quote, customer, products, logo }: { quote: Quote, customer: Customer, products: Product[], logo: string }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     if (!currencyContext || !companyInfoContext) {
         return (
@@ -32,23 +32,69 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
     const commissionAmount = quote.subTotal * ((quote.commissionRate || 0) / 100);
     const downPayment = quote.totalAmount * 0.3; // Assuming 30% down payment
     const remainingBalance = quote.totalAmount - downPayment;
-    
-    const handlePrint = () => {
-        window.print();
+
+    const handleGeneratePdf = async () => {
+        setIsGeneratingPdf(true);
+        try {
+            // This is a placeholder for your actual function URL
+            // In a real app, get this from Firebase config or environment variables
+            const functionUrl = 'https://us-central1-studio-4928604682-ea1ec.cloudfunctions.net/generatePdf';
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    documentType: 'PROFORMA',
+                    logoUrl: logo,
+                    document: quote, 
+                    customer,
+                    products,
+                    companyInfo,
+                    currency,
+                    exchangeRate
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`PDF generation failed: ${errorText}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Proforma_${quote.quoteNumber}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Failed to generate PDF. See console for details.');
+        } finally {
+            setIsGeneratingPdf(false);
+        }
     };
+    
 
     return (
         <main className="w-full mx-auto">
             <div className="p-8 no-print flex justify-end">
-                <Button onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4" />
+                <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf}>
+                    {isGeneratingPdf ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Printer className="mr-2 h-4 w-4" />
+                    )}
                     Export to PDF
                 </Button>
             </div>
             
-            <div className="print-document bg-white rounded-lg shadow-lg">
-                <header className="print-header">
-                    <div className="pt-8 pb-4 border-b flex justify-between items-start">
+            <div className="bg-white rounded-lg shadow-lg p-8 border">
+                <header>
+                    <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
                             {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
                         </div>
@@ -83,9 +129,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                 </header>
                 
-                <section className="print-body">
-                    <div className="print-body-content">
-
+                <section>
+                    <div>
                         <div className="page-1-content">
                             <table className="w-full">
                                 <thead>
@@ -202,10 +247,16 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                     </div>
                 </section>
                 
-                <footer className="print-footer">
-                    <PrintFooter />
+                <footer>
+                     <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
+                        <p>Merci de votre confiance</p>
+                        <p>{companyInfo?.address}</p>
+                        <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+                    </div>
                 </footer>
             </div>
         </main>
     );
 }
+
+    

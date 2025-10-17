@@ -12,12 +12,12 @@ import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { PrintFooter } from '@/components/layout/print-footer';
 
 export function InvoicePreview({ invoice, customer, products, logo }: { invoice: Invoice, customer: Customer, products: Product[], logo: string }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [order, setOrder] = useState<Order | null>(null);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     useEffect(() => {
         if (invoice.orderId) {
@@ -43,22 +43,66 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
     const commissionAmount = subTotal * (commissionRate / 100);
     const transportCost = order?.transportCost || 0;
     
-    const handlePrint = () => {
-        window.print();
+    const handleGeneratePdf = async () => {
+        setIsGeneratingPdf(true);
+        try {
+            // This is a placeholder for your actual function URL
+            const functionUrl = 'https://us-central1-studio-4928604682-ea1ec.cloudfunctions.net/generatePdf';
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    documentType: 'INVOICE',
+                    logoUrl: logo,
+                    document: invoice, 
+                    customer,
+                    order,
+                    companyInfo,
+                    currency,
+                    exchangeRate
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`PDF generation failed: ${errorText}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Invoice_${invoice.invoiceNumber}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Failed to generate PDF. See console for details.');
+        } finally {
+            setIsGeneratingPdf(false);
+        }
     };
 
     return (
         <main className="w-full mx-auto">
              <div className="p-8 no-print flex justify-end">
-                <Button onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4" />
+                <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf}>
+                    {isGeneratingPdf ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Printer className="mr-2 h-4 w-4" />
+                    )}
                     Export to PDF
                 </Button>
             </div>
 
-            <div className="print-document bg-white rounded-lg shadow-lg">
-                <header className="print-header">
-                    <div className="pt-8 pb-4 border-b flex justify-between items-start">
+            <div className="bg-white rounded-lg shadow-lg p-8 border">
+                <header>
+                    <div className="pb-4 border-b flex justify-between items-start">
                         <div className="w-1/3 flex justify-start">
                             {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
                         </div>
@@ -94,9 +138,8 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                     </div>
                 </header>
                     
-                <section className="print-body">
-                    <div className="print-body-content">
-                        
+                <section>
+                    <div>
                         <div className="page-1-content">
                             <table className="w-full">
                                 <thead>
@@ -212,10 +255,16 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                         </div>
                     </div>
                 </section>
-                <footer className="print-footer">
-                    <PrintFooter />
+                <footer>
+                    <div className="pt-4 mt-12 border-t text-center text-xs text-muted-foreground">
+                        <p>Merci de votre confiance</p>
+                        <p>{companyInfo?.address}</p>
+                        <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+                    </div>
                 </footer>
             </div>
         </main>
     );
 }
+
+    
