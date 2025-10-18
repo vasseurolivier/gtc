@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -112,11 +111,11 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
             </div>
 
             <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-12 py-8 pb-32">
-                    <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div className="relative w-1/3 max-w-[120px] h-10">
+                <div ref={printRef} className="px-8 py-10 pb-32">
+                    <header className="flex justify-between items-start pb-10 mb-8 border-b">
+                        <div className="relative w-1/3 max-w-[150px] h-12">
                             {logo && 
-                                <Image src={logo} alt="Company Logo" fill sizes="120px" className="object-contain" priority/>
+                                <Image src={logo} alt="Company Logo" fill sizes="150px" className="object-contain" priority/>
                             }
                         </div>
                         <div className="text-right">
