@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -102,20 +103,20 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
             
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-8 py-10 pb-32">
-                    <header className="flex justify-between items-start pb-10 mb-8 border-b">
-                        <div className="relative w-1/3 max-w-[150px] h-12">
+                    <header className="flex justify-between items-start pb-8 mb-8 border-b">
+                        <div className="w-1/3">
                            {logo && 
-                                <Image src={logo} alt="Company Logo" fill sizes="150px" className="object-contain" priority/>
+                                <img src={logo} alt="Company Logo" className="h-12 w-auto object-contain"/>
                             }
                         </div>
-                        <div className="text-right">
+                        <div className="text-right w-2/3">
                             <h1 className="text-2xl font-bold text-black">PROFORMA</h1>
                             <p className="mt-1 text-xs text-muted-foreground">N° {quote.quoteNumber}</p>
                         </div>
                     </header>
                     
-                    <section className="text-xs">
-                        <div className="grid grid-cols-2 gap-8 my-4 text-xs">
+                    <section>
+                         <div className="grid grid-cols-2 gap-8 my-8 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                                 <p className="font-bold">{companyInfo?.name}</p>
@@ -129,7 +130,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </div>
                         </div>
 
-                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
+                         <div className="grid grid-cols-2 gap-8 my-8 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE DE LA PROFORMA</h3>
                                 <p>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
@@ -183,7 +184,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                         </table>
                         
                         <div className="flex justify-end pt-4">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1">
+                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Sous-total :</span>
                                     <span className="font-medium text-right">
@@ -207,11 +208,11 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                         <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
-                                <div className="flex justify-between font-bold text-base border-t pt-1 mt-1">
+                                <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
                                     <span>TOTAL :</span>
                                     <span className="text-right">
                                         <div>¥{quote.totalAmount.toFixed(2)}</div>
-                                        <div className="text-sm font-normal text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between mt-2">
@@ -231,8 +232,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </div>
                         </div>
 
-                        <div className="mt-6 text-left border-t pt-3 pb-24">
-                            <h3 className="font-semibold mb-1">Coordonnées Bancaires :</h3>
+                        <div className="mt-8 text-left border-t pt-4 pb-24">
+                            <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
                             <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
                                 <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                                 <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
@@ -259,3 +260,5 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
         </main>
     );
 }
+
+    

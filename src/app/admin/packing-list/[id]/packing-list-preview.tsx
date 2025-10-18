@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext, useState, useRef } from 'react';
@@ -100,20 +101,20 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
             
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-8 py-10 pb-32">
-                    <header className="flex justify-between items-start pb-10 mb-8 border-b">
-                        <div className="relative w-1/3 max-w-[150px] h-12">
+                    <header className="flex justify-between items-start pb-8 mb-8 border-b">
+                        <div className="w-1/3">
                             {logo && 
-                                <Image src={logo} alt="Company Logo" fill sizes="150px" className="object-contain" priority/>
+                                <img src={logo} alt="Company Logo" className="h-12 w-auto object-contain"/>
                             }
                         </div>
-                        <div className="text-right">
+                        <div className="text-right w-2/3">
                             <h1 className="text-2xl font-bold text-black">PACKING LIST</h1>
                             <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
                         </div>
                     </header>
                     
-                    <section className="text-xs">
-                        <div className="grid grid-cols-2 gap-8 my-4">
+                    <section>
+                        <div className="grid grid-cols-2 gap-8 my-8 text-xs">
                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                                 <p className="font-bold">{companyInfo?.name}</p>
@@ -121,7 +122,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             </div>
                         </div>
 
-                         <div className="grid grid-cols-2 gap-8 my-4">
+                         <div className="grid grid-cols-2 gap-8 my-8 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
                                 <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
@@ -170,17 +171,17 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         </table>
 
                          <div className="flex justify-end pt-4">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1">
+                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Total Quantity :</span>
                                     <span className="font-medium text-right">{totals.totalQuantity}</span>
                                 </div>
                                
-                                <div className="flex justify-between font-bold text-base border-t pt-1 mt-1">
+                                <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
                                     <span>TOTAL (CNY) :</span>
                                     <span className="text-right">
                                         <div>¥{totals.totalAmountCny.toFixed(2)}</div>
-                                        <div className="text-sm font-normal text-muted-foreground">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                             </div>
@@ -202,3 +203,5 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
         </main>
     );
 }
+
+    
