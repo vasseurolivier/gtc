@@ -103,8 +103,8 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-12 py-8 pb-32">
                     <header className="pb-4 mb-4 border-b">
-                         <div className="flex justify-between items-start h-24 px-2">
-                             <div className="relative w-1/3 h-full">
+                         <div className="flex justify-between items-start py-4 px-2">
+                             <div className="relative w-1/3 h-10">
                                 {logo && <Image src={logo} alt="Company Logo" fill className="object-contain object-left"/>}
                             </div>
                             
