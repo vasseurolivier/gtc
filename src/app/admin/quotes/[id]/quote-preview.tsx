@@ -105,20 +105,27 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-12 py-8 pb-32">
                     <header className="pb-4 mb-4 border-b">
-                        <div className="flex justify-between items-start py-4 px-2">
-                            <div className="relative w-1/3 h-10">
-                                {logo && <Image src={logo} alt="Company Logo" fill className="object-contain object-left"/>}
+                        <div className="grid grid-cols-3 gap-4 items-center py-4 px-2">
+                             <div className="col-span-1">
+                                <h3 className="font-semibold text-muted-foreground mb-1 text-xs">ÉMIS PAR</h3>
+                                <p className="font-bold">{companyInfo?.name}</p>
+                                <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
                             </div>
-                            <div className="w-1/3 text-right">
+                            <div className="col-span-1 flex justify-center">
+                                {logo && 
+                                    <div className="relative w-full max-w-[120px] h-10">
+                                        <Image src={logo} alt="Company Logo" fill sizes="120px" className="object-contain" priority/>
+                                    </div>
+                                }
+                            </div>
+                            <div className="col-span-1 text-right">
                                 <h1 className="text-2xl font-bold text-black">PROFORMA</h1>
                                 <p className="mt-1 text-xs text-muted-foreground">N° {quote.quoteNumber}</p>
                             </div>
                         </div>
                          <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div>
-                                <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                                <p className="font-bold">{companyInfo?.name}</p>
-                                <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
+                                {/* Empty on purpose */}
                             </div>
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
