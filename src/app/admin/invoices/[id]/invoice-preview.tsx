@@ -114,18 +114,18 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
 
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-12 py-8 pb-32">
-                    <header className="pb-6 mb-6 border-b">
-                        <div className="flex justify-between items-start h-20">
-                             <div className="w-1/3 h-full flex justify-start items-center">
-                                {logo && <Image src={logo} alt="Company Logo" width={120} height={60} className="object-contain h-full w-auto max-h-full max-w-full"/>}
+                    <header className="pb-4 mb-4 border-b">
+                        <div className="flex justify-between items-start h-24 px-2">
+                             <div className="relative w-1/3 h-full">
+                                {logo && <Image src={logo} alt="Company Logo" fill className="object-contain object-left"/>}
                             </div>
                             
                             <div className="w-1/3 text-right">
                                 <h1 className="text-2xl font-bold text-black">INVOICE</h1>
-                                <p className="mt-1 text-sm text-muted-foreground">N° {invoice.invoiceNumber}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
                             </div>
                         </div>
-                         <div className="grid grid-cols-2 gap-8 my-6 text-xs">
+                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                                 <p className="font-bold">{companyInfo?.name}</p>
@@ -139,7 +139,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </div>
                         </div>
 
-                         <div className="grid grid-cols-2 gap-8 my-6 text-xs">
+                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE DE LA FACTURE</h3>
                                 <p>{format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
@@ -175,9 +175,9 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="p-1 align-top">
+                                            <td className="p-1 align-top leading-tight">
                                                 <p className="font-medium">{item.description}</p>
-                                                {product?.description && <p className="text-xs text-muted-foreground">{product.description}</p>}
+                                                {product?.description && <p className="text-xxs text-muted-foreground">{product.description}</p>}
                                             </td>
                                             <td className="p-1 align-top text-right">{item.quantity}</td>
                                             <td className="p-1 align-top text-right">
@@ -194,7 +194,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </tbody>
                         </table>
 
-                        <div className="flex justify-end pt-6">
+                        <div className="flex justify-end pt-4">
                             <div className="w-full md:w-2/3 lg:w-1/2 space-y-1">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Sous-total :</span>
@@ -243,9 +243,9 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </div>
                         </div>
 
-                        <div className="mt-8 text-left border-t pt-3">
+                        <div className="mt-6 text-left border-t pt-3 pb-24">
                             <h3 className="font-semibold mb-1">Coordonnées Bancaires :</h3>
-                            <div className="text-xs text-muted-foreground space-y-0.5">
+                            <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
                                 <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                                 <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                                 <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>

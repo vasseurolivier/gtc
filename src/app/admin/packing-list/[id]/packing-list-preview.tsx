@@ -102,21 +102,21 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
             
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-12 py-8 pb-32">
-                    <header className="pb-6 mb-6 border-b">
-                         <div className="flex justify-between items-start h-20">
-                            <div className="w-1/3 h-full flex justify-start items-center">
-                                {logo && <Image src={logo} alt="Company Logo" width={120} height={60} className="object-contain h-full w-auto max-h-full max-w-full"/>}
+                    <header className="pb-4 mb-4 border-b">
+                         <div className="flex justify-between items-start h-24 px-2">
+                             <div className="relative w-1/3 h-full">
+                                {logo && <Image src={logo} alt="Company Logo" fill className="object-contain object-left"/>}
                             </div>
                             
                             <div className="w-1/3 text-right">
                                 <h1 className="text-2xl font-bold text-black">PACKING LIST</h1>
-                                <p className="mt-1 text-sm text-muted-foreground">N° {packingList.listId}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
                             </div>
                         </div>
                     </header>
                     
                     <section className="text-xs">
-                        <div className="grid grid-cols-2 gap-8 my-6">
+                        <div className="grid grid-cols-2 gap-8 my-4">
                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                                 <p className="font-bold">{companyInfo?.name}</p>
@@ -124,7 +124,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             </div>
                         </div>
 
-                         <div className="grid grid-cols-2 gap-8 my-6">
+                         <div className="grid grid-cols-2 gap-8 my-4">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
                                 <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
@@ -160,19 +160,19 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                                                     </div>
                                                 }
                                             </td>
-                                            <td className="p-1 align-top font-medium">{item.description}</td>
+                                            <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
                                             <td className="p-1 align-top text-right">{item.sku}</td>
                                             <td className="p-1 align-top text-right">{item.quantity}</td>
                                             <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
                                             <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
-                                            <td className="p-1 align-top">{item.remarks}</td>
+                                            <td className="p-1 align-top leading-tight">{item.remarks}</td>
                                         </tr>
                                     );
                                 })}
                             </tbody>
                         </table>
 
-                         <div className="flex justify-end pt-6">
+                         <div className="flex justify-end pt-4">
                             <div className="w-full md:w-2/3 lg:w-1/2 space-y-1">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Total Quantity :</span>
@@ -189,6 +189,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                             </div>
                         </div>
                     </section>
+                     <div className="pb-24"></div>
                 </div>
             </div>
 
