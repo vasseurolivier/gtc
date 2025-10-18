@@ -101,7 +101,7 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div className="w-1/3">
                             {logo && 
-                                <img src={logo} alt="Company Logo" className="h-12 w-auto object-contain"/>
+                                <img src={logo} alt="Company Logo" className="h-16 w-auto object-contain"/>
                             }
                         </div>
                         <div className="text-right w-2/3">
