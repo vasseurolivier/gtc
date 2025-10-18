@@ -58,7 +58,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
                 
-                const mainCanvas = await html2canvas(mainContent, { scale: 2 });
+                const mainCanvas = await html2canvas(mainContent, { scale: 2, useCORS: true });
                 const mainImgData = mainCanvas.toDataURL('image/png');
                 const mainImgProps = pdf.getImageProperties(mainImgData);
                 const mainRatio = mainImgProps.height / mainImgProps.width;
@@ -66,7 +66,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                 let mainHeightLeft = mainImgHeight;
                 let mainPosition = 0;
                 
-                const footerCanvas = await html2canvas(footerContent, { scale: 2 });
+                const footerCanvas = await html2canvas(footerContent, { scale: 2, useCORS: true });
                 const footerImgData = footerCanvas.toDataURL('image/png');
                 const footerImgProps = pdf.getImageProperties(footerImgData);
                 const footerRatio = footerImgProps.height / footerImgProps.width;
@@ -170,7 +170,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                             <td className="p-1 align-top">
                                                 {product?.imageUrl && (
                                                     <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                        <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
                                                     </div>
                                                 )}
                                             </td>
@@ -271,4 +271,3 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
     );
 }
 
-    
