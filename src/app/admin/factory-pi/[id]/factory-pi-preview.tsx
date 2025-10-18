@@ -102,11 +102,11 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
             </div>
             
             <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-12 py-8">
+                <div ref={printRef} className="px-12 py-8 pb-24">
                     <header className="pb-8 mb-8 border-b">
-                        <div className="flex justify-between items-start">
-                            <div className="w-1/3 flex justify-start">
-                                {logo && <Image src={logo} alt="Company Logo" width={120} height={50} className="object-contain"/>}
+                        <div className="flex justify-between items-start h-24">
+                            <div className="w-1/3 h-full flex justify-start items-center">
+                                {logo && <Image src={logo} alt="Company Logo" width={120} height={60} className="object-contain h-full w-auto"/>}
                             </div>
                             
                             <div className="w-1/3 text-right">
