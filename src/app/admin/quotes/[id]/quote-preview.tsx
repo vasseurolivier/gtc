@@ -166,16 +166,16 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                             </td>
                                             <td className="p-1 align-top leading-tight">
                                                 <p className="font-medium">{item.description}</p>
-                                                {product?.description && <p className="text-xxs text-muted-foreground">{product.description}</p>}
+                                                {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
                                             </td>
                                             <td className="p-1 align-top text-right">{item.quantity}</td>
                                             <td className="p-1 align-top text-right">
                                                 <div>¥{item.unitPrice.toFixed(2)}</div>
-                                                <div className="text-xxs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                                <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
                                             </td>
                                             <td className="p-1 align-top text-right font-medium">
                                                 <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                                <div className="text-xxs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                                <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
                                             </td>
                                         </tr>
                                     )
@@ -189,7 +189,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <span className="text-muted-foreground">Sous-total :</span>
                                     <span className="font-medium text-right">
                                         <div>¥{quote.subTotal.toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 {(quote.commissionRate || 0) > 0 && (
@@ -197,7 +197,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                         <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
                                         <span className="font-medium text-right">
                                             <div>¥{commissionAmount.toFixed(2)}</div>
-                                            <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                            <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
                                         </span>
                                     </div>
                                 )}
@@ -205,7 +205,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <span className="text-muted-foreground">Frais de port :</span>
                                     <span className="font-medium text-right">
                                         <div>¥{(quote.transportCost || 0).toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
@@ -219,14 +219,14 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                     <span className="text-muted-foreground">Acompte à payer :</span>
                                     <span className="font-medium text-right">
                                         <div>¥{downPayment.toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(downPayment * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(downPayment * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-bold">
                                     <span>Solde restant :</span>
                                     <span className="text-right">
                                         <div>¥{remainingBalance.toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                             </div>
@@ -250,7 +250,7 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
             
             <div className="absolute -left-[9999px] top-auto">
                 <div ref={footerRef} className="px-12 py-4 w-[210mm]">
-                    <div className="pt-4 border-t text-center text-xs text-gray-500">
+                    <div className="pt-4 border-t text-center text-[10px] text-gray-500">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>
                         <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
@@ -260,4 +260,3 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
         </main>
     );
 }
-

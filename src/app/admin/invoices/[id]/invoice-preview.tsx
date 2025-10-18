@@ -176,16 +176,16 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                             </td>
                                             <td className="p-1 align-top leading-tight">
                                                 <p className="font-medium">{item.description}</p>
-                                                {product?.description && <p className="text-xxs text-muted-foreground">{product.description}</p>}
+                                                {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
                                             </td>
                                             <td className="p-1 align-top text-right">{item.quantity}</td>
                                             <td className="p-1 align-top text-right">
                                                 <div>¥{item.unitPrice.toFixed(2)}</div>
-                                                <div className="text-xxs text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                                <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
                                             </td>
                                             <td className="p-1 align-top text-right font-medium">
                                                 <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                                <div className="text-xxs text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                                <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
                                             </td>
                                         </tr>
                                     )
@@ -199,7 +199,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                     <span className="text-muted-foreground">Sous-total :</span>
                                     <span className="font-medium text-right">
                                         <div>¥{subTotal.toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(subTotal * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(subTotal * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 {commissionRate > 0 && (
@@ -207,7 +207,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                         <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
                                         <span className="font-medium text-right">
                                             <div>¥{commissionAmount.toFixed(2)}</div>
-                                            <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                            <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
                                         </span>
                                     </div>
                                 )}
@@ -215,7 +215,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                     <span className="text-muted-foreground">Frais de port :</span>
                                     <span className="font-medium text-right">
                                         <div>¥{transportCost.toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(transportCost * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(transportCost * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
@@ -229,14 +229,14 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                                     <span className="text-muted-foreground">Montant Payé :</span>
                                     <span className="font-medium text-right">
                                         <div>¥{(invoice.amountPaid || 0).toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-bold">
                                     <span>Solde restant :</span>
                                     <span className="text-right">
                                         <div>¥{balanceDue.toFixed(2)}</div>
-                                        <div className="text-xxs font-normal text-muted-foreground">{currency.symbol}{(balanceDue * exchangeRate).toFixed(2)}</div>
+                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(balanceDue * exchangeRate).toFixed(2)}</div>
                                     </span>
                                 </div>
                             </div>
@@ -260,7 +260,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
 
             <div className="absolute -left-[9999px] top-auto">
                 <div ref={footerRef} className="px-12 py-4 w-[210mm]">
-                    <div className="pt-4 border-t text-center text-xs text-gray-500">
+                    <div className="pt-4 border-t text-center text-[10px] text-gray-500">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>
                         <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
@@ -270,4 +270,3 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
         </main>
     );
 }
-

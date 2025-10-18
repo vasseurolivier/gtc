@@ -193,7 +193,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
 
              <div className="absolute -left-[9999px] top-auto">
                 <div ref={footerRef} className="px-12 py-4 w-[210mm]">
-                    <div className="pt-4 border-t text-center text-xs text-gray-500">
+                    <div className="pt-4 border-t text-center text-[10px] text-gray-500">
                         <p>Merci de votre confiance</p>
                         <p>{companyInfo?.address}</p>
                         <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
