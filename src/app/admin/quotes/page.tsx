@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -21,9 +22,9 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { getProducts, Product } from '@/actions/products';
+import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,9 @@ import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { app as firebaseApp } from '@/lib/firebase';
+import Image from 'next/image';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -39,6 +43,7 @@ const quoteItemSchema = z.object({
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
   purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
+  photo: z.string().optional(), // For data URL
 });
 
 const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
@@ -83,7 +88,7 @@ function QuotesPageContent() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0 }],
+      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" }],
       subTotal: 0,
       transportCost: 0,
       commissionRate: 0,
@@ -102,6 +107,72 @@ function QuotesPageContent() {
   const watchItems = form.watch("items");
   const watchTransportCost = form.watch("transportCost");
   const watchCommissionRate = form.watch("commissionRate");
+  
+  const [isSavingProduct, setIsSavingProduct] = useState<number | null>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          variant: 'destructive',
+          title: 'File too large',
+          description: 'Please upload an image smaller than 2MB.',
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue(`items.${index}.photo`, reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleSaveAsProduct = async (index: number) => {
+      const item = form.getValues(`items.${index}`);
+      if (!item.description) {
+          toast({ variant: 'destructive', title: 'Missing Information', description: 'Product description is required to save.' });
+          return;
+      }
+      
+      setIsSavingProduct(index);
+      let imageUrl = '';
+      try {
+          if (item.photo && item.photo.startsWith('data:image')) {
+              const storage = getStorage(firebaseApp);
+              const storageRef = ref(storage, `products/${Date.now()}-${item.sku || 'product'}.jpg`);
+              const snapshot = await uploadString(storageRef, item.photo, 'data_url');
+              imageUrl = await getDownloadURL(snapshot.ref);
+          }
+
+          const newProductData = {
+              name: item.description,
+              sku: item.sku || `SKU-${Date.now().toString().slice(-8)}`,
+              price: item.unitPrice,
+              purchasePrice: item.purchasePrice || 0,
+              imageUrl: imageUrl,
+              // Default values for other required product fields
+              stock: 0,
+          };
+
+          const result = await addProduct(newProductData);
+
+          if (result.success) {
+              toast({ title: 'Product Saved', description: `${item.description} has been added to your product list.` });
+              // Refresh product list
+              const fetchedProducts = await getProducts();
+              setProducts(fetchedProducts);
+          } else {
+              toast({ variant: 'destructive', title: 'Error Saving Product', description: result.message });
+          }
+      } catch (error: any) {
+          toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+      } finally {
+          setIsSavingProduct(null);
+      }
+  };
+
 
   useEffect(() => {
     const subscription = form.watch((values, { name, type }) => {
@@ -161,7 +232,8 @@ function QuotesPageContent() {
                     quantity: item.quantity,
                     unitPrice: item.unitPriceCny,
                     purchasePrice: item.unitPriceCny, // Assuming purchase price is same as unit price from packing list
-                    total: item.quantity * item.unitPriceCny
+                    total: item.quantity * item.unitPriceCny,
+                    photo: item.photo || "",
                 }));
                 form.reset({
                     quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
@@ -191,13 +263,14 @@ function QuotesPageContent() {
             ...quote,
             issueDate: new Date(quote.issueDate),
             validUntil: new Date(quote.validUntil),
+            items: quote.items.map(item => ({...item, photo: ''})) // photos are not persisted on quote
         });
     } else {
         form.reset({
             quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
             issueDate: new Date(),
             validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0 }],
+            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" }],
             subTotal: 0,
             transportCost: 0,
             commissionRate: 0,
@@ -230,16 +303,23 @@ function QuotesPageContent() {
             description: product.name,
             unitPrice: product.price,
             purchasePrice: product.purchasePrice || 0,
-            total: quantity * product.price
+            total: quantity * product.price,
+            photo: product.imageUrl || ""
         });
     }
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+    // Sanitize items: remove temp photo data before saving
+    const valuesToSave = {
+        ...values,
+        items: values.items.map(({ photo, ...item }) => item)
+    };
+    
     const result = editingQuote
-      ? await updateQuote(editingQuote.id, values)
-      : await addQuote(values);
+      ? await updateQuote(editingQuote.id, valuesToSave)
+      : await addQuote(valuesToSave);
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });
@@ -285,6 +365,7 @@ function QuotesPageContent() {
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       status: "draft",
+      items: quoteToDuplicate.items.map(item => ({...item, photo: ''}))
     });
     setEditingQuote(null); // Ensure it's a new quote
     setIsDialogOpen(true);
@@ -444,36 +525,43 @@ function QuotesPageContent() {
                 <Card className="p-4">
                   <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Items</h4></CardHeader>
                   <CardContent className="p-0">
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-start gap-2">
-                          <div className="flex-grow space-y-2">
-                             <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a product (optional)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {products.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
-                                <FormItem><FormControl><Input placeholder="Or type item description manually" {...f} /></FormControl><FormMessage/></FormItem>
-                            )}/>
+                        <div key={field.id} className="p-3 border rounded-md">
+                          <div className="flex justify-end">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
                           </div>
-                            <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (
-                                <FormItem className="w-20"><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>
+                          <div className="grid grid-cols-1 md:grid-cols-[1fr_80px_110px_110px] gap-2 items-start">
+                              <div className="space-y-2">
+                                <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                                    <SelectTrigger><SelectValue placeholder="Select a product or describe" /></SelectTrigger>
+                                    <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent>
+                                </Select>
+                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (<FormItem><FormControl><Input placeholder="Or type item description" {...f} /></FormControl><FormMessage/></FormItem>)}/>
+                              </div>
+                              <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>)}/>
+                              <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>)}/>
+                              <div className="text-right">
+                                <FormLabel>Total</FormLabel>
+                                <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
+                              </div>
+                          </div>
+                          <div className="mt-2 flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                              {watchItems[index]?.photo ? <Image src={watchItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
+                            </div>
+                            <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
+                                <FormItem><FormLabel className="sr-only">Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, index)} className="w-auto text-xs" /></FormControl></FormItem>
                             )}/>
-                            <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (
-                                <FormItem className="w-28"><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>
-                            )}/>
-                            <div className="w-28 pt-8 text-right font-medium">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                            <Button type="button" variant="secondary" size="sm" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
+                              {isSavingProduct === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                              Save as Product
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
-                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0 })}>
+                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" })}>
                         <PlusCircle className="mr-2 h-4 w-4"/> Add Item
                     </Button>
                     <Separator className="my-4" />
@@ -603,4 +691,5 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
+
 
