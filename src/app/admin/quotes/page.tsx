@@ -273,16 +273,11 @@ function QuotesPageContent() {
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
-        const quantity = form.getValues(`items.${index}.quantity`) || 1;
-        update(index, {
-            ...fields[index],
-            sku: product.sku,
-            description: product.name,
-            unitPrice: product.price,
-            purchasePrice: product.purchasePrice || 0,
-            total: quantity * product.price,
-            photo: product.imageUrl || ""
-        });
+        form.setValue(`items.${index}.sku`, product.sku);
+        form.setValue(`items.${index}.description`, product.name);
+        form.setValue(`items.${index}.unitPrice`, product.price);
+        form.setValue(`items.${index}.purchasePrice`, product.purchasePrice || 0);
+        form.setValue(`items.${index}.photo`, product.imageUrl || "");
     }
   };
 
@@ -523,7 +518,7 @@ function QuotesPageContent() {
                                 <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
                               </div>
                           </div>
-                          <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
+                           <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
                             <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                               {watchItems[index]?.photo ? <Image src={watchItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
                             </div>
@@ -675,5 +670,3 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
-
-
