@@ -43,7 +43,7 @@ const quoteItemSchema = z.object({
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
   purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
-  photo: z.string().optional(), // For data URL
+  photo: z.string().optional(), // For URL
 });
 
 const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
@@ -109,29 +109,9 @@ function QuotesPageContent() {
   const watchCommissionRate = form.watch("commissionRate");
   
   const [isSavingProduct, setIsSavingProduct] = useState<number | null>(null);
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: 'Please upload an image smaller than 2MB.',
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue(`items.${index}.photo`, reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
   
-const handleSaveAsProduct = async (index: number) => {
+  const handleSaveAsProduct = async (index: number) => {
     const item = form.getValues(`items.${index}`);
-    const itemPhoto = form.getValues(`items.${index}.photo`);
 
     if (!item.description) {
         toast({ variant: 'destructive', title: 'Missing Information', description: 'Product description is required to save.' });
@@ -139,22 +119,14 @@ const handleSaveAsProduct = async (index: number) => {
     }
     
     setIsSavingProduct(index);
-    let imageUrl = itemPhoto || '';
 
     try {
-        if (itemPhoto && itemPhoto.startsWith('data:image')) {
-            const storage = getStorage(firebaseApp);
-            const storageRef = ref(storage, `products/${Date.now()}-${item.sku || 'product'}.jpg`);
-            const snapshot = await uploadString(storageRef, itemPhoto, 'data_url');
-            imageUrl = await getDownloadURL(snapshot.ref);
-        }
-
         const newProductData = {
             name: item.description,
             sku: item.sku || `SKU-${Date.now().toString().slice(-8)}`,
             price: item.unitPrice,
             purchasePrice: item.purchasePrice || 0,
-            imageUrl: imageUrl,
+            imageUrl: item.photo || '',
             stock: 0,
             weight: 0,
             width: 0,
@@ -172,7 +144,7 @@ const handleSaveAsProduct = async (index: number) => {
             toast({ variant: 'destructive', title: 'Error Saving Product', description: result.message || 'An unknown error occurred.' });
         }
     } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Upload Failed', description: error.message || 'Could not upload image.' });
+        toast({ variant: 'destructive', title: 'Save Failed', description: error.message || 'Could not save product.' });
     } finally {
         setIsSavingProduct(null);
     }
@@ -316,10 +288,10 @@ const handleSaveAsProduct = async (index: number) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    // Sanitize items: remove temp photo data before saving
+    // Sanitize items: keep photo URL for saving
     const valuesToSave = {
         ...values,
-        items: values.items.map(({ photo, ...item }) => item)
+        items: values.items.map(({ ...item }) => item)
     };
     
     const result = editingQuote
@@ -556,9 +528,14 @@ const handleSaveAsProduct = async (index: number) => {
                               {watchItems[index]?.photo ? <Image src={watchItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
                             </div>
                             <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                                <FormItem><FormLabel className="sr-only">Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, index)} className="w-full text-xs" /></FormControl></FormItem>
+                                <FormItem>
+                                    <FormLabel className="sr-only">Photo URL</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="http://..." {...photoField} />
+                                    </FormControl>
+                                </FormItem>
                             )}/>
-                            {watchItems[index]?.description && !watchItems[index]?.sku && (
+                            {watchItems[index]?.description && !products.some(p => p.sku === watchItems[index].sku) && (
                                 <Button type="button" variant="secondary" size="sm" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
                                 {isSavingProduct === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
                                 Save as Product
