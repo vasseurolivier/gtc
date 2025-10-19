@@ -152,8 +152,11 @@ function QuotesPageContent() {
               price: item.unitPrice,
               purchasePrice: item.purchasePrice || 0,
               imageUrl: imageUrl,
-              // Default values for other required product fields
               stock: 0,
+              weight: 0,
+              width: 0,
+              height: 0,
+              length: 0,
           };
 
           const result = await addProduct(newProductData);
@@ -691,5 +694,6 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
+
 
 
