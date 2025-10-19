@@ -104,7 +104,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div className="w-1/3">
                             {logo && 
-                                <img src={logo} alt="Company Logo" className="h-16 w-auto object-contain"/>
+                                <div className="h-16 w-auto relative">
+                                    <img src={logo} alt="Company Logo" className="h-16 w-auto object-contain"/>
+                                </div>
                             }
                         </div>
                         <div className="text-right w-2/3">
@@ -136,9 +138,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold">Image</th>
-                                    <th className="w-1/2 p-1 font-semibold">Description</th>
-                                    <th className="p-1 text-right font-semibold">SKU</th>
+                                    <th className="p-1 font-semibold w-[8%]">Image</th>
+                                    <th className="w-2/5 p-1 font-semibold">Description</th>
+                                    <th className="p-1 text-right font-semibold w-[12%]">SKU</th>
                                     <th className="p-1 text-right font-semibold">Quantity</th>
                                     <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
                                     <th className="p-1 text-right font-semibold">Total (CNY)</th>
