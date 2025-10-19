@@ -129,52 +129,54 @@ function QuotesPageContent() {
     }
   };
   
-  const handleSaveAsProduct = async (index: number) => {
-      const item = form.getValues(`items.${index}`);
-      if (!item.description) {
-          toast({ variant: 'destructive', title: 'Missing Information', description: 'Product description is required to save.' });
-          return;
-      }
-      
-      setIsSavingProduct(index);
-      let imageUrl = item.photo || ''; // Use existing URL if it's not a data URL
-      try {
-          if (item.photo && item.photo.startsWith('data:image')) {
-              const storage = getStorage(firebaseApp);
-              const storageRef = ref(storage, `products/${Date.now()}-${item.sku || 'product'}.jpg`);
-              const snapshot = await uploadString(storageRef, item.photo, 'data_url');
-              imageUrl = await getDownloadURL(snapshot.ref);
-          }
+const handleSaveAsProduct = async (index: number) => {
+    const item = form.getValues(`items.${index}`);
+    const itemPhoto = form.getValues(`items.${index}.photo`);
 
-          const newProductData = {
-              name: item.description,
-              sku: item.sku || `SKU-${Date.now().toString().slice(-8)}`,
-              price: item.unitPrice,
-              purchasePrice: item.purchasePrice || 0,
-              imageUrl: imageUrl,
-              stock: 0,
-              weight: 0,
-              width: 0,
-              height: 0,
-              length: 0,
-          };
+    if (!item.description) {
+        toast({ variant: 'destructive', title: 'Missing Information', description: 'Product description is required to save.' });
+        return;
+    }
+    
+    setIsSavingProduct(index);
+    let imageUrl = itemPhoto || '';
 
-          const result = await addProduct(newProductData);
+    try {
+        if (itemPhoto && itemPhoto.startsWith('data:image')) {
+            const storage = getStorage(firebaseApp);
+            const storageRef = ref(storage, `products/${Date.now()}-${item.sku || 'product'}.jpg`);
+            const snapshot = await uploadString(storageRef, itemPhoto, 'data_url');
+            imageUrl = await getDownloadURL(snapshot.ref);
+        }
 
-          if (result.success) {
-              toast({ title: 'Product Saved', description: `${item.description} has been added to your product list.` });
-              // Refresh product list
-              const fetchedProducts = await getProducts();
-              setProducts(fetchedProducts);
-          } else {
-              toast({ variant: 'destructive', title: 'Error Saving Product', description: result.message });
-          }
-      } catch (error: any) {
-          toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
-      } finally {
-          setIsSavingProduct(null);
-      }
-  };
+        const newProductData = {
+            name: item.description,
+            sku: item.sku || `SKU-${Date.now().toString().slice(-8)}`,
+            price: item.unitPrice,
+            purchasePrice: item.purchasePrice || 0,
+            imageUrl: imageUrl,
+            stock: 0,
+            weight: 0,
+            width: 0,
+            height: 0,
+            length: 0,
+        };
+
+        const result = await addProduct(newProductData);
+
+        if (result.success) {
+            toast({ title: 'Product Saved', description: `${item.description} has been added to your product list.` });
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+        } else {
+            toast({ variant: 'destructive', title: 'Error Saving Product', description: result.message || 'An unknown error occurred.' });
+        }
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Upload Failed', description: error.message || 'Could not upload image.' });
+    } finally {
+        setIsSavingProduct(null);
+    }
+};
 
 
   useEffect(() => {
@@ -549,14 +551,14 @@ function QuotesPageContent() {
                                 <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
                               </div>
                           </div>
-                           <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
+                          <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
                             <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                               {watchItems[index]?.photo ? <Image src={watchItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
                             </div>
                             <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                                 <FormItem><FormLabel className="sr-only">Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, index)} className="w-full text-xs" /></FormControl></FormItem>
                             )}/>
-                            {watchItems[index]?.description && (
+                            {watchItems[index]?.description && !watchItems[index]?.sku && (
                                 <Button type="button" variant="secondary" size="sm" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
                                 {isSavingProduct === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
                                 Save as Product
@@ -696,4 +698,5 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
+
 
