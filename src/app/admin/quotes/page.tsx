@@ -519,9 +519,13 @@ function QuotesPageContent() {
                               </div>
                           </div>
                            <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
-                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                              {watchItems[index]?.photo ? <Image src={watchItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
-                            </div>
+                             <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                               {watchItems[index]?.photo ? (
+                                   <img src={watchItems[index].photo!} alt="Product" className="object-contain w-full h-full" />
+                               ) : (
+                                   <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                               )}
+                             </div>
                             <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                                 <FormItem>
                                     <FormLabel className="sr-only">Photo URL</FormLabel>
