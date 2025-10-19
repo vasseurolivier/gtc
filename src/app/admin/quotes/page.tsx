@@ -549,17 +549,19 @@ function QuotesPageContent() {
                                 <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
                               </div>
                           </div>
-                          <div className="mt-2 flex items-center gap-4">
+                          <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
                             <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                               {watchItems[index]?.photo ? <Image src={watchItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
                             </div>
                             <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                                <FormItem><FormLabel className="sr-only">Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, index)} className="w-auto text-xs" /></FormControl></FormItem>
+                                <FormItem><FormLabel className="sr-only">Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, index)} className="w-full text-xs" /></FormControl></FormItem>
                             )}/>
-                            <Button type="button" variant="secondary" size="sm" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
-                              {isSavingProduct === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
-                              Save as Product
-                            </Button>
+                             {watchItems[index]?.description && (
+                                <Button type="button" variant="secondary" size="sm" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
+                                {isSavingProduct === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                                Save as Product
+                                </Button>
+                             )}
                           </div>
                         </div>
                       ))}
@@ -694,6 +696,4 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
-
-
 
