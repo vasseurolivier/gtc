@@ -1,13 +1,15 @@
 
 'use client';
 
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +42,10 @@ export default function SupplierContractPage() {
   const router = useRouter();
   const { toast } = useToast();
   const companyInfoContext = useContext(CompanyInfoContext);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -68,9 +74,56 @@ export default function SupplierContractPage() {
   const watchedValues = form.watch();
   const { companyInfo } = companyInfoContext || {};
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handleGeneratePdf = async () => {
+    setIsGeneratingPdf(true);
+    const mainContent = printRef.current;
+    const footerContent = footerRef.current;
+
+    if (mainContent && footerContent) {
+        try {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const mainCanvas = await html2canvas(mainContent, { scale: 2, useCORS: true });
+            const mainImgData = mainCanvas.toDataURL('image/png');
+            const mainImgProps = pdf.getImageProperties(mainImgData);
+            const mainRatio = mainImgProps.height / mainImgProps.width;
+            let mainImgHeight = pdfWidth * mainRatio;
+            let mainHeightLeft = mainImgHeight;
+            let mainPosition = 0;
+            
+            const footerCanvas = await html2canvas(footerContent, { scale: 2, useCORS: true });
+            const footerImgData = footerCanvas.toDataURL('image/png');
+            const footerImgProps = pdf.getImageProperties(footerImgData);
+            const footerRatio = footerImgProps.height / footerImgProps.width;
+            const footerHeight = pdfWidth * footerRatio;
+            const footerY = pdfHeight - footerHeight - 5; 
+
+            let pageCount = 0;
+            while (mainHeightLeft > 0) {
+                if (pageCount > 0) {
+                    pdf.addPage();
+                }
+                pdf.addImage(mainImgData, 'PNG', 0, mainPosition, pdfWidth, mainImgHeight);
+                mainHeightLeft -= pdfHeight;
+                mainPosition -= pdfHeight;
+                pageCount++;
+            }
+
+            for (let i = 1; i <= pdf.getNumberOfPages(); i++) {
+                pdf.setPage(i);
+                pdf.addImage(footerImgData, 'PNG', 0, footerY, pdfWidth, footerHeight);
+            }
+
+            pdf.save(`SupplierContract_${watchedValues.supplierName}.pdf`);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("An error occurred while generating the PDF.");
+        }
+    }
+    setIsGeneratingPdf(false);
+};
   
   if (!companyInfoContext) {
       return (
@@ -88,8 +141,8 @@ export default function SupplierContractPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8 no-print">
         <h1 className="text-3xl font-bold">Supplier Contract Generator</h1>
-        <Button onClick={handlePrint}>
-          <Printer className="mr-2 h-4 w-4" />
+        <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf}>
+          {isGeneratingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Printer className="mr-2 h-4 w-4" />}
           Export to PDF
         </Button>
       </div>
@@ -139,15 +192,13 @@ export default function SupplierContractPage() {
         </Card>
 
         <div className="lg:col-span-2">
-            <div className="print-document bg-white rounded-lg shadow-lg" style={{ paddingBottom: '70px' }}>
-                <header className="print-header">
-                  <div className="text-center pt-8 pb-4">
+            <div className="bg-white rounded-lg shadow-lg border">
+              <div ref={printRef} className="px-8 py-10 pb-32">
+                  <header className="text-center pt-8 pb-4">
                       <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
                       <p className="font-bold">采购协议</p>
-                  </div>
-                </header>
-                <section className="print-body">
-                  <div className="print-body-content font-sans leading-relaxed text-sm">
+                  </header>
+                  <section className="font-sans leading-relaxed text-sm">
                       <p className="mb-4">BETWEEN: <br/> 双方：</p>
 
                       <div className="mb-4">
@@ -275,14 +326,18 @@ export default function SupplierContractPage() {
                               </div>
                           </div>
                       </div>
-                  </div>
-                </section>
-                <footer className="print-footer">
+                  </section>
+                </div>
+            </div>
+             <div className="absolute -left-[9999px] top-auto">
+                <div ref={footerRef} className="px-12 py-4 w-[210mm]">
                     <PrintFooter />
-                </footer>
+                </div>
             </div>
         </div>
       </div>
     </div>
   );
 }
+
+    
