@@ -19,23 +19,25 @@ interface CompanyInfoContextType {
 
 export const CompanyInfoContext = createContext<CompanyInfoContextType | undefined>(undefined);
 
+const defaultCompanyInfo: CompanyInfo = {
+  name: 'Yiwu Hunagqing Trading',
+  address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
+  email: 'info@globaltradingchina.com',
+  phone: '+8613564770717',
+  logo: '',
+  publicLogo: '',
+};
+
+
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: 'Yiwu Hunagqing Trading',
-    address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
-    email: 'info@globaltradingchina.com',
-    phone: '+8613564770717',
-    logo: '',
-    publicLogo: '',
-  });
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
   const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
     try {
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
-            const parsedInfo = JSON.parse(savedInfo);
-            setCompanyInfo(parsedInfo);
+            setCompanyInfo(JSON.parse(savedInfo));
         }
     } catch (error) {
         console.error('Failed to load company info from localStorage', error);
@@ -63,5 +65,3 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     </CompanyInfoContext.Provider>
   );
 };
-
-    
