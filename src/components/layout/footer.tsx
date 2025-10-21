@@ -13,12 +13,10 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 export function Footer({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [publicLogo, setPublicLogo] = useState('');
-  const [isClient, setIsClient] = useState(false);
   
   const companyInfoContext = useContext(CompanyInfoContext);
 
   useEffect(() => {
-    setIsClient(true);
     if (companyInfoContext?.companyInfo.publicLogo) {
       setPublicLogo(companyInfoContext.companyInfo.publicLogo);
     }
@@ -42,7 +40,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                {isClient && publicLogo ? (
+                {publicLogo ? (
                   <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                 ) : (
                   <div style={{width: '50px', height: '12px'}} />
