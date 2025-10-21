@@ -19,8 +19,8 @@ export function Footer({ dictionary }: { dictionary: any }) {
 
   useEffect(() => {
     setIsClient(true);
-    if (companyInfoContext) {
-      setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
+    if (companyInfoContext?.companyInfo.publicLogo) {
+      setPublicLogo(companyInfoContext.companyInfo.publicLogo);
     }
   }, [companyInfoContext]);
   
