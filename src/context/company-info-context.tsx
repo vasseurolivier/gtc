@@ -8,8 +8,9 @@ export interface CompanyInfo {
   address: string;
   email: string;
   phone: string;
-  logo: string; 
+  logo: string;
   publicLogo?: string;
+  brochureUrl?: string;
 }
 
 interface CompanyInfoContextType {
@@ -26,6 +27,7 @@ const defaultCompanyInfo: CompanyInfo = {
   phone: '+8613564770717',
   logo: '',
   publicLogo: '',
+  brochureUrl: '',
 };
 
 

@@ -8,10 +8,14 @@ import { HeroContactForm } from '@/components/forms/hero-contact-form';
 import { usePathname } from 'next/navigation';
 import { i18n } from '@/i18n-config';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useContext } from 'react';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 export function HeroSection({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
+  const companyInfoContext = useContext(CompanyInfoContext);
+  const brochureUrl = companyInfoContext?.companyInfo.brochureUrl;
   
   const getCurrentLocale = () => {
     if (!pathname) return i18n.defaultLocale;
@@ -54,11 +58,13 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
                         <ArrowRight className="ml-2" />
                     </Link>
                 </Button>
-                <Button size="lg" variant="secondary" asChild>
-                    <Link href={localePrefixed("/services")}>
-                        {dictionary.heroSection.servicesButton}
-                    </Link>
-                </Button>
+                 {brochureUrl && (
+                  <Button size="lg" variant="secondary" asChild>
+                      <a href={brochureUrl} target="_blank" rel="noopener noreferrer">
+                          {dictionary.heroSection.brochureButton}
+                      </a>
+                  </Button>
+                 )}
                 </div>
             </div>
              <div className="hidden md:block w-full md:w-1/2 max-w-md md:ml-auto">

@@ -65,6 +65,7 @@ function AdminSettings() {
     const [companyPhone, setCompanyPhone] = useState('');
     const [companyLogo, setCompanyLogo] = useState('');
     const [publicLogo, setPublicLogo] = useState('');
+    const [brochureUrl, setBrochureUrl] = useState('');
     
 
     useEffect(() => {
@@ -80,6 +81,7 @@ function AdminSettings() {
                 setCompanyPhone(companyInfoContext.companyInfo.phone);
                 setCompanyLogo(companyInfoContext.companyInfo.logo);
                 setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
+                setBrochureUrl(companyInfoContext.companyInfo.brochureUrl || '');
             }
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
@@ -113,6 +115,7 @@ function AdminSettings() {
             phone: companyPhone,
             logo: companyLogo,
             publicLogo: publicLogo,
+            brochureUrl: brochureUrl,
         });
 
         toast({ title: 'Success', description: 'Settings updated.'});
@@ -176,6 +179,10 @@ function AdminSettings() {
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="company-phone" className="text-right">Phone</Label>
                                     <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="brochure-url" className="text-right">Brochure URL</Label>
+                                    <Input id="brochure-url" placeholder="https://.../brochure.pdf" value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>
                         </div>
