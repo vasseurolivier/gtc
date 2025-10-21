@@ -29,12 +29,10 @@ export function Header({ dictionary }: { dictionary: any }) {
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
   const [publicLogo, setPublicLogo] = useState('');
-  const [isClient, setIsClient] = useState(false);
-
+  
   const companyInfoContext = useContext(CompanyInfoContext);
 
   useEffect(() => {
-    setIsClient(true);
     if (companyInfoContext) {
       setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
     }
@@ -131,7 +129,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
-          {isClient && publicLogo ? (
+          {publicLogo ? (
             <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain invert brightness-0" />
           ) : (
             <div style={{width: '50px', height: '12px'}} />
@@ -204,7 +202,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
                     <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
-                     {isClient && publicLogo ? (
+                     {publicLogo ? (
                         <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                      ) : (
                         <div style={{width: '50px', height: '12px'}} />
