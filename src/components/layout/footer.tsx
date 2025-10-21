@@ -6,21 +6,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { i18n } from '@/i18n-config';
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
 
 export function Footer({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
-  const [publicLogo, setPublicLogo] = useState('');
-  
   const companyInfoContext = useContext(CompanyInfoContext);
-
-  useEffect(() => {
-    if (companyInfoContext?.companyInfo.publicLogo) {
-      setPublicLogo(companyInfoContext.companyInfo.publicLogo);
-    }
-  }, [companyInfoContext]);
+  const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
   
   const getCurrentLocale = () => {
     if (!pathname) return i18n.defaultLocale;

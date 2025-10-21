@@ -28,15 +28,8 @@ export function Header({ dictionary }: { dictionary: any }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [publicLogo, setPublicLogo] = useState('');
-  
   const companyInfoContext = useContext(CompanyInfoContext);
-
-  useEffect(() => {
-    if (companyInfoContext) {
-      setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
-    }
-  }, [companyInfoContext]);
+  const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
 
 
   useEffect(() => {
