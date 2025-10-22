@@ -2,6 +2,8 @@
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export interface CompanyInfo {
   name: string;
@@ -30,41 +32,50 @@ const defaultCompanyInfo: CompanyInfo = {
   brochureUrl: '',
 };
 
-
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
   const [isLoaded, setIsLoaded] = useState(false);
-  
+
   useEffect(() => {
-    try {
-        const savedInfo = localStorage.getItem('adminCompanyInfo');
-        if (savedInfo) {
-            // Merge saved info with defaults to include any new properties
-            const parsedInfo = JSON.parse(savedInfo);
-            setCompanyInfo(prev => ({ ...defaultCompanyInfo, ...prev, ...parsedInfo }));
-        }
-    } catch (error) {
-        console.error('Failed to load company info from localStorage', error);
-    }
-    setIsLoaded(true);
+    const docRef = doc(db, 'companyInfo', 'main');
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as Partial<CompanyInfo>;
+        setCompanyInfo(prev => ({ ...defaultCompanyInfo, ...prev, ...data }));
+      } else {
+        // If the document doesn't exist, create it with defaults
+        setDoc(docRef, defaultCompanyInfo).catch(error => {
+            console.error("Failed to create initial company info:", error);
+        });
+      }
+      setIsLoaded(true);
+    }, (error) => {
+        console.error("Failed to fetch company info from Firestore:", error);
+        setIsLoaded(true); // Still allow the app to render with defaults
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
   
-  useEffect(() => {
-    if (isLoaded) {
-        try {
-            localStorage.setItem('adminCompanyInfo', JSON.stringify(companyInfo));
-        } catch (error) {
-            console.error('Failed to save company info to localStorage', error);
-        }
-    }
-  }, [companyInfo, isLoaded]);
 
-  const handleSetCompanyInfo = (newInfo: CompanyInfo) => {
-    setCompanyInfo(newInfo);
+  const handleSetCompanyInfo = async (newInfo: CompanyInfo) => {
+    const docRef = doc(db, 'companyInfo', 'main');
+    try {
+        await setDoc(docRef, newInfo, { merge: true });
+        // The onSnapshot listener will update the state automatically
+    } catch (error) {
+        console.error('Failed to save company info to Firestore', error);
+    }
+  };
+
+  const value = { 
+    companyInfo, 
+    setCompanyInfo: handleSetCompanyInfo 
   };
 
   return (
-    <CompanyInfoContext.Provider value={{ companyInfo, setCompanyInfo: handleSetCompanyInfo }}>
+    <CompanyInfoContext.Provider value={value}>
       {children}
     </CompanyInfoContext.Provider>
   );
