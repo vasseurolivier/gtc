@@ -242,7 +242,7 @@ export function InvoicePreview({ invoice, customer, products, logo }: { invoice:
                             </div>
                         </div>
 
-                        <div className="mt-8 text-left border-t pt-4 pb-24">
+                         <div className="mt-8 text-left border-t pt-4 pb-24">
                             <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
                             <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
                                 <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>

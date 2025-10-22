@@ -232,6 +232,15 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                             </div>
                         </div>
 
+                        {quote.notes && (
+                            <div className="mt-8 border-t pt-4">
+                                <h3 className="font-semibold mb-1 text-xs">Notes:</h3>
+                                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">
+                                    {quote.notes}
+                                </p>
+                            </div>
+                        )}
+
                         <div className="mt-8 text-left border-t pt-4 pb-24">
                             <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
                             <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
