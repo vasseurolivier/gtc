@@ -39,7 +39,9 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
-            setCompanyInfo(JSON.parse(savedInfo));
+            // Merge saved info with defaults to include any new properties
+            const parsedInfo = JSON.parse(savedInfo);
+            setCompanyInfo(prev => ({ ...defaultCompanyInfo, ...prev, ...parsedInfo }));
         }
     } catch (error) {
         console.error('Failed to load company info from localStorage', error);
