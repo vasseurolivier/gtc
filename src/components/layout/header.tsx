@@ -127,7 +127,7 @@ export function Header({ dictionary }: { dictionary: any }) {
           ) : (
             <div style={{width: '50px', height: '12px'}} />
           )}
-          <span className={cn("font-bold sm:inline-block font-headline text-lg text-white")}>
+          <span className={cn("font-bold sm:inline-block font-headline text-lg text-white hidden")}>
             Global Trading China
           </span>
         </Link>
@@ -200,7 +200,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                      ) : (
                         <div style={{width: '50px', height: '12px'}} />
                      )}
-                    <span className="font-bold font-headline text-lg">Global Trading China</span>
+                    <span className="font-bold font-headline text-lg hidden">Global Trading China</span>
                     </Link>
                     <nav className="flex flex-col space-y-2">
                     {navItems.map((item) => (
