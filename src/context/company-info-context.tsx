@@ -38,20 +38,27 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   useEffect(() => {
     const docRef = doc(db, 'companyInfo', 'main');
+    
+    // onSnapshot provides real-time updates.
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        const data = docSnap.data() as Partial<CompanyInfo>;
-        setCompanyInfo(prev => ({ ...defaultCompanyInfo, ...prev, ...data }));
+        const firestoreData = docSnap.data() as Partial<CompanyInfo>;
+        // Merge Firestore data with defaults to ensure all fields are present
+        setCompanyInfo(prevInfo => ({ ...defaultCompanyInfo, ...prevInfo, ...firestoreData }));
       } else {
-        // If the document doesn't exist, create it with defaults
+        // If the document doesn't exist, create it with defaults.
+        // This should only happen once.
         setDoc(docRef, defaultCompanyInfo).catch(error => {
-            console.error("Failed to create initial company info:", error);
+            console.error("Failed to create initial company info document:", error);
         });
+        setCompanyInfo(defaultCompanyInfo);
       }
       setIsLoaded(true);
     }, (error) => {
-        console.error("Failed to fetch company info from Firestore:", error);
-        setIsLoaded(true); // Still allow the app to render with defaults
+        console.error("Failed to listen to company info from Firestore:", error);
+        // Fallback to default info if there's an error (e.g., permissions)
+        setCompanyInfo(defaultCompanyInfo);
+        setIsLoaded(true);
     });
 
     // Cleanup subscription on unmount
@@ -62,8 +69,11 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
   const handleSetCompanyInfo = async (newInfo: CompanyInfo) => {
     const docRef = doc(db, 'companyInfo', 'main');
     try {
+        // Use set with merge:true to update or create the document without overwriting existing fields unintentionally.
         await setDoc(docRef, newInfo, { merge: true });
-        // The onSnapshot listener will update the state automatically
+        // The onSnapshot listener will update the local state automatically,
+        // but we can set it here for immediate UI feedback if needed.
+        setCompanyInfo(newInfo);
     } catch (error) {
         console.error('Failed to save company info to Firestore', error);
     }
@@ -74,9 +84,10 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     setCompanyInfo: handleSetCompanyInfo 
   };
 
+  // Render children only when data is loaded to prevent initial flicker with default values
   return (
     <CompanyInfoContext.Provider value={value}>
-      {children}
+      {isLoaded ? children : null}
     </CompanyInfoContext.Provider>
   );
 };
