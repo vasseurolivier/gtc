@@ -3,11 +3,11 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +30,7 @@ export function Header({ dictionary }: { dictionary: any }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 
   useEffect(() => {
@@ -186,7 +187,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                 </DropdownMenuContent>
             </DropdownMenu>
             <div className="md:hidden">
-                <Sheet>
+                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
                     <Menu className="h-6 w-6" />
@@ -194,7 +195,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
-                    <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2">
+                    <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
                      {publicLogo ? (
                         <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                      ) : (
@@ -207,6 +208,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         <Link
                         key={item.href}
                         href={localePrefixed(item.href)}
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
                             (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
@@ -230,6 +232,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                                 <Link
                                     key={item.href}
                                     href={localePrefixed(item.href)}
+                                    onClick={() => setIsMobileMenuOpen(false)}
                                     className={cn(
                                     "text-base font-medium transition-colors hover:text-primary py-2",
                                     activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-muted-foreground"
@@ -245,6 +248,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         <Link
                         key={citiesItem.href}
                         href={localePrefixed(citiesItem.href)}
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
                             activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
@@ -255,6 +259,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         <Link
                         key={contactItem.href}
                         href={localePrefixed(contactItem.href)}
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
                             activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
