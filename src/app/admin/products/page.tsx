@@ -158,7 +158,7 @@ export default function ProductsPage() {
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         
-        form.setValue("imageUrl", downloadURL);
+        form.setValue("imageUrl", downloadURL, { shouldValidate: true });
         toast({
             title: 'Image uploaded',
             description: 'Your image has been successfully uploaded.',
@@ -271,28 +271,37 @@ export default function ProductsPage() {
 
                 <div>
                     <h3 className="text-lg font-medium mb-2">Product Image</h3>
-                    <FormField
-                      control={form.control}
-                      name="imageUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Image</FormLabel>
-                          <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : watchImageUrl ? (
-                                    <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" />
-                                ) : (
-                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-auto" disabled={isUploading} />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                     <div className="flex items-start gap-4">
+                        <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
+                            {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : watchImageUrl ? (
+                                <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" />
+                            ) : (
+                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                            )}
+                        </div>
+                        <div className="space-y-2 w-full">
+                           <FormField
+                              control={form.control}
+                              name="imageUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Image URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="text-sm text-muted-foreground text-center">OR</div>
+                             <FormItem>
+                                <FormLabel>Upload File</FormLabel>
+                                 <FormControl>
+                                    <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-full" disabled={isUploading} />
+                                </FormControl>
+                            </FormItem>
+                        </div>
+                    </div>
                 </div>
 
                 <Separator />
@@ -478,5 +487,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
 
     
