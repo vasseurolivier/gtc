@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import type { FactoryPi } from '@/actions/factory-pi';
@@ -11,15 +11,13 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { FactoryPiPreview } from './factory-pi-preview';
 
-
-export default function FactoryPiViewPage() {
+function FactoryPiViewPageContent() {
     const params = useParams();
     const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [factoryPi, setFactoryPi] = useState<FactoryPi | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');
-
 
     useEffect(() => {
         const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -50,6 +48,8 @@ export default function FactoryPiViewPage() {
                 .finally(() => {
                     setIsLoading(false);
                 });
+        } else {
+            setIsLoading(false);
         }
     }, [id, router]);
 
@@ -96,3 +96,13 @@ export default function FactoryPiViewPage() {
         </div>
     );
 }
+
+
+export default function FactoryPiViewPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <FactoryPiViewPageContent />
+        </Suspense>
+    )
+}
+

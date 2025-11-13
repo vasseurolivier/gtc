@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 
 import type { PackingList } from '@/actions/packing-lists';
 import { getPackingListById } from '@/actions/packing-lists';
@@ -11,16 +11,21 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PackingListPreview } from './packing-list-preview';
 
-
-export default function PackingListViewPage() {
+function PackingListViewPageContent() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');
 
-
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
             try {
@@ -43,8 +48,10 @@ export default function PackingListViewPage() {
                 .finally(() => {
                     setIsLoading(false);
                 });
+        } else {
+            setIsLoading(false);
         }
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading) {
         return (
@@ -88,4 +95,12 @@ export default function PackingListViewPage() {
             {packingList && <PackingListPreview packingList={packingList} logo={logo} />}
         </div>
     );
+}
+
+export default function PackingListViewPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <PackingListViewPageContent />
+        </Suspense>
+    )
 }
