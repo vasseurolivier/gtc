@@ -104,26 +104,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     if (product) {
       form.setValue(`items.${index}.sku`, product.sku);
       form.setValue(`items.${index}.description`, product.name);
-    }
-  };
-
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: 'Please upload an image smaller than 2MB.',
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue(`items.${index}.photo`, reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      form.setValue(`items.${index}.photo`, product.imageUrl);
     }
   };
 
@@ -187,17 +168,17 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                        <FormField control={form.control} name={`items.${index}.sku`} render={({ field }) => (
                         <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
-                      <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                        <FormItem>
-                          <FormLabel>Photo</FormLabel>
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                              {photoField.value ? <Image src={photoField.value} alt="Product" width={64} height={64} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
-                            </div>
-                            <FormControl><Input type="file" accept="image/*" onChange={(e) => handlePhotoChange(e, index)} className="w-auto" /></FormControl>
+                       <div className="flex items-end gap-4">
+                          <div className="w-20 h-20 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
+                            {watchedItems[index]?.photo ? <Image src={watchedItems[index].photo!} alt="Product" width={80} height={80} className="object-contain" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
                           </div>
-                        </FormItem>
-                      )} />
+                          <FormField control={form.control} name={`items.${index}.photo`} render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormLabel>Photo URL</FormLabel>
+                              <FormControl><Input placeholder="https://..." {...field} /></FormControl>
+                            </FormItem>
+                          )} />
+                       </div>
                       <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
                         <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
@@ -247,14 +228,12 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>SKU</TableHead>
                   <TableHead className="w-16">Photo</TableHead>
+                  <TableHead>SKU</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Unit Price (CNY)</TableHead>
                   <TableHead className="text-right">Total (CNY)</TableHead>
-                  <TableHead className="text-right">Unit Price ({currency.code})</TableHead>
-                  <TableHead className="text-right">Total ({currency.code})</TableHead>
                   <TableHead>Remarks</TableHead>
                 </TableRow>
               </TableHeader>
@@ -263,22 +242,18 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                   const quantity = Number(item.quantity) || 0;
                   const unitPriceCny = Number(item.unitPriceCny) || 0;
                   const totalCny = quantity * unitPriceCny;
-                  const unitPriceConverted = unitPriceCny * exchangeRate;
-                  const totalConverted = totalCny * exchangeRate;
                   return (
                     <TableRow key={index}>
-                      <TableCell>{item.sku}</TableCell>
                       <TableCell>
                         {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                           <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
                         </div>}
                       </TableCell>
+                      <TableCell>{item.sku}</TableCell>
                       <TableCell className="font-medium">{item.description}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell className="text-right">¥{(Number(item.unitPriceCny) || 0).toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{currency.symbol}{unitPriceConverted.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-semibold">{currency.symbol}{totalConverted.toFixed(2)}</TableCell>
                       <TableCell>{item.remarks}</TableCell>
                     </TableRow>
                   );
@@ -377,7 +352,7 @@ function PackingListHistory({ onEdit, onForceRefresh }: { onEdit: (list: Packing
                   <TableCell>{list.items.length}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/packing-list/${list.id}`}>
+                      <Link href={`/admin/packing-list/${list.id}`} target="_blank">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>

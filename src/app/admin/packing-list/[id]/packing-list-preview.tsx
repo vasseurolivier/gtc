@@ -138,7 +138,7 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold w-[8%]">Image</th>
+                                    <th className="p-1 font-semibold w-[8%]">Photo</th>
                                     <th className="w-2/5 p-1 font-semibold">Description</th>
                                     <th className="p-1 text-right font-semibold w-[12%]">SKU</th>
                                     <th className="p-1 text-right font-semibold">Quantity</th>
