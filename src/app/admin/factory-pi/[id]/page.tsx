@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import type { FactoryPi } from '@/actions/factory-pi';
 import { getFactoryPiById } from '@/actions/factory-pi';
@@ -14,6 +14,7 @@ import { FactoryPiPreview } from './factory-pi-preview';
 
 export default function FactoryPiViewPage() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [factoryPi, setFactoryPi] = useState<FactoryPi | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -21,6 +22,12 @@ export default function FactoryPiViewPage() {
 
 
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
             try {
@@ -44,7 +51,7 @@ export default function FactoryPiViewPage() {
                     setIsLoading(false);
                 });
         }
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading) {
         return (
@@ -89,5 +96,3 @@ export default function FactoryPiViewPage() {
         </div>
     );
 }
-
-    
