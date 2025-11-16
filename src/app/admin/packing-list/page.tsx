@@ -104,7 +104,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     if (product) {
       form.setValue(`items.${index}.sku`, product.sku);
       form.setValue(`items.${index}.description`, product.name);
-      form.setValue(`items.${index}.photo`, product.imageUrl);
+      form.setValue(`items.${index}.photo`, product.imageUrl || "");
     }
   };
 
