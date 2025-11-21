@@ -11,6 +11,20 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { FactoryPiPreview } from './factory-pi-preview';
 
+async function getPiData(id: string) {
+    try {
+        const factoryPi = await getFactoryPiById(id);
+        if (!factoryPi) {
+            return { factoryPi: null };
+        }
+        return { factoryPi };
+    } catch (e) {
+        console.error(e);
+        return { factoryPi: null };
+    }
+}
+
+
 function FactoryPiViewPageContent() {
     const params = useParams();
     const router = useRouter();
@@ -37,13 +51,9 @@ function FactoryPiViewPageContent() {
         }
 
         if (id) {
-            getFactoryPiById(id)
+            getPiData(id)
                 .then(data => {
-                    setFactoryPi(data);
-                })
-                .catch(err => {
-                    console.error("Failed to fetch factory PI", err);
-                    setFactoryPi(null);
+                    setFactoryPi(data.factoryPi);
                 })
                 .finally(() => {
                     setIsLoading(false);
@@ -92,7 +102,7 @@ function FactoryPiViewPageContent() {
                 </Button>
             </div>
             
-            {factoryPi && <FactoryPiPreview factoryPi={factoryPi} logo={logo} />}
+            <FactoryPiPreview factoryPi={factoryPi} logo={logo} />
         </div>
     );
 }
@@ -105,4 +115,3 @@ export default function FactoryPiViewPage() {
         </Suspense>
     )
 }
-
