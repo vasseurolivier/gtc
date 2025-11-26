@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, getDoc, where, setDoc, updateDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Order } from './orders';
+import type { Invoice } from './invoices';
 import { initialCustomers } from '@/lib/initial-data';
 
 const customerSchema = z.object({
@@ -21,6 +22,15 @@ const customerSchema = z.object({
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;
 
+export interface CustomerFinancials {
+    totalRevenue: number;
+    cogs: number;
+    grossProfit: number;
+    grossProfitMargin: number;
+    operatingExpenses: number;
+    netProfit: number;
+}
+
 export interface Customer {
     id: string;
     name: string;
@@ -34,7 +44,9 @@ export interface Customer {
     notes?: string;
     createdAt: string;
     orders?: Order[];
-    totalRevenue?: number;
+    invoices?: Invoice[];
+    totalRevenue?: number; // Kept for backward compatibility on customer list page
+    financials?: CustomerFinancials;
 }
 
 export async function addCustomer(values: CustomerFormValues) {
@@ -77,7 +89,6 @@ async function seedInitialCustomers() {
         const customerSnap = await getDoc(customerRef);
 
         if (!customerSnap.exists()) {
-            // Only add the customer if they don't exist by that specific ID
             await setDoc(customerRef, {
                 ...customerData,
                 createdAt: serverTimestamp(),
@@ -108,7 +119,6 @@ export async function getCustomers(): Promise<Customer[]> {
 
     if (needsSeeding) {
         await seedInitialCustomers();
-        // Re-fetch after potentially seeding
         querySnapshot = await getDocs(customersQuery);
     }
     
@@ -148,31 +158,73 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 
         const customerData = customerSnap.data();
 
-        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id));
-        const ordersSnapshot = await getDocs(ordersQuery);
+        // Fetch all orders and invoices for this customer
+        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id), orderBy("orderDate", "desc"));
+        const invoicesQuery = query(collection(db, "invoices"), where("customerId", "==", id), orderBy("issueDate", "desc"));
         
-        const orders: Order[] = [];
-        let totalRevenue = 0;
-        ordersSnapshot.forEach((doc) => {
-            const orderData = doc.data();
-             if (orderData.status !== 'cancelled') {
-                const order = { 
-                    ...orderData, 
-                    id: doc.id, 
-                    orderDate: orderData.orderDate?.toDate().toISOString() || new Date().toISOString(),
-                    createdAt: orderData.createdAt?.toDate().toISOString() || new Date().toISOString()
-                } as Order
-                orders.push(order);
-                totalRevenue += orderData.totalAmount || 0;
-            }
-        });
+        const [ordersSnapshot, invoicesSnapshot] = await Promise.all([
+            getDocs(ordersQuery),
+            getDocs(invoicesQuery)
+        ]);
 
-        const customer = {
+        const orders: Order[] = ordersSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id,
+            orderDate: doc.data().orderDate?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Order));
+
+        const invoices: Invoice[] = invoicesSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id,
+            issueDate: doc.data().issueDate?.toDate().toISOString() || new Date().toISOString(),
+            dueDate: doc.data().dueDate?.toDate().toISOString() || new Date().toISOString(),
+            paymentDate: doc.data().paymentDate?.toDate().toISOString() || undefined,
+            createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Invoice));
+        
+        const paidInvoices = invoices.filter(inv => inv.status === 'paid');
+        const ordersById = new Map(orders.map(o => [o.id, o]));
+
+        const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+
+        const cogs = paidInvoices.reduce((totalCost, inv) => {
+            const order = inv.orderId ? ordersById.get(inv.orderId) : undefined;
+            if (!order) return totalCost;
+            const orderCost = order.items.reduce((itemSum, item) => itemSum + ((item.purchasePrice || 0) * item.quantity), 0);
+            return totalCost + orderCost;
+        }, 0);
+
+        const operatingExpenses = paidInvoices.reduce((totalExpense, inv) => {
+            const order = inv.orderId ? ordersById.get(inv.orderId) : undefined;
+            if (!order) return totalExpense;
+            const subTotal = order.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+            const commission = subTotal * ((order.commissionRate || 0) / 100);
+            const transport = order.transportCost || 0;
+            return totalExpense + transport + commission;
+        }, 0);
+
+        const grossProfit = totalRevenue - cogs;
+        const grossProfitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+        const netProfit = grossProfit - operatingExpenses;
+
+        const financials: CustomerFinancials = {
+            totalRevenue,
+            cogs,
+            grossProfit,
+            grossProfitMargin,
+            operatingExpenses,
+            netProfit,
+        };
+
+        const customer: Customer = {
             id: customerSnap.id,
             ...customerData,
             createdAt: customerData.createdAt?.toDate().toISOString() || new Date().toISOString(),
             orders,
-            totalRevenue,
+            invoices,
+            totalRevenue: totalRevenue, // For simple display on list page if needed
+            financials,
         } as unknown as Customer;
 
         return customer;
