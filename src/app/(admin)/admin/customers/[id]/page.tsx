@@ -1,38 +1,25 @@
 
 import { getCustomerById, Customer } from '@/actions/customers';
-import { User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart, FileSpreadsheet, ArrowLeft, Loader2, MapPin, TrendingUp, Banknote, Scale, Receipt } from 'lucide-react';
+import { User, Mail, Phone, Building, Globe, StickyNote, ShoppingCart, FileSpreadsheet, ArrowLeft, MapPin, TrendingUp, Banknote, Scale, Receipt } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { CustomerProfileClient } from './customer-profile-client';
 
-
-export default async function CustomerProfilePage({ params }: { params: { id: string } }) {
-    const id = params.id;
-    const customer = await getCustomerById(id);
-
-    if (!customer) {
-        return (
-            <div className="container mx-auto py-8">
-                <div className="mb-8">
-                    <Button variant="ghost" asChild>
-                        <Link href="/admin/customers">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Customers
-                        </Link>
-                    </Button>
-                </div>
-                <div className="text-center text-muted-foreground py-12">
-                    Customer not found.
-                </div>
-            </div>
-        );
+async function getCustomerData(id: string) {
+    try {
+        const customer = await getCustomerById(id);
+        return customer;
+    } catch (e) {
+        console.error(e);
+        return null;
     }
+}
 
+function CustomerView({ customer }: { customer: Customer }) {
     const getStatusBadgeVariant = (status: any) => {
         switch (status) {
             case 'paid':
@@ -189,4 +176,28 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
             </div>
         </CustomerProfileClient>
     );
+}
+
+export default async function CustomerProfilePage({ params }: { params: { id: string } }) {
+    const customer = await getCustomerData(params.id);
+
+    if (!customer) {
+        return (
+            <div className="container mx-auto py-8">
+                <div className="mb-8">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/customers">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Customers
+                        </Link>
+                    </Button>
+                </div>
+                <div className="text-center text-muted-foreground py-12">
+                    Customer not found.
+                </div>
+            </div>
+        );
+    }
+    
+    return <CustomerView customer={customer} />;
 }
