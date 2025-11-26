@@ -19,7 +19,27 @@ async function getCustomerData(id: string) {
     }
 }
 
-function CustomerView({ customer }: { customer: Customer }) {
+export default async function CustomerProfilePage({ params }: { params: { id: string } }) {
+    const customer = await getCustomerData(params.id);
+
+    if (!customer) {
+        return (
+            <div className="container mx-auto py-8">
+                <div className="mb-8">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/customers">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Customers
+                        </Link>
+                    </Button>
+                </div>
+                <div className="text-center text-muted-foreground py-12">
+                    Customer not found.
+                </div>
+            </div>
+        );
+    }
+    
     const getStatusBadgeVariant = (status: any) => {
         switch (status) {
             case 'paid':
@@ -178,26 +198,4 @@ function CustomerView({ customer }: { customer: Customer }) {
     );
 }
 
-export default async function CustomerProfilePage({ params }: { params: { id: string } }) {
-    const customer = await getCustomerData(params.id);
-
-    if (!customer) {
-        return (
-            <div className="container mx-auto py-8">
-                <div className="mb-8">
-                    <Button variant="ghost" asChild>
-                        <Link href="/admin/customers">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Customers
-                        </Link>
-                    </Button>
-                </div>
-                <div className="text-center text-muted-foreground py-12">
-                    Customer not found.
-                </div>
-            </div>
-        );
-    }
     
-    return <CustomerView customer={customer} />;
-}
