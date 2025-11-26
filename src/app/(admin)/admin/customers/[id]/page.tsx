@@ -112,15 +112,6 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                     </Card>
                 </div>
                 <div className="lg:col-span-2 space-y-8">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Financial Summary</CardTitle>
-                            <CardDescription>All-time financial data for this customer based on paid invoices.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           {/* Client component renders financials */}
-                        </CardContent>
-                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Invoice History</CardTitle>
