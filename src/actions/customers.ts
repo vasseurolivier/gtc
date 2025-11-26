@@ -159,8 +159,8 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
         const customerData = customerSnap.data();
 
         // Fetch all orders and invoices for this customer
-        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id), orderBy("orderDate", "desc"));
-        const invoicesQuery = query(collection(db, "invoices"), where("customerId", "==", id), orderBy("issueDate", "desc"));
+        const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id));
+        const invoicesQuery = query(collection(db, "invoices"), where("customerId", "==", id));
         
         const [ordersSnapshot, invoicesSnapshot] = await Promise.all([
             getDocs(ordersQuery),
@@ -172,7 +172,7 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
             id: doc.id,
             orderDate: doc.data().orderDate?.toDate().toISOString() || new Date().toISOString(),
             createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
-        } as Order));
+        } as Order)).sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
 
         const invoices: Invoice[] = invoicesSnapshot.docs.map(doc => ({
             ...doc.data(),
@@ -181,7 +181,7 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
             dueDate: doc.data().dueDate?.toDate().toISOString() || new Date().toISOString(),
             paymentDate: doc.data().paymentDate?.toDate().toISOString() || undefined,
             createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
-        } as Invoice));
+        } as Invoice)).sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
         
         const paidInvoices = invoices.filter(inv => inv.status === 'paid');
         const ordersById = new Map(orders.map(o => [o.id, o]));
