@@ -16,7 +16,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
 
     if (!customer) {
         return (
-            <div className="container py-8">
+            <div className="container mx-auto py-8">
                 <div className="mb-8">
                     <Button variant="ghost" asChild>
                         <Link href="/admin/customers">
