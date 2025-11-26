@@ -141,9 +141,12 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper min-h-svh w-full",
-              className
+              "group/sidebar-wrapper grid min-h-screen w-full",
+              "grid-cols-[var(--sidebar-width)_1fr] data-[collapsed=true]:grid-cols-[var(--sidebar-width-icon)_1fr]",
+              "transition-[grid-template-columns] duration-300 ease-in-out",
+               className
             )}
+            data-collapsed={state === "collapsed"}
             ref={ref}
             {...props}
           >
@@ -168,7 +171,7 @@ const Sidebar = React.forwardRef<
     {
       side = "left",
       variant = "sidebar",
-      collapsible = "offcanvas",
+      collapsible = "icon", // Defaulting to icon for a better experience
       className,
       children,
       ...props
@@ -176,21 +179,6 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
-
-    if (collapsible === "none") {
-      return (
-        <div
-          className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      )
-    }
 
     if (isMobile) {
       return (
@@ -215,43 +203,23 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
-        className={cn("group peer hidden md:block", className)}
+        className={cn(
+          "hidden md:flex flex-col h-full",
+          side === "left" && "border-r",
+          side === "right" && "border-l",
+          className
+        )}
         data-state={state}
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
         {...props}
       >
-        {/* This is what handles the sidebar gap on desktop */}
         <div
-          className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
-            "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
-            variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
-          )}
-        />
-        <div
-          className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
-            side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Adjust the padding for floating and inset variants.
-            variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
-            
-          )}
+          data-sidebar="sidebar"
+          className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground"
         >
-          <div
-            data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow text-sidebar-foreground"
-          >
-            {children}
-          </div>
+          {children}
         </div>
       </div>
     )
@@ -322,7 +290,7 @@ const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        "relative min-h-svh ml-[--sidebar-width] w-[calc(100%_-_var(--sidebar-width))] transition-[margin-left] duration-300 ease-in-out group-data-[state=collapsed]/sidebar-wrapper:ml-[--sidebar-width-icon] group-data-[state=collapsed]/sidebar-wrapper:w-[calc(100%_-_var(--sidebar-width-icon))]",
+        "relative min-h-screen overflow-x-hidden",
         className
       )}
       {...props}

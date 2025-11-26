@@ -303,7 +303,7 @@ function ProtectedAdminLayout({
 
   return (
     <SidebarProvider>
-      <Sidebar className="no-print bg-muted/20">
+      <Sidebar>
         <SidebarContent>
           <SidebarHeader>
             <h2 className="text-lg font-semibold">Global Trading China</h2>
