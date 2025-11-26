@@ -52,17 +52,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
 
     return (
         <CustomerProfileClient customer={customer}>
-            <div className="flex justify-between items-center mb-8">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/customers">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Customers
-                    </Link>
-                </Button>
-                {/* Export button will be handled by the client component */}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 space-y-8">
                     <Card>
                         <CardHeader>
@@ -122,26 +112,15 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                     </Card>
                 </div>
                 <div className="lg:col-span-2 space-y-8">
-                    {financials && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Financial Summary</CardTitle>
-                                <CardDescription>All-time financial data for this customer based on paid invoices.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Total Revenue</span>{/* Client comp will render */}</div>
-                                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Cost of Goods Sold (COGS)</span>{/* Client comp will render */}</div>
-                                    <Separator/>
-                                    <div className="flex justify-between items-center font-semibold"><span className="text-muted-foreground">Gross Profit</span>{/* Client comp will render */}</div>
-                                    <Separator/>
-                                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Operating Expenses (commission, transport)</span>{/* Client comp will render */}</div>
-                                    <Separator/>
-                                    <div className="flex justify-between items-center font-bold text-lg"><span >Net Profit</span><div className={`${financials.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{/* Client comp will render */}</div></div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Financial Summary</CardTitle>
+                            <CardDescription>All-time financial data for this customer based on paid invoices.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           {/* Client component renders financials */}
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Invoice History</CardTitle>
