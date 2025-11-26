@@ -339,5 +339,3 @@ export default function SupplierContractPage() {
     </div>
   );
 }
-
-    

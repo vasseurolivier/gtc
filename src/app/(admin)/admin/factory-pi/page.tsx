@@ -511,5 +511,3 @@ export default function FactoryPiPage() {
     </Suspense>
   )
 }
-
-    
