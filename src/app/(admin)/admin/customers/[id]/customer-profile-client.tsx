@@ -100,7 +100,6 @@ export function CustomerProfileClient({ customer, children }: { customer: Custom
                 </Button>
             </div>
             
-            {/* The main content with grid layout is now rendered by the server component */}
             {children}
         </div>
     );
