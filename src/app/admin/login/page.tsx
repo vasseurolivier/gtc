@@ -12,21 +12,25 @@ import { Label } from '@/components/ui/label';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // If the user is already authenticated, redirect them away from the login page.
+    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
       router.push('/admin/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [router]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'admin123') {
       sessionStorage.setItem('isAdminAuthenticated', 'true');
-      setIsAuthenticated(true);
+      toast({
+        title: 'Login Successful',
+        description: 'Redirecting to dashboard...',
+      });
+      router.push('/admin/dashboard');
     } else {
       toast({
         variant: 'destructive',
