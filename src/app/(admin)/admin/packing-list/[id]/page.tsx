@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import type { PackingList } from '@/actions/packing-lists';
@@ -11,7 +11,7 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PackingListPreview } from './packing-list-preview';
 
-function PackingListViewPageContent() {
+export default function PackingListViewPage() {
     const params = useParams();
     const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -95,12 +95,4 @@ function PackingListViewPageContent() {
             {packingList && <PackingListPreview packingList={packingList} logo={logo} />}
         </div>
     );
-}
-
-export default function PackingListViewPage() {
-    return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
-            <PackingListViewPageContent />
-        </Suspense>
-    )
 }

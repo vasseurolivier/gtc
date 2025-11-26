@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import type { FactoryPi } from '@/actions/factory-pi';
@@ -25,7 +25,7 @@ async function getPiData(id: string) {
 }
 
 
-function FactoryPiViewPageContent() {
+export default function FactoryPiViewPage() {
     const params = useParams();
     const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -105,13 +105,4 @@ function FactoryPiViewPageContent() {
             <FactoryPiPreview factoryPi={factoryPi} logo={logo} />
         </div>
     );
-}
-
-
-export default function FactoryPiViewPage() {
-    return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
-            <FactoryPiViewPageContent />
-        </Suspense>
-    )
 }

@@ -20,7 +20,7 @@ async function getProductData(id: string): Promise<Product | null> {
 
 function ProductView({ product }: { product: Product }) {
     const profitValue = product.price - (product.purchasePrice || 0);
-    const profitPercentage = product.price > 0 && (product.purchasePrice || 0) > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
+    const profitPercentage = product.price > 0 && product.purchasePrice && product.purchasePrice > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
 
     return (

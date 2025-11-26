@@ -197,5 +197,3 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
         </CustomerProfileClient>
     );
 }
-
-    
