@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-client'; // Use client-side db
+import { getDb } from '@/lib/firebase-client'; // Use client-side db
 
 export interface CompanyInfo {
   name: string;
@@ -34,6 +34,7 @@ const defaultCompanyInfo: CompanyInfo = {
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
   const [isLoaded, setIsLoaded] = useState(false);
+  const db = getDb();
 
   useEffect(() => {
     const docRef = doc(db, 'companyInfo', 'main');
@@ -57,7 +58,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [db]);
 
   const handleSetCompanyInfo = async (newInfo: CompanyInfo) => {
     const docRef = doc(db, 'companyInfo', 'main');
