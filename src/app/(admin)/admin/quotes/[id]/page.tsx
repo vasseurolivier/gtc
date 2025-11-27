@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import { useRouter } from 'next/navigation';
 import { getQuoteById, Quote } from '@/actions/quotes';
 import { getCustomerById, Customer } from '@/actions/customers';
 import { getProducts, Product } from '@/actions/products';
@@ -12,12 +12,19 @@ import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
 
 export default function QuotePreviewPage({ params }: { params: { id: string } }) {
+    const router = useRouter();
     const id = params.id;
     const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');
 
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
             try {
@@ -52,7 +59,7 @@ export default function QuotePreviewPage({ params }: { params: { id: string } })
         }
 
         getQuoteData(id);
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading) {
         return (

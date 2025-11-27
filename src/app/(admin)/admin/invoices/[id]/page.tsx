@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import { useRouter } from 'next/navigation';
 import type { Invoice } from '@/actions/invoices';
 import { getInvoiceById } from '@/actions/invoices';
 import type { Customer } from '@/actions/customers';
@@ -32,12 +32,19 @@ async function getInvoiceData(id: string) {
 }
 
 export default function InvoicePreviewPage({ params }: { params: { id: string } }) {
+    const router = useRouter();
     const { id } = params;
     const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');
 
-    useEffect(() => {
+     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         const savedInfo = localStorage.getItem('adminCompanyInfo');
         if (savedInfo) {
             try {
@@ -55,7 +62,7 @@ export default function InvoicePreviewPage({ params }: { params: { id: string } 
                 .finally(() => setIsLoading(false));
         }
 
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading) {
         return (

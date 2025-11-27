@@ -18,10 +18,31 @@ async function getProductData(id: string): Promise<Product | null> {
     }
 }
 
-function ProductView({ product }: { product: Product }) {
+export default async function ProductProfilePage({ params }: { params: { id: string } }) {
+    const product = await getProductData(params.id);
+
+    if (!product) {
+        return (
+            <div className="container py-8">
+                <div className="mb-8">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/products">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Products
+                        </Link>
+                    </Button>
+                </div>
+                <div className="text-center text-muted-foreground py-12">
+                    Product not found.
+                </div>
+            </div>
+        );
+    }
+    
     const profitValue = product.price - (product.purchasePrice || 0);
     const profitPercentage = product.price > 0 && product.purchasePrice && product.purchasePrice > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
+
 
     return (
         <div className="container py-8">
@@ -150,28 +171,4 @@ function ProductView({ product }: { product: Product }) {
             </div>
         </div>
     );
-}
-
-export default async function ProductProfilePage({ params }: { params: { id: string } }) {
-    const product = await getProductData(params.id);
-
-    if (!product) {
-        return (
-            <div className="container py-8">
-                <div className="mb-8">
-                    <Button variant="ghost" asChild>
-                        <Link href="/admin/products">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Products
-                        </Link>
-                    </Button>
-                </div>
-                <div className="text-center text-muted-foreground py-12">
-                    Product not found.
-                </div>
-            </div>
-        );
-    }
-
-    return <ProductView product={product} />;
 }
