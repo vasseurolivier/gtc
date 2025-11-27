@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { CustomerProfileClient } from './customer-profile-client';
 
 async function getCustomerData(id: string) {
     try {
@@ -58,7 +57,15 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
     const financials = customer.financials;
 
     return (
-        <CustomerProfileClient customer={customer}>
+        <div className="container py-8">
+             <div className="flex justify-between items-center mb-8">
+                 <Button variant="ghost" asChild>
+                    <Link href="/admin/customers">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Customers
+                    </Link>
+                </Button>
+            </div>
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 space-y-8">
                     <Card>
@@ -193,6 +200,6 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                     </Card>
                 </div>
             </div>
-        </CustomerProfileClient>
+        </div>
     );
 }
