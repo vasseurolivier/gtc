@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 
 import type { Invoice } from '@/actions/invoices';
 import { getInvoiceById } from '@/actions/invoices';

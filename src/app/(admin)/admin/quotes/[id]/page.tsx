@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 
 import { getQuoteById, Quote } from '@/actions/quotes';
 import { getCustomerById, Customer } from '@/actions/customers';
