@@ -102,5 +102,3 @@ export default function InvoicePreviewPage({ params }: { params: { id: string } 
       </div>
     );
 }
-
-    

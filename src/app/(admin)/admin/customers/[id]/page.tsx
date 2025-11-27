@@ -1,3 +1,4 @@
+
 import { getCustomerById, Customer } from '@/actions/customers';
 import { User, Mail, Phone, Building, Globe, StickyNote, MapPin, TrendingUp, Banknote, Scale, Receipt, ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -203,4 +204,3 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
         </div>
     );
 }
-    

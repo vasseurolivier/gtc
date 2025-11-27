@@ -95,5 +95,3 @@ export default function PackingListViewPage({ params }: { params: { id: string }
         </div>
     );
 }
-
-    

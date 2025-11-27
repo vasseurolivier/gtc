@@ -1,3 +1,4 @@
+
 import { getProductById, Product } from '@/actions/products';
 import { ArrowLeft, Package, Tag, Layers, DollarSign, Warehouse, Weight, Ruler, Anchor, Globe, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -174,5 +175,3 @@ export default async function ProductProfilePage({ params }: { params: { id: str
 
     return <ProductView product={product} />;
 }
-
-    

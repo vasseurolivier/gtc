@@ -99,5 +99,3 @@ export default function QuotePreviewPage({ params }: { params: { id: string } })
       </div>
     );
 }
-
-    

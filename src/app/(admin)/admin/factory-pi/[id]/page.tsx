@@ -105,5 +105,3 @@ export default function FactoryPiViewPage({ params }: { params: { id: string } }
         </div>
     );
 }
-
-    
