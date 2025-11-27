@@ -32,9 +32,8 @@ async function getInvoiceData(id: string) {
     }
 }
 
-export default function InvoicePreviewPage() {
-    const params = useParams();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id as string;
+export default function InvoicePreviewPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');

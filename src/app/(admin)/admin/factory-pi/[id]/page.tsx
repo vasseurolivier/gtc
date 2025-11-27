@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import type { FactoryPi } from '@/actions/factory-pi';
 import { getFactoryPiById } from '@/actions/factory-pi';
@@ -25,10 +25,9 @@ async function getPiData(id: string) {
 }
 
 
-export default function FactoryPiViewPage() {
-    const params = useParams();
+export default function FactoryPiViewPage({ params }: { params: { id: string } }) {
     const router = useRouter();
-    const id = (Array.isArray(params.id) ? params.id[0] : params.id) as string;
+    const id = params.id;
     const [factoryPi, setFactoryPi] = useState<FactoryPi | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');

@@ -1,11 +1,12 @@
 import { getCustomerById, Customer } from '@/actions/customers';
-import { User, Mail, Phone, Building, Globe, StickyNote, MapPin, TrendingUp, Banknote, Scale, Receipt, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, Building, Globe, StickyNote, MapPin, TrendingUp, Banknote, Scale, Receipt, ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { CustomerProfileClient } from './customer-profile-client';
 
 async function getCustomerData(id: string) {
     try {
@@ -57,15 +58,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
     const financials = customer.financials;
 
     return (
-        <div className="container py-8">
-             <div className="flex justify-between items-center mb-8">
-                 <Button variant="ghost" asChild>
-                    <Link href="/admin/customers">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Customers
-                    </Link>
-                </Button>
-            </div>
+        <CustomerProfileClient customer={customer}>
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 space-y-8">
                     <Card>
@@ -200,6 +193,6 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                     </Card>
                 </div>
             </div>
-        </div>
+        </CustomerProfileClient>
     );
 }

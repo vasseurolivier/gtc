@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import type { PackingList } from '@/actions/packing-lists';
 import { getPackingListById } from '@/actions/packing-lists';
@@ -11,10 +11,9 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PackingListPreview } from './packing-list-preview';
 
-export default function PackingListViewPage() {
-    const params = useParams();
+export default function PackingListViewPage({ params }: { params: { id: string } }) {
     const router = useRouter();
-    const id = (Array.isArray(params.id) ? params.id[0] : params.id) as string;
+    const id = params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');

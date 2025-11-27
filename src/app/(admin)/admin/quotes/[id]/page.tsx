@@ -12,9 +12,8 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
 
-export default function QuotePreviewPage() {
-    const params = useParams();
-    const id = (Array.isArray(params.id) ? params.id[0] : params.id) as string;
+export default function QuotePreviewPage({ params }: { params: { id: string } }) {
+    const id = params.id;
     const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');
