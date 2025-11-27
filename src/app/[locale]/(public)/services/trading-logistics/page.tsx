@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ClipboardList, Microscope, Ship, BookCopy, Timer, Globe, CheckCircle, HelpCircle, FileText } from 'lucide-react';
@@ -10,9 +9,9 @@ import { Locale } from '@/i18n-config';
 export default async function TradingLogisticsPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const tradingLogisticsDict = dictionary.tradingLogisticsPage;
 
@@ -249,7 +248,3 @@ export default async function TradingLogisticsPage({
     </>
   );
 }
-
-    
-
-    

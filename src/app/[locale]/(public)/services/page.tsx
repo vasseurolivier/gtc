@@ -1,4 +1,3 @@
-
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -13,9 +12,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 export default async function ServicesPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const servicesPageDict = dictionary.servicesPage;
   const heroImage = PlaceHolderImages.find(p => p.id === 'services-hero');
@@ -123,5 +122,3 @@ export default async function ServicesPage({
     </>
   );
 }
-
-    

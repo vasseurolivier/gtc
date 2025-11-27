@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +16,9 @@ import {
 export default async function AboutPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   
   const aboutPageDict = dictionary.aboutPage;
@@ -229,7 +228,3 @@ export default async function AboutPage({
     </>
   );
 }
-
-    
-
-    

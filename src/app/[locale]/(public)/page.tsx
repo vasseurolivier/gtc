@@ -1,4 +1,3 @@
-
 import { HeroSection } from '@/components/sections/hero-section';
 import { ServicesSection } from '@/components/sections/services-section';
 import { ProcessSection } from '@/components/sections/process-section';
@@ -9,9 +8,9 @@ import { Locale } from '@/i18n-config';
 export default async function Home({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   return (
     <>
@@ -22,5 +21,3 @@ export default async function Home({
     </>
   );
 }
-
-    

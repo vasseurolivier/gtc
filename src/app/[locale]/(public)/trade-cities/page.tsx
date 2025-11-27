@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -9,9 +8,9 @@ import { Locale } from '@/i18n-config';
 export default async function TradeCitiesPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const tradeCitiesDict = dictionary.tradeCitiesPage;
 
@@ -113,7 +112,3 @@ export default async function TradeCitiesPage({
     </>
   );
 }
-
-    
-
-    

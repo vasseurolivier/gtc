@@ -1,5 +1,5 @@
 import { getCustomerById, Customer } from '@/actions/customers';
-import { User, Mail, Phone, Building, Globe, StickyNote, ShoppingCart, FileSpreadsheet, ArrowLeft, MapPin, TrendingUp, Banknote, Scale, Receipt } from 'lucide-react';
+import { User, Mail, Phone, Building, Globe, StickyNote, MapPin, TrendingUp, Banknote, Scale, Receipt, ArrowLeft } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';

@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';
@@ -9,9 +8,9 @@ import { Locale } from '@/i18n-config';
 export default async function CustomServicesPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const customServicesDict = dictionary.customServicesPage;
   
@@ -178,7 +177,3 @@ export default async function CustomServicesPage({
     </>
   );
 }
-
-    
-
-    

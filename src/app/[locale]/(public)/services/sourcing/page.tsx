@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,9 +8,9 @@ import { Locale } from '@/i18n-config';
 export default async function SourcingPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 
@@ -179,7 +178,3 @@ export default async function SourcingPage({
     </>
   );
 }
-
-    
-
-    
