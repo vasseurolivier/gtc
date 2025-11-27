@@ -174,3 +174,5 @@ export default async function ProductProfilePage({ params }: { params: { id: str
 
     return <ProductView product={product} />;
 }
+
+    
