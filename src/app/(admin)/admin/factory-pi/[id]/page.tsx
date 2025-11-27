@@ -28,7 +28,7 @@ async function getPiData(id: string) {
 export default function FactoryPiViewPage() {
     const params = useParams();
     const router = useRouter();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const id = (Array.isArray(params.id) ? params.id[0] : params.id) as string;
     const [factoryPi, setFactoryPi] = useState<FactoryPi | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');

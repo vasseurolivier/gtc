@@ -14,7 +14,7 @@ import { PackingListPreview } from './packing-list-preview';
 export default function PackingListViewPage() {
     const params = useParams();
     const router = useRouter();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const id = (Array.isArray(params.id) ? params.id[0] : params.id) as string;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');

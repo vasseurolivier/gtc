@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useContext, useEffect, Suspense } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -506,8 +506,6 @@ export default function FactoryPiPage() {
   }, [router]);
   
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
       <FactoryPiPageContent />
-    </Suspense>
   )
 }

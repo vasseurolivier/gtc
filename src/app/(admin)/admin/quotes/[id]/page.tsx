@@ -14,7 +14,7 @@ import { QuotePreview } from './quote-preview';
 
 export default function QuotePreviewPage() {
     const params = useParams();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const id = (Array.isArray(params.id) ? params.id[0] : params.id) as string;
     const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [logo, setLogo] = useState('');
