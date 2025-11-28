@@ -16,7 +16,7 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let db: Firestore;
 
-function getDb() {
+function getDb(): Firestore {
     if (getApps().length === 0) {
         app = initializeApp(firebaseConfig);
     } else {
