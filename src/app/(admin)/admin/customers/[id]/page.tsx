@@ -147,7 +147,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                                             <TableRow key={invoice.id}>
                                                 <TableCell className="font-medium">
                                                     <Button variant="link" asChild className="p-0 h-auto">
-                                                        <Link href={`/admin/invoices/${'\'\'\''}${invoice.id}\'\'\''}`} target="_blank">{invoice.invoiceNumber}</Link>
+                                                        <Link href={`/admin/invoices/${invoice.id}`} target="_blank">{invoice.invoiceNumber}</Link>
                                                     </Button>
                                                 </TableCell>
                                                 <TableCell>{formatInTimeZone(new Date(invoice.issueDate), 'UTC', 'dd MMM yyyy')}</TableCell>

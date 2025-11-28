@@ -79,7 +79,7 @@ export default async function ProductProfilePage({ params }: { params: { id: str
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Cost Price (CNY)</span>
-                                    <span className="font-semibold">{product.purchasePrice ? `¥${'\'\'\''}${product.purchasePrice.toFixed(2)}\'\'\''}` : 'N/A'}</span>
+                                    <span className="font-semibold">{product.purchasePrice ? `¥${product.purchasePrice.toFixed(2)}` : 'N/A'}</span>
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between">
@@ -140,14 +140,14 @@ export default async function ProductProfilePage({ params }: { params: { id: str
                                 <Weight className="h-5 w-5 text-muted-foreground" />
                                 <div>
                                     <div className="text-muted-foreground">Weight</div>
-                                    <div className="font-semibold">{product.weight ? `${'\'\'\''}${product.weight} kg\'\'\''}` : 'N/A'}</div>
+                                    <div className="font-semibold">{product.weight ? `${product.weight} kg` : 'N/A'}</div>
                                 </div>
                             </div>
                              <div className="flex items-center gap-2">
                                 <Ruler className="h-5 w-5 text-muted-foreground" />
                                 <div>
                                     <div className="text-muted-foreground">Dimensions (L×W×H)</div>
-                                    <div className="font-semibold">{product.length && product.width && product.height ? `${'\'\'\''}${product.length}×${product.width}×${product.height} cm\'\'\''}` : 'N/A'}</div>
+                                    <div className="font-semibold">{product.length && product.width && product.height ? `${product.length}×${product.width}×${product.height} cm` : 'N/A'}</div>
                                 </div>
                             </div>
                              <div className="flex items-center gap-2">
