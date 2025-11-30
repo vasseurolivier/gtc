@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-export function PackingListPreview({ packingList, logo }: { packingList: PackingList, logo: string }) {
+export function PackingListPreview({ packingList }: { packingList: PackingList }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -103,9 +103,9 @@ export function PackingListPreview({ packingList, logo }: { packingList: Packing
                 <div ref={printRef} className="px-8 py-10 pb-32">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div className="w-1/3">
-                            {logo && 
+                            {companyInfo.logo && 
                                 <div className="h-16 w-auto relative">
-                                    <img src={logo} alt="Company Logo" className="h-16 w-auto object-contain"/>
+                                    <Image src={companyInfo.logo} alt="Company Logo" width={64} height={64} className="object-contain"/>
                                 </div>
                             }
                         </div>

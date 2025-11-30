@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-client'; // Use client-side db
+import { db } from '@/lib/firebase'; // Use client-side db
 
 export interface CompanyInfo {
   name: string;
@@ -17,12 +17,13 @@ export interface CompanyInfo {
 interface CompanyInfoContextType {
   companyInfo: CompanyInfo;
   setCompanyInfo: (info: CompanyInfo) => void;
+  isCompanyInfoLoaded: boolean;
 }
 
 export const CompanyInfoContext = createContext<CompanyInfoContextType | undefined>(undefined);
 
 const defaultCompanyInfo: CompanyInfo = {
-  name: 'Yiwu Hunagqing Trading',
+  name: 'Yiwu Huanqiu Trading',
   address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
   email: 'info@globaltradingchina.com',
   phone: '+8613564770717',
@@ -33,7 +34,7 @@ const defaultCompanyInfo: CompanyInfo = {
 
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isCompanyInfoLoaded, setIsCompanyInfoLoaded] = useState(false);
 
   useEffect(() => {
     const docRef = doc(db, 'companyInfo', 'main');
@@ -49,11 +50,11 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
         });
         setCompanyInfo(defaultCompanyInfo);
       }
-      setIsLoaded(true);
+      setIsCompanyInfoLoaded(true);
     }, (error) => {
         console.error("Failed to listen to company info from Firestore:", error);
         setCompanyInfo(defaultCompanyInfo);
-        setIsLoaded(true);
+        setIsCompanyInfoLoaded(true);
     });
 
     return () => unsubscribe();
@@ -73,12 +74,13 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
   
   const value = { 
     companyInfo, 
-    setCompanyInfo: handleSetCompanyInfo 
+    setCompanyInfo: handleSetCompanyInfo,
+    isCompanyInfoLoaded
   };
 
   return (
     <CompanyInfoContext.Provider value={value}>
-      {isLoaded ? children : null}
+      {children}
     </CompanyInfoContext.Provider>
   );
 };

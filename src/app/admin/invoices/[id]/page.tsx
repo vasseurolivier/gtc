@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams } from 'next/navigation';
 
 import type { Invoice } from '@/actions/invoices';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 async function getInvoiceData(id: string) {
     try {
@@ -37,19 +38,9 @@ export default function InvoicePreviewPage() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [logo, setLogo] = useState('');
+    const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
-        const savedInfo = localStorage.getItem('adminCompanyInfo');
-        if (savedInfo) {
-            try {
-                const parsedInfo = JSON.parse(savedInfo);
-                setLogo(parsedInfo.publicLogo || '');
-            } catch (e) {
-                console.error("Failed to parse company info from localStorage", e);
-            }
-        }
-
         if (id) {
             setIsLoading(true);
             getInvoiceData(id)
@@ -59,7 +50,7 @@ export default function InvoicePreviewPage() {
 
     }, [id]);
 
-    if (isLoading) {
+    if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
             <div className="container py-8">
                 <div className="flex h-screen items-center justify-center">
@@ -100,7 +91,8 @@ export default function InvoicePreviewPage() {
               </Button>
           </div>
           
-          <InvoicePreview invoice={invoice} customer={customer} products={products} logo={logo} />
+          <InvoicePreview invoice={invoice} customer={customer} products={products} />
       </div>
     );
 }
+

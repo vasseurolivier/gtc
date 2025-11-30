@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import type { PackingList } from '@/actions/packing-lists';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PackingListPreview } from './packing-list-preview';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 function PackingListViewPageContent() {
     const params = useParams();
@@ -17,23 +18,13 @@ function PackingListViewPageContent() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [logo, setLogo] = useState('');
+    const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
         const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
         if (isAuthenticated !== 'true') {
           router.push('/admin/login');
           return;
-        }
-
-        const savedInfo = localStorage.getItem('adminCompanyInfo');
-        if (savedInfo) {
-            try {
-                const parsedInfo = JSON.parse(savedInfo);
-                setLogo(parsedInfo.publicLogo || '');
-            } catch (e) {
-                console.error("Failed to parse company info from localStorage", e);
-            }
         }
 
         if (id) {
@@ -53,7 +44,7 @@ function PackingListViewPageContent() {
         }
     }, [id, router]);
 
-    if (isLoading) {
+    if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
             <div className="container py-8">
                 <div className="flex h-screen items-center justify-center">
@@ -92,7 +83,7 @@ function PackingListViewPageContent() {
                 </Button>
             </div>
             
-            {packingList && <PackingListPreview packingList={packingList} logo={logo} />}
+            {packingList && <PackingListPreview packingList={packingList} />}
         </div>
     );
 }

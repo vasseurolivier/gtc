@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, logo: string }) {
+export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
@@ -100,8 +100,8 @@ export function FactoryPiPreview({ factoryPi, logo }: { factoryPi: FactoryPi, lo
                 <div ref={printRef} className="px-8 py-10 pb-32">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div className="w-1/3">
-                            {logo && 
-                                <img src={logo} alt="Company Logo" className="h-16 w-auto object-contain"/>
+                            {companyInfo.logo && 
+                                <Image src={companyInfo.logo} alt="Company Logo" width={64} height={64} className="object-contain"/>
                             }
                         </div>
                         <div className="text-right w-2/3">

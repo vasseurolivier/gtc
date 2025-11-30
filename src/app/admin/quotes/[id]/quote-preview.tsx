@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-export function QuotePreview({ quote, customer, products, logo }: { quote: Quote, customer: Customer, products: Product[], logo: string }) {
+export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -105,8 +105,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                 <div ref={printRef} className="px-8 py-10 pb-32">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div className="w-1/3">
-                           {logo && 
-                                <img src={logo} alt="Company Logo" className="h-16 w-auto object-contain"/>
+                           {companyInfo.logo && 
+                                <Image src={companyInfo.logo} alt="Company Logo" width={64} height={64} className="object-contain"/>
                             }
                         </div>
                         <div className="text-right w-2/3">
@@ -159,8 +159,8 @@ export function QuotePreview({ quote, customer, products, logo }: { quote: Quote
                                         <tr key={itemIndex} className="border-b">
                                             <td className="p-1 align-top">
                                                 {product?.imageUrl && (
-                                                    <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                    <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                        <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
                                                     </div>
                                                 )}
                                             </td>

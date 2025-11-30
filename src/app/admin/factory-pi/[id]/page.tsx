@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import type { FactoryPi } from '@/actions/factory-pi';
@@ -10,20 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { FactoryPiPreview } from './factory-pi-preview';
-
-async function getPiData(id: string) {
-    try {
-        const factoryPi = await getFactoryPiById(id);
-        if (!factoryPi) {
-            return { factoryPi: null };
-        }
-        return { factoryPi };
-    } catch (e) {
-        console.error(e);
-        return { factoryPi: null };
-    }
-}
-
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 function FactoryPiViewPageContent() {
     const params = useParams();
@@ -31,7 +18,7 @@ function FactoryPiViewPageContent() {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [factoryPi, setFactoryPi] = useState<FactoryPi | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [logo, setLogo] = useState('');
+    const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
         const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -40,20 +27,14 @@ function FactoryPiViewPageContent() {
           return;
         }
 
-        const savedInfo = localStorage.getItem('adminCompanyInfo');
-        if (savedInfo) {
-            try {
-                const parsedInfo = JSON.parse(savedInfo);
-                setLogo(parsedInfo.publicLogo || '');
-            } catch (e) {
-                console.error("Failed to parse company info from localStorage", e);
-            }
-        }
-
         if (id) {
-            getPiData(id)
+            getFactoryPiById(id)
                 .then(data => {
-                    setFactoryPi(data.factoryPi);
+                    setFactoryPi(data);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch factory PI", err);
+                    setFactoryPi(null);
                 })
                 .finally(() => {
                     setIsLoading(false);
@@ -63,7 +44,7 @@ function FactoryPiViewPageContent() {
         }
     }, [id, router]);
 
-    if (isLoading) {
+    if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
             <div className="container py-8">
                 <div className="flex h-screen items-center justify-center">
@@ -102,7 +83,7 @@ function FactoryPiViewPageContent() {
                 </Button>
             </div>
             
-            <FactoryPiPreview factoryPi={factoryPi} logo={logo} />
+            <FactoryPiPreview factoryPi={factoryPi} />
         </div>
     );
 }

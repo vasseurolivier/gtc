@@ -1,35 +1,29 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams } from 'next/navigation';
 
-import { getQuoteById, Quote } from '@/actions/quotes';
-import { getCustomerById, Customer } from '@/actions/customers';
-import { getProducts, Product } from '@/actions/products';
+import type { Quote } from '@/actions/quotes';
+import { getQuoteById } from '@/actions/quotes';
+import type { Customer } from '@/actions/customers';
+import { getCustomerById } from '@/actions/customers';
+import type { Product } from '@/actions/products';
+import { getProducts } from '@/actions/products';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { QuotePreview } from './quote-preview';
+import { CompanyInfoContext } from '@/context/company-info-context';
 
 export default function QuotePreviewPage() {
     const params = useParams();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [logo, setLogo] = useState('');
+    const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
-        const savedInfo = localStorage.getItem('adminCompanyInfo');
-        if (savedInfo) {
-            try {
-                const parsedInfo = JSON.parse(savedInfo);
-                setLogo(parsedInfo.publicLogo || '');
-            } catch(e) {
-                console.error("Failed to parse company info from localStorage", e);
-            }
-        }
-
         if (!id) return;
 
         async function getQuoteData(id: string) {
@@ -56,7 +50,7 @@ export default function QuotePreviewPage() {
         getQuoteData(id);
     }, [id]);
 
-    if (isLoading) {
+    if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
             <div className="container py-8">
                 <div className="flex h-screen items-center justify-center">
@@ -97,7 +91,8 @@ export default function QuotePreviewPage() {
               </Button>
           </div>
           
-          <QuotePreview quote={quote} customer={customer} products={products} logo={logo} />
+          <QuotePreview quote={quote} customer={customer} products={products} />
       </div>
     );
 }
+
