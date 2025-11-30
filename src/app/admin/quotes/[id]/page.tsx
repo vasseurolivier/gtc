@@ -24,7 +24,7 @@ export default function QuotePreviewPage() {
         if (savedInfo) {
             try {
                 const parsedInfo = JSON.parse(savedInfo);
-                setLogo(parsedInfo.logo || '');
+                setLogo(parsedInfo.publicLogo || '');
             } catch(e) {
                 console.error("Failed to parse company info from localStorage", e);
             }
