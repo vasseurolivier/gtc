@@ -10,10 +10,13 @@ import { Loader2, Printer } from 'lucide-react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const [isPrinting, setIsPrinting] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
 
     if (!companyInfoContext) {
         return <Loader2 className="h-16 w-16 animate-spin" />;
@@ -28,10 +31,44 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         setIsPrinting(true);
-        window.print();
-        setTimeout(() => setIsPrinting(false), 1000);
+        const input = printRef.current;
+        if (input) {
+            try {
+                const canvas = await html2canvas(input, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: true,
+                });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = imgWidth / imgHeight;
+                const canvasHeight = pdfWidth / ratio;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, canvasHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight() * (imgWidth/pdfWidth) ;
+                
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, canvasHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight() * (imgWidth/pdfWidth);
+                }
+                
+                pdf.save(`factory-pi-${factoryPi.piNumber}.pdf`);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+            }
+        }
+        setIsPrinting(false);
     };
 
     return (
@@ -47,93 +84,95 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                 </Button>
             </div>
             
-            <div className="bg-white rounded-lg shadow-lg border print-document">
-                <div className="px-8 py-10">
-                    <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div>
-                            {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} className="object-contain"/>
-                            }
-                        </div>
-                        <div className="text-right w-2/3">
-                            <h1 className="text-2xl font-bold text-black">PROFORMA INVOICE</h1>
-                            <p className="mt-1 text-xs text-muted-foreground">N° {factoryPi.piNumber}</p>
-                        </div>
-                    </header>
-                    
-                    <section>
-                         <div className="grid grid-cols-2 gap-8 my-8 text-xs">
+            <div ref={printRef}>
+                <div className="bg-white rounded-lg shadow-lg border print-document">
+                    <div className="px-8 py-10 pb-48">
+                        <header className="flex justify-between items-start pb-8 mb-8 border-b">
                             <div>
-                                <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                                <p>{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
+                                {companyInfo.logo && 
+                                    <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} style={{objectFit: 'contain'}}/>
+                                }
                             </div>
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p>{factoryPi.piNumber}</p>
+                            <div className="text-right w-2/3">
+                                <h1 className="text-2xl font-bold text-black">PROFORMA INVOICE</h1>
+                                <p className="mt-1 text-xs text-muted-foreground">N° {factoryPi.piNumber}</p>
                             </div>
-                        </div>
-
-                        <table className="w-full text-xs">
-                            <thead>
-                                <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold">Image</th>
-                                    <th className="w-1/2 p-1 font-semibold">Description</th>
-                                    <th className="p-1 text-right font-semibold">SKU</th>
-                                    <th className="p-1 text-right font-semibold">Quantity</th>
-                                    <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
-                                    <th className="p-1 text-right font-semibold">Total (CNY)</th>
-                                </tr>
-                            </thead>
-                            
-                            <tbody>
-                                {factoryPi.items.map((item, index) => {
-                                    const totalCny = item.quantity * item.unitPriceCny;
-                                    return (
-                                        <tr key={index} className="border-b">
-                                            <td className="p-1 align-top">
-                                                {item.photo && 
-                                                    <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
-                                                    </div>
-                                                }
-                                            </td>
-                                            <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
-                                            <td className="p-1 align-top text-right">{item.sku}</td>
-                                            <td className="p-1 align-top text-right">{item.quantity}</td>
-                                            <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                            <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-
-                         <div className="flex justify-end pt-4">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Total Quantity :</span>
-                                    <span className="font-medium text-right">{totals.totalQuantity}</span>
+                        </header>
+                        
+                        <section>
+                            <div className="grid grid-cols-2 gap-8 my-8 text-xs">
+                                <div>
+                                    <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
+                                    <p>{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
                                 </div>
-                               
-                                <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
-                                    <span>TOTAL (CNY) :</span>
-                                    <span className="text-right">
-                                        <div>¥{totals.totalAmountCny.toFixed(2)}</div>
-                                    </span>
+                                <div>
+                                    <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
+                                    <p>{factoryPi.piNumber}</p>
                                 </div>
                             </div>
-                        </div>
 
-                         <div className="mt-8 border-t pt-4">
-                            <h4 className="font-semibold mb-1 text-xs">Notes:</h4>
-                            <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
-                        </div>
-                    </section>
+                            <table className="w-full text-xs">
+                                <thead>
+                                    <tr className="text-left text-muted-foreground border-b-2 border-t-2">
+                                        <th className="p-1 font-semibold">Image</th>
+                                        <th className="w-1/2 p-1 font-semibold">Description</th>
+                                        <th className="p-1 text-right font-semibold">SKU</th>
+                                        <th className="p-1 text-right font-semibold">Quantity</th>
+                                        <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
+                                        <th className="p-1 text-right font-semibold">Total (CNY)</th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    {factoryPi.items.map((item, index) => {
+                                        const totalCny = item.quantity * item.unitPriceCny;
+                                        return (
+                                            <tr key={index} className="border-b">
+                                                <td className="p-1 align-top">
+                                                    {item.photo && 
+                                                        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                            <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                                <td className="p-1 align-top text-right">{item.sku}</td>
+                                                <td className="p-1 align-top text-right">{item.quantity}</td>
+                                                <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
+                                                <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            <div className="flex justify-end pt-4">
+                                <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Quantity :</span>
+                                        <span className="font-medium text-right">{totals.totalQuantity}</span>
+                                    </div>
+                                
+                                    <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
+                                        <span>TOTAL (CNY) :</span>
+                                        <span className="text-right">
+                                            <div>¥{totals.totalAmountCny.toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 border-t pt-4">
+                                <h4 className="font-semibold mb-1 text-xs">Notes:</h4>
+                                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-            </div>
 
-            <div className="print-footer hidden">
-                <PrintFooter />
+                <div className="print-footer hidden">
+                    <PrintFooter />
+                </div>
             </div>
         </main>
     );

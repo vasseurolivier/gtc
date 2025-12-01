@@ -89,10 +89,6 @@ export default function InvoicePreviewPage() {
                       Back to Invoices
                   </Link>
               </Button>
-               <Button onClick={() => window.print()}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Export to PDF
-                </Button>
           </div>
           
           <InvoicePreview invoice={invoice} customer={customer} products={products} />
