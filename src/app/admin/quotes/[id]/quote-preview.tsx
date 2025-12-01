@@ -106,7 +106,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div>
                            {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} className="object-contain"/>
+                                <Image src={companyInfo.logo} alt="Company Logo" width={53} height={13} className="object-contain"/>
                             }
                         </div>
                         <div className="text-right">
