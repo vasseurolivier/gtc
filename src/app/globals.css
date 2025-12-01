@@ -112,4 +112,8 @@ body {
     box-shadow: none !important;
     border: none !important;
   }
+
+  .break-before-page {
+    break-before: page;
+  }
 }

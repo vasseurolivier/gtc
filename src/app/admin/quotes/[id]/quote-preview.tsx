@@ -21,7 +21,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const printRef = useRef<HTMLDivElement>(null);
     const footerRef = useRef<HTMLDivElement>(null);
 
-    if (!currencyContext || !companyInfoContext) {
+    if (!currencyContext || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
              <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -102,11 +102,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </div>
             
             <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-8 py-10 pb-32">
+                <div ref={printRef} className="px-8 py-10">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div className="w-1/3">
+                        <div className="w-1/3 relative h-16">
                            {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" width={120} height={60} style={{objectFit: "contain", objectPosition: "left"}}/>
+                                <Image src={companyInfo.logo} alt="Company Logo" fill style={{objectFit: "contain", objectPosition: "left"}}/>
                             }
                         </div>
                         <div className="text-right w-2/3">
@@ -232,25 +232,27 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         </div>
 
-                        {quote.notes && (
-                            <div className="mt-8 border-t pt-4">
-                                <h3 className="font-semibold mb-1 text-xs">Notes:</h3>
-                                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">
-                                    {quote.notes}
-                                </p>
-                            </div>
-                        )}
+                        <div className="mt-8 pt-4 pb-32 break-before-page">
+                            {quote.notes && (
+                                <div className="mb-8">
+                                    <h3 className="font-semibold mb-1 text-xs">Notes:</h3>
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">
+                                        {quote.notes}
+                                    </p>
+                                </div>
+                            )}
 
-                        <div className="mt-8 text-left border-t pt-4 pb-24">
-                            <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
-                            <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
-                                <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
-                                <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
-                                <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
-                                <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
-                                <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
-                                <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
-                                <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
+                            <div className="text-left border-t pt-4">
+                                <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
+                                <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
+                                    <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
+                                    <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                    <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
+                                    <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
+                                    <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
+                                    <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
+                                    <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
+                                </div>
                             </div>
                         </div>
                     </section>
