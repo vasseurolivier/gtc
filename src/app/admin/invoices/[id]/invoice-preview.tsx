@@ -12,16 +12,13 @@ import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { PrintFooter } from '@/components/layout/print-footer';
 
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: Customer, products: Product[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [order, setOrder] = useState<Order | null>(null);
-    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-    const printRef = useRef<HTMLDivElement>(null);
-    const footerRef = useRef<HTMLDivElement>(null);
+    const [isPrinting, setIsPrinting] = useState(false);
 
     useEffect(() => {
         if (invoice.orderId) {
@@ -47,62 +44,19 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const commissionAmount = subTotal * (commissionRate / 100);
     const transportCost = order?.transportCost || 0;
     
-    const handleGeneratePdf = async () => {
-        setIsGeneratingPdf(true);
-        const mainContent = printRef.current;
-        const footerContent = footerRef.current;
-
-        if (mainContent && footerContent) {
-            try {
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                
-                const mainCanvas = await html2canvas(mainContent, { scale: 2, useCORS: true });
-                const mainImgData = mainCanvas.toDataURL('image/png');
-                const mainImgProps = pdf.getImageProperties(mainImgData);
-                const mainRatio = mainImgProps.height / mainImgProps.width;
-                let mainImgHeight = pdfWidth * mainRatio;
-                let mainHeightLeft = mainImgHeight;
-                let mainPosition = 0;
-                
-                const footerCanvas = await html2canvas(footerContent, { scale: 2, useCORS: true });
-                const footerImgData = footerCanvas.toDataURL('image/png');
-                const footerImgProps = pdf.getImageProperties(footerImgData);
-                const footerRatio = footerImgProps.height / footerImgProps.width;
-                const footerHeight = pdfWidth * footerRatio;
-                const footerY = pdfHeight - footerHeight - 5; 
-
-                let pageCount = 0;
-                while (mainHeightLeft > 0) {
-                    if (pageCount > 0) {
-                        pdf.addPage();
-                    }
-                    pdf.addImage(mainImgData, 'PNG', 0, mainPosition, pdfWidth, mainImgHeight);
-                    mainHeightLeft -= pdfHeight;
-                    mainPosition -= pdfHeight;
-                    pageCount++;
-                }
-
-                for (let i = 1; i <= pdf.getNumberOfPages(); i++) {
-                    pdf.setPage(i);
-                    pdf.addImage(footerImgData, 'PNG', 0, footerY, pdfWidth, footerHeight);
-                }
-
-                pdf.save(`Invoice_${invoice.invoiceNumber}.pdf`);
-            } catch (error) {
-                console.error("Error generating PDF:", error);
-                alert("An error occurred while generating the PDF.");
-            }
-        }
-        setIsGeneratingPdf(false);
+    const handlePrint = () => {
+        setIsPrinting(true);
+        window.print();
+        // Reset state after print dialog is closed (or after a short delay)
+        setTimeout(() => setIsPrinting(false), 1000);
     };
+
 
     return (
         <main className="w-full mx-auto">
              <div className="p-8 no-print flex justify-end">
-                <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf}>
-                    {isGeneratingPdf ? (
+                <Button onClick={handlePrint} disabled={isPrinting}>
+                    {isPrinting ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <Printer className="mr-2 h-4 w-4" />
@@ -111,8 +65,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-8 py-10 pb-48">
+            <div className="bg-white rounded-lg shadow-lg border print-document">
+                <div className="px-8 py-10">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div>
                            {companyInfo.logo && 
@@ -257,15 +211,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </section>
                 </div>
             </div>
-
-            <div className="absolute -left-[9999px] top-auto">
-                <div ref={footerRef} className="px-12 py-4 w-[210mm]">
-                    <div className="pt-4 border-t text-center text-[10px] text-gray-500">
-                        <p>Merci de votre confiance</p>
-                        <p>{companyInfo?.address}</p>
-                        <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
-                    </div>
-                </div>
+            
+            <div className="print-footer hidden">
+                <PrintFooter />
             </div>
         </main>
     );
