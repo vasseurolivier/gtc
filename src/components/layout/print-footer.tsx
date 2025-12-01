@@ -15,7 +15,7 @@ export function PrintFooter() {
     const { companyInfo } = companyInfoContext;
 
     return (
-        <div className="pt-4 border-t text-center text-xs text-muted-foreground">
+        <div id="print-footer-template" className="pt-4 border-t text-center text-[8px] text-gray-500 bg-white" style={{ fontFamily: 'sans-serif' }}>
             <p>Merci de votre confiance</p>
             <p>{companyInfo?.address}</p>
             <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
