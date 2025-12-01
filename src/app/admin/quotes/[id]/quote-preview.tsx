@@ -102,7 +102,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </div>
                 
                 <div className="bg-white rounded-lg shadow-lg border print-document">
-                    <div ref={printContentRef} className="px-8 py-10">
+                    <div ref={printContentRef} className="px-8 py-10 pb-48">
                         <header className="flex justify-between items-start pb-8 mb-8 border-b">
                             <div>
                                 {companyInfo.logo && 
@@ -253,13 +253,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                         <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
                                         <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                                     </div>
-                                </section>
+                                </div>
                             </div>
                         </section>
                     </div>
                 </div>
             </main>
-             <div className="hidden">
+            <div className="hidden">
                  <PrintFooter />
             </div>
         </>
