@@ -97,7 +97,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
             </div>
             
             <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-8 py-10 pb-32">
+                <div ref={printRef} className="px-8 py-10 pb-48">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div>
                             {companyInfo.logo && 
@@ -173,7 +173,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                             </div>
                         </div>
 
-                         <div className="mt-8 border-t pt-4 pb-24">
+                         <div className="mt-8 border-t pt-4">
                             <h4 className="font-semibold mb-1 text-xs">Notes:</h4>
                             <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
                         </div>

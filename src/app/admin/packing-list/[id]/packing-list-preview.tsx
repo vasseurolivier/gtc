@@ -100,7 +100,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
             </div>
             
             <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-8 py-10 pb-32">
+                <div ref={printRef} className="px-8 py-10 pb-48">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div>
                             {companyInfo.logo && 
@@ -187,7 +187,6 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                             </div>
                         </div>
                     </section>
-                     <div className="pb-24"></div>
                 </div>
             </div>
 

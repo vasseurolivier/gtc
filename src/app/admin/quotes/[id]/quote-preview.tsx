@@ -102,7 +102,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </div>
             
             <div className="bg-white rounded-lg shadow-lg border">
-                <div ref={printRef} className="px-8 py-10">
+                <div ref={printRef} className="px-8 py-10 pb-48">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
                         <div>
                            {companyInfo.logo && 
@@ -232,7 +232,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         </div>
 
-                        <div className="mt-8 pt-4 pb-32 break-before-page">
+                        <div className="mt-8 pt-4 break-before-page">
                             {quote.notes && (
                                 <div className="mb-8">
                                     <h3 className="font-semibold mb-1 text-xs">Notes:</h3>
