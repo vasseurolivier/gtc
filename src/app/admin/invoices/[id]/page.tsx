@@ -15,6 +15,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { PrintButton } from './print-button';
 
 async function getInvoiceData(id: string) {
     try {
@@ -89,10 +90,10 @@ export default function InvoicePreviewPage() {
                       Back to Invoices
                   </Link>
               </Button>
+              <PrintButton invoiceId={invoice.id} />
           </div>
           
           <InvoicePreview invoice={invoice} customer={customer} products={products} />
       </div>
     );
 }
-

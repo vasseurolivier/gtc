@@ -8,17 +8,15 @@ import { getOrderById, Order } from '@/actions/orders';
 import { useContext, useEffect, useState, useRef } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
 
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: Customer, products: Product[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [order, setOrder] = useState<Order | null>(null);
-    const [isPrinting, setIsPrinting] = useState(false);
 
     useEffect(() => {
         if (invoice.orderId) {
@@ -26,7 +24,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         }
     }, [invoice.orderId]);
 
-    if (!currencyContext || !companyInfoContext) {
+    if (!currencyContext || !companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
         return (
              <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -44,33 +42,14 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const commissionAmount = subTotal * (commissionRate / 100);
     const transportCost = order?.transportCost || 0;
     
-    const handlePrint = () => {
-        setIsPrinting(true);
-        window.print();
-        // Reset state after print dialog is closed (or after a short delay)
-        setTimeout(() => setIsPrinting(false), 1000);
-    };
-
-
     return (
-        <main className="w-full mx-auto">
-             <div className="p-8 no-print flex justify-end">
-                <Button onClick={handlePrint} disabled={isPrinting}>
-                    {isPrinting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Printer className="mr-2 h-4 w-4" />
-                    )}
-                    Export to PDF
-                </Button>
-            </div>
-
+        <main className="w-full mx-auto" id="invoice-preview">
             <div className="bg-white rounded-lg shadow-lg border print-document">
-                <div className="px-8 py-10">
+                <div className="px-8 py-10 pb-48">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div>
+                        <div className='relative w-1/3 h-16'>
                            {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} className="object-contain"/>
+                                <Image src={companyInfo.logo} alt="Company Logo" fill style={{objectFit: 'contain', objectPosition: 'left'}}/>
                             }
                         </div>
                         <div className="text-right">
@@ -210,9 +189,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                     </section>
                 </div>
-            </div>
-            
-            <div className="print-footer hidden">
                 <PrintFooter />
             </div>
         </main>
