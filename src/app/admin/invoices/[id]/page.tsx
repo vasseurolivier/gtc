@@ -11,11 +11,10 @@ import { getCustomerById } from '@/actions/customers';
 import type { Product } from '@/actions/products';
 import { getProducts } from '@/actions/products';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { PrintButton } from './print-button';
 
 async function getInvoiceData(id: string) {
     try {
@@ -90,7 +89,10 @@ export default function InvoicePreviewPage() {
                       Back to Invoices
                   </Link>
               </Button>
-              <PrintButton invoiceId={invoice.id} />
+               <Button onClick={() => window.print()}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Export to PDF
+                </Button>
           </div>
           
           <InvoicePreview invoice={invoice} customer={customer} products={products} />
