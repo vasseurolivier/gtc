@@ -114,12 +114,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-8 py-10 pb-32">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div className="w-1/3 relative h-16">
+                        <div>
                            {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" fill style={{objectFit: "contain", objectPosition: "left"}}/>
+                                <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} className="object-contain"/>
                             }
                         </div>
-                        <div className="text-right w-2/3">
+                        <div className="text-right">
                             <h1 className="text-2xl font-bold text-black">INVOICE</h1>
                             <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
                         </div>

@@ -99,9 +99,9 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-8 py-10 pb-32">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div className="w-1/3 relative h-16">
+                        <div>
                             {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" fill style={{objectFit: "contain", objectPosition: "left"}}/>
+                                <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} className="object-contain"/>
                             }
                         </div>
                         <div className="text-right w-2/3">
