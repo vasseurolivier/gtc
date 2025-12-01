@@ -20,7 +20,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
     const [isPrinting, setIsPrinting] = useState(false);
     const printContentRef = useRef<HTMLDivElement>(null);
 
-    if (!currencyContext || !companyInfoContext) {
+    if (!currencyContext || !companyInfoContext?.isCompanyInfoLoaded) {
         return <Loader2 className="h-16 w-16 animate-spin" />;
     }
 
@@ -65,11 +65,12 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     if (pageCount > 0) {
                         pdf.addPage();
                     }
-                    pdf.addImage(contentImgData, 'PNG', margin, margin + position, contentWidth, contentImgHeight, undefined, 'FAST');
-                    pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeightMM - margin, contentWidth, footerHeightMM, undefined, 'FAST');
+                    // The position `y` is negative because we are slicing the image from the top.
+                    pdf.addImage(contentImgData, 'PNG', margin, position, contentWidth, contentImgHeight);
+                    pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeightMM - margin, contentWidth, footerHeightMM);
                     
                     heightLeft -= pageContentHeight;
-                    position -= pageContentHeight;
+                    position -= pdfHeight - (margin * 2); // Move the image up for the next page.
                     pageCount++;
                 }
 
@@ -83,111 +84,113 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
     };
 
     return (
-        <main className="w-full mx-auto">
-             <div className="p-8 no-print flex justify-end">
-                <Button onClick={handlePrint} disabled={isPrinting}>
-                    {isPrinting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Printer className="mr-2 h-4 w-4" />
-                    )}
-                    Export to PDF
-                </Button>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-lg border print-document">
-                <div ref={printContentRef} className="px-8 py-10">
-                    <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div>
-                            {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} style={{objectFit: 'contain'}}/>
-                            }
-                        </div>
-                        <div className="text-right">
-                            <h1 className="text-2xl font-bold text-black">PACKING LIST</h1>
-                            <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
-                        </div>
-                    </header>
-                    
-                    <section>
-                        <div className="grid grid-cols-2 gap-8 my-8 text-xs">
-                        <div>
-                                <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                                <p className="font-bold">{companyInfo?.name}</p>
-                                <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-8 my-8 text-xs">
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                                <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p>{packingList.listId}</p>
-                            </div>
-                        </div>
-
-                        <table className="w-full text-xs">
-                            <thead>
-                                <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold w-[8%]">Photo</th>
-                                    <th className="w-2/5 p-1 font-semibold">Description</th>
-                                    <th className="p-1 text-right font-semibold w-[12%]">SKU</th>
-                                    <th className="p-1 text-right font-semibold">Quantity</th>
-                                    <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
-                                    <th className="p-1 text-right font-semibold">Total (CNY)</th>
-                                    <th className="p-1 font-semibold">Remarks</th>
-                                </tr>
-                            </thead>
-                            
-                            <tbody>
-                                {packingList.items.map((item, index) => {
-                                    const totalCny = item.quantity * item.unitPriceCny;
-                                    return (
-                                        <tr key={index} className="border-b">
-                                            <td className="p-1 align-top">
-                                                {item.photo && 
-                                                    <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
-                                                    </div>
-                                                }
-                                            </td>
-                                            <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
-                                            <td className="p-1 align-top text-right">{item.sku}</td>
-                                            <td className="p-1 align-top text-right">{item.quantity}</td>
-                                            <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                            <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
-                                            <td className="p-1 align-top leading-tight">{item.remarks}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-
-                        <div className="flex justify-end pt-4">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Total Quantity :</span>
-                                    <span className="font-medium text-right">{totals.totalQuantity}</span>
-                                </div>
-                            
-                                <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
-                                    <span>TOTAL (CNY) :</span>
-                                    <span className="text-right">
-                                        <div>¥{totals.totalAmountCny.toFixed(2)}</div>
-                                        <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</div>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+        <>
+            <main className="w-full mx-auto">
+                 <div className="p-8 no-print flex justify-end">
+                    <Button onClick={handlePrint} disabled={isPrinting}>
+                        {isPrinting ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Printer className="mr-2 h-4 w-4" />
+                        )}
+                        Export to PDF
+                    </Button>
                 </div>
-            </div>
+                
+                <div className="bg-white rounded-lg shadow-lg border print-document">
+                    <div ref={printContentRef} className="px-8 py-10">
+                        <header className="flex justify-between items-start pb-8 mb-8 border-b">
+                            <div>
+                                {companyInfo.logo && 
+                                    <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} style={{objectFit: 'contain'}}/>
+                                }
+                            </div>
+                            <div className="text-right">
+                                <h1 className="text-2xl font-bold text-black">PACKING LIST</h1>
+                                <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
+                            </div>
+                        </header>
+                        
+                        <section>
+                            <div className="grid grid-cols-2 gap-8 my-8 text-xs">
+                            <div>
+                                    <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
+                                    <p className="font-bold">{companyInfo?.name}</p>
+                                    <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-8 my-8 text-xs">
+                                <div>
+                                    <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
+                                    <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
+                                    <p>{packingList.listId}</p>
+                                </div>
+                            </div>
+
+                            <table className="w-full text-xs">
+                                <thead>
+                                    <tr className="text-left text-muted-foreground border-b-2 border-t-2">
+                                        <th className="p-1 font-semibold w-[8%]">Photo</th>
+                                        <th className="w-2/5 p-1 font-semibold">Description</th>
+                                        <th className="p-1 text-right font-semibold w-[12%]">SKU</th>
+                                        <th className="p-1 text-right font-semibold">Quantity</th>
+                                        <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
+                                        <th className="p-1 text-right font-semibold">Total (CNY)</th>
+                                        <th className="p-1 font-semibold">Remarks</th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    {packingList.items.map((item, index) => {
+                                        const totalCny = item.quantity * item.unitPriceCny;
+                                        return (
+                                            <tr key={index} className="border-b">
+                                                <td className="p-1 align-top">
+                                                    {item.photo && 
+                                                        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                            <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                                <td className="p-1 align-top text-right">{item.sku}</td>
+                                                <td className="p-1 align-top text-right">{item.quantity}</td>
+                                                <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
+                                                <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                                <td className="p-1 align-top leading-tight">{item.remarks}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            <div className="flex justify-end pt-4">
+                                <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Quantity :</span>
+                                        <span className="font-medium text-right">{totals.totalQuantity}</span>
+                                    </div>
+                                
+                                    <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
+                                        <span>TOTAL (CNY) :</span>
+                                        <span className="text-right">
+                                            <div>¥{totals.totalAmountCny.toFixed(2)}</div>
+                                            <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</div>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </main>
             <div className="hidden">
                  <PrintFooter />
             </div>
-        </main>
+        </>
     );
 }
