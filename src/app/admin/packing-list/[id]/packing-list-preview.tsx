@@ -102,11 +102,9 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
             <div className="bg-white rounded-lg shadow-lg border">
                 <div ref={printRef} className="px-8 py-10 pb-32">
                     <header className="flex justify-between items-start pb-8 mb-8 border-b">
-                        <div className="w-1/3">
+                        <div className="w-1/3 relative h-16">
                             {companyInfo.logo && 
-                                <div className="h-16 w-auto relative">
-                                    <Image src={companyInfo.logo} alt="Company Logo" width={64} height={64} className="object-contain"/>
-                                </div>
+                                <Image src={companyInfo.logo} alt="Company Logo" fill style={{objectFit: "contain", objectPosition: "left"}}/>
                             }
                         </div>
                         <div className="text-right w-2/3">
