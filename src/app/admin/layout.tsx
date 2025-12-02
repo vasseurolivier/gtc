@@ -308,7 +308,7 @@ function ProtectedAdminLayout({
         <SidebarContent>
           <SidebarHeader>
              <Link href="/" className="flex items-center gap-2">
-                <Image src={companyInfoContext?.companyInfo.logo || ''} alt="Company Logo" width={120} height={120} className="object-contain" />
+                {companyInfoContext?.companyInfo.logo && <Image src={companyInfoContext.companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
             </Link>
           </SidebarHeader>
           <SidebarMenu>
