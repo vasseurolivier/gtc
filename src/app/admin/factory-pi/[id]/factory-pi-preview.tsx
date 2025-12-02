@@ -98,7 +98,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                         <header className="flex justify-between items-start pb-8 mb-8 border-b">
                             <div>
                                 {companyInfo.logo && 
-                                    <Image src={companyInfo.logo} alt="Company Logo" width={53} height={13} style={{objectFit: 'contain'}}/>
+                                    <Image src={companyInfo.logo} alt="Company Logo" width={26} height={6} style={{objectFit: 'contain'}}/>
                                 }
                             </div>
                             <div className="text-right w-2/3">
