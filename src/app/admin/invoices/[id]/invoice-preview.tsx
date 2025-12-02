@@ -53,19 +53,18 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 const pageContentHeight = pdfHeight - (margin * 2) - footerHeightMM - 5; // 5mm extra space before footer
                 
                 let heightLeft = contentImgHeight;
-                let position = 0;
+                let position = margin;
                 let pageCount = 0;
 
                 while (heightLeft > 0) {
                     if (pageCount > 0) {
                         pdf.addPage();
                     }
-                    // The position `y` is negative because we are slicing the image from the top.
-                    pdf.addImage(contentImgData, 'PNG', margin, position, contentWidth, contentImgHeight);
+                    pdf.addImage(contentImgData, 'PNG', margin, -position, contentWidth, contentImgHeight);
                     pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeightMM - margin, contentWidth, footerHeightMM);
                     
                     heightLeft -= pageContentHeight;
-                    position -= pdfHeight - (margin * 2); // Move the image up for the next page.
+                    position += pageContentHeight;
                     pageCount++;
                 }
 
@@ -257,7 +256,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </div>
             </main>
-            <div className="hidden">
+            <div className="no-print">
                  <PrintFooter />
             </div>
         </>

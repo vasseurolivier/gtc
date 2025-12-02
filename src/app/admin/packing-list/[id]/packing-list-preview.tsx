@@ -58,19 +58,18 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 const pageContentHeight = pdfHeight - (margin * 2) - footerHeightMM - 5; // 5mm extra space before footer
                 
                 let heightLeft = contentImgHeight;
-                let position = 0;
+                let position = margin;
                 let pageCount = 0;
 
                 while (heightLeft > 0) {
                     if (pageCount > 0) {
                         pdf.addPage();
                     }
-                    // The position `y` is negative because we are slicing the image from the top.
-                    pdf.addImage(contentImgData, 'PNG', margin, position, contentWidth, contentImgHeight);
+                    pdf.addImage(contentImgData, 'PNG', margin, -position, contentWidth, contentImgHeight);
                     pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeightMM - margin, contentWidth, footerHeightMM);
                     
                     heightLeft -= pageContentHeight;
-                    position -= pdfHeight - (margin * 2); // Move the image up for the next page.
+                    position += pageContentHeight;
                     pageCount++;
                 }
 
@@ -105,7 +104,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                     <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} style={{objectFit: 'contain'}}/>
                                 }
                             </div>
-                            <div className="text-right">
+                            <div className="text-right w-1/3">
                                 <h1 className="text-2xl font-bold text-black">PACKING LIST</h1>
                                 <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
                             </div>
@@ -188,7 +187,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </div>
                 </div>
             </main>
-            <div className="hidden">
+            <div className="no-print">
                  <PrintFooter />
             </div>
         </>
