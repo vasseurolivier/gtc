@@ -93,14 +93,16 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm; /* Simple margin */
+    margin: 3cm 1.5cm 3cm 1.5cm;
   }
 
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    padding-top: 3cm;
+    padding-bottom: 3cm;
   }
-  
+
   .no-print {
     display: none !important;
   }
@@ -110,22 +112,30 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    width: 100%;
+    height: 3cm;
+    padding: 0 1.5cm;
+    display: flex;
+    align-items: center;
     background-color: white;
   }
-  
+
   .print-footer-container {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    width: 100%;
+    height: 3cm;
+    padding: 0 1.5cm;
+    display: flex;
+    align-items: center;
     background-color: white;
   }
-
+  
   .print-document {
-    padding-top: 4cm;  /* Space for header */
-    padding-bottom: 4cm; /* Space for footer */
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
 
   .break-before-page {

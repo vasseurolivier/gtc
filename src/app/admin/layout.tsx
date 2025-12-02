@@ -221,18 +221,6 @@ function AdminSettings() {
     );
 }
 
-function AdminAppProviders({ children }: { children: React.ReactNode }) {
-    return (
-        <AppProviders>
-            <CompanyInfoProvider>
-                <CurrencyProvider>
-                    {children}
-                </CurrencyProvider>
-            </CompanyInfoProvider>
-        </AppProviders>
-    )
-}
-
 function ProtectedAdminLayout({
   children,
 }: {
@@ -355,8 +343,12 @@ export default function AdminRootLayout({
     return <AppProviders>{children}</AppProviders>;
   }
   return (
-    <AdminAppProviders>
-      <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
-    </AdminAppProviders>
+    <AppProviders>
+      <CompanyInfoProvider>
+          <CurrencyProvider>
+              <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
+          </CurrencyProvider>
+      </CompanyInfoProvider>
+    </AppProviders>
   )
 }
