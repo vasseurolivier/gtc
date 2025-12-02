@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm 1cm 2cm 1cm; /* Adjust bottom margin for footer */
+    margin: 3cm 1cm 3cm 1cm; /* top right bottom left */
   }
 
   body, html {
@@ -116,10 +116,22 @@ body {
   .print-document {
     box-shadow: none !important;
     border: none !important;
+    padding-top: 3cm; /* Same as @page margin-top */
+    padding-bottom: 3cm; /* Same as @page margin-bottom */
+  }
+
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 1cm;
+    right: 1cm;
+    width: auto;
+    background-color: white;
+    padding: 1cm 1cm 0.5cm 1cm;
+    margin: 0 -1cm;
   }
 
   .print-footer-container {
-    display: block !important;
     position: fixed;
     bottom: 0;
     left: 1cm;
@@ -130,5 +142,6 @@ body {
 
   .break-before-page {
     break-before: page;
+    page-break-before: page;
   }
 }
