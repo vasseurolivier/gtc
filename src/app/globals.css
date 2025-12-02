@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm 1cm 2cm 1cm; /* Marge de 2cm en bas pour le pied de page */
+    margin: 1cm 1cm 3cm 1cm; /* Marge de 3cm en bas pour le pied de page et l'espacement */
   }
 
   body, html {
@@ -122,10 +122,10 @@ body {
     display: block !important;
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    padding: 0 1cm; /* Correspond aux marges de la page */
+    left: 1cm;
+    right: 1cm;
+    height: 1cm;
+    width: auto;
   }
 
   .break-before-page {
