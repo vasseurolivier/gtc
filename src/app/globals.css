@@ -93,45 +93,41 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 3cm 1.5cm 3cm 1.5cm;
+    margin: 2cm;
   }
 
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    padding-top: 3cm;
-    padding-bottom: 3cm;
   }
 
   .no-print {
     display: none !important;
   }
-
-  .print-header-container {
+  
+  .print-header-container, .print-footer-container {
+    display: block !important;
     position: fixed;
-    top: 0;
     left: 0;
     right: 0;
-    height: 3cm;
+    width: 100%;
+  }
+
+  .print-header-container {
+    top: 0;
     padding: 0 1.5cm;
-    display: flex;
-    align-items: center;
-    background-color: white;
+    height: 3cm;
   }
 
   .print-footer-container {
-    position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3cm;
     padding: 0 1.5cm;
-    display: flex;
-    align-items: center;
-    background-color: white;
+    height: 2cm;
   }
-  
+
   .print-document {
+    margin-top: 3cm;
+    margin-bottom: 2cm;
     padding: 0 !important;
     border: none !important;
     box-shadow: none !important;

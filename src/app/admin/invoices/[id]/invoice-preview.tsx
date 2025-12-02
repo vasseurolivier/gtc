@@ -59,7 +59,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             </div>
             
             <div className="print-header-container">
-                 <header className="w-full flex justify-between items-start pb-8 border-b">
+                 <header className="w-full flex justify-between items-start pt-4 pb-8 border-b">
                     <div>
                     {companyInfo.logo && 
                             <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} style={{objectFit: 'contain'}}/>
