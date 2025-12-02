@@ -93,51 +93,43 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 3cm 1cm 3cm 1cm; /* top right bottom left */
+    margin: 3cm 1cm;
   }
 
-  body, html {
-    background: #fff !important;
-    color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    font-size: 9pt;
+  body.printing {
+    padding-top: 3cm;
+    padding-bottom: 3cm;
   }
   
   .no-print {
     display: none !important;
   }
-
-  .printable-area {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
   
-  .print-header {
+  .print-header-container {
     position: fixed;
     top: 0;
-    left: 1cm;
-    right: 1cm;
-    width: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
     background-color: white;
-    padding: 1cm 1cm 0.5cm 1cm;
-    margin: 0 -1cm;
+    padding: 1cm;
+    z-index: 100;
   }
   
+  .print-footer-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 1cm;
+    background-color: white;
+    z-index: 100;
+  }
+
   .print-document {
     box-shadow: none !important;
     border: none !important;
-    padding-top: 3cm; /* Push content down to avoid header overlap */
-  }
-
-  .print-footer-container {
-    display: block !important;
-    position: fixed;
-    bottom: 0;
-    left: 1cm;
-    right: 1cm;
-    height: 1.5cm;
-    width: auto;
   }
 
   .break-before-page {
