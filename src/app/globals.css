@@ -96,9 +96,9 @@ body {
     margin: 3cm 1cm;
   }
 
-  body.printing {
-    padding-top: 3cm;
-    padding-bottom: 3cm;
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   
   .no-print {
