@@ -242,6 +242,7 @@ function ProtectedAdminLayout({
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const companyInfoContext = useContext(CompanyInfoContext);
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
