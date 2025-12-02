@@ -50,19 +50,17 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </Button>
             </div>
             
-            <div className="print-header-container">
-                <header className="w-full flex justify-between items-start pt-4 pb-8 border-b">
-                    <div>
-                        {companyInfo.logo && 
-                            <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} style={{objectFit: 'contain'}} />
-                        }
-                    </div>
-                    <div className="text-right w-1/3">
-                        <h1 className="text-2xl font-bold text-black">PROFORMA</h1>
-                        <p className="mt-1 text-xs text-muted-foreground">N° {quote.quoteNumber}</p>
-                    </div>
-                </header>
-            </div>
+            <header className="print-header w-full flex justify-between items-start pt-4 pb-8 border-b">
+                <div>
+                    {companyInfo.logo && 
+                        <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} style={{objectFit: 'contain'}} />
+                    }
+                </div>
+                <div className="text-right w-1/3">
+                    <h1 className="text-2xl font-bold text-black">PROFORMA</h1>
+                    <p className="mt-1 text-xs text-muted-foreground">N° {quote.quoteNumber}</p>
+                </div>
+            </header>
 
             <div className="print-document bg-white rounded-lg shadow-lg border p-8">
                 <section>
@@ -209,9 +207,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </div>
                 </section>
             </div>
-            <div className="print-footer-container">
-                 <PrintFooter />
-            </div>
+            <PrintFooter />
         </main>
     );
 }

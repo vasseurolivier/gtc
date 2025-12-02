@@ -58,19 +58,17 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div className="print-header-container">
-                 <header className="w-full flex justify-between items-start pt-4 pb-8 border-b">
-                    <div>
-                    {companyInfo.logo && 
-                            <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} style={{objectFit: 'contain'}}/>
-                        }
-                    </div>
-                    <div className="text-right">
-                        <h1 className="text-2xl font-bold text-black">INVOICE</h1>
-                        <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
-                    </div>
-                </header>
-            </div>
+            <header className="print-header w-full flex justify-between items-start pt-4 pb-8 border-b">
+                <div>
+                {companyInfo.logo && 
+                        <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} style={{objectFit: 'contain'}}/>
+                    }
+                </div>
+                <div className="text-right">
+                    <h1 className="text-2xl font-bold text-black">INVOICE</h1>
+                    <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
+                </div>
+            </header>
 
             <div className="print-document bg-white rounded-lg shadow-lg border p-8">
                 <section>
@@ -206,9 +204,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </section>
             </div>
-            <div className="print-footer-container">
-                 <PrintFooter />
-            </div>
+            <PrintFooter />
         </main>
     );
 }

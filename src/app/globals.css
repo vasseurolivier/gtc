@@ -93,7 +93,15 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 2cm;
+    margin: 3.5cm 1.5cm 2.5cm 1.5cm; /* top, horizontal, bottom */
+
+    @top-center {
+      content: element(header);
+    }
+
+    @bottom-center {
+      content: element(footer);
+    }
   }
 
   body {
@@ -105,29 +113,15 @@ body {
     display: none !important;
   }
   
-  .print-header-container, .print-footer-container {
-    display: block !important;
-    position: fixed;
-    left: 0;
-    right: 0;
-    width: 100%;
+  .print-header {
+    position: running(header);
   }
 
-  .print-header-container {
-    top: 0;
-    padding: 0 1.5cm;
-    height: 3cm;
-  }
-
-  .print-footer-container {
-    bottom: 0;
-    padding: 0 1.5cm;
-    height: 2cm;
+  .print-footer {
+    position: running(footer);
   }
 
   .print-document {
-    margin-top: 3cm;
-    margin-bottom: 2cm;
     padding: 0 !important;
     border: none !important;
     box-shadow: none !important;
