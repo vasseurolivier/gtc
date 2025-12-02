@@ -114,7 +114,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <header className="flex justify-between items-start pb-8 mb-8 border-b">
                             <div>
                             {companyInfo.logo && 
-                                    <Image src={companyInfo.logo} alt="Company Logo" width={160} height={40} style={{objectFit: 'contain'}}/>
+                                    <Image src={companyInfo.logo} alt="Company Logo" width={53} height={13} style={{objectFit: 'contain'}}/>
                                 }
                             </div>
                             <div className="text-right">
