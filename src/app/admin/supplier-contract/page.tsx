@@ -19,8 +19,6 @@ import { Separator } from '@/components/ui/separator';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { useToast } from '@/hooks/use-toast';
 import { PrintFooter } from '@/components/layout/print-footer';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const contractSchema = z.object({
   supplierName: z.string().min(1, 'Supplier Name is required.'),
@@ -82,44 +80,7 @@ export default function SupplierContractPage() {
         });
         return;
     }
-
-    setIsPrinting(true);
-    const input = printRef.current;
-    if (input) {
-        try {
-            const canvas = await html2canvas(input, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                allowTaint: true,
-            });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = canvas.width;
-            const imgHeight = canvas.height;
-            const ratio = imgWidth / imgHeight;
-            const canvasHeight = pdfWidth / ratio;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, canvasHeight);
-            heightLeft -= pdf.internal.pageSize.getHeight() * (imgWidth/pdfWidth) ;
-            
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, canvasHeight);
-                heightLeft -= pdf.internal.pageSize.getHeight() * (imgWidth/pdfWidth);
-            }
-            
-            pdf.save(`supplier-contract-${watchedValues.supplierName}.pdf`);
-        } catch (error) {
-            console.error("Error generating PDF:", error);
-        }
-    }
-    setIsPrinting(false);
+    window.print();
   };
   
   if (!companyInfoContext) {
@@ -327,7 +288,7 @@ export default function SupplierContractPage() {
                     </section>
                   </div>
               </div>
-              <div className="print-footer hidden">
+              <div className="print-footer-container no-print">
                   <PrintFooter />
               </div>
             </div>
@@ -336,3 +297,5 @@ export default function SupplierContractPage() {
     </div>
   );
 }
+
+    
