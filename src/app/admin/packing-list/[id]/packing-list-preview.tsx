@@ -29,6 +29,13 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         acc.totalAmountCny += totalCny;
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
+    
+    const ITEMS_PER_PAGE = 10;
+    const chunkedItems: PackingList['items'][] = [];
+    for (let i = 0; i < packingList.items.length; i += ITEMS_PER_PAGE) {
+        chunkedItems.push(packingList.items.slice(i, i + ITEMS_PER_PAGE));
+    }
+
 
     return (
         <>
@@ -87,8 +94,9 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                     </tr>
                                 </thead>
                                 
-                                <tbody>
-                                    {packingList.items.map((item, index) => {
+                                {chunkedItems.map((chunk, chunkIndex) => (
+                                <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                                    {chunk.map((item, index) => {
                                         const totalCny = item.quantity * item.unitPriceCny;
                                         return (
                                             <tr key={index} className="border-b">
@@ -109,6 +117,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                         );
                                     })}
                                 </tbody>
+                                ))}
                             </table>
 
                             <div className="flex justify-end pt-4">
@@ -131,7 +140,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </div>
                 </div>
             </main>
-            <div className="print-footer-container">
+            <div className="print-footer-container no-print">
                  <PrintFooter />
             </div>
         </>

@@ -43,6 +43,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const commissionAmount = subTotal * (commissionRate / 100);
     const transportCost = order?.transportCost || 0;
     
+    const ITEMS_PER_PAGE = 10;
+    const chunkedItems: Invoice['items'][] = [];
+    for (let i = 0; i < invoice.items.length; i += ITEMS_PER_PAGE) {
+        chunkedItems.push(invoice.items.slice(i, i + ITEMS_PER_PAGE));
+    }
+    
     return (
         <>
             <main className="w-full mx-auto" id="invoice-preview">
@@ -104,35 +110,37 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     </tr>
                                 </thead>
                                 
-                                <tbody>
-                                    {invoice.items.map((item, itemIndex) => {
-                                        const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                        return (
-                                            <tr key={itemIndex} className="border-b">
-                                                <td className="p-1 align-top">
-                                                    {product?.imageUrl && (
-                                                        <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                            <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="p-1 align-top leading-tight">
-                                                    <p className="font-medium">{item.description}</p>
-                                                    {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
-                                                </td>
-                                                <td className="p-1 align-top text-right">{item.quantity}</td>
-                                                <td className="p-1 align-top text-right">
-                                                    <div>¥{item.unitPrice.toFixed(2)}</div>
-                                                    <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                                </td>
-                                                <td className="p-1 align-top text-right font-medium">
-                                                    <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                                    <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
+                                {chunkedItems.map((chunk, chunkIndex) => (
+                                    <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                                        {chunk.map((item, itemIndex) => {
+                                            const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                            return (
+                                                <tr key={itemIndex} className="border-b">
+                                                    <td className="p-1 align-top">
+                                                        {product?.imageUrl && (
+                                                            <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                                <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-1 align-top leading-tight">
+                                                        <p className="font-medium">{item.description}</p>
+                                                        {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
+                                                    </td>
+                                                    <td className="p-1 align-top text-right">{item.quantity}</td>
+                                                    <td className="p-1 align-top text-right">
+                                                        <div>¥{item.unitPrice.toFixed(2)}</div>
+                                                        <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                                    </td>
+                                                    <td className="p-1 align-top text-right font-medium">
+                                                        <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                                        <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                ))}
                             </table>
 
                             <div className="flex justify-end pt-4">
@@ -200,7 +208,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </div>
             </main>
-            <div className="print-footer-container">
+            <div className="print-footer-container no-print">
                  <PrintFooter />
             </div>
         </>

@@ -27,6 +27,12 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
+    const ITEMS_PER_PAGE = 10;
+    const chunkedItems: FactoryPi['items'][] = [];
+    for (let i = 0; i < factoryPi.items.length; i += ITEMS_PER_PAGE) {
+        chunkedItems.push(factoryPi.items.slice(i, i + ITEMS_PER_PAGE));
+    }
+
     return (
         <>
             <main className="w-full mx-auto">
@@ -75,27 +81,29 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                     </tr>
                                 </thead>
                                 
-                                <tbody>
-                                    {factoryPi.items.map((item, index) => {
-                                        const totalCny = item.quantity * item.unitPriceCny;
-                                        return (
-                                            <tr key={index} className="border-b">
-                                                <td className="p-1 align-top">
-                                                    {item.photo && 
-                                                        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                            <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
-                                                        </div>
-                                                    }
-                                                </td>
-                                                <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
-                                                <td className="p-1 align-top text-right">{item.sku}</td>
-                                                <td className="p-1 align-top text-right">{item.quantity}</td>
-                                                <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                                <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
+                                {chunkedItems.map((chunk, chunkIndex) => (
+                                    <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                                        {chunk.map((item, index) => {
+                                            const totalCny = item.quantity * item.unitPriceCny;
+                                            return (
+                                                <tr key={index} className="border-b">
+                                                    <td className="p-1 align-top">
+                                                        {item.photo && 
+                                                            <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                                <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                    <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                                    <td className="p-1 align-top text-right">{item.sku}</td>
+                                                    <td className="p-1 align-top text-right">{item.quantity}</td>
+                                                    <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
+                                                    <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                ))}
                             </table>
 
                             <div className="flex justify-end pt-4">
@@ -122,7 +130,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                     </div>
                 </div>
             </main>
-            <div className="print-footer-container">
+            <div className="print-footer-container no-print">
                  <PrintFooter />
             </div>
         </>
