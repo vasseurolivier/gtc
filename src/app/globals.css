@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm 1cm 3cm 1cm; /* Marge de 3cm en bas pour le pied de page et l'espacement */
+    margin: 1cm 1cm 2cm 1cm; /* Adjust bottom margin for footer */
   }
 
   body, html {
@@ -118,13 +118,13 @@ body {
     border: none !important;
   }
 
-  .print-footer {
+  .print-footer-container {
     display: block !important;
     position: fixed;
     bottom: 0;
     left: 1cm;
     right: 1cm;
-    height: 1cm;
+    height: 1.5cm; /* Height of the footer */
     width: auto;
   }
 

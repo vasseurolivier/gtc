@@ -12,15 +12,11 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 
 export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
-    const [isPrinting, setIsPrinting] = useState(false);
-    const printContentRef = useRef<HTMLDivElement>(null);
 
     if (!currencyContext || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
@@ -38,70 +34,18 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const downPayment = quote.totalAmount * 0.3; // Assuming 30% down payment
     const remainingBalance = quote.totalAmount - downPayment;
 
-    const handlePrint = async () => {
-        setIsPrinting(true);
-        const content = printContentRef.current;
-        const footer = document.getElementById('print-footer-template');
-
-        if (content && footer) {
-            try {
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const margin = 10; // 10mm margin
-                const contentWidth = pdfWidth - (margin * 2);
-                
-                const footerCanvas = await html2canvas(footer, { scale: 2 });
-                const footerImgData = footerCanvas.toDataURL('image/png');
-                const footerHeightMM = (footerCanvas.height * contentWidth / footerCanvas.width) * 0.264583;
-
-                const contentCanvas = await html2canvas(content, { scale: 2, windowWidth: content.scrollWidth, windowHeight: content.scrollHeight });
-                const contentImgData = contentCanvas.toDataURL('image/png');
-                const contentImgHeight = contentCanvas.height * contentWidth / contentCanvas.width;
-                
-                const pageContentHeight = pdfHeight - (margin * 2) - footerHeightMM - 5; // 5mm extra space before footer
-                
-                let heightLeft = contentImgHeight;
-                let position = margin;
-                let pageCount = 0;
-
-                while (heightLeft > 0) {
-                    if (pageCount > 0) {
-                        pdf.addPage();
-                    }
-                    pdf.addImage(contentImgData, 'PNG', margin, -position + margin, contentWidth, contentImgHeight);
-                    pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeightMM - margin, contentWidth, footerHeightMM);
-                    
-                    heightLeft -= pageContentHeight;
-                    position += pageContentHeight;
-                    pageCount++;
-                }
-
-                pdf.save(`proforma-${quote.quoteNumber}.pdf`);
-
-            } catch (error) {
-                console.error("Error generating PDF:", error);
-            }
-        }
-        setIsPrinting(false);
-    };
-
     return (
         <>
             <main className="w-full mx-auto">
                 <div className="p-8 no-print flex justify-end">
-                    <Button onClick={handlePrint} disabled={isPrinting}>
-                        {isPrinting ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <Printer className="mr-2 h-4 w-4" />
-                        )}
+                    <Button onClick={() => window.print()}>
+                        <Printer className="mr-2 h-4 w-4" />
                         Export to PDF
                     </Button>
                 </div>
                 
                 <div className="bg-white rounded-lg shadow-lg border print-document">
-                    <div ref={printContentRef} className="px-8 py-10 pb-48">
+                    <div className="px-8 py-10">
                         <header className="flex justify-between items-start pb-8 mb-8 border-b">
                             <div>
                                 {companyInfo.logo && 
@@ -258,7 +202,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </div>
                 </div>
             </main>
-            <div className="no-print">
+            <div className="print-footer-container">
                  <PrintFooter />
             </div>
         </>
