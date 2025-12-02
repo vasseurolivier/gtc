@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 2cm;
+    margin: 1.5cm; /* Simple margin */
   }
 
   body {
@@ -112,7 +112,6 @@ body {
     right: 0;
     width: 100%;
     background-color: white;
-    z-index: 100;
   }
   
   .print-footer-container {
@@ -122,14 +121,11 @@ body {
     right: 0;
     width: 100%;
     background-color: white;
-    z-index: 100;
   }
 
   .print-document {
-    box-shadow: none !important;
-    border: none !important;
-    padding-top: 3cm;
-    padding-bottom: 3cm;
+    padding-top: 4cm;  /* Space for header */
+    padding-bottom: 4cm; /* Space for footer */
   }
 
   .break-before-page {

@@ -34,7 +34,7 @@ export function Footer({ dictionary }: { dictionary: any }) {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
                 {publicLogo ? (
-                  <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
+                  <Image src={publicLogo} alt="Company Logo" width={120} height={120} className="object-contain" />
                 ) : (
                   <div style={{width: '50px', height: '12px'}} />
                 )}

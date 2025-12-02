@@ -306,7 +306,9 @@ function ProtectedAdminLayout({
       <Sidebar className="no-print bg-muted/20">
         <SidebarContent>
           <SidebarHeader>
-            <h2 className="text-lg font-semibold">Global <span className="text-destructive">Trading</span> China</h2>
+             <Link href="/" className="flex items-center gap-2">
+                <Image src={companyInfoContext?.companyInfo.logo || ''} alt="Company Logo" width={120} height={120} className="object-contain" />
+            </Link>
           </SidebarHeader>
           <SidebarMenu>
             {navItems.map((item) => (

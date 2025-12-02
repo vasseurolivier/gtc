@@ -63,7 +63,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                      <header className="print-header flex justify-between items-start pb-8 mb-8 border-b">
                         <div>
                         {companyInfo.logo && 
-                                <Image src={companyInfo.logo} alt="Company Logo" width={26} height={6} style={{objectFit: 'contain'}}/>
+                                <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} style={{objectFit: 'contain'}}/>
                             }
                         </div>
                         <div className="text-right">
@@ -207,10 +207,10 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                     </section>
                 </div>
+                <div className="print-footer-container">
+                     <PrintFooter />
+                </div>
             </main>
-            <div className="print-footer-container">
-                 <PrintFooter />
-            </div>
         </>
     );
 }
