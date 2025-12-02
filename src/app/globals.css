@@ -113,12 +113,6 @@ body {
     padding-bottom: 0;
   }
   
-  .print-document {
-    box-shadow: none !important;
-    border: none !important;
-    padding-top: 3cm;
-  }
-
   .print-header {
     position: fixed;
     top: 0;
@@ -130,6 +124,12 @@ body {
     margin: 0 -1cm;
   }
   
+  .print-document {
+    box-shadow: none !important;
+    border: none !important;
+    padding-top: 3cm; /* Push content down to avoid header overlap */
+  }
+
   .print-footer-container {
     display: block !important;
     position: fixed;

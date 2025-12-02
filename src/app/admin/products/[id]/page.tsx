@@ -7,21 +7,11 @@ import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 
-async function getProductData(id: string): Promise<Product | null> {
-    try {
-        const product = await getProductById(id);
-        return product;
-    } catch (e) {
-        console.error(e);
-        return null;
-    }
-}
-
-
-export default async function ProductProfilePage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const product = await getProductData(id);
+async function ProductProfileContent({ id }: { id: string }) {
+    const product = await getProductById(id);
 
     if (!product) {
         return (
@@ -44,7 +34,6 @@ export default async function ProductProfilePage({ params }: { params: Promise<{
     const profitValue = product.price - (product.purchasePrice || 0);
     const profitPercentage = product.price > 0 && (product.purchasePrice || 0) > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
-
 
     return (
         <div className="container py-8">
@@ -172,5 +161,13 @@ export default async function ProductProfilePage({ params }: { params: Promise<{
                 </div>
             </div>
         </div>
+    );
+}
+
+export default async function ProductProfilePage({ params }: { params: { id: string } }) {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <ProductProfileContent id={params.id} />
+        </Suspense>
     );
 }

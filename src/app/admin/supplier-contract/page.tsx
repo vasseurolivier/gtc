@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useContext, useEffect, useRef } from 'react';
@@ -151,12 +150,12 @@ export default function SupplierContractPage() {
 
         <div className="lg:col-span-2">
             <div ref={printRef}>
-              <div className="bg-white rounded-lg shadow-lg border print-document">
-                <div className="px-8 py-10">
-                    <header className="text-center pt-8 pb-4">
-                        <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
-                        <p className="font-bold">采购协议</p>
-                    </header>
+              <div className="bg-white rounded-lg shadow-lg border">
+                <header className="print-header text-center pt-8 pb-4">
+                    <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
+                    <p className="font-bold">采购协议</p>
+                </header>
+                <div className="print-document px-8 py-10">
                     <section className="font-sans leading-relaxed text-sm">
                         <p className="mb-4">BETWEEN: <br/> 双方：</p>
 
@@ -297,5 +296,3 @@ export default function SupplierContractPage() {
     </div>
   );
 }
-
-    
