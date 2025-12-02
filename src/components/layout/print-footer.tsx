@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useContext } from 'react';
@@ -15,7 +14,7 @@ export function PrintFooter() {
     const { companyInfo } = companyInfoContext;
 
     return (
-        <div id="print-footer-template" className="pt-4 border-t text-center text-[10px] text-gray-500 bg-white" style={{ fontFamily: 'sans-serif' }}>
+        <div id="print-footer-template" className="pt-4 border-t text-center text-xs text-gray-500 bg-white" style={{ fontFamily: 'sans-serif' }}>
             <p>Merci de votre confiance</p>
             <p>{companyInfo?.address}</p>
             <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
