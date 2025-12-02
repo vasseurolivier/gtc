@@ -116,8 +116,8 @@ body {
   .print-document {
     box-shadow: none !important;
     border: none !important;
-    padding-top: 3cm; /* Same as @page margin-top */
-    padding-bottom: 3cm; /* Same as @page margin-bottom */
+    padding-top: 3cm;
+    padding-bottom: 3cm;
   }
 
   .print-header {
@@ -130,13 +130,14 @@ body {
     padding: 1cm 1cm 0.5cm 1cm;
     margin: 0 -1cm;
   }
-
+  
   .print-footer-container {
+    display: block !important;
     position: fixed;
     bottom: 0;
     left: 1cm;
     right: 1cm;
-    height: 1.5cm; /* Height of the footer */
+    height: 1.5cm;
     width: auto;
   }
 

@@ -209,7 +209,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </section>
                 </div>
             </main>
-            <div className="print-footer-container no-print">
+            <div className="print-footer-container">
                  <PrintFooter />
             </div>
         </>

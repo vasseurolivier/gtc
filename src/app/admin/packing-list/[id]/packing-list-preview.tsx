@@ -138,7 +138,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </section>
                 </div>
             </main>
-            <div className="print-footer-container no-print">
+            <div className="print-footer-container">
                  <PrintFooter />
             </div>
         </>

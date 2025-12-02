@@ -206,7 +206,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </section>
                 </div>
             </main>
-            <div className="print-footer-container no-print">
+            <div className="print-footer-container">
                  <PrintFooter />
             </div>
         </>
