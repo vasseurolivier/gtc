@@ -21,7 +21,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        const canvas = await html2canvas(element, { scale: 2 });
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
         const data = canvas.toDataURL('image/png');
 
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -65,6 +65,11 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
+    const itemChunks = [];
+    for (let i = 0; i < packingList.items.length; i += 10) {
+      itemChunks.push(packingList.items.slice(i, i + 10));
+    }
+
     return (
         <main className="w-full mx-auto bg-white">
              <div className="p-8 flex justify-end">
@@ -79,7 +84,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
                         {companyInfo.logo && 
-                            <img src={companyInfo.logo} alt="Company Logo" width={40} height={40} style={{objectFit: 'contain'}}/>
+                            <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" width={40} height={40} style={{objectFit: 'contain'}}/>
                         }
                     </div>
                     <div className="text-right w-1/3">
@@ -121,28 +126,30 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                               <th className="p-1 font-semibold">Remarks</th>
                           </tr>
                       </thead>
-                      <tbody>
-                          {packingList.items.map((item, index) => {
-                              const totalCny = item.quantity * item.unitPriceCny;
-                              return (
-                                  <tr key={index} className="border-b">
-                                      <td className="p-1 align-top">
-                                          {item.photo && 
-                                              <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                  <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
-                                              </div>
-                                          }
-                                      </td>
-                                      <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
-                                      <td className="p-1 align-top text-right">{item.sku}</td>
-                                      <td className="p-1 align-top text-right">{item.quantity}</td>
-                                      <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                      <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
-                                      <td className="p-1 align-top leading-tight">{item.remarks}</td>
-                                  </tr>
-                              );
-                          })}
-                      </tbody>
+                       {itemChunks.map((chunk, chunkIndex) => (
+                          <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                              {chunk.map((item, index) => {
+                                  const totalCny = item.quantity * item.unitPriceCny;
+                                  return (
+                                      <tr key={index} className="border-b">
+                                          <td className="p-1 align-top">
+                                              {item.photo && 
+                                                  <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                      <img src={item.photo} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain" />
+                                                  </div>
+                                              }
+                                          </td>
+                                          <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                          <td className="p-1 align-top text-right">{item.sku}</td>
+                                          <td className="p-1 align-top text-right">{item.quantity}</td>
+                                          <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
+                                          <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                          <td className="p-1 align-top leading-tight">{item.remarks}</td>
+                                      </tr>
+                                  );
+                              })}
+                          </tbody>
+                      ))}
                   </table>
 
                   <div className="flex justify-end pt-4">

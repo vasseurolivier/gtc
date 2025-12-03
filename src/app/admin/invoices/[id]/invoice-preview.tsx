@@ -30,7 +30,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        const canvas = await html2canvas(element, { scale: 2 });
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
         const data = canvas.toDataURL('image/png');
 
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -77,6 +77,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const commissionRate = order?.commissionRate || 0;
     const commissionAmount = subTotal * (commissionRate / 100);
     const transportCost = order?.transportCost || 0;
+
+    const itemChunks = [];
+    for (let i = 0; i < invoice.items.length; i += 10) {
+      itemChunks.push(invoice.items.slice(i, i + 10));
+    }
     
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
@@ -92,7 +97,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
                         {companyInfo.logo && 
-                                <img src={companyInfo.logo} alt="Company Logo" width={40} height={40} style={{objectFit: 'contain'}}/>
+                                <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" width={40} height={40} style={{objectFit: 'contain'}}/>
                             }
                         </div>
                         <div className="text-right">
@@ -138,35 +143,37 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <th className="text-right p-1 font-semibold">Total</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {invoice.items.map((item, itemIndex) => {
-                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                return (
-                                    <tr key={itemIndex} className="border-b">
-                                        <td className="p-1 align-top">
-                                            {product?.imageUrl && (
-                                                <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="p-1 align-top leading-tight">
-                                            <p className="font-medium">{item.description}</p>
-                                            {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
-                                        </td>
-                                        <td className="p-1 align-top text-right">{item.quantity}</td>
-                                        <td className="p-1 align-top text-right">
-                                            <div>¥{item.unitPrice.toFixed(2)}</div>
-                                            <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                        </td>
-                                        <td className="p-1 align-top text-right font-medium">
-                                            <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                            <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
+                        {itemChunks.map((chunk, chunkIndex) => (
+                          <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                              {chunk.map((item, itemIndex) => {
+                                  const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                  return (
+                                      <tr key={itemIndex} className="border-b">
+                                          <td className="p-1 align-top">
+                                              {product?.imageUrl && (
+                                                  <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                      <img src={product.imageUrl} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain"/>
+                                                  </div>
+                                              )}
+                                          </td>
+                                          <td className="p-1 align-top leading-tight">
+                                              <p className="font-medium">{item.description}</p>
+                                              {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
+                                          </td>
+                                          <td className="p-1 align-top text-right">{item.quantity}</td>
+                                          <td className="p-1 align-top text-right">
+                                              <div>¥{item.unitPrice.toFixed(2)}</div>
+                                              <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                          </td>
+                                          <td className="p-1 align-top text-right font-medium">
+                                              <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                              <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                          </td>
+                                      </tr>
+                                  )
+                              })}
+                          </tbody>
+                        ))}
                     </table>
                     
                     <div className="flex justify-end pt-4">

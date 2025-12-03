@@ -15,7 +15,7 @@ export function PrintFooter() {
     const { companyInfo } = companyInfoContext;
 
     return (
-        <footer className="w-full pt-2 border-t text-center text-[8px] text-gray-500" style={{ fontFamily: 'sans-serif' }}>
+        <footer className="w-full pt-2 mt-auto border-t text-center text-[8px] text-gray-500 bg-white" style={{ fontFamily: 'sans-serif' }}>
             <p>Merci de votre confiance</p>
             <div className="leading-tight">
                 <p>{companyInfo?.address}</p>
