@@ -93,7 +93,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm;
+    margin: 1.5cm;
   }
 
   body {
@@ -107,28 +107,36 @@ body {
   .no-print {
     display: none !important;
   }
+  
+  .printable-area, .printable-area * {
+    background-color: transparent !important;
+  }
 
   .print-document {
     display: block !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     page-break-before: auto;
+    background-color: white !important;
   }
-  
+
   .print-header {
     position: fixed;
-    top: 1cm;
-    left: 1cm;
-    right: 1cm;
+    top: 0;
+    left: 1.5cm;
+    right: 1.5cm;
     height: 40px;
-    background-color: white;
+    background-color: white !important;
   }
-  
+
   .print-footer {
     position: fixed;
-    bottom: 1cm;
-    left: 1cm;
-    right: 1cm;
-    height: 30px;
-    background-color: white;
+    bottom: 0;
+    left: 1.5cm;
+    right: 1.5cm;
+    height: 20px;
+    background-color: white !important;
   }
 
   .header-spacer {
@@ -136,7 +144,7 @@ body {
   }
 
   .footer-spacer {
-    height: 40px; /* Give more space to avoid overlap */
+    height: 30px; /* Give more space to avoid overlap */
   }
 
   .break-before-page {
