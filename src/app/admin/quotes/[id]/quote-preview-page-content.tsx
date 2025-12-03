@@ -63,7 +63,7 @@ export default function QuotePreviewPageContent() {
     if (!data?.quote || !data?.customer) {
         return (
             <div className="container py-8">
-                 <div className="mb-8 no-print">
+                 <div className="mb-8">
                     <Button variant="ghost" asChild>
                         <Link href="/admin/quotes">
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -81,8 +81,8 @@ export default function QuotePreviewPageContent() {
     const { quote, customer, products } = data;
 
     return (
-      <div className="container py-8 printable-area">
-          <div className="flex justify-between items-center mb-8 no-print">
+      <div className="container py-8">
+          <div className="flex justify-between items-center mb-8">
               <Button variant="ghost" asChild>
                   <Link href="/admin/quotes">
                       <ArrowLeft className="mr-2 h-4 w-4" />
@@ -91,9 +91,7 @@ export default function QuotePreviewPageContent() {
               </Button>
           </div>
           
-          <div className="print-header-container">
-            <QuotePreview quote={quote} customer={customer} products={products} />
-          </div>
+          <QuotePreview quote={quote} customer={customer} products={products} />
       </div>
     );
 }

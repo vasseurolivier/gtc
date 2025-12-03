@@ -56,7 +56,7 @@ export default function FactoryPiViewPageContent() {
     if (!factoryPi) {
         return (
             <div className="container py-8">
-                <div className="mb-8 no-print">
+                <div className="mb-8">
                     <Button variant="ghost" asChild>
                         <Link href="/admin/factory-pi">
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -72,8 +72,8 @@ export default function FactoryPiViewPageContent() {
     }
 
     return (
-        <div className="container py-8 printable-area">
-            <div className="flex justify-between items-center mb-8 no-print">
+        <div className="container py-8">
+            <div className="flex justify-between items-center mb-8">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/factory-pi">
                         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -82,9 +82,7 @@ export default function FactoryPiViewPageContent() {
                 </Button>
             </div>
             
-            <div className="print-header-container">
-              <FactoryPiPreview factoryPi={factoryPi} />
-            </div>
+            <FactoryPiPreview factoryPi={factoryPi} />
         </div>
     );
 }

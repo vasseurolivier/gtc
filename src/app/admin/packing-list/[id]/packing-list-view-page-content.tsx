@@ -56,7 +56,7 @@ export default function PackingListViewPageContent() {
     if (!packingList) {
         return (
             <div className="container py-8">
-                <div className="mb-8 no-print">
+                <div className="mb-8">
                     <Button variant="ghost" asChild>
                         <Link href="/admin/packing-list">
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -72,8 +72,8 @@ export default function PackingListViewPageContent() {
     }
 
     return (
-        <div className="container py-8 printable-area">
-            <div className="flex justify-between items-center mb-8 no-print">
+        <div className="container py-8">
+            <div className="flex justify-between items-center mb-8">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/packing-list">
                         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -82,9 +82,7 @@ export default function PackingListViewPageContent() {
                 </Button>
             </div>
             
-            <div className="print-header-container">
-              {packingList && <PackingListPreview packingList={packingList} />}
-            </div>
+            {packingList && <PackingListPreview packingList={packingList} />}
         </div>
     );
 }

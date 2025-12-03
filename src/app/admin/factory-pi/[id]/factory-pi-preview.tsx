@@ -1,8 +1,9 @@
-
 'use client';
 
 import { useContext } from 'react';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import type { FactoryPi } from '@/actions/factory-pi';
 import { Loader2, Printer } from 'lucide-react';
@@ -12,6 +13,40 @@ import { PrintFooter } from '@/components/layout/print-footer';
 
 export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
     const companyInfoContext = useContext(CompanyInfoContext);
+
+    const handleDownloadPdf = async () => {
+        const element = document.getElementById('pdf-content');
+        if (!element) return;
+
+        const canvas = await html2canvas(element, { scale: 2 });
+        const data = canvas.toDataURL('image/png');
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        
+        let imgWidth = pdfWidth;
+        let imgHeight = imgWidth / ratio;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+
+        pdf.save(`factory-pi-${factoryPi.piNumber}.pdf`);
+    };
 
     if (!companyInfoContext?.isCompanyInfoLoaded) {
         return <Loader2 className="h-16 w-16 animate-spin" />;
@@ -26,22 +61,16 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
         return acc;
     }, { totalQuantity: 0, totalAmountCny: 0 });
 
-    const ITEMS_PER_PAGE = 10;
-    const chunkedItems: FactoryPi['items'][] = [];
-    for (let i = 0; i < factoryPi.items.length; i += ITEMS_PER_PAGE) {
-        chunkedItems.push(factoryPi.items.slice(i, i + ITEMS_PER_PAGE));
-    }
-
     return (
-        <main className="w-full mx-auto">
-             <div className="p-8 no-print flex justify-end">
-                <Button onClick={() => window.print()}>
+        <main className="w-full mx-auto bg-white">
+             <div className="p-8 flex justify-end">
+                <Button onClick={handleDownloadPdf}>
                     <Printer className="mr-2 h-4 w-4" />
                     Export to PDF
                 </Button>
             </div>
 
-            <div className="print-header">
+            <div id="pdf-content" className="p-8">
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                       {companyInfo.logo && 
@@ -53,10 +82,6 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                       <p className="mt-1 text-xs text-muted-foreground">N° {factoryPi.piNumber}</p>
                   </div>
               </header>
-            </div>
-                
-            <div className="print-document">
-                <div className="header-spacer"></div>
                 
                 <section>
                     <div className="grid grid-cols-2 gap-8 my-4 text-xs">
@@ -82,30 +107,27 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                             <th className="p-1 text-right font-semibold">Total (CNY)</th>
                         </tr>
                     </thead>
-                    {chunkedItems.map((chunk, chunkIndex) => (
-                        <tbody key={chunkIndex}>
-                            {chunkIndex > 0 && <tr className="break-before-page"><td colSpan={6}></td></tr>}
-                            {chunk.map((item, index) => {
-                                const totalCny = item.quantity * item.unitPriceCny;
-                                return (
-                                    <tr key={index} className="border-b">
-                                        <td className="p-1 align-top">
-                                            {item.photo && 
-                                                <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
-                                                </div>
-                                            }
-                                        </td>
-                                        <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
-                                        <td className="p-1 align-top text-right">{item.sku}</td>
-                                        <td className="p-1 align-top text-right">{item.quantity}</td>
-                                        <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                        <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    ))}
+                    <tbody>
+                        {factoryPi.items.map((item, index) => {
+                            const totalCny = item.quantity * item.unitPriceCny;
+                            return (
+                                <tr key={index} className="border-b">
+                                    <td className="p-1 align-top">
+                                        {item.photo && 
+                                            <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
+                                            </div>
+                                        }
+                                    </td>
+                                    <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                    <td className="p-1 align-top text-right">{item.sku}</td>
+                                    <td className="p-1 align-top text-right">{item.quantity}</td>
+                                    <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
+                                    <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
                 </table>
                 
                 <div className="flex justify-end pt-4">
@@ -130,11 +152,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                         <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
                     </div>
                 )}
-                <div className="footer-spacer"></div>
-            </div>
-            
-            <div className="print-footer">
-              <PrintFooter />
+                <PrintFooter />
             </div>
         </main>
     );

@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -12,6 +11,8 @@ import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: Customer, products: Product[] }) {
     const currencyContext = useContext(CurrencyContext);
@@ -23,6 +24,40 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             getOrderById(invoice.orderId).then(setOrder);
         }
     }, [invoice.orderId]);
+
+    const handleDownloadPdf = async () => {
+        const element = document.getElementById('pdf-content');
+        if (!element) return;
+
+        const canvas = await html2canvas(element, { scale: 2 });
+        const data = canvas.toDataURL('image/png');
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        
+        let imgWidth = pdfWidth;
+        let imgHeight = imgWidth / ratio;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+
+        pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
+    };
 
     if (!currencyContext || !companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
         return (
@@ -42,22 +77,16 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const commissionAmount = subTotal * (commissionRate / 100);
     const transportCost = order?.transportCost || 0;
     
-    const ITEMS_PER_PAGE = 10;
-    const chunkedItems: Invoice['items'][] = [];
-    for (let i = 0; i < invoice.items.length; i += ITEMS_PER_PAGE) {
-        chunkedItems.push(invoice.items.slice(i, i + ITEMS_PER_PAGE));
-    }
-    
     return (
-        <main className="w-full mx-auto" id="invoice-preview">
-            <div className="p-8 no-print flex justify-end">
-                <Button onClick={() => window.print()}>
+        <main className="w-full mx-auto bg-white" id="invoice-preview">
+            <div className="p-8 flex justify-end">
+                <Button onClick={handleDownloadPdf}>
                     <Printer className="mr-2 h-4 w-4" />
                     Export to PDF
                 </Button>
             </div>
             
-            <div className="print-header">
+            <div id="pdf-content" className="p-8">
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                   {companyInfo.logo && 
@@ -69,10 +98,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                       <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
                   </div>
               </header>
-            </div>
 
-            <div className="print-document">
-                <div className="header-spacer"></div>
                 <section>
                     <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                         <div>
@@ -110,38 +136,35 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             <th className="text-right p-1 font-semibold">Total</th>
                         </tr>
                     </thead>
-                    {chunkedItems.map((chunk, chunkIndex) => (
-                        <tbody key={chunkIndex}>
-                            {chunkIndex > 0 && <tr className="break-before-page"><td colSpan={5}></td></tr>}
-                            {chunk.map((item, itemIndex) => {
-                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                return (
-                                    <tr key={itemIndex} className="border-b">
-                                        <td className="p-1 align-top">
-                                            {product?.imageUrl && (
-                                                <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="p-1 align-top leading-tight">
-                                            <p className="font-medium">{item.description}</p>
-                                            {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
-                                        </td>
-                                        <td className="p-1 align-top text-right">{item.quantity}</td>
-                                        <td className="p-1 align-top text-right">
-                                            <div>¥{item.unitPrice.toFixed(2)}</div>
-                                            <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                        </td>
-                                        <td className="p-1 align-top text-right font-medium">
-                                            <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                            <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    ))}
+                    <tbody>
+                        {invoice.items.map((item, itemIndex) => {
+                            const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                            return (
+                                <tr key={itemIndex} className="border-b">
+                                    <td className="p-1 align-top">
+                                        {product?.imageUrl && (
+                                            <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0 bg-white">
+                                                <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="p-1 align-top leading-tight">
+                                        <p className="font-medium">{item.description}</p>
+                                        {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
+                                    </td>
+                                    <td className="p-1 align-top text-right">{item.quantity}</td>
+                                    <td className="p-1 align-top text-right">
+                                        <div>¥{item.unitPrice.toFixed(2)}</div>
+                                        <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                    </td>
+                                    <td className="p-1 align-top text-right font-medium">
+                                        <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                        <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
                 </table>
                 
                 <div className="flex justify-end pt-4">
@@ -205,10 +228,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                     </div>
                 </div>
-                <div className="footer-spacer"></div>
-            </div>
-            <div className="print-footer">
-              <PrintFooter />
+                <PrintFooter />
             </div>
         </main>
     );

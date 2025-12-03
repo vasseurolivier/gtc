@@ -10,7 +10,7 @@ import { getCustomerById } from '@/actions/customers';
 import type { Product } from '@/actions/products';
 import { getProducts } from '@/actions/products';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Printer } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicePreview } from './invoice-preview';
 import { CompanyInfoContext } from '@/context/company-info-context';
@@ -62,7 +62,7 @@ export default function InvoicePreviewPageContent() {
     if (!data?.invoice || !data?.customer) {
         return (
             <div className="container py-8">
-                 <div className="mb-8 no-print">
+                 <div className="mb-8">
                     <Button variant="ghost" asChild>
                         <Link href="/admin/invoices">
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -80,8 +80,8 @@ export default function InvoicePreviewPageContent() {
     const { invoice, customer, products } = data;
 
     return (
-      <div className="container py-8 printable-area">
-          <div className="flex justify-between items-center mb-8 no-print">
+      <div className="container py-8">
+          <div className="flex justify-between items-center mb-8">
               <Button variant="ghost" asChild>
                   <Link href="/admin/invoices">
                       <ArrowLeft className="mr-2 h-4 w-4" />
@@ -90,9 +90,7 @@ export default function InvoicePreviewPageContent() {
               </Button>
           </div>
           
-          <div className="print-header-container">
-            <InvoicePreview invoice={invoice} customer={customer} products={products} />
-          </div>
+          <InvoicePreview invoice={invoice} customer={customer} products={products} />
       </div>
     );
 }
