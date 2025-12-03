@@ -99,7 +99,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </div>
                 </header>
 
-                  <section>
+                  <section className="leading-tight">
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                           <div className="leading-tight">
                               <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
@@ -127,7 +127,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                   </section>
                   
                   <table className="w-full text-xs">
-                      <thead>
+                      <thead className="leading-tight">
                           <tr className="text-left text-muted-foreground border-b-2 border-t-2">
                               <th className="p-1 font-semibold">Image</th>
                               <th className="w-1/2 p-1 font-semibold">Description</th>
@@ -169,7 +169,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                       ))}
                   </table>
                   
-                  <div className="flex justify-end pt-4">
+                  <div className="flex justify-end pt-4 leading-tight">
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
@@ -218,7 +218,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         </div>
                     </div>
 
-                  <div className="mt-8 pt-4">
+                  <div className="mt-8 pt-4 leading-tight">
                       {quote.notes && (
                           <div className="mb-8 border-t pt-4">
                               <h3 className="font-semibold mb-1 text-xs">Notes:</h3>
@@ -227,20 +227,21 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                               </p>
                           </div>
                       )}
-
-                      <div className="text-left border-t pt-4">
-                          <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
-                          <div className="text-xs text-muted-foreground leading-tight">
-                              <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
-                              <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
-                              <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
-                              <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
-                              <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
-                              <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
-                              <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
-                          </div>
-                      </div>
                   </div>
+              </div>
+              <div className="break-before-page">
+                <div className="text-left border-t pt-4 leading-tight">
+                    <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
+                    <div className="text-xs text-muted-foreground leading-tight">
+                        <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
+                        <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
+                        <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
+                        <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
+                        <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
+                        <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
+                        <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
+                    </div>
+                </div>
               </div>
               <PrintFooter />
             </div>

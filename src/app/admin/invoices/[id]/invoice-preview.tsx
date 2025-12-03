@@ -107,7 +107,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                     </header>
 
-                    <section>
+                    <section className="leading-tight">
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
@@ -135,7 +135,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </section>
                     
                     <table className="w-full text-xs">
-                        <thead>
+                        <thead className="leading-tight">
                             <tr className="text-left text-muted-foreground border-b-2 border-t-2">
                                 <th className="p-1 font-semibold">Image</th>
                                 <th className="w-1/2 p-1 font-semibold">Description</th>
@@ -177,7 +177,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         ))}
                     </table>
                     
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-4 leading-tight">
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
@@ -226,7 +226,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-4">
+                </div>
+                 <div className="break-before-page">
+                    <div className="mt-8 pt-4 leading-tight">
                         <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
                         <div className="text-xs text-muted-foreground leading-tight">
                             <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
