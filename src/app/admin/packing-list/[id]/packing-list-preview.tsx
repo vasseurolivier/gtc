@@ -96,21 +96,21 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
               
                   <section>
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                      <div>
+                      <div className="leading-tight">
                               <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                              <p className="font-bold leading-tight">{companyInfo?.name}</p>
-                              <p className="whitespace-pre-wrap leading-tight">{companyInfo?.address}</p>
+                              <p className="font-bold">{companyInfo?.name}</p>
+                              <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
                           </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                          <div>
+                          <div className="leading-tight">
                               <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                              <p className="leading-tight">{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
+                              <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
                           </div>
-                          <div>
+                          <div className="leading-tight">
                               <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                              <p className="leading-tight">{packingList.listId}</p>
+                              <p>{packingList.listId}</p>
                           </div>
                       </div>
                   </section>

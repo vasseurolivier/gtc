@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useContext, useEffect, useRef } from 'react';
@@ -141,7 +142,7 @@ export default function SupplierContractPage() {
                   <FormItem><FormLabel>Delivery Lead Time</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="qualityControl" render={({ field }) => (
-                  <FormItem><FormLabel>Quality Control</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Quality Control</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormMessage /></FormItem>
                 )} />
               </form>
             </Form>
@@ -156,7 +157,7 @@ export default function SupplierContractPage() {
                     <p className="font-bold">采购协议</p>
                 </header>
                 <div className="print-document px-8 py-10">
-                    <section className="font-sans leading-relaxed text-sm">
+                    <section className="font-sans leading-tight text-sm">
                         <p className="mb-4">BETWEEN: <br/> 双方：</p>
 
                         <div className="mb-4">

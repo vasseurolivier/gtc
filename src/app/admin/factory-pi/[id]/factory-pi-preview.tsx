@@ -93,13 +93,13 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                       
                     <section>
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                            <div>
+                            <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                                <p className="leading-tight">{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
+                                <p>{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
                             </div>
-                            <div>
+                            <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p className="leading-tight">{factoryPi.piNumber}</p>
+                                <p>{factoryPi.piNumber}</p>
                             </div>
                         </div>
                     </section>

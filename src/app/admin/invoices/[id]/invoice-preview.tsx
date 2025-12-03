@@ -109,27 +109,27 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
 
                     <section>
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                            <div>
+                            <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                                <p className="font-bold leading-tight">{companyInfo?.name}</p>
-                                <p className="whitespace-pre-wrap leading-tight">{companyInfo?.address}</p>
+                                <p className="font-bold">{companyInfo?.name}</p>
+                                <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
                             </div>
-                            <div>
+                            <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
-                                <p className="font-bold leading-tight">{customer?.name}</p>
-                                {customer?.company && <p className="leading-tight">{customer.company}</p>}
-                                <p className="whitespace-pre-wrap leading-tight">{customer?.address}</p>
+                                <p className="font-bold">{customer?.name}</p>
+                                {customer?.company && <p>{customer.company}</p>}
+                                <p className="whitespace-pre-wrap">{customer?.address}</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                            <div>
+                            <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE DE LA FACTURE</h3>
-                                <p className="leading-tight">{format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
+                                <p>{format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
-                            <div>
+                            <div className="leading-tight">
                                 <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p className="leading-tight">{invoice.invoiceNumber}</p>
+                                <p>{invoice.invoiceNumber}</p>
                             </div>
                         </div>
                     </section>
