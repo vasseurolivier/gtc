@@ -124,7 +124,7 @@ export function Header({ dictionary }: { dictionary: any }) {
       <div className="container flex h-16 items-center justify-between">
         <Link href={localePrefixed('/')} className="flex items-center space-x-2 mr-6">
           {publicLogo ? (
-            <Image src={publicLogo} alt="Company Logo" width={100} height={100} className="object-contain invert brightness-0" />
+            <Image src={publicLogo} alt="Company Logo" width={70} height={70} className="object-contain invert brightness-0" />
           ) : (
             <div style={{width: '50px', height: '12px'}} />
           )}
