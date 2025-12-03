@@ -89,7 +89,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
                         {companyInfo.logo && 
-                            <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" width={40} height={40} style={{objectFit: 'contain'}} />
+                            <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" width={52} height={52} style={{objectFit: 'contain'}} />
                         }
                     </div>
                     <div className="text-right w-1/3">
