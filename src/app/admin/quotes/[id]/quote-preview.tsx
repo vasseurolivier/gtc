@@ -155,12 +155,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                       </td>
                                       <td className="p-1 align-top text-right">{item.quantity}</td>
                                       <td className="p-1 align-top text-right">
-                                          <div>¥{item.unitPrice.toFixed(2)}</div>
-                                          <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                          <span className="font-bold">¥{item.unitPrice.toFixed(2)}</span>
+                                          <span className="text-muted-foreground"> ({currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)})</span>
                                       </td>
                                       <td className="p-1 align-top text-right font-medium">
-                                          <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                          <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                          <span className="font-bold">¥{(item.quantity * item.unitPrice).toFixed(2)}</span>
+                                          <span className="text-muted-foreground"> ({currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)})</span>
                                       </td>
                                   </tr>
                               )
@@ -170,43 +170,49 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                   </table>
                   
                   <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
-                                <span className="font-medium text-right">
-                                    ¥{quote.subTotal.toFixed(2)} ({currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)})
+                                <span className="text-right">
+                                    <span className="font-bold">¥{quote.subTotal.toFixed(2)}</span>
+                                    <span className="text-muted-foreground"> ({currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
                             {(quote.commissionRate || 0) > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
-                                    <span className="font-medium text-right">
-                                        ¥{commissionAmount.toFixed(2)} ({currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)})
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{commissionAmount.toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)})</span>
                                     </span>
                                 </div>
                             )}
-                            <div className="flex justify-between">
+                            <div className="flex justify-between pb-1">
                                 <span className="text-muted-foreground">Frais de port :</span>
-                                <span className="font-medium text-right">
-                                    ¥{(quote.transportCost || 0).toFixed(2)} ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})
+                                <span className="text-right">
+                                    <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
+                                    <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
                             <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
                                 <span>TOTAL :</span>
                                 <span className="text-right">
-                                    ¥{quote.totalAmount.toFixed(2)} ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})
+                                    <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
+                                    <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
-                            <div className="flex justify-between mt-2">
+                            <div className="flex justify-between">
                                 <span className="text-muted-foreground">Acompte à payer :</span>
-                                <span className="font-medium text-right">
-                                    ¥{downPayment.toFixed(2)} ({currency.symbol}{(downPayment * exchangeRate).toFixed(2)})
+                                <span className="text-right">
+                                    <span className="font-bold">¥{downPayment.toFixed(2)}</span>
+                                    <span className="text-muted-foreground"> ({currency.symbol}{(downPayment * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
                             <div className="flex justify-between font-bold">
                                 <span>Solde restant :</span>
                                 <span className="text-right">
-                                    ¥{remainingBalance.toFixed(2)} ({currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})
+                                    <span className="font-bold">¥{remainingBalance.toFixed(2)}</span>
+                                    <span className="text-muted-foreground"> ({currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
                         </div>
@@ -224,7 +230,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
                       <div className="text-left border-t pt-4">
                           <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
-                          <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
+                          <div className="text-xs text-muted-foreground leading-tight">
                               <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                               <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                               <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
