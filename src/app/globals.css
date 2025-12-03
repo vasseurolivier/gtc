@@ -96,73 +96,65 @@ body {
     margin: 1cm;
   }
 
-  html, body {
-    width: 100%;
-    height: auto;
+  body {
     background: #fff !important;
     color: #000 !important;
     font-size: 10pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .no-print {
     display: none !important;
   }
-  
-  .printable-area {
-    display: block !important;
-  }
 
+  .print-document {
+    display: block !important;
+    page-break-before: auto;
+  }
+  
   .print-header {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 40px; /* Adjust height of header */
-    display: block !important;
+    top: 1cm;
+    left: 1cm;
+    right: 1cm;
+    height: 40px;
+    background-color: white;
   }
   
   .print-footer {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 30px; /* Adjust height of footer */
-    display: block !important;
+    bottom: 1cm;
+    left: 1cm;
+    right: 1cm;
+    height: 30px;
+    background-color: white;
   }
 
-  .print-document {
-    display: block !important;
-  }
-  
   .header-spacer {
-    height: 40px; /* Must match .print-header height */
-    display: block !important;
+    height: 40px;
   }
-  
+
   .footer-spacer {
-    height: 30px; /* Must match .print-footer height */
-    display: block !important;
+    height: 40px; /* Give more space to avoid overlap */
   }
 
   .break-before-page {
     page-break-before: always;
     break-before: page;
   }
-  
+
   table {
     page-break-inside: auto;
   }
-
-  tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-
   thead {
     display: table-header-group;
   }
-
   tbody {
     display: table-row-group;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
   }
 }

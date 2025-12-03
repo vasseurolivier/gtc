@@ -2,7 +2,6 @@
 'use client';
 
 import { useContext } from 'react';
-import Image from 'next/image';
 import { format } from 'date-fns';
 
 import type { FactoryPi } from '@/actions/factory-pi';
@@ -46,7 +45,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                       {companyInfo.logo && 
-                          <Image src={companyInfo.logo} alt="Company Logo" width={20} height={20} style={{objectFit: 'contain'}}/>
+                          <img src={companyInfo.logo} alt="Company Logo" width={20} height={20} style={{objectFit: 'contain'}}/>
                       }
                   </div>
                   <div className="text-right w-2/3">

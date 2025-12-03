@@ -10,7 +10,6 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
-import Image from 'next/image';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 
@@ -62,7 +61,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                   {companyInfo.logo && 
-                          <Image src={companyInfo.logo} alt="Company Logo" width={20} height={20} style={{objectFit: 'contain'}}/>
+                          <img src={companyInfo.logo} alt="Company Logo" width={20} height={20} style={{objectFit: 'contain'}}/>
                       }
                   </div>
                   <div className="text-right">
@@ -121,7 +120,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <td className="p-1 align-top">
                                             {product?.imageUrl && (
                                                 <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                    <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
                                                 </div>
                                             )}
                                         </td>
