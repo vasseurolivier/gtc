@@ -93,57 +93,90 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1cm;
+    margin: 1.5cm;
   }
 
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .no-print {
-    display: none !important;
+  html, body {
+    width: 210mm;
+    height: 297mm;
   }
   
-  .printable-area {
-    display: block !important;
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     padding: 0 !important;
     margin: 0 !important;
   }
-  
-  .print-header-container, .print-footer-container {
-    position: fixed;
-    left: 1cm;
-    right: 1cm;
-    width: auto;
+
+  .no-print, .no-print * {
+    display: none !important;
+  }
+
+  .printable-area, .printable-area * {
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .print-header-container {
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5cm;
+    display: block !important;
   }
-
+  
   .print-footer-container {
+    position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5cm;
+    display: block !important;
   }
   
   .print-document {
     display: block !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
   }
-
+  
   .header-spacer {
-    height: 3.5cm; /* Adjust to match header height */
+    height: 3.5cm;
+    display: block !important;
   }
-
+  
   .footer-spacer {
-    height: 2cm; /* Adjust to match footer height */
+    height: 1.5cm;
+    display: block !important;
   }
 
   .break-before-page {
     break-before: page;
     page-break-before: always;
+  }
+  
+  table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tbody {
+    display: table-row-group !important;
+  }
+  
+  tr {
+    display: table-row !important;
+  }
+
+  td, th {
+    display: table-cell !important;
+    padding: 4px;
   }
 }

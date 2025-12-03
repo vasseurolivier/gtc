@@ -46,20 +46,21 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                       {companyInfo.logo && 
-                          <Image src={companyInfo.logo} alt="Company Logo" width={60} height={60} style={{objectFit: 'contain'}}/>
+                          <Image src={companyInfo.logo} alt="Company Logo" width={40} height={40} style={{objectFit: 'contain'}}/>
                       }
                   </div>
                   <div className="text-right w-2/3">
-                      <h1 className="text-lg font-bold text-black">PROFORMA INVOICE</h1>
+                      <h1 className="text-base font-bold text-black">PROFORMA INVOICE</h1>
                       <p className="mt-1 text-xs text-muted-foreground">N° {factoryPi.piNumber}</p>
                   </div>
               </header>
             </div>
                 
-            <div className="print-document bg-white rounded-lg shadow-lg border p-8">
+            <div className="print-document">
                 <div className="header-spacer"></div>
+                
                 <section>
-                    <div className="grid grid-cols-2 gap-8 my-8 text-xs">
+                    <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
                             <p>{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
@@ -69,21 +70,23 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                             <p>{factoryPi.piNumber}</p>
                         </div>
                     </div>
-
-                    <table className="w-full text-xs">
-                        <thead>
-                            <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                <th className="p-1 font-semibold">Image</th>
-                                <th className="w-1/2 p-1 font-semibold">Description</th>
-                                <th className="p-1 text-right font-semibold">SKU</th>
-                                <th className="p-1 text-right font-semibold">Quantity</th>
-                                <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
-                                <th className="p-1 text-right font-semibold">Total (CNY)</th>
-                            </tr>
-                        </thead>
-                        
-                        {chunkedItems.map((chunk, chunkIndex) => (
-                            <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                </section>
+                
+                {chunkedItems.map((chunk, chunkIndex) => (
+                    <section key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                        {chunkIndex > 0 && <div className="header-spacer"></div>}
+                        <table className="w-full text-xs">
+                            <thead>
+                                <tr className="text-left text-muted-foreground border-b-2 border-t-2">
+                                    <th className="p-1 font-semibold">Image</th>
+                                    <th className="w-1/2 p-1 font-semibold">Description</th>
+                                    <th className="p-1 text-right font-semibold">SKU</th>
+                                    <th className="p-1 text-right font-semibold">Quantity</th>
+                                    <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
+                                    <th className="p-1 text-right font-semibold">Total (CNY)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 {chunk.map((item, index) => {
                                     const totalCny = item.quantity * item.unitPriceCny;
                                     return (
@@ -104,34 +107,35 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                     );
                                 })}
                             </tbody>
-                        ))}
-                    </table>
-
-                    <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Total Quantity :</span>
-                                <span className="font-medium text-right">{totals.totalQuantity}</span>
-                            </div>
-                        
-                            <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
-                                <span>TOTAL (CNY) :</span>
-                                <span className="text-right">
-                                    <div>¥{totals.totalAmountCny.toFixed(2)}</div>
-                                </span>
-                            </div>
+                        </table>
+                        <div className="footer-spacer"></div>
+                    </section>
+                ))}
+                
+                <div className="flex justify-end pt-4">
+                    <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Total Quantity :</span>
+                            <span className="font-medium text-right">{totals.totalQuantity}</span>
+                        </div>
+                    
+                        <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
+                            <span>TOTAL (CNY) :</span>
+                            <span className="text-right">
+                                <div>¥{totals.totalAmountCny.toFixed(2)}</div>
+                            </span>
                         </div>
                     </div>
+                </div>
 
-                    {factoryPi.notes && (
-                        <div className="mt-8 border-t pt-4">
-                            <h4 className="font-semibold mb-1 text-xs">Notes:</h4>
-                            <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
-                        </div>
-                    )}
-                </section>
-                <div className="footer-spacer"></div>
+                {factoryPi.notes && (
+                    <div className="mt-8 border-t pt-4">
+                        <h4 className="font-semibold mb-1 text-xs">Notes:</h4>
+                        <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
+                    </div>
+                )}
             </div>
+            
             <div className="print-footer-container">
               <PrintFooter />
             </div>
