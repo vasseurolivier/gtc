@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext } from 'react';
@@ -70,7 +71,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                 </Button>
             </div>
 
-            <div id="pdf-content" className="p-8 flex flex-col" style={{ minHeight: '297mm' }}>
+            <div id="pdf-content" className="p-8 flex flex-col" style={{ minHeight: '29.7cm' }}>
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>

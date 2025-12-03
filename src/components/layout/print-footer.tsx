@@ -17,8 +17,10 @@ export function PrintFooter() {
     return (
         <footer className="w-full pt-2 border-t text-center text-[8px] text-gray-500" style={{ fontFamily: 'sans-serif' }}>
             <p>Merci de votre confiance</p>
-            <p>{companyInfo?.address}</p>
-            <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+            <div className="leading-tight">
+                <p>{companyInfo?.address}</p>
+                <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+            </div>
         </footer>
     );
 }

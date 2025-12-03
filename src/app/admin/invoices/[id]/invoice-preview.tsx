@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -86,7 +87,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 flex flex-col" style={{ minHeight: '297mm' }}>
+            <div id="pdf-content" className="p-8 flex flex-col" style={{ minHeight: '29.7cm' }}>
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
