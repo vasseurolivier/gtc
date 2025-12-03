@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useContext } from 'react';
@@ -153,7 +154,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                   </table>
 
                   <div className="flex justify-end pt-4">
-                      <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                      <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
                           <div className="flex justify-between">
                               <span className="text-muted-foreground">Total Quantity :</span>
                               <span className="font-medium text-right">{totals.totalQuantity}</span>
@@ -162,8 +163,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                           <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
                               <span>TOTAL (CNY) :</span>
                               <span className="text-right">
-                                  <div>¥{totals.totalAmountCny.toFixed(2)}</div>
-                                  <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</div>
+                                  ¥{totals.totalAmountCny.toFixed(2)} ({currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)})
                               </span>
                           </div>
                       </div>

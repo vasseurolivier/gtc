@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -177,49 +178,43 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </table>
                     
                     <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
                                 <span className="font-medium text-right">
-                                    <div>¥{subTotal.toFixed(2)}</div>
-                                    <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(subTotal * exchangeRate).toFixed(2)}</div>
+                                    ¥{subTotal.toFixed(2)} ({currency.symbol}{(subTotal * exchangeRate).toFixed(2)})
                                 </span>
                             </div>
                             {commissionRate > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
                                     <span className="font-medium text-right">
-                                        <div>¥{commissionAmount.toFixed(2)}</div>
-                                        <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)}</div>
+                                        ¥{commissionAmount.toFixed(2)} ({currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)})
                                     </span>
                                 </div>
                             )}
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Frais de port :</span>
                                 <span className="font-medium text-right">
-                                    <div>¥{transportCost.toFixed(2)}</div>
-                                    <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(transportCost * exchangeRate).toFixed(2)}</div>
+                                    ¥{transportCost.toFixed(2)} ({currency.symbol}{(transportCost * exchangeRate).toFixed(2)})
                                 </span>
                             </div>
                             <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
                                 <span>TOTAL :</span>
                                 <span className="text-right">
-                                    <div>¥{invoice.totalAmount.toFixed(2)}</div>
-                                    <div className="text-xs font-normal text-muted-foreground">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</div>
+                                    ¥{invoice.totalAmount.toFixed(2)} ({currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)})
                                 </span>
                             </div>
                             <div className="flex justify-between mt-2">
                                 <span className="text-muted-foreground">Montant Payé :</span>
                                 <span className="font-medium text-right">
-                                    <div>¥{(invoice.amountPaid || 0).toFixed(2)}</div>
-                                    <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}</div>
+                                    ¥{(invoice.amountPaid || 0).toFixed(2)} ({currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})
                                 </span>
                             </div>
                             <div className="flex justify-between font-bold">
                                 <span>Solde restant :</span>
                                 <span className="text-right">
-                                    <div>¥{balanceDue.toFixed(2)}</div>
-                                    <div className="text-[10px] font-normal text-muted-foreground">{currency.symbol}{(balanceDue * exchangeRate).toFixed(2)}</div>
+                                    ¥{balanceDue.toFixed(2)} ({currency.symbol}{(balanceDue * exchangeRate).toFixed(2)})
                                 </span>
                             </div>
                         </div>
