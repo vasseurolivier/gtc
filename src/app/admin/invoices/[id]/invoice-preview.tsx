@@ -5,7 +5,7 @@ import type { Invoice } from '@/actions/invoices';
 import type { Customer } from '@/actions/customers';
 import type { Product } from '@/actions/products';
 import { getOrderById, Order } from '@/actions/orders';
-import { useContext, useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer } from 'lucide-react';
@@ -58,11 +58,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div className="print-header-container">
+            <div className="print-header">
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                   {companyInfo.logo && 
-                          <Image src={companyInfo.logo} alt="Company Logo" width={40} height={40} style={{objectFit: 'contain'}}/>
+                          <Image src={companyInfo.logo} alt="Company Logo" width={20} height={20} style={{objectFit: 'contain'}}/>
                       }
                   </div>
                   <div className="text-right">
@@ -101,52 +101,49 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </section>
                 
-                {chunkedItems.map((chunk, chunkIndex) => (
-                    <section key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
-                        {chunkIndex > 0 && <div className="header-spacer"></div>}
-                        <table className="w-full text-xs">
-                            <thead>
-                                <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold">Image</th>
-                                    <th className="w-1/2 p-1 font-semibold">Description</th>
-                                    <th className="text-right p-1 font-semibold">Quantité</th>
-                                    <th className="text-right p-1 font-semibold">Prix Unitaire</th>
-                                    <th className="text-right p-1 font-semibold">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {chunk.map((item, itemIndex) => {
-                                    const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                    return (
-                                        <tr key={itemIndex} className="border-b">
-                                            <td className="p-1 align-top">
-                                                {product?.imageUrl && (
-                                                    <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                        <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="p-1 align-top leading-tight">
-                                                <p className="font-medium">{item.description}</p>
-                                                {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
-                                            </td>
-                                            <td className="p-1 align-top text-right">{item.quantity}</td>
-                                            <td className="p-1 align-top text-right">
-                                                <div>¥{item.unitPrice.toFixed(2)}</div>
-                                                <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
-                                            </td>
-                                            <td className="p-1 align-top text-right font-medium">
-                                                <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                                                <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                        <div className="footer-spacer"></div>
-                    </section>
-                ))}
+                <table className="w-full text-xs">
+                    <thead>
+                        <tr className="text-left text-muted-foreground border-b-2 border-t-2">
+                            <th className="p-1 font-semibold">Image</th>
+                            <th className="w-1/2 p-1 font-semibold">Description</th>
+                            <th className="text-right p-1 font-semibold">Quantité</th>
+                            <th className="text-right p-1 font-semibold">Prix Unitaire</th>
+                            <th className="text-right p-1 font-semibold">Total</th>
+                        </tr>
+                    </thead>
+                    {chunkedItems.map((chunk, chunkIndex) => (
+                        <tbody key={chunkIndex}>
+                            {chunkIndex > 0 && <tr className="break-before-page"><td colSpan={5}></td></tr>}
+                            {chunk.map((item, itemIndex) => {
+                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                return (
+                                    <tr key={itemIndex} className="border-b">
+                                        <td className="p-1 align-top">
+                                            {product?.imageUrl && (
+                                                <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                    <Image src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-1 align-top leading-tight">
+                                            <p className="font-medium">{item.description}</p>
+                                            {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
+                                        </td>
+                                        <td className="p-1 align-top text-right">{item.quantity}</td>
+                                        <td className="p-1 align-top text-right">
+                                            <div>¥{item.unitPrice.toFixed(2)}</div>
+                                            <div className="text-[10px] text-muted-foreground">{currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)}</div>
+                                        </td>
+                                        <td className="p-1 align-top text-right font-medium">
+                                            <div>¥{(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                            <div className="text-[10px] text-muted-foreground">{currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)}</div>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    ))}
+                </table>
                 
                 <div className="flex justify-end pt-4">
                     <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
@@ -197,7 +194,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </div>
                 </div>
 
-                <div className="break-before-page pt-4 mt-8">
+                <div className="mt-8 pt-4">
                     <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
                     <div className="text-xs text-muted-foreground space-y-0.5 leading-tight">
                         <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
@@ -209,9 +206,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                     </div>
                 </div>
-
+                <div className="footer-spacer"></div>
             </div>
-            <div className="print-footer-container">
+            <div className="print-footer">
               <PrintFooter />
             </div>
         </main>

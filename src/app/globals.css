@@ -9,25 +9,25 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 220 13% 98%;
     --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
+    --card: 220 13% 100%;
     --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
+    --popover: 220 13% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
+    --primary: 206 70% 46%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 28% 95%;
     --secondary-foreground: 240 6% 10%;
-    --muted: 0 0% 96.1%;
+    --muted: 215 28% 95%;
     --muted-foreground: 240 4% 46%;
-    --accent: 38 92% 50%;
+    --accent: 30 90% 55%;
     --accent-foreground: 26 83% 12%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 72% 51%;
+    --border: 215 20% 90%;
+    --input: 215 20% 90%;
+    --ring: 206 70% 46%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -51,19 +51,19 @@ body {
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 206 70% 46%;
+    --primary-foreground: 210 20% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 38 92% 50%;
+    --accent: 30 90% 55%;
     --accent-foreground: 26 83% 12%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 0 72% 51%;
+    --ring: 206 70% 46%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -93,90 +93,76 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 1cm;
   }
 
   html, body {
-    width: 210mm;
-    height: 297mm;
-  }
-  
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    width: 100%;
+    height: auto;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10pt;
   }
 
-  .no-print, .no-print * {
+  .no-print {
     display: none !important;
   }
-
-  .printable-area, .printable-area * {
+  
+  .printable-area {
     display: block !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
-  .print-header-container {
+  .print-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 3.5cm;
+    height: 40px; /* Adjust height of header */
     display: block !important;
   }
   
-  .print-footer-container {
+  .print-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 1.5cm;
+    height: 30px; /* Adjust height of footer */
     display: block !important;
   }
-  
+
   .print-document {
     display: block !important;
   }
   
   .header-spacer {
-    height: 3.5cm;
+    height: 40px; /* Must match .print-header height */
     display: block !important;
   }
   
   .footer-spacer {
-    height: 1.5cm;
+    height: 30px; /* Must match .print-footer height */
     display: block !important;
   }
 
   .break-before-page {
-    break-before: page;
     page-break-before: always;
+    break-before: page;
   }
   
   table {
-    display: table !important;
-    width: 100% !important;
-    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
   }
 
   thead {
-    display: table-header-group !important;
+    display: table-header-group;
   }
 
   tbody {
-    display: table-row-group !important;
-  }
-  
-  tr {
-    display: table-row !important;
-  }
-
-  td, th {
-    display: table-cell !important;
-    padding: 4px;
+    display: table-row-group;
   }
 }
