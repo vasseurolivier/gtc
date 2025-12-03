@@ -45,7 +45,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
               <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                   <div>
                       {companyInfo.logo && 
-                          <img src={companyInfo.logo} alt="Company Logo" width={20} height={20} style={{objectFit: 'contain'}}/>
+                          <img src={companyInfo.logo} alt="Company Logo" width={40} height={40} style={{objectFit: 'contain'}}/>
                       }
                   </div>
                   <div className="text-right w-2/3">
@@ -91,7 +91,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                     <tr key={index} className="border-b">
                                         <td className="p-1 align-top">
                                             {item.photo && 
-                                                <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
                                                 </div>
                                             }

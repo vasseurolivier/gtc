@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useContext } from 'react';
@@ -8,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 export function PrintFooter() {
     const companyInfoContext = useContext(CompanyInfoContext);
 
-    if (!companyInfoContext) {
+    if (!companyInfoContext?.isCompanyInfoLoaded) {
         return <div className="text-center"><Loader2 className="h-4 w-4 animate-spin" /></div>;
     }
 
