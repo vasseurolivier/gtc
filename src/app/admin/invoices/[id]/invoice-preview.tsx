@@ -93,8 +93,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 flex flex-col" style={{ minHeight: '29.7cm' }}>
-                <div className="flex-grow">
+            <div id="pdf-content" className="p-8 relative" style={{ minHeight: '29.7cm' }}>
+                <div className="pb-20">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
                         {companyInfo.logo && 
@@ -178,7 +178,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </table>
                     
                     <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
                                 <span className="text-right">
@@ -195,7 +195,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     </span>
                                 </div>
                             )}
-                            <div className="flex justify-between pb-1">
+                            <div className="flex justify-between">
                                 <span className="text-muted-foreground">Frais de port :</span>
                                 <span className="text-right">
                                     <span className="font-bold">¥{transportCost.toFixed(2)}</span>

@@ -77,8 +77,8 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                 </Button>
             </div>
 
-            <div id="pdf-content" className="p-8 flex flex-col" style={{ minHeight: '29.7cm' }}>
-                <div className="flex-grow">
+            <div id="pdf-content" className="p-8 relative" style={{ minHeight: '29.7cm' }}>
+                <div className="pb-20">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
                             {companyInfo.logo && 
@@ -131,8 +131,8 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                             <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
                                             <td className="p-1 align-top text-right">{item.sku}</td>
                                             <td className="p-1 align-top text-right">{item.quantity}</td>
-                                            <td className="p-1 align-top text-right">¥{item.unitPriceCny.toFixed(2)}</td>
-                                            <td className="p-1 align-top text-right font-semibold">¥{totalCny.toFixed(2)}</td>
+                                            <td className="p-1 align-top text-right"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
+                                            <td className="p-1 align-top text-right font-semibold"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
                                         </tr>
                                     );
                                 })}
