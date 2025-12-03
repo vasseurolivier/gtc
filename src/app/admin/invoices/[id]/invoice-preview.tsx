@@ -93,8 +93,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 relative" style={{ minHeight: '29.7cm' }}>
-                <div className="pb-20">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
+                <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
                         {companyInfo.logo && 
@@ -103,7 +103,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                         <div className="text-right">
                             <h1 className="text-base font-bold text-black">INVOICE</h1>
-                            <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
+                            <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {invoice.invoiceNumber}</p>
                         </div>
                     </header>
 
@@ -111,25 +111,25 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                                <p className="font-bold">{companyInfo?.name}</p>
-                                <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
+                                <p className="font-bold leading-tight">{companyInfo?.name}</p>
+                                <p className="whitespace-pre-wrap leading-tight">{companyInfo?.address}</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
-                                <p className="font-bold">{customer?.name}</p>
-                                {customer?.company && <p>{customer.company}</p>}
-                                <p className="whitespace-pre-wrap">{customer?.address}</p>
+                                <p className="font-bold leading-tight">{customer?.name}</p>
+                                {customer?.company && <p className="leading-tight">{customer.company}</p>}
+                                <p className="whitespace-pre-wrap leading-tight">{customer?.address}</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE DE LA FACTURE</h3>
-                                <p>{format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
+                                <p className="leading-tight">{format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p>{invoice.invoiceNumber}</p>
+                                <p className="leading-tight">{invoice.invoiceNumber}</p>
                             </div>
                         </div>
                     </section>
@@ -178,7 +178,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </table>
                     
                     <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
                                 <span className="text-right">

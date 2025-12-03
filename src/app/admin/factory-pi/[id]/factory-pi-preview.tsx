@@ -77,8 +77,8 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                 </Button>
             </div>
 
-            <div id="pdf-content" className="p-8 relative" style={{ minHeight: '29.7cm' }}>
-                <div className="pb-20">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
+                <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
                             {companyInfo.logo && 
@@ -87,7 +87,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                         </div>
                         <div className="text-right w-2/3">
                             <h1 className="text-base font-bold text-black">PROFORMA INVOICE</h1>
-                            <p className="mt-1 text-xs text-muted-foreground">N° {factoryPi.piNumber}</p>
+                            <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {factoryPi.piNumber}</p>
                         </div>
                     </header>
                       
@@ -95,11 +95,11 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                                <p>{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
+                                <p className="leading-tight">{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                                <p>{factoryPi.piNumber}</p>
+                                <p className="leading-tight">{factoryPi.piNumber}</p>
                             </div>
                         </div>
                     </section>
@@ -141,7 +141,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                     </table>
                       
                     <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Total Quantity :</span>
                                 <span className="text-right">

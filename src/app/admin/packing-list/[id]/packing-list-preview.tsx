@@ -80,8 +80,8 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 relative" style={{ minHeight: '29.7cm' }}>
-              <div className="pb-20">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
+              <div className="flex-grow">
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
                         {companyInfo.logo && 
@@ -90,7 +90,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </div>
                     <div className="text-right w-1/3">
                         <h1 className="text-base font-bold text-black">PACKING LIST</h1>
-                        <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
+                        <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {packingList.listId}</p>
                     </div>
                 </header>
               
@@ -98,19 +98,19 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                       <div>
                               <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                              <p className="font-bold">{companyInfo?.name}</p>
-                              <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
+                              <p className="font-bold leading-tight">{companyInfo?.name}</p>
+                              <p className="whitespace-pre-wrap leading-tight">{companyInfo?.address}</p>
                           </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                           <div>
                               <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                              <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
+                              <p className="leading-tight">{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
                           </div>
                           <div>
                               <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                              <p>{packingList.listId}</p>
+                              <p className="leading-tight">{packingList.listId}</p>
                           </div>
                       </div>
                   </section>
@@ -154,7 +154,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                   </table>
 
                   <div className="flex justify-end pt-4">
-                      <div className="w-full md:w-2/3 lg:w-1/2 space-y-0.5 text-xs">
+                      <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
                           <div className="flex justify-between">
                               <span className="text-muted-foreground">Total Quantity :</span>
                               <span className="text-right">
