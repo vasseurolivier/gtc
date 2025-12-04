@@ -213,21 +213,18 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <span className="text-muted-foreground"> ({currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)})</span>
                                     </span>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div className="flex justify-between leading-tight">
-                                    <span className="text-muted-foreground">Montant Payé :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{(invoice.amountPaid || 0).toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})</span>
-                                    </span>
-                                </div>
-                                <div className="flex justify-between font-bold leading-tight">
-                                    <span>Solde restant :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{balanceDue.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(balanceDue * exchangeRate).toFixed(2)})</span>
-                                    </span>
-                                </div>
+                         <div className="mt-8 pt-4">
+                            <div className="mb-8 border-t pt-4">
+                                <h3 className="font-semibold mb-2 text-xs leading-tight">Détails du Paiement :</h3>
+                                <p className="text-xs text-muted-foreground leading-tight">
+                                    <strong>Montant Payé :</strong> ¥{(invoice.amountPaid || 0).toFixed(2)} (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}).
+                                </p>
+                                <p className="text-xs text-muted-foreground leading-tight">
+                                    <strong>Solde restant dû :</strong> ¥{balanceDue.toFixed(2)} (ou {currency.symbol}{(balanceDue * exchangeRate).toFixed(2)}).
+                                </p>
                             </div>
                         </div>
 

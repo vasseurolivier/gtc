@@ -205,32 +205,28 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                       <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
                                   </span>
                               </div>
-                              <div className="flex justify-between leading-tight">
-                                  <span className="text-muted-foreground">Acompte à payer :</span>
-                                  <span className="text-right">
-                                      <span className="font-bold">¥{downPayment.toFixed(2)}</span>
-                                      <span className="text-muted-foreground"> ({currency.symbol}{(downPayment * exchangeRate).toFixed(2)})</span>
-                                  </span>
-                              </div>
-                              <div className="flex justify-between font-bold leading-tight">
-                                  <span>Solde restant :</span>
-                                  <span className="text-right">
-                                      <span className="font-bold">¥{remainingBalance.toFixed(2)}</span>
-                                      <span className="text-muted-foreground"> ({currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})</span>
-                                  </span>
-                              </div>
                           </div>
                       </div>
 
                     <div className="mt-8 pt-4">
                         {quote.notes && (
-                            <div className="mb-8 border-t pt-4">
+                            <div className="mb-4">
                                 <h3 className="font-semibold mb-1 text-xs leading-tight">Notes:</h3>
                                 <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">
                                     {quote.notes}
                                 </p>
                             </div>
                         )}
+
+                        <div className="mb-8 border-t pt-4">
+                            <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
+                            <p className="text-xs text-muted-foreground leading-tight">
+                                <strong>Acompte (30%) :</strong> ¥{downPayment.toFixed(2)} (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)}) à la commande.
+                            </p>
+                             <p className="text-xs text-muted-foreground leading-tight">
+                                <strong>Solde :</strong> ¥{remainingBalance.toFixed(2)} (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}) avant expédition, après contrôle qualité.
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div className="break-before-page pt-4">
