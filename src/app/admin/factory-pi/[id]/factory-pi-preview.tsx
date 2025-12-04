@@ -76,97 +76,95 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                     Export to PDF
                 </Button>
             </div>
-            <div className="relative">
-                <div id="pdf-content" className="p-8 bg-white min-h-[297mm]">
-                    <div className="flex-grow">
-                        <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
+            <div id="pdf-content" className="p-8 bg-white min-h-[297mm] flex flex-col">
+                <div className="flex-grow">
+                    <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
+                        <div>
+                            {companyInfo.logo && 
+                                <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain"/>
+                            }
+                        </div>
+                        <div className="text-right w-2/3">
+                            <h1 className="text-base font-bold text-black leading-tight">PROFORMA INVOICE</h1>
+                            <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {factoryPi.piNumber}</p>
+                        </div>
+                    </header>
+                        
+                    <section>
+                        <div className="grid grid-cols-2 gap-8 my-2 text-xs">
                             <div>
-                                {companyInfo.logo && 
-                                    <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain"/>
-                                }
+                                <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">DATE</h3>
+                                <p className="leading-tight">{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
                             </div>
-                            <div className="text-right w-2/3">
-                                <h1 className="text-base font-bold text-black leading-tight">PROFORMA INVOICE</h1>
-                                <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {factoryPi.piNumber}</p>
-                            </div>
-                        </header>
-                          
-                        <section>
-                            <div className="grid grid-cols-2 gap-8 my-2 text-xs">
-                                <div>
-                                    <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">DATE</h3>
-                                    <p className="leading-tight">{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">NUMÉRO DE RÉFÉRENCE</h3>
-                                    <p className="leading-tight">{factoryPi.piNumber}</p>
-                                </div>
-                            </div>
-                        </section>
-                          
-                        <table className="w-full text-xs">
-                            <thead>
-                                <tr className="text-left bg-blue-100 text-blue-800">
-                                    <th className="p-2 font-bold border">Image</th>
-                                    <th className="w-1/2 p-2 font-bold border">Description</th>
-                                    <th className="p-2 text-right font-bold border">SKU</th>
-                                    <th className="p-2 text-right font-bold border">Quantity</th>
-                                    <th className="p-2 text-right font-bold border">Unit Price (CNY)</th>
-                                    <th className="p-2 text-right font-bold border">Total (CNY)</th>
-                                </tr>
-                            </thead>
-                             {itemChunks.map((chunk, chunkIndex) => (
-                                <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
-                                    {chunk.map((item, index) => {
-                                        const totalCny = item.quantity * item.unitPriceCny;
-                                        return (
-                                            <tr key={index} className="border-b">
-                                                <td className="p-1 align-top border">
-                                                    {item.photo && 
-                                                        <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                            <img src={item.photo} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain" />
-                                                        </div>
-                                                    }
-                                                </td>
-                                                <td className="p-1 align-top font-medium leading-tight border">{item.description}</td>
-                                                <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
-                                                <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
-                                                <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
-                                                <td className="p-1 align-top text-right font-semibold leading-tight border"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            ))}
-                        </table>
-                          
-                        <div className="flex justify-end pt-4">
-                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
-                                <div className="flex justify-between leading-tight">
-                                    <span className="text-muted-foreground">Total Quantity :</span>
-                                    <span className="text-right">
-                                      <span className="font-bold">{totals.totalQuantity}</span>
-                                    </span>
-                                </div>
-                            
-                                <div className="flex justify-between font-bold text-sm pt-2 mt-2 border-t-2 border-black">
-                                    <span>TOTAL (CNY) :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>
-                                    </span>
-                                </div>
+                            <div>
+                                <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">NUMÉRO DE RÉFÉRENCE</h3>
+                                <p className="leading-tight">{factoryPi.piNumber}</p>
                             </div>
                         </div>
-
-                        {factoryPi.notes && (
-                            <div className="mt-8 border-t pt-4">
-                                <h4 className="font-semibold mb-1 text-xs leading-tight">Notes:</h4>
-                                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
+                    </section>
+                        
+                    <table className="w-full text-xs">
+                        <thead>
+                            <tr className="text-left bg-blue-100 text-blue-800">
+                                <th className="p-2 font-bold border">Image</th>
+                                <th className="w-1/2 p-2 font-bold border">Description</th>
+                                <th className="p-2 text-right font-bold border">SKU</th>
+                                <th className="p-2 text-right font-bold border">Quantity</th>
+                                <th className="p-2 text-right font-bold border">Unit Price (CNY)</th>
+                                <th className="p-2 text-right font-bold border">Total (CNY)</th>
+                            </tr>
+                        </thead>
+                        {itemChunks.map((chunk, chunkIndex) => (
+                            <tbody key={chunkIndex} className={chunkIndex > 0 ? 'pdf-page' : ''}>
+                                {chunk.map((item, index) => {
+                                    const totalCny = item.quantity * item.unitPriceCny;
+                                    return (
+                                        <tr key={index} className="border-b">
+                                            <td className="p-1 align-top border">
+                                                {item.photo && 
+                                                    <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                        <img src={item.photo} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain" />
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td className="p-1 align-top font-medium leading-tight border">{item.description}</td>
+                                            <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
+                                            <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
+                                            <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
+                                            <td className="p-1 align-top text-right font-semibold leading-tight border"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        ))}
+                    </table>
+                        
+                    <div className="flex justify-end pt-4">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                            <div className="flex justify-between leading-tight">
+                                <span className="text-muted-foreground">Total Quantity :</span>
+                                <span className="text-right">
+                                    <span className="font-bold">{totals.totalQuantity}</span>
+                                </span>
                             </div>
-                        )}
+                        
+                            <div className="flex justify-between font-bold text-sm pt-2 mt-2 border-t-2 border-black">
+                                <span>TOTAL (CNY) :</span>
+                                <span className="text-right">
+                                    <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                     <PrintFooter />
+
+                    {factoryPi.notes && (
+                        <div className="mt-8 border-t pt-4">
+                            <h4 className="font-semibold mb-1 text-xs leading-tight">Notes:</h4>
+                            <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
+                        </div>
+                    )}
                 </div>
+                    <PrintFooter />
             </div>
         </main>
     );

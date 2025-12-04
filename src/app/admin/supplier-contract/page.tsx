@@ -274,9 +274,9 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2 print-block" id="pdf-content">
-            <div className="pdf-page bg-white p-8 shadow-lg ring-1 ring-black ring-opacity-5">
-              <div className="flex flex-col min-h-full">
+        <div className="lg:col-span-2 lg:block">
+            <div id="pdf-content" className="p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] flex flex-col">
+              <div className="flex-grow">
                 <header className="flex justify-between items-start mb-4">
                   <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-16 object-contain" />}</div>
                   <div className="text-right">
@@ -359,8 +359,8 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                       </div>
                     </section>
                   </>
+                </div>
                 <PrintFooter />
-              </div>
             </div>
         </div>
       </div>

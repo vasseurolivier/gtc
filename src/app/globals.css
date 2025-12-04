@@ -111,33 +111,10 @@ body {
       display: block !important;
   }
   .pdf-page {
-    page-break-after: always;
-    position: relative;
-    width: 210mm;
-    min-height: 297mm;
-    display: flex;
-    flex-direction: column;
+    break-after: always;
   }
-
   .pdf-page:last-child {
-      page-break-after: auto;
-  }
-
-  .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-  }
-
-  .print-footer-content {
-    padding: 0.5rem 2rem;
-    border-top: 1px solid hsl(var(--border));
-    text-align: center;
-    font-size: 8px;
-    color: hsl(var(--muted-foreground));
-    font-family: 'Poppins', sans-serif;
+      break-after: auto;
   }
 }
 

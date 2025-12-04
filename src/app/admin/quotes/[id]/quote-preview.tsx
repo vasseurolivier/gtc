@@ -67,8 +67,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
     const commissionAmount = quote.subTotal * ((quote.commissionRate || 0) / 100);
-    const downPayment = quote.totalAmount * 0.3; // Assuming 30% down payment
-    const remainingBalance = quote.totalAmount - downPayment;
 
     const itemChunks = [];
     for (let i = 0; i < quote.items.length; i += 10) {
@@ -85,20 +83,19 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </Button>
             </div>
             
-            <div className="relative">
-              <div id="pdf-content" className="p-8 bg-white min-h-[297mm]">
+            <div id="pdf-content" className="p-8 bg-white min-h-[297mm] flex flex-col">
                 <div className="flex-grow">
-                  <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
-                      <div>
-                          {companyInfo.logo && 
-                              <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain" />
-                          }
-                      </div>
-                      <div className="text-right w-1/3">
-                          <h1 className="text-base font-bold text-black leading-tight">PROFORMA</h1>
-                          <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {quote.quoteNumber}</p>
-                      </div>
-                  </header>
+                    <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
+                        <div>
+                            {companyInfo.logo && 
+                                <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain" />
+                            }
+                        </div>
+                        <div className="text-right w-1/3">
+                            <h1 className="text-base font-bold text-black leading-tight">PROFORMA</h1>
+                            <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {quote.quoteNumber}</p>
+                        </div>
+                    </header>
 
                     <section>
                         <div className="grid grid-cols-2 gap-8 my-2 text-xs">
@@ -138,7 +135,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </tr>
                         </thead>
                         {itemChunks.map((chunk, chunkIndex) => (
-                          <tbody key={chunkIndex} className={chunkIndex > 0 ? 'break-before-page' : ''}>
+                            <tbody key={chunkIndex} className={chunkIndex > 0 ? 'pdf-page' : ''}>
                             {chunk.map((item, itemIndex) => {
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
@@ -166,45 +163,45 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     </tr>
                                 )
                             })}
-                          </tbody>
+                            </tbody>
                         ))}
                     </table>
                     
                     <div className="flex justify-end pt-4">
-                          <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
-                              <div className="flex justify-between leading-tight">
-                                  <span className="text-muted-foreground">Sous-total :</span>
-                                  <span className="text-right">
-                                      <span className="font-bold">¥{quote.subTotal.toFixed(2)}</span>
-                                      <span className="text-muted-foreground"> ({currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)})</span>
-                                  </span>
-                              </div>
-                              
-                              <div className="flex justify-between leading-tight">
-                                  <span className="text-muted-foreground">Commission ({quote.commissionRate || 0}%) :</span>
-                                  <span className="text-right">
-                                      <span className="font-bold">¥{commissionAmount.toFixed(2)}</span>
-                                      <span className="text-muted-foreground"> ({currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)})</span>
-                                  </span>
-                              </div>
-                             
-                              <div className="flex justify-between leading-tight">
-                                  <span className="text-muted-foreground">Frais de port :</span>
-                                  <span className="text-right">
-                                      <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
-                                      <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
-                                  </span>
-                              </div>
+                            <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
+                                <div className="flex justify-between leading-tight">
+                                    <span className="text-muted-foreground">Sous-total :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{quote.subTotal.toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)})</span>
+                                    </span>
+                                </div>
+                                
+                                <div className="flex justify-between leading-tight">
+                                    <span className="text-muted-foreground">Commission ({quote.commissionRate || 0}%) :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{commissionAmount.toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)})</span>
+                                    </span>
+                                </div>
+                                
+                                <div className="flex justify-between leading-tight">
+                                    <span className="text-muted-foreground">Frais de port :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
+                                    </span>
+                                </div>
 
-                              <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t-2 border-black">
-                                  <span>TOTAL :</span>
-                                  <span className="text-right">
-                                      <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
-                                      <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
-                                  </span>
-                              </div>
-                          </div>
-                      </div>
+                                <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t-2 border-black">
+                                    <span>TOTAL :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
 
                     <div className="break-before-page mt-8 pt-4">
                         {quote.notes && (
@@ -216,14 +213,14 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         )}
                         
-                        <div className="mb-4 border-t pt-4">
+                        <div className="mb-4 pt-4">
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
                             <div className="text-xs text-muted-foreground space-y-1 leading-tight">
-                                <p>Acompte (30%): <strong>¥{downPayment.toFixed(2)}</strong> (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)})</p>
-                                <p>Solde restant: <strong>¥{remainingBalance.toFixed(2)}</strong> (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})</p>
+                                <p>Acompte (30%): <strong>¥{(quote.totalAmount * 0.3).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * 0.3 * exchangeRate).toFixed(2)})</p>
+                                <p>Solde restant (70%): <strong>¥{(quote.totalAmount * 0.7).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * 0.7 * exchangeRate).toFixed(2)})</p>
                             </div>
                         </div>
-                  
+                    
                         <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
                         <div className="text-xs text-muted-foreground space-y-1 leading-tight">
                             <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
@@ -237,7 +234,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </div>
                 </div>
                 <PrintFooter />
-              </div>
             </div>
         </main>
     );
