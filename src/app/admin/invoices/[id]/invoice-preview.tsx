@@ -203,12 +203,14 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <span className="text-muted-foreground"> ({currency.symbol}{(transportCost * exchangeRate).toFixed(2)})</span>
                                     </span>
                                 </div>
-                                <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black leading-tight">
-                                    <span>TOTAL :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{invoice.totalAmount.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)})</span>
-                                    </span>
+                                <div className="pt-2 mt-2 border-t-2 border-black">
+                                    <div className="flex justify-between font-bold text-sm leading-tight">
+                                        <span>TOTAL :</span>
+                                        <span className="text-right">
+                                            <span className="font-bold">¥{invoice.totalAmount.toFixed(2)}</span>
+                                            <span className="text-muted-foreground"> ({currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)})</span>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="flex justify-between leading-tight">
                                     <span className="text-muted-foreground">Montant Payé :</span>
@@ -231,7 +233,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                      <div className="break-before-page">
                         <div className="mt-8 pt-4">
                             <h3 className="font-semibold mb-1 text-xs leading-tight">Coordonnées Bancaires :</h3>
-                            <div className="text-xs text-muted-foreground space-y-0 leading-tight">
+                            <div className="text-xs text-muted-foreground leading-tight">
                                 <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                                 <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                                 <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
@@ -248,3 +250,5 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         </main>
     );
 }
+
+    
