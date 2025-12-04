@@ -155,7 +155,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </table>
 
                     <div className="flex justify-end pt-4">
-                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
+                        <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
                             <div className="flex justify-between leading-tight">
                                 <span className="text-muted-foreground">Total Quantity :</span>
                                 <span className="text-right">
@@ -163,7 +163,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                 </span>
                             </div>
                         
-                            <div className="pt-2 my-2 border-t-2 border-black" />
+                             <div className="border-t-2 border-black my-2" />
 
                             <div className="flex justify-between font-bold text-sm leading-tight">
                                 <span>TOTAL (CNY) :</span>

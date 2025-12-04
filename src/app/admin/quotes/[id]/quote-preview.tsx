@@ -171,7 +171,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     </table>
                     
                     <div className="flex justify-end pt-4">
-                          <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
+                          <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
                               <div className="flex justify-between leading-tight">
                                   <span className="text-muted-foreground">Sous-total :</span>
                                   <span className="text-right">
@@ -188,14 +188,15 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                   </span>
                               </div>
                              
-                              <div className="flex justify-between mt-1 leading-tight">
+                              <div className="flex justify-between leading-tight">
                                   <span className="text-muted-foreground">Frais de port :</span>
                                   <span className="text-right">
                                       <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
                                       <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
                                   </span>
                               </div>
-                              <div className="pt-2 my-2 border-t-2 border-black" />
+
+                              <div className="border-t-2 border-black my-2" />
 
                               <div className="flex justify-between font-bold text-sm leading-tight">
                                   <span>TOTAL :</span>
