@@ -93,7 +93,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col leading-tight">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
@@ -103,18 +103,18 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                         <div className="text-right">
                             <h1 className="text-base font-bold text-black">INVOICE</h1>
-                            <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {invoice.invoiceNumber}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
                         </div>
                     </header>
 
-                    <section className="leading-tight">
+                    <section>
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                            <div className="leading-tight">
+                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                                 <p className="font-bold">{companyInfo?.name}</p>
                                 <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
                             </div>
-                            <div className="leading-tight">
+                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
                                 <p className="font-bold">{customer?.name}</p>
                                 {customer?.company && <p>{customer.company}</p>}
@@ -123,11 +123,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
 
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                            <div className="leading-tight">
+                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE DE LA FACTURE</h3>
                                 <p>{format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
-                            <div className="leading-tight">
+                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
                                 <p>{invoice.invoiceNumber}</p>
                             </div>
@@ -135,7 +135,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     </section>
                     
                     <table className="w-full text-xs">
-                        <thead className="leading-tight">
+                        <thead>
                             <tr className="text-left text-muted-foreground border-b-2 border-t-2">
                                 <th className="p-1 font-semibold">Image</th>
                                 <th className="w-1/2 p-1 font-semibold">Description</th>
@@ -157,7 +157,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                                   </div>
                                               )}
                                           </td>
-                                          <td className="p-1 align-top leading-tight">
+                                          <td className="p-1 align-top">
                                               <p className="font-medium">{item.description}</p>
                                               {product?.description && <p className="text-[10px] text-muted-foreground">{product.description}</p>}
                                           </td>
@@ -177,7 +177,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         ))}
                     </table>
                     
-                    <div className="flex justify-end pt-4 leading-tight">
+                    <div className="flex justify-end pt-4">
                         <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
@@ -195,14 +195,14 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     </span>
                                 </div>
                             )}
-                            <div className="flex justify-between">
+                            <div className="flex justify-between mt-1">
                                 <span className="text-muted-foreground">Frais de port :</span>
                                 <span className="text-right">
                                     <span className="font-bold">¥{transportCost.toFixed(2)}</span>
                                     <span className="text-muted-foreground"> ({currency.symbol}{(transportCost * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
-                            <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
+                            <div className="flex justify-between font-bold text-sm border-t pt-1 mt-2">
                                 <span>TOTAL :</span>
                                 <span className="text-right">
                                     <span className="font-bold">¥{invoice.totalAmount.toFixed(2)}</span>
@@ -228,9 +228,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
 
                 </div>
                  <div className="break-before-page">
-                    <div className="mt-8 pt-4 leading-tight">
+                    <div className="mt-8 pt-4">
                         <h3 className="font-semibold mb-1 text-xs">Coordonnées Bancaires :</h3>
-                        <div className="text-xs text-muted-foreground leading-tight">
+                        <div className="text-xs text-muted-foreground">
                             <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                             <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                             <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>

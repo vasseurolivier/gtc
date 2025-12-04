@@ -80,7 +80,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col leading-tight">
               <div className="flex-grow">
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
@@ -90,13 +90,13 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     </div>
                     <div className="text-right w-1/3">
                         <h1 className="text-base font-bold text-black">PACKING LIST</h1>
-                        <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {packingList.listId}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
                     </div>
                 </header>
               
                   <section>
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                      <div className="leading-tight">
+                      <div>
                               <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                               <p className="font-bold">{companyInfo?.name}</p>
                               <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
@@ -104,11 +104,11 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                       </div>
 
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                          <div className="leading-tight">
+                          <div>
                               <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
                               <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
                           </div>
-                          <div className="leading-tight">
+                          <div>
                               <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
                               <p>{packingList.listId}</p>
                           </div>
@@ -140,12 +140,12 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                                   </div>
                                               }
                                           </td>
-                                          <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                          <td className="p-1 align-top font-medium">{item.description}</td>
                                           <td className="p-1 align-top text-right">{item.sku}</td>
                                           <td className="p-1 align-top text-right">{item.quantity}</td>
                                           <td className="p-1 align-top text-right"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
                                           <td className="p-1 align-top text-right font-semibold"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
-                                          <td className="p-1 align-top leading-tight">{item.remarks}</td>
+                                          <td className="p-1 align-top">{item.remarks}</td>
                                       </tr>
                                   );
                               })}
@@ -162,7 +162,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                               </span>
                           </div>
                       
-                          <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
+                          <div className="flex justify-between font-bold text-sm border-t pt-1 mt-2">
                               <span>TOTAL (CNY) :</span>
                               <span className="text-right">
                                   <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>

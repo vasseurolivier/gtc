@@ -77,7 +77,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                 </Button>
             </div>
 
-            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col leading-tight">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
@@ -87,17 +87,17 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                         </div>
                         <div className="text-right w-2/3">
                             <h1 className="text-base font-bold text-black">PROFORMA INVOICE</h1>
-                            <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {factoryPi.piNumber}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">N° {factoryPi.piNumber}</p>
                         </div>
                     </header>
                       
                     <section>
                         <div className="grid grid-cols-2 gap-8 my-4 text-xs">
-                            <div className="leading-tight">
+                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
                                 <p>{format(new Date(factoryPi.date), 'dd/MM/yyyy')}</p>
                             </div>
-                            <div className="leading-tight">
+                            <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
                                 <p>{factoryPi.piNumber}</p>
                             </div>
@@ -128,7 +128,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                                     </div>
                                                 }
                                             </td>
-                                            <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                            <td className="p-1 align-top font-medium">{item.description}</td>
                                             <td className="p-1 align-top text-right">{item.sku}</td>
                                             <td className="p-1 align-top text-right">{item.quantity}</td>
                                             <td className="p-1 align-top text-right"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
@@ -149,7 +149,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                 </span>
                             </div>
                         
-                            <div className="flex justify-between font-bold text-sm border-t pt-1 mt-1">
+                            <div className="flex justify-between font-bold text-sm border-t pt-1 mt-2">
                                 <span>TOTAL (CNY) :</span>
                                 <span className="text-right">
                                     <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>
@@ -161,7 +161,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                     {factoryPi.notes && (
                         <div className="mt-8 border-t pt-4">
                             <h4 className="font-semibold mb-1 text-xs">Notes:</h4>
-                            <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-tight">{factoryPi.notes}</p>
+                            <p className="text-xs text-muted-foreground whitespace-pre-wrap">{factoryPi.notes}</p>
                         </div>
                     )}
                 </div>

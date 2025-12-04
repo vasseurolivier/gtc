@@ -156,8 +156,8 @@ export default function SupplierContractPage() {
                     <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
                     <p className="font-bold">采购协议</p>
                 </header>
-                <div className="print-document px-8 py-10">
-                    <section className="font-sans leading-tight text-sm">
+                <div className="print-document px-8 py-10 leading-tight">
+                    <section className="font-sans text-sm">
                         <p className="mb-4">BETWEEN: <br/> 双方：</p>
 
                         <div className="mb-4">
