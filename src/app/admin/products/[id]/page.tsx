@@ -164,7 +164,8 @@ async function ProductProfileContent({ id }: { id: string }) {
     );
 }
 
-export default async function ProductProfilePage({ params }: { params: { id: string } }) {
+
+export default function ProductProfilePage({ params }: { params: { id: string } }) {
     return (
         <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
             <ProductProfileContent id={params.id} />
