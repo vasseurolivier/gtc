@@ -195,13 +195,15 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     </span>
                                 </div>
                             )}
-                            <div className="flex justify-between mt-1">
-                                <span className="text-muted-foreground">Frais de port :</span>
-                                <span className="text-right">
-                                    <span className="font-bold">¥{transportCost.toFixed(2)}</span>
-                                    <span className="text-muted-foreground"> ({currency.symbol}{(transportCost * exchangeRate).toFixed(2)})</span>
-                                </span>
-                            </div>
+                            {transportCost > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Frais de port :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{transportCost.toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(transportCost * exchangeRate).toFixed(2)})</span>
+                                    </span>
+                                </div>
+                            )}
                             <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black">
                                 <span>TOTAL :</span>
                                 <span className="text-right">

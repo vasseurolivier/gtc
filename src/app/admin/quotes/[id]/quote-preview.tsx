@@ -187,13 +187,15 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     </span>
                                 </div>
                             )}
-                            <div className="flex justify-between mt-1">
-                                <span className="text-muted-foreground">Frais de port :</span>
-                                <span className="text-right">
-                                    <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
-                                    <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
-                                </span>
-                            </div>
+                            {(quote.transportCost || 0) > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Frais de port :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
+                                    </span>
+                                </div>
+                            )}
                             <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black">
                                 <span>TOTAL :</span>
                                 <span className="text-right">
