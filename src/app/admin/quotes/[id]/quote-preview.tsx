@@ -101,7 +101,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                   </header>
 
                     <section>
-                        <div className="grid grid-cols-2 gap-8 my-4 text-xs">
+                        <div className="grid grid-cols-2 gap-8 my-2 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">ÉMIS PAR</h3>
                                 <p className="font-bold leading-tight">{companyInfo?.name}</p>
@@ -115,7 +115,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-8 my-4 text-xs">
+                        <div className="grid grid-cols-2 gap-8 my-2 text-xs">
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">DATE DE LA PROFORMA</h3>
                                 <p className="leading-tight">{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
