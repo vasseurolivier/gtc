@@ -86,7 +86,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
-            <div className="p-8 flex justify-end">
+            <div className="p-8 flex justify-end no-print">
                 <Button onClick={handleDownloadPdf}>
                     <Printer className="mr-2 h-4 w-4" />
                     Export to PDF
@@ -99,8 +99,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                             <div>
                             {companyInfo.logo && 
-                                    <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" width={52} height={52} style={{objectFit: 'contain'}}/>
-                                }
+                                <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain"/>
+                            }
                             </div>
                             <div className="text-right">
                                 <h1 className="text-base font-bold text-black leading-tight">INVOICE</h1>
@@ -231,7 +231,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                      <div className="break-before-page">
                         <div className="mt-8 pt-4">
                             <h3 className="font-semibold mb-1 text-xs leading-tight">Coordonnées Bancaires :</h3>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground space-y-0">
                                 <p className="leading-tight"><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                                 <p className="leading-tight"><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                                 <p className="leading-tight"><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>

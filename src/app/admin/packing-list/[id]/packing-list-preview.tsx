@@ -73,7 +73,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
 
     return (
         <main className="w-full mx-auto bg-white">
-             <div className="p-8 flex justify-end">
+             <div className="p-8 flex justify-end no-print">
                 <Button onClick={handleDownloadPdf}>
                     <Printer className="mr-2 h-4 w-4" />
                     Export to PDF
@@ -86,7 +86,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                   <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                       <div>
                           {companyInfo.logo && 
-                              <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" width={52} height={52} style={{objectFit: 'contain'}}/>
+                              <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain"/>
                           }
                       </div>
                       <div className="text-right w-1/3">

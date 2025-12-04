@@ -94,17 +94,23 @@ body {
   break-before: page;
 }
 
+
 @media print {
-  body, body * {
-    line-height: 1.2 !important;
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  #pdf-content {
+    padding: 0 !important;
   }
   .print-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-  }
-  #pdf-content {
-    padding-bottom: 50px; /* Add padding to avoid content overlapping with the footer */
+    height: 30px; /* Adjust height as needed */
   }
 }
