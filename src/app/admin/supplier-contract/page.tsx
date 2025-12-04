@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { PrintFooter } from '@/components/layout/print-footer';
-import { Loader2, PlusCircle, Trash2, Printer } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Printer, UploadCloud } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
@@ -29,6 +30,7 @@ const contractItemSchema = z.object({
   quantity: z.coerce.number().positive('Quantity must be positive.'),
   unitPrice: z.coerce.number().nonnegative('Price cannot be negative.'),
   total: z.coerce.number().nonnegative(),
+  photo: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -86,7 +88,7 @@ export default function SupplierContractPage() {
     defaultValues: {
       contractNumber: `SC-${Date.now().toString().slice(-6)}`,
       date: new Date(),
-      items: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
+      items: [{ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' }],
       totalAmount: 0,
       depositPercentage: 30,
       balanceTerms: 'Payable before shipping after quality control',
@@ -102,27 +104,31 @@ export default function SupplierContractPage() {
     name: 'items',
   });
 
-  const watchedValues = form.watch();
-
+  const watchedItems = form.watch("items");
+  
   useEffect(() => {
-    const { items } = watchedValues;
-    if (items) {
-      const newTotal = items.reduce((sum, item) => {
-          const quantity = Number(item.quantity) || 0;
-          const unitPrice = Number(item.unitPrice) || 0;
-          const itemTotal = quantity * unitPrice;
-          const currentItemIndex = items.indexOf(item);
-          if (form.getValues(`items.${currentItemIndex}.total`) !== itemTotal) {
-            form.setValue(`items.${currentItemIndex}.total`, itemTotal);
-          }
-          return sum + itemTotal;
-      }, 0);
-      
-      if (form.getValues('totalAmount') !== newTotal) {
-         form.setValue('totalAmount', newTotal, { shouldValidate: true });
+    const subscription = form.watch((values, { name, type }) => {
+      if (name && (name.startsWith('items') || name === 'depositPercentage')) {
+        const items = values.items || [];
+        
+        items.forEach((item, index) => {
+            if (!item) return;
+            const quantity = Number(item.quantity) || 0;
+            const unitPrice = Number(item.unitPrice) || 0;
+            const newTotal = quantity * unitPrice;
+            if (item.total !== newTotal) {
+                 form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
+            }
+        });
+
+        const newTotalAmount = items.reduce((sum, item) => sum + (item?.total || 0), 0);
+        if (values.totalAmount !== newTotalAmount) {
+            form.setValue("totalAmount", newTotalAmount, { shouldValidate: true });
+        }
       }
-    }
-  }, [watchedValues.items, form]);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
   
   useEffect(() => {
     if (companyInfoContext?.companyInfo) {
@@ -136,6 +142,7 @@ export default function SupplierContractPage() {
     if (product) {
       form.setValue(`items.${index}.description`, product.name);
       form.setValue(`items.${index}.unitPrice`, product.purchasePrice || 0);
+      form.setValue(`items.${index}.photo`, product.imageUrl || '');
     }
   };
 
@@ -147,7 +154,7 @@ export default function SupplierContractPage() {
     }, 100);
   };
   
-  const { totalAmount, depositPercentage } = watchedValues;
+  const { totalAmount, depositPercentage } = form.watch();
   const depositAmount = totalAmount * (depositPercentage / 100);
   const balanceAmount = totalAmount - depositAmount;
 
@@ -162,7 +169,7 @@ export default function SupplierContractPage() {
   const { currency, exchangeRate } = currencyContext;
   
   const qualityControlChinese = 
-    watchedValues.qualityControl?.toLowerCase().includes('aql') 
+    form.getValues('qualityControl')?.toLowerCase().includes('aql') 
     ? 'AQL (可接受质量水平) 国际抽样标准' 
     : '';
 
@@ -213,6 +220,21 @@ export default function SupplierContractPage() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                 <div className="flex items-center gap-4">
+                                  <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
+                                      {watchedItems[index]?.photo ? (
+                                          <Image src={watchedItems[index].photo!} alt="Product" width={64} height={64} className="object-contain" />
+                                      ) : (
+                                          <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                                      )}
+                                  </div>
+                                  <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
+                                      <FormItem className="w-full">
+                                          <FormLabel>Photo URL</FormLabel>
+                                          <FormControl><Input placeholder="https://..." {...photoField} /></FormControl>
+                                      </FormItem>
+                                  )} />
+                               </div>
                                 <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...f} /></FormControl></FormItem> )} />
                                 <div className="grid grid-cols-2 gap-2">
                                     <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem> )} />
@@ -222,7 +244,7 @@ export default function SupplierContractPage() {
                           </Card>
                         ))}
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0 })}> <PlusCircle className="mr-2 h-4 w-4" /> Add Item </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' })}> <PlusCircle className="mr-2 h-4 w-4" /> Add Item </Button>
                   </div>
                    <Separator />
                    <div className="space-y-4">
@@ -248,22 +270,22 @@ export default function SupplierContractPage() {
                   </div>
                   <div className="text-right">
                     <h1 className="text-2xl font-bold text-primary">PURCHASE CONTRACT</h1>
-                    <p className="text-muted-foreground mt-1">合同编号 (Contract No.): {watchedValues.contractNumber}</p>
-                    <p className="text-muted-foreground">签订日期 (Date): {format(watchedValues.date, 'yyyy-MM-dd')}</p>
+                    <p className="text-muted-foreground mt-1">合同编号 (Contract No.): {form.getValues('contractNumber')}</p>
+                    <p className="text-muted-foreground">签订日期 (Date): {format(form.getValues('date'), 'yyyy-MM-dd')}</p>
                   </div>
                 </header>
                 
                 <section className="grid grid-cols-2 gap-8 mb-8">
                   <div>
                     <h2 className="font-bold border-b mb-2 pb-1">买方 (The Buyer):</h2>
-                    <p className="font-semibold">{watchedValues.buyerName}</p>
-                    <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
+                    <p className="font-semibold">{form.getValues('buyerName')}</p>
+                    <p className="whitespace-pre-wrap">{form.getValues('buyerAddress')}</p>
                   </div>
                   <div>
                     <h2 className="font-bold border-b mb-2 pb-1">卖方 (The Seller):</h2>
-                    <p className="font-semibold">{watchedValues.supplierName}</p>
-                    <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
-                    {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
+                    <p className="font-semibold">{form.getValues('supplierName')}</p>
+                    <p className="whitespace-pre-wrap">{form.getValues('supplierAddress')}</p>
+                    {form.getValues('supplierContact') && <p>Attn: {form.getValues('supplierContact')}</p>}
                   </div>
                 </section>
 
@@ -272,6 +294,7 @@ export default function SupplierContractPage() {
                     <table className="w-full">
                         <thead className="bg-muted">
                             <tr className="border">
+                                <th className="p-2 border text-left w-20">图片 (Photo)</th>
                                 <th className="p-2 border text-left">货描 (Description)</th>
                                 <th className="p-2 border text-right">数量 (Quantity)</th>
                                 <th className="p-2 border text-right">单价 (Unit Price CNY)</th>
@@ -279,16 +302,19 @@ export default function SupplierContractPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {watchedValues.items?.map((item, index) => (
+                            {watchedItems?.map((item, index) => (
                                 <tr key={index}>
-                                    <td className="p-2 border">{item.description}</td>
-                                    <td className="p-2 border text-right">{item.quantity}</td>
-                                    <td className="p-2 border text-right">¥{item.unitPrice.toFixed(2)}</td>
-                                    <td className="p-2 border text-right">¥{item.total.toFixed(2)}</td>
+                                    <td className="p-2 border align-top">
+                                        {item.photo && <img src={item.photo} alt={item.description} crossOrigin="anonymous" className="w-16 h-16 object-contain"/>}
+                                    </td>
+                                    <td className="p-2 border align-top">{item.description}</td>
+                                    <td className="p-2 border text-right align-top">{item.quantity}</td>
+                                    <td className="p-2 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
+                                    <td className="p-2 border text-right align-top">¥{item.total.toFixed(2)}</td>
                                 </tr>
                             ))}
                             <tr>
-                                <td colSpan={3} className="p-2 border text-right font-bold">合同总价 (Total Contract Value):</td>
+                                <td colSpan={4} className="p-2 border text-right font-bold">合同总价 (Total Contract Value):</td>
                                 <td className="p-2 border text-right font-bold">¥{totalAmount.toFixed(2)}</td>
                             </tr>
                         </tbody>
@@ -297,11 +323,11 @@ export default function SupplierContractPage() {
                 
                 <section className="mt-6 space-y-2">
                     <h2 className="font-bold text-center mb-2">2. 合同条款 (TERMS)</h2>
-                    <p><strong>- 质量要求 (Quality Control):</strong> {watchedValues.qualityControl}. {qualityControlChinese}</p>
-                    <p><strong>- 付款条件 (Payment Terms):</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
-                    <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>
-                    <p><strong>- 交货时间 (Lead Time):</strong> {watchedValues.leadTime}.</p>
-                    {watchedValues.specificClauses && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
+                    <p><strong>- 质量要求 (Quality Control):</strong> {form.getValues('qualityControl')}. {qualityControlChinese}</p>
+                    <p><strong>- 付款条件 (Payment Terms):</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({form.getValues('balanceTerms')}).</p>
+                    <p><strong>- 交货条件 (Shipping Terms):</strong> {form.getValues('shippingTerms')}.</p>
+                    <p><strong>- 交货时间 (Lead Time):</strong> {form.getValues('leadTime')}.</p>
+                    {form.getValues('specificClauses') && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{form.getValues('specificClauses')}</span></p>}
                 </section>
                 
                 <div className="flex-grow"></div>
@@ -310,14 +336,14 @@ export default function SupplierContractPage() {
                   <div className="grid grid-cols-2 gap-16">
                       <div>
                           <p className="font-bold">买方 (The Buyer):</p>
-                          <p className="mt-2">{watchedValues.buyerName}</p>
+                          <p className="mt-2">{form.getValues('buyerName')}</p>
                           <div className="mt-16 border-t pt-2">
                               <p>Authorized Signature & Stamp</p>
                           </div>
                       </div>
                       <div>
                           <p className="font-bold">卖方 (The Seller):</p>
-                          <p className="mt-2">{watchedValues.supplierName}</p>
+                          <p className="mt-2">{form.getValues('supplierName')}</p>
                            <div className="mt-16 border-t pt-2">
                               <p>Authorized Signature & Stamp</p>
                           </div>
