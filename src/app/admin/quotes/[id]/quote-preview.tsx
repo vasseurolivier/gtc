@@ -130,11 +130,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="text-left bg-blue-100 text-blue-800">
-                                <th className="p-2 font-bold">Image</th>
-                                <th className="w-1/2 p-2 font-bold">Description</th>
-                                <th className="text-right p-2 font-bold">Quantité</th>
-                                <th className="text-right p-2 font-bold">Prix Unitaire</th>
-                                <th className="text-right p-2 font-bold">Total</th>
+                                <th className="p-2 font-bold border">Image</th>
+                                <th className="w-1/2 p-2 font-bold border">Description</th>
+                                <th className="text-right p-2 font-bold border">Quantité</th>
+                                <th className="text-right p-2 font-bold border">Prix Unitaire</th>
+                                <th className="text-right p-2 font-bold border">Total</th>
                             </tr>
                         </thead>
                         {itemChunks.map((chunk, chunkIndex) => (
@@ -143,23 +143,23 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                 return (
                                     <tr key={itemIndex} className="border-b">
-                                        <td className="p-1 align-top">
+                                        <td className="p-1 align-top border">
                                             {product?.imageUrl && (
                                                 <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     <img src={product.imageUrl} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain"/>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="p-1 align-top">
+                                        <td className="p-1 align-top border">
                                             <p className="font-medium leading-tight">{item.description}</p>
                                             {product?.description && <p className="text-[10px] text-muted-foreground leading-tight">{product.description}</p>}
                                         </td>
-                                        <td className="p-1 align-top text-right leading-tight">{item.quantity}</td>
-                                        <td className="p-1 align-top text-right leading-tight">
+                                        <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
+                                        <td className="p-1 align-top text-right leading-tight border">
                                             <span className="font-bold">¥{item.unitPrice.toFixed(2)}</span>
                                             <span className="text-muted-foreground"> ({currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)})</span>
                                         </td>
-                                        <td className="p-1 align-top text-right font-medium leading-tight">
+                                        <td className="p-1 align-top text-right font-medium leading-tight border">
                                             <span className="font-bold">¥{(item.quantity * item.unitPrice).toFixed(2)}</span>
                                             <span className="text-muted-foreground"> ({currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)})</span>
                                         </td>
@@ -196,7 +196,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                   </span>
                               </div>
 
-                              <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black mt-2 pt-2">
+                              <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black pt-2 mt-2">
                                   <span>TOTAL :</span>
                                   <span className="text-right">
                                       <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
@@ -215,23 +215,15 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 </p>
                             </div>
                         )}
-
+                        
                         <div className="mb-8 border-t pt-4">
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
-                            <table className="w-full text-xs">
-                                <thead>
-                                    <tr className="bg-blue-100 text-blue-800">
-                                        <th className="p-2 font-bold text-left">Acompte (30%)</th>
-                                        <th className="p-2 font-bold text-right">Solde restant</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className="p-2">¥{downPayment.toFixed(2)} (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)})</td>
-                                        <td className="p-2 text-right">¥{remainingBalance.toFixed(2)} (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <p className="text-xs text-muted-foreground leading-tight">
+                                - Acompte (30%): <strong>¥{downPayment.toFixed(2)}</strong> (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)})
+                            </p>
+                            <p className="text-xs text-muted-foreground leading-tight">
+                                - Solde restant: <strong>¥{remainingBalance.toFixed(2)}</strong> (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})
+                            </p>
                         </div>
                   
                         <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
@@ -246,8 +238,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         </div>
                     </div>
                 </div>
+                <PrintFooter />
               </div>
-              <PrintFooter />
             </div>
         </main>
     );

@@ -138,11 +138,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <table className="w-full text-xs">
                            <thead>
                                 <tr className="text-left bg-blue-100 text-blue-800">
-                                    <th className="p-2 font-bold">Image</th>
-                                    <th className="w-1/2 p-2 font-bold">Description</th>
-                                    <th className="text-right p-2 font-bold">Quantité</th>
-                                    <th className="text-right p-2 font-bold">Prix Unitaire</th>
-                                    <th className="text-right p-2 font-bold">Total</th>
+                                    <th className="p-2 font-bold border">Image</th>
+                                    <th className="w-1/2 p-2 font-bold border">Description</th>
+                                    <th className="text-right p-2 font-bold border">Quantité</th>
+                                    <th className="text-right p-2 font-bold border">Prix Unitaire</th>
+                                    <th className="text-right p-2 font-bold border">Total</th>
                                 </tr>
                             </thead>
                             {itemChunks.map((chunk, chunkIndex) => (
@@ -151,23 +151,23 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                       const product = item.sku ? productsBySku.get(item.sku) : undefined;
                                       return (
                                           <tr key={itemIndex} className="border-b">
-                                              <td className="p-1 align-top">
+                                              <td className="p-1 align-top border">
                                                   {product?.imageUrl && (
                                                       <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                                                           <img src={product.imageUrl} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain"/>
                                                       </div>
                                                   )}
                                               </td>
-                                              <td className="p-1 align-top">
+                                              <td className="p-1 align-top border">
                                                   <p className="font-medium leading-tight">{item.description}</p>
                                                   {product?.description && <p className="text-[10px] text-muted-foreground leading-tight">{product.description}</p>}
                                               </td>
-                                              <td className="p-1 align-top text-right leading-tight">{item.quantity}</td>
-                                              <td className="p-1 align-top text-right leading-tight">
+                                              <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
+                                              <td className="p-1 align-top text-right leading-tight border">
                                                   <span className="font-bold">¥{item.unitPrice.toFixed(2)}</span>
                                                   <span className="text-muted-foreground"> ({currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)})</span>
                                               </td>
-                                              <td className="p-1 align-top text-right font-medium leading-tight">
+                                              <td className="p-1 align-top text-right font-medium leading-tight border">
                                                   <span className="font-bold">¥{(item.quantity * item.unitPrice).toFixed(2)}</span>
                                                   <span className="text-muted-foreground"> ({currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)})</span>
                                               </td>
@@ -217,20 +217,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                          <div className="break-before-page mt-8 pt-4">
                                 <div className="mb-8 border-t pt-4">
                                     <h3 className="font-semibold mb-2 text-xs leading-tight">Détails du Paiement :</h3>
-                                    <table className="w-full text-xs">
-                                        <thead>
-                                            <tr className="bg-blue-100 text-blue-800">
-                                                <th className="p-2 font-bold text-left">Montant Payé</th>
-                                                <th className="p-2 font-bold text-right">Solde restant dû</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td className="p-2">¥{(invoice.amountPaid || 0).toFixed(2)} (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})</td>
-                                                <td className="p-2 text-right">¥{balanceDue.toFixed(2)} (ou {currency.symbol}{(balanceDue * exchangeRate).toFixed(2)})</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    <p className="text-xs text-muted-foreground leading-tight">
+                                        - Montant Payé: <strong>¥{(invoice.amountPaid || 0).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})
+                                    </p>
+                                     <p className="text-xs text-muted-foreground leading-tight">
+                                        - Solde restant dû: <strong>¥{balanceDue.toFixed(2)}</strong> (ou {currency.symbol}{(balanceDue * exchangeRate).toFixed(2)})
+                                    </p>
                                 </div>
                             
                                 <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
@@ -245,8 +237,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 </div>
                             </div>
                     </div>
+                     <PrintFooter />
                 </div>
-                <PrintFooter />
             </div>
         </main>
     );

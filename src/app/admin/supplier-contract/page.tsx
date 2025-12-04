@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -249,7 +250,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2 hidden lg:block print-block">
+        <div className="lg:col-span-2 lg:block print-block">
           {itemChunks.map((chunk, pageIndex) => (
             <div key={pageIndex} id={`pdf-content-${pageIndex}`} className="pdf-page bg-white p-8 shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="flex flex-col min-h-full">

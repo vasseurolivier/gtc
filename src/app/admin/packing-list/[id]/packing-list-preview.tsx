@@ -119,13 +119,13 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="text-left bg-blue-100 text-blue-800">
-                                <th className="p-2 font-bold w-[8%]">Photo</th>
-                                <th className="w-2/5 p-2 font-bold">Description</th>
-                                <th className="p-2 text-right font-bold w-[12%]">SKU</th>
-                                <th className="p-2 text-right font-bold">Quantity</th>
-                                <th className="p-2 text-right font-bold">Unit Price (CNY)</th>
-                                <th className="p-2 text-right font-bold">Total (CNY)</th>
-                                <th className="p-2 font-bold">Remarks</th>
+                                <th className="p-2 font-bold w-[8%] border">Photo</th>
+                                <th className="w-2/5 p-2 font-bold border">Description</th>
+                                <th className="p-2 text-right font-bold w-[12%] border">SKU</th>
+                                <th className="p-2 text-right font-bold border">Quantity</th>
+                                <th className="p-2 text-right font-bold border">Unit Price (CNY)</th>
+                                <th className="p-2 text-right font-bold border">Total (CNY)</th>
+                                <th className="p-2 font-bold border">Remarks</th>
                             </tr>
                         </thead>
                          {itemChunks.map((chunk, chunkIndex) => (
@@ -134,19 +134,19 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                     const totalCny = item.quantity * item.unitPriceCny;
                                     return (
                                         <tr key={index} className="border-b">
-                                            <td className="p-1 align-top">
+                                            <td className="p-1 align-top border">
                                                 {item.photo && 
                                                     <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                                                         <img src={item.photo} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain" />
                                                     </div>
                                                 }
                                             </td>
-                                            <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
-                                            <td className="p-1 align-top text-right leading-tight">{item.sku}</td>
-                                            <td className="p-1 align-top text-right leading-tight">{item.quantity}</td>
-                                            <td className="p-1 align-top text-right leading-tight"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
-                                            <td className="p-1 align-top text-right font-semibold leading-tight"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
-                                            <td className="p-1 align-top leading-tight">{item.remarks}</td>
+                                            <td className="p-1 align-top font-medium leading-tight border">{item.description}</td>
+                                            <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
+                                            <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
+                                            <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
+                                            <td className="p-1 align-top text-right font-semibold leading-tight border"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
+                                            <td className="p-1 align-top leading-tight border">{item.remarks}</td>
                                         </tr>
                                     );
                                 })}
@@ -173,8 +173,8 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         </div>
                     </div>
                 </div>
+                 <PrintFooter />
               </div>
-              <PrintFooter />
             </div>
         </main>
     );
