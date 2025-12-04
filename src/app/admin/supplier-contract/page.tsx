@@ -17,9 +17,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Loader2, PlusCircle, Trash2, Printer } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
+import { getProducts, Product } from '@/actions/products';
 
 const contractItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
@@ -52,6 +55,8 @@ export default function SupplierContractPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isPrinting, setIsPrinting] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const companyInfoContext = useContext(CompanyInfoContext);
   const currencyContext = useContext(CurrencyContext);
 
@@ -59,8 +64,22 @@ export default function SupplierContractPage() {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
+      return;
     }
-  }, [router]);
+    
+    async function fetchProducts() {
+        try {
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch products.' });
+        } finally {
+            setIsLoadingProducts(false);
+        }
+    }
+    fetchProducts();
+
+  }, [router, toast]);
 
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(formSchema),
@@ -112,6 +131,14 @@ export default function SupplierContractPage() {
     }
   }, [companyInfoContext?.companyInfo, form]);
 
+  const handleProductSelect = (productId: string, index: number) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      form.setValue(`items.${index}.description`, product.name);
+      form.setValue(`items.${index}.unitPrice`, product.purchasePrice || 0);
+    }
+  };
+
   const handlePrint = () => {
     setIsPrinting(true);
     setTimeout(() => {
@@ -124,7 +151,7 @@ export default function SupplierContractPage() {
   const depositAmount = totalAmount * (depositPercentage / 100);
   const balanceAmount = totalAmount - depositAmount;
 
-  if (!companyInfoContext || !currencyContext) {
+  if (!companyInfoContext || !currencyContext || isLoadingProducts) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -176,6 +203,16 @@ export default function SupplierContractPage() {
                           <Card key={field.id} className="p-4 relative">
                             <div className="flex justify-end"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
                             <div className="space-y-2">
+                                <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a product or describe" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {products.map(p => (
+                                            <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...f} /></FormControl></FormItem> )} />
                                 <div className="grid grid-cols-2 gap-2">
                                     <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem> )} />
