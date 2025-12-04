@@ -94,23 +94,42 @@ body {
   break-before: page;
 }
 
+@page {
+  size: A4;
+  margin: 0;
+}
 
 @media print {
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
   }
   .no-print {
     display: none !important;
   }
   #pdf-content {
-    padding: 0 !important;
+    padding: 2rem !important; /* Re-apply padding for print */
+    position: relative;
+    min-height: calc(297mm - 4rem);
+    display: flex;
+    flex-direction: column;
   }
   .print-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 30px; /* Adjust height as needed */
+    width: 100%;
+    height: 40px; /* Adjust height as needed */
+  }
+  .print-footer-content {
+    padding: 0.5rem 2rem;
+    border-top: 1px solid hsl(var(--border));
+    text-align: center;
+    font-size: 8px;
+    color: hsl(var(--muted-foreground));
+    font-family: sans-serif;
   }
 }
