@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState, useContext, ChangeEvent } from 'react';
+import { useEffect, useState, useContext, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +9,7 @@ import { z } from 'zod';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,13 +18,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { PrintFooter } from '@/components/layout/print-footer';
-import { Loader2, PlusCircle, Trash2, Printer, UploadCloud } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { getProducts, Product } from '@/actions/products';
+import { addSupplierContract, getSupplierContracts, updateSupplierContract, deleteSupplierContract, SupplierContract } from '@/actions/supplier-contracts';
 
 const contractItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
@@ -52,41 +58,28 @@ const formSchema = z.object({
 
 type ContractFormValues = z.infer<typeof formSchema>;
 
-export default function SupplierContractPage() {
-  const router = useRouter();
+function ContractGenerator({ editingContract, onFinished, products }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[] }) {
   const { toast } = useToast();
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const currencyContext = useContext(CurrencyContext);
-
-  useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
-    if (isAuthenticated !== 'true') {
-      router.push('/admin/login');
-      return;
+  
+  const getInitialValues = () => {
+    if (editingContract) {
+        return {
+            ...editingContract,
+            date: new Date(editingContract.date),
+            items: editingContract.items.map(item => ({...item, photo: item.photo || ''})),
+        };
     }
-    
-    async function fetchProducts() {
-        try {
-            const fetchedProducts = await getProducts();
-            setProducts(fetchedProducts);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch products.' });
-        } finally {
-            setIsLoadingProducts(false);
-        }
-    }
-    fetchProducts();
-
-  }, [router, toast]);
-
-  const form = useForm<ContractFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+    return {
       contractNumber: `SC-${Date.now().toString().slice(-6)}`,
       date: new Date(),
+      supplierName: '',
+      supplierAddress: '',
+      supplierContact: '',
+      buyerName: companyInfoContext?.companyInfo.name || '',
+      buyerAddress: companyInfoContext?.companyInfo.address || '',
       items: [{ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' }],
       totalAmount: 0,
       depositPercentage: 30,
@@ -95,7 +88,12 @@ export default function SupplierContractPage() {
       shippingTerms: 'FOB Ningbo',
       leadTime: '30-35 days after deposit',
       specificClauses: '',
-    },
+    };
+  }
+
+  const form = useForm<ContractFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: getInitialValues(),
   });
   
   const { fields, append, remove } = useFieldArray({
@@ -104,21 +102,35 @@ export default function SupplierContractPage() {
   });
 
   const watchedValues = form.watch();
-  
-  const calculateTotals = (items: any[]) => {
-    return items.reduce((sum, item) => {
-        const quantity = Number(item.quantity) || 0;
-        const unitPrice = Number(item.unitPrice) || 0;
-        return sum + (quantity * unitPrice);
-    }, 0);
-  };
-  
+
   useEffect(() => {
-    if (companyInfoContext?.companyInfo) {
+    if (companyInfoContext?.companyInfo && !editingContract) {
       form.setValue('buyerName', companyInfoContext.companyInfo.name);
       form.setValue('buyerAddress', companyInfoContext.companyInfo.address);
     }
-  }, [companyInfoContext?.companyInfo, form]);
+  }, [companyInfoContext?.companyInfo, form, editingContract]);
+  
+  useEffect(() => {
+    const subscription = form.watch((values, { name, type }) => {
+        if (name && (name.startsWith('items') || name === 'depositPercentage')) {
+            const items = values.items || [];
+            
+            items.forEach((item, index) => {
+                if (!item) return;
+                const quantity = Number(item.quantity) || 0;
+                const unitPrice = Number(item.unitPrice) || 0;
+                const newTotal = quantity * unitPrice;
+                if (item.total !== newTotal) {
+                     form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+                }
+            });
+
+            const totalAmount = items.reduce((sum, item) => sum + (item?.total || 0), 0);
+            form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+        }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
@@ -130,58 +142,60 @@ export default function SupplierContractPage() {
   };
   
   const handlePrint = () => {
-    // Manually trigger total calculations before printing
-    const currentItems = form.getValues('items');
-    const newTotalAmount = calculateTotals(currentItems);
-    form.setValue('totalAmount', newTotalAmount);
-    currentItems.forEach((item, index) => {
-      const quantity = Number(item.quantity) || 0;
-      const unitPrice = Number(item.unitPrice) || 0;
-      form.setValue(`items.${index}.total`, quantity * unitPrice);
-    });
+    window.print();
+  };
 
-    // Use a timeout to ensure state is updated before print dialog
-    setTimeout(() => {
-        window.print();
-    }, 100);
+  const onSubmit = async (values: ContractFormValues) => {
+    setIsSubmitting(true);
+    const result = editingContract
+        ? await updateSupplierContract(editingContract.id, values)
+        : await addSupplierContract(values);
+    
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      onFinished();
+    } else {
+      toast({ variant: 'destructive', title: 'Error', description: result.message });
+    }
+    setIsSubmitting(false);
   };
   
-  const totalAmount = calculateTotals(watchedValues.items || []);
+  if (!companyInfoContext || !currencyContext) {
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
+  }
+  const { companyInfo } = companyInfoContext;
+  
+  const totalAmount = watchedValues.totalAmount || 0;
   const depositAmount = totalAmount * ((watchedValues.depositPercentage || 0) / 100);
   const balanceAmount = totalAmount - depositAmount;
 
-  if (!companyInfoContext || !currencyContext || isLoadingProducts) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
+  const itemChunks = [];
+  const ITEMS_PER_PAGE = 5;
+  if(watchedValues.items) {
+    for (let i = 0; i < watchedValues.items.length; i += ITEMS_PER_PAGE) {
+        itemChunks.push(watchedValues.items.slice(i, i + ITEMS_PER_PAGE));
+    }
   }
-  const { companyInfo } = companyInfoContext;
-  const { currency, exchangeRate } = currencyContext;
-  
-  const qualityControlChinese = 
-    form.getValues('qualityControl')?.toLowerCase().includes('aql') 
-    ? 'AQL (可接受质量水平) 国际抽样标准' 
-    : '';
 
   return (
-    <div className="container py-8 printable-area">
-      <div className="flex justify-between items-center mb-8 no-print">
-        <h1 className="text-3xl font-bold">Supplier Contract Generator</h1>
-        <Button onClick={handlePrint} disabled={isPrinting}>
-          <Printer className="mr-2 h-4 w-4" />
-          {isPrinting ? 'Printing...' : 'Print / Export to PDF'}
-        </Button>
-      </div>
-
+    <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-1 no-print">
           <CardContent className="p-6">
             <Form {...form}>
               <form className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-semibold">{editingContract ? 'Edit Contract' : 'Contract Details'}</h3>
+                    <div className="flex gap-2">
+                        <Button type="button" variant="outline" onClick={handlePrint}>
+                            <Printer className="mr-2 h-4 w-4" /> Print
+                        </Button>
+                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
+                            <Save className="mr-2 h-4 w-4" /> {isSubmitting ? 'Saving...' : 'Save'}
+                        </Button>
+                    </div>
+                </div>
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Contract Details</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl><FormMessage /></FormItem> )} />
@@ -203,28 +217,17 @@ export default function SupplierContractPage() {
                             <div className="flex justify-end"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
                             <div className="space-y-2">
                                 <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a product or describe" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {products.map(p => (
-                                            <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
-                                        ))}
-                                    </SelectContent>
+                                    <SelectTrigger><SelectValue placeholder="Select a product or describe" /></SelectTrigger>
+                                    <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent>
                                 </Select>
-                                 <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4">
                                   <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
                                       {watchedValues.items?.[index]?.photo ? (
                                           <Image src={watchedValues.items[index].photo!.trimEnd()} alt="Product" width={64} height={64} className="object-contain" />
-                                      ) : (
-                                          <UploadCloud className="h-6 w-6 text-muted-foreground" />
-                                      )}
+                                      ) : (<UploadCloud className="h-6 w-6 text-muted-foreground" />)}
                                   </div>
                                   <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                                      <FormItem className="w-full">
-                                          <FormLabel>Photo URL</FormLabel>
-                                          <FormControl><Input placeholder="https://..." {...photoField} /></FormControl>
-                                      </FormItem>
+                                      <FormItem className="w-full"><FormLabel>Photo URL</FormLabel><FormControl><Input placeholder="https://..." {...photoField} /></FormControl></FormItem>
                                   )} />
                                </div>
                                 <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...f} /></FormControl></FormItem> )} />
@@ -253,13 +256,12 @@ export default function SupplierContractPage() {
           </CardContent>
         </Card>
 
-        <div id="pdf-content" className="lg:col-span-2 print-content">
-            <Card className="min-h-[29.7cm] flex flex-col">
-              <CardContent className="p-8 text-sm flex-grow flex flex-col">
+        <div className="lg:col-span-2 print-only">
+          {itemChunks.map((chunk, pageIndex) => (
+            <div key={pageIndex} id={`pdf-content-${pageIndex}`} className="pdf-page bg-white p-8">
+              <div className="flex flex-col min-h-full">
                 <header className="flex justify-between items-start mb-8">
-                  <div>
-                    {companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-20 object-contain" />}
-                  </div>
+                  <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-20 object-contain" />}</div>
                   <div className="text-right">
                     <h1 className="text-2xl font-bold text-primary">PURCHASE CONTRACT</h1>
                     <p className="text-muted-foreground mt-1">合同编号 (Contract No.): {watchedValues.contractNumber}</p>
@@ -267,89 +269,259 @@ export default function SupplierContractPage() {
                   </div>
                 </header>
                 
-                <section className="grid grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <h2 className="font-bold border-b mb-2 pb-1">买方 (The Buyer):</h2>
-                    <p className="font-semibold">{watchedValues.buyerName}</p>
-                    <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
-                  </div>
-                  <div>
-                    <h2 className="font-bold border-b mb-2 pb-1">卖方 (The Seller):</h2>
-                    <p className="font-semibold">{watchedValues.supplierName}</p>
-                    <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
-                    {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
-                  </div>
-                </section>
+                {pageIndex === 0 && (
+                  <section className="grid grid-cols-2 gap-8 mb-8">
+                    <div>
+                      <h2 className="font-bold border-b mb-2 pb-1">买方 (The Buyer):</h2>
+                      <p className="font-semibold">{watchedValues.buyerName}</p>
+                      <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
+                    </div>
+                    <div>
+                      <h2 className="font-bold border-b mb-2 pb-1">卖方 (The Seller):</h2>
+                      <p className="font-semibold">{watchedValues.supplierName}</p>
+                      <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
+                      {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
+                    </div>
+                  </section>
+                )}
 
                 <section>
                     <h2 className="font-bold text-center mb-2">1. 商品 (COMMODITY)</h2>
-                    <table className="w-full">
+                    <table className="w-full text-sm">
                         <thead className="bg-muted">
-                            <tr className="border">
-                                <th className="p-2 border text-left w-20">图片 (Photo)</th>
-                                <th className="p-2 border text-left">货描 (Description)</th>
-                                <th className="p-2 border text-right">数量 (Quantity)</th>
-                                <th className="p-2 border text-right">单价 (Unit Price CNY)</th>
-                                <th className="p-2 border text-right">总价 (Total Amount CNY)</th>
-                            </tr>
+                            <tr className="border"><th className="p-2 border text-left w-20">图片 (Photo)</th><th className="p-2 border text-left">货描 (Description)</th><th className="p-2 border text-right">数量 (Quantity)</th><th className="p-2 border text-right">单价 (Unit Price CNY)</th><th className="p-2 border text-right">总价 (Total Amount CNY)</th></tr>
                         </thead>
                         <tbody>
-                            {watchedValues.items?.map((item, index) => {
-                              const quantity = Number(item.quantity) || 0;
-                              const unitPrice = Number(item.unitPrice) || 0;
-                              const total = quantity * unitPrice;
-                              return (
+                            {chunk.map((item, index) => (
                                 <tr key={index}>
-                                    <td className="p-2 border align-top">
-                                        {item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-16 h-16 object-contain"/>}
-                                    </td>
+                                    <td className="p-2 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-16 h-16 object-contain"/>}</td>
                                     <td className="p-2 border align-top">{item.description}</td>
-                                    <td className="p-2 border text-right align-top">{quantity}</td>
-                                    <td className="p-2 border text-right align-top">¥{unitPrice.toFixed(2)}</td>
-                                    <td className="p-2 border text-right align-top">¥{total.toFixed(2)}</td>
+                                    <td className="p-2 border text-right align-top">{item.quantity}</td>
+                                    <td className="p-2 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
+                                    <td className="p-2 border text-right align-top">¥{item.total.toFixed(2)}</td>
                                 </tr>
-                            )})}
-                            <tr>
-                                <td colSpan={4} className="p-2 border text-right font-bold">合同总价 (Total Contract Value):</td>
-                                <td className="p-2 border text-right font-bold">¥{totalAmount.toFixed(2)}</td>
-                            </tr>
+                            ))}
                         </tbody>
                     </table>
                 </section>
                 
-                <section className="mt-6 space-y-2">
-                    <h2 className="font-bold text-center mb-2">2. 合同条款 (TERMS)</h2>
-                    <p><strong>- 质量要求 (Quality Control):</strong> {watchedValues.qualityControl}. {qualityControlChinese}</p>
-                    <p><strong>- 付款条件 (Payment Terms):</strong> {watchedValues.depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
-                    <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>
-                    <p><strong>- 交货时间 (Lead Time):</strong> {watchedValues.leadTime}.</p>
-                    {watchedValues.specificClauses && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
-                </section>
-                
-                <div className="flex-grow"></div>
+                {pageIndex === itemChunks.length - 1 && (
+                  <>
+                    <div className="flex justify-end mt-4">
+                        <div className="w-1/2">
+                             <table className="w-full">
+                                <tbody>
+                                    <tr className="font-bold">
+                                        <td className="p-2 text-right">合同总价 (Total Contract Value):</td>
+                                        <td className="p-2 text-right">¥{totalAmount.toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <section className="mt-6 space-y-2">
+                        <h2 className="font-bold text-center mb-2">2. 合同条款 (TERMS)</h2>
+                        <p><strong>- 质量要求 (Quality Control):</strong> {watchedValues.qualityControl}. {watchedValues.qualityControl?.toLowerCase().includes('aql') ? 'AQL (可接受质量水平) 国际抽样标准' : ''}</p>
+                        <p><strong>- 付款条件 (Payment Terms):</strong> {watchedValues.depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
+                        <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>
+                        <p><strong>- 交货时间 (Lead Time):</strong> {watchedValues.leadTime}.</p>
+                        {watchedValues.specificClauses && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
+                    </section>
+                    
+                    <div className="flex-grow"></div>
 
-                <section className="mt-24 pt-8">
-                  <div className="grid grid-cols-2 gap-16">
-                      <div>
-                          <p className="font-bold">买方 (The Buyer):</p>
-                          <p className="mt-2">{watchedValues.buyerName}</p>
-                          <div className="mt-16 border-t pt-2">
-                              <p>Authorized Signature & Stamp</p>
+                    <section className="mt-24 pt-8">
+                      <div className="grid grid-cols-2 gap-16">
+                          <div>
+                              <p className="font-bold">买方 (The Buyer):</p>
+                              <p className="mt-2">{watchedValues.buyerName}</p>
+                              <div className="mt-16 border-t pt-2"><p>Authorized Signature & Stamp</p></div>
+                          </div>
+                          <div>
+                              <p className="font-bold">卖方 (The Seller):</p>
+                              <p className="mt-2">{watchedValues.supplierName}</p>
+                               <div className="mt-16 border-t pt-2"><p>Authorized Signature & Stamp</p></div>
                           </div>
                       </div>
-                      <div>
-                          <p className="font-bold">卖方 (The Seller):</p>
-                          <p className="mt-2">{watchedValues.supplierName}</p>
-                           <div className="mt-16 border-t pt-2">
-                              <p>Authorized Signature & Stamp</p>
-                          </div>
-                      </div>
-                  </div>
-                </section>
-              </CardContent>
-            </Card>
+                    </section>
+                  </>
+                )}
+                <PrintFooter />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </>
   );
+}
+
+function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierContract) => void, refreshKey: number }) {
+    const [contracts, setContracts] = useState<SupplierContract[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        async function fetchContracts() {
+            setIsLoading(true);
+            try {
+                const fetchedContracts = await getSupplierContracts();
+                setContracts(fetchedContracts);
+            } catch (error) {
+                console.error("Failed to fetch contracts", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchContracts();
+    }, [refreshKey]);
+
+    const handleDelete = async (id: string) => {
+        const result = await deleteSupplierContract(id);
+        if (result.success) {
+            toast({ title: 'Success', description: result.message });
+            setContracts(prev => prev.filter(c => c.id !== id));
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: result.message });
+        }
+    };
+
+    if (isLoading) {
+        return <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
+    }
+
+    return (
+        <Card>
+            <CardContent className="p-0">
+                {contracts.length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground"><p>No saved supplier contracts found.</p></div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Contract #</TableHead>
+                                <TableHead>Supplier</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead className="text-right">Total Amount</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {contracts.map((contract) => (
+                                <TableRow key={contract.id}>
+                                    <TableCell className="font-medium">{contract.contractNumber}</TableCell>
+                                    <TableCell>{contract.supplierName}</TableCell>
+                                    <TableCell>{format(new Date(contract.date), 'dd MMM yyyy')}</TableCell>
+                                    <TableCell className="text-right">¥{contract.totalAmount.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => onEdit(contract)}><Pencil className="h-4 w-4" /></Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>This action will permanently delete this contract.</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDelete(contract.id)}>Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function SupplierContractPageContent() {
+    const [activeTab, setActiveTab] = useState("generator");
+    const [editingContract, setEditingContract] = useState<SupplierContract | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [generatorKey, setGeneratorKey] = useState('new-0');
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+
+    useEffect(() => {
+        async function fetchProducts() {
+            try {
+                const fetchedProducts = await getProducts();
+                setProducts(fetchedProducts);
+            } catch (error) {
+                console.error("Failed to fetch products", error);
+            } finally {
+                setIsLoadingProducts(false);
+            }
+        }
+        fetchProducts();
+    }, []);
+
+    const handleEdit = (contract: SupplierContract) => {
+        setEditingContract(contract);
+        setGeneratorKey(`edit-${contract.id}-${Date.now()}`);
+        setActiveTab("generator");
+    };
+
+    const handleFinished = () => {
+        setEditingContract(null);
+        setGeneratorKey(`new-${Date.now()}`);
+        setRefreshKey(prev => prev + 1);
+        setActiveTab("history");
+    };
+
+    const handleNew = () => {
+        setEditingContract(null);
+        setGeneratorKey(`new-${Date.now()}`);
+        setActiveTab("generator");
+    }
+    
+    if (isLoadingProducts) {
+        return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
+    }
+
+    return (
+        <div className="container py-8">
+             <div className="flex justify-between items-center mb-8 no-print">
+                <h1 className="text-3xl font-bold">Supplier Contract</h1>
+                 {activeTab === 'generator' && editingContract && (
+                    <Button variant="outline" onClick={handleNew}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Create New Contract
+                    </Button>
+                 )}
+            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="no-print">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="generator">{editingContract ? 'Edit Contract' : 'Generator'}</TabsTrigger>
+                    <TabsTrigger value="history">History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="generator">
+                    <ContractGenerator key={generatorKey} editingContract={editingContract} onFinished={handleFinished} products={products} />
+                </TabsContent>
+                <TabsContent value="history">
+                    <ContractHistory onEdit={handleEdit} refreshKey={refreshKey} />
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
+}
+
+export default function SupplierContractPage() {
+    const router = useRouter();
+    useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+            router.push('/admin/login');
+        }
+    }, [router]);
+
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <SupplierContractPageContent />
+        </Suspense>
+    );
 }
