@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Loader2, PlusCircle, Trash2, Printer } from 'lucide-react';
@@ -43,7 +42,7 @@ const formSchema = z.object({
   qualityControl: z.string().default('AQL 2.5/4.0'),
   shippingTerms: z.string().default('FOB Ningbo'),
   leadTime: z.string().default('30-35 days after deposit'),
-  notes: z.string().optional(),
+  specificClauses: z.string().optional(),
 });
 
 type ContractFormValues = z.infer<typeof formSchema>;
@@ -74,7 +73,7 @@ export default function SupplierContractPage() {
       qualityControl: 'AQL 2.5/4.0',
       shippingTerms: 'FOB Ningbo',
       leadTime: '30-35 days after deposit',
-      notes: '',
+      specificClauses: '',
     },
   });
   
@@ -195,16 +194,16 @@ export default function SupplierContractPage() {
                         <FormField control={form.control} name="qualityControl" render={({ field }) => ( <FormItem><FormLabel>Quality Control</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="shippingTerms" render={({ field }) => ( <FormItem><FormLabel>Shipping Terms (Incoterms)</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="leadTime" render={({ field }) => ( <FormItem><FormLabel>Lead Time</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="notes" render={({ field }) => ( <FormItem><FormLabel>Additional Notes</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="specificClauses" render={({ field }) => ( <FormItem><FormLabel>Specific Clauses</FormLabel><FormControl><Textarea placeholder="Add any specific clauses or notes here..." {...field} rows={4} /></FormControl></FormItem> )} />
                    </div>
               </form>
             </Form>
           </CardContent>
         </Card>
 
-        <div id="pdf-content" className="lg:col-span-2 print-content min-h-[29.7cm] flex flex-col">
-            <Card className="flex-grow">
-              <CardContent className="p-8 text-sm">
+        <div id="pdf-content" className="lg:col-span-2 print-content">
+            <Card className="min-h-[29.7cm] flex flex-col">
+              <CardContent className="p-8 text-sm flex-grow flex flex-col">
                 <header className="flex justify-between items-start mb-8">
                   <div>
                     {companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-20 object-contain" />}
@@ -264,10 +263,9 @@ export default function SupplierContractPage() {
                     <p><strong>- 付款条件 (Payment Terms):</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
                     <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>
                     <p><strong>- 交货时间 (Lead Time):</strong> {watchedValues.leadTime}.</p>
-                    {watchedValues.notes && <p><strong>- 备注 (Notes):</strong> <span className="whitespace-pre-wrap">{watchedValues.notes}</span></p>}
+                    {watchedValues.specificClauses && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
                 </section>
                 
-                 {/* This container will be pushed to the bottom */}
                 <div className="flex-grow"></div>
 
                 <section className="mt-24 pt-8">
@@ -288,7 +286,6 @@ export default function SupplierContractPage() {
                       </div>
                   </div>
                 </section>
-
               </CardContent>
             </Card>
         </div>
