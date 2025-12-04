@@ -105,16 +105,16 @@ body {
     height: 297mm;
     margin: 0;
     padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .no-print {
     display: none !important;
   }
   #pdf-content {
     padding: 2rem !important; /* Re-apply padding for print */
-    position: relative;
-    min-height: calc(297mm - 4rem);
-    display: flex;
-    flex-direction: column;
+    min-height: calc(297mm - 4rem - 40px); /* A4 height - padding - footer height */
+    box-sizing: border-box;
   }
   .print-footer {
     position: fixed;
@@ -130,6 +130,6 @@ body {
     text-align: center;
     font-size: 8px;
     color: hsl(var(--muted-foreground));
-    font-family: sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 }

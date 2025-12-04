@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext } from 'react';
@@ -18,6 +19,7 @@ export function PrintFooter() {
             <div className="print-footer-content">
                 <p>Merci de votre confiance</p>
                 <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
+                <p>{companyInfo?.address}</p>
             </div>
         </footer>
     );
