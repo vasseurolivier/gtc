@@ -275,12 +275,12 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
         </Card>
 
         <div className="lg:col-span-2 lg:block">
-            <div id="pdf-content" className="p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] flex flex-col">
+            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm]">
               <div className="flex-grow">
                 <header className="flex justify-between items-start mb-4">
-                  <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-16 object-contain" />}</div>
+                  <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 object-contain" />}</div>
                   <div className="text-right">
-                    <h1 className="text-xl font-bold text-primary">PURCHASE CONTRACT</h1>
+                    <h1 className="text-lg font-bold text-primary">PURCHASE CONTRACT</h1>
                     <p className="text-xs text-muted-foreground mt-1">合同编号 (Contract No.): {watchedValues.contractNumber}</p>
                     <p className="text-xs text-muted-foreground">签订日期 (Date): {format(watchedValues.date, 'yyyy-MM-dd')}</p>
                   </div>
@@ -288,12 +288,12 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                 
                 <section className="grid grid-cols-2 gap-8 mb-4 text-xs">
                   <div>
-                    <h2 className="font-bold border-b mb-1 pb-1 text-sm">买方 (The Buyer):</h2>
+                    <h2 className="font-bold border-b mb-1 pb-1">买方 (The Buyer):</h2>
                     <p className="font-semibold">{watchedValues.buyerName}</p>
                     <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
                   </div>
                   <div>
-                    <h2 className="font-bold border-b mb-1 pb-1 text-sm">卖方 (The Seller):</h2>
+                    <h2 className="font-bold border-b mb-1 pb-1">卖方 (The Seller):</h2>
                     <p className="font-semibold">{watchedValues.supplierName}</p>
                     <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
                     {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
@@ -301,15 +301,15 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                 </section>
 
                 <section>
-                    <h2 className="font-bold text-center mb-2 text-sm">1. 商品 (COMMODITY)</h2>
+                    <h2 className="font-bold text-center mb-2">1. 商品 (COMMODITY)</h2>
                     <table className="w-full text-xs leading-tight">
                         <thead className="bg-muted">
-                            <tr className="border"><th className="p-1 border text-left w-16">图片 (Photo)</th><th className="p-1 border text-left">货描 (Description)</th><th className="p-1 border text-right">数量 (Quantity)</th><th className="p-1 border text-right">单价 (Unit Price CNY)</th><th className="p-1 border text-right">总价 (Total Amount CNY)</th></tr>
+                            <tr className="border"><th className="p-1 border text-left w-12">图片 (Photo)</th><th className="p-1 border text-left">货描 (Description)</th><th className="p-1 border text-right">数量 (Quantity)</th><th className="p-1 border text-right">单价 (Unit Price CNY)</th><th className="p-1 border text-right">总价 (Total Amount CNY)</th></tr>
                         </thead>
                         <tbody>
                             {watchedValues.items?.map((item, index) => (
                                 <tr key={index}>
-                                    <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-14 h-14 object-contain"/>}</td>
+                                    <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-10 h-10 object-contain"/>}</td>
                                     <td className="p-1 border align-top">{item.description}</td>
                                     <td className="p-1 border text-right align-top">{item.quantity}</td>
                                     <td className="p-1 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
@@ -334,7 +334,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                         </div>
                     </div>
                     <section className="mt-4 space-y-1 text-xs">
-                        <h2 className="font-bold text-center mb-2 text-sm">2. 合同条款 (TERMS)</h2>
+                        <h2 className="font-bold text-center mb-2">2. 合同条款 (TERMS)</h2>
                         <p><strong>- 质量要求 (Quality Control):</strong> {watchedValues.qualityControl}. {watchedValues.qualityControl?.toLowerCase().includes('aql') ? 'AQL (可接受质量水平) 国际抽样标准' : ''}</p>
                         <p><strong>- 付款条件 (Payment Terms):</strong> {watchedValues.depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
                         <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>

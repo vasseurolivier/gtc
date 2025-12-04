@@ -8,13 +8,13 @@ export function PrintFooter() {
     const companyInfoContext = useContext(CompanyInfoContext);
 
     if (!companyInfoContext?.isCompanyInfoLoaded) {
-        return null; // Don't render anything if info isn't loaded
+        return null;
     }
 
     const { companyInfo } = companyInfoContext;
 
     return (
-        <div className="text-center text-xs text-muted-foreground pt-2">
+        <div className="absolute bottom-8 left-8 right-8 text-center text-xs text-muted-foreground pt-2">
             <Separator className="my-2" />
             <p>Merci de votre confiance</p>
             <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>

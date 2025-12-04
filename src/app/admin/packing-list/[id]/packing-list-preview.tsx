@@ -80,7 +80,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 bg-white min-h-[297mm] flex flex-col">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm]">
               <div className="flex-grow">
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>

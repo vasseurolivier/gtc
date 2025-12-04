@@ -92,7 +92,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 bg-white min-h-[297mm] flex flex-col">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm]">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
@@ -215,10 +215,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     <div className="break-before-page mt-8 pt-4">
                          <div className="mb-4 pt-4">
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
-                            <div className="text-xs text-muted-foreground space-y-1 leading-tight">
-                                <p>Montant Payé: <strong>¥{(invoice.amountPaid || 0).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})</p>
-                                <p>Solde restant dû: <strong>¥{(invoice.totalAmount - (invoice.amountPaid || 0)).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)})</p>
-                            </div>
+                            <p className="text-xs text-muted-foreground space-y-1 leading-tight">
+                                Montant Payé: <strong>¥{(invoice.amountPaid || 0).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})
+                            </p>
+                            <p className="text-xs text-muted-foreground space-y-1 leading-tight">
+                                Solde restant dû: <strong>¥{(invoice.totalAmount - (invoice.amountPaid || 0)).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)})
+                            </p>
                         </div>
                     
                         <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
