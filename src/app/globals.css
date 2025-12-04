@@ -98,4 +98,13 @@ body {
   body, body * {
     line-height: 1.2 !important;
   }
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  #pdf-content {
+    padding-bottom: 50px; /* Add padding to avoid content overlapping with the footer */
+  }
 }
