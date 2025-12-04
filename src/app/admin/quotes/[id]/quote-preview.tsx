@@ -129,12 +129,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     
                     <table className="w-full text-xs">
                         <thead>
-                            <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                <th className="p-1 font-semibold">Image</th>
-                                <th className="w-1/2 p-1 font-semibold">Description</th>
-                                <th className="text-right p-1 font-semibold">Quantité</th>
-                                <th className="text-right p-1 font-semibold">Prix Unitaire</th>
-                                <th className="text-right p-1 font-semibold">Total</th>
+                            <tr className="text-left bg-blue-100 text-blue-800">
+                                <th className="p-2 font-bold">Image</th>
+                                <th className="w-1/2 p-2 font-bold">Description</th>
+                                <th className="text-right p-2 font-bold">Quantité</th>
+                                <th className="text-right p-2 font-bold">Prix Unitaire</th>
+                                <th className="text-right p-2 font-bold">Total</th>
                             </tr>
                         </thead>
                         {itemChunks.map((chunk, chunkIndex) => (
@@ -196,9 +196,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                   </span>
                               </div>
 
-                              <div className="border-t-2 border-black my-2" />
-
-                              <div className="flex justify-between font-bold text-sm leading-tight">
+                              <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black mt-2 pt-2">
                                   <span>TOTAL :</span>
                                   <span className="text-right">
                                       <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
@@ -220,12 +218,18 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
                         <div className="mb-8 border-t pt-4">
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
-                            <p className="text-xs text-muted-foreground leading-tight">
-                                <strong>Acompte (30%) :</strong> ¥{downPayment.toFixed(2)} (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)}) à la commande.
-                            </p>
-                             <p className="text-xs text-muted-foreground leading-tight">
-                                <strong>Solde :</strong> ¥{remainingBalance.toFixed(2)} (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}) avant expédition, après contrôle qualité.
-                            </p>
+                            <table className="w-full text-xs">
+                                <tbody>
+                                    <tr className="bg-blue-100">
+                                        <td className="p-2 font-bold text-blue-800">Acompte (30%)</td>
+                                        <td className="p-2 font-bold text-blue-800 text-right">Solde restant</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="p-2">¥{downPayment.toFixed(2)} (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)})</td>
+                                        <td className="p-2 text-right">¥{remainingBalance.toFixed(2)} (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -249,5 +253,3 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         </main>
     );
 }
-
-    

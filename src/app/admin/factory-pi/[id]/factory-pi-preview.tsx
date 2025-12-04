@@ -106,13 +106,13 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                           
                         <table className="w-full text-xs">
                             <thead>
-                                <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold">Image</th>
-                                    <th className="w-1/2 p-1 font-semibold">Description</th>
-                                    <th className="p-1 text-right font-semibold">SKU</th>
-                                    <th className="p-1 text-right font-semibold">Quantity</th>
-                                    <th className="p-1 text-right font-semibold">Unit Price (CNY)</th>
-                                    <th className="p-1 text-right font-semibold">Total (CNY)</th>
+                                <tr className="text-left bg-blue-100 text-blue-800">
+                                    <th className="p-2 font-bold">Image</th>
+                                    <th className="w-1/2 p-2 font-bold">Description</th>
+                                    <th className="p-2 text-right font-bold">SKU</th>
+                                    <th className="p-2 text-right font-bold">Quantity</th>
+                                    <th className="p-2 text-right font-bold">Unit Price (CNY)</th>
+                                    <th className="p-2 text-right font-bold">Total (CNY)</th>
                                 </tr>
                             </thead>
                              {itemChunks.map((chunk, chunkIndex) => (
@@ -149,9 +149,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                     </span>
                                 </div>
                             
-                                <div className="border-t-2 border-black my-2" />
-
-                                <div className="flex justify-between font-bold text-sm leading-tight">
+                                <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black pt-2 mt-2">
                                     <span>TOTAL (CNY) :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>

@@ -137,12 +137,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         
                         <table className="w-full text-xs">
                             <thead>
-                                <tr className="text-left text-muted-foreground border-b-2 border-t-2">
-                                    <th className="p-1 font-semibold">Image</th>
-                                    <th className="w-1/2 p-1 font-semibold">Description</th>
-                                    <th className="text-right p-1 font-semibold">Quantité</th>
-                                    <th className="text-right p-1 font-semibold">Prix Unitaire</th>
-                                    <th className="text-right p-1 font-semibold">Total</th>
+                                <tr className="text-left bg-blue-100 text-blue-800">
+                                    <th className="p-2 font-bold">Image</th>
+                                    <th className="w-1/2 p-2 font-bold">Description</th>
+                                    <th className="text-right p-2 font-bold">Quantité</th>
+                                    <th className="text-right p-2 font-bold">Prix Unitaire</th>
+                                    <th className="text-right p-2 font-bold">Total</th>
                                 </tr>
                             </thead>
                             {itemChunks.map((chunk, chunkIndex) => (
@@ -204,9 +204,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     </span>
                                 </div>
                                 
-                                <div className="border-t-2 border-black my-2" />
-
-                                <div className="flex justify-between font-bold text-sm leading-tight">
+                                <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black mt-2 pt-2">
                                     <span>TOTAL :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{invoice.totalAmount.toFixed(2)}</span>
@@ -217,16 +215,23 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
 
                          <div className="mt-8 pt-4">
-                            <div className="mb-8 border-t pt-4">
-                                <h3 className="font-semibold mb-2 text-xs leading-tight">Détails du Paiement :</h3>
-                                <p className="text-xs text-muted-foreground leading-tight">
-                                    <strong>Montant Payé :</strong> ¥{(invoice.amountPaid || 0).toFixed(2)} (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}).
-                                </p>
-                                <p className="text-xs text-muted-foreground leading-tight">
-                                    <strong>Solde restant dû :</strong> ¥{balanceDue.toFixed(2)} (ou {currency.symbol}{(balanceDue * exchangeRate).toFixed(2)}).
-                                </p>
+                                <div className="mb-8 border-t pt-4">
+                                    <h3 className="font-semibold mb-2 text-xs leading-tight">Détails du Paiement :</h3>
+                                    <table className="w-full text-xs">
+                                        <tbody>
+                                            <tr className="bg-blue-100">
+                                                <td className="p-2 font-bold text-blue-800">Montant Payé</td>
+                                                <td className="p-2 font-bold text-blue-800 text-right">Solde restant dû</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="p-2">¥{(invoice.amountPaid || 0).toFixed(2)} (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})</td>
+                                                <td className="p-2 text-right">¥{balanceDue.toFixed(2)} (ou {currency.symbol}{(balanceDue * exchangeRate).toFixed(2)})</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
+
 
                      <div className="break-before-page mt-8 pt-4">
                         <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
@@ -247,5 +252,3 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         </main>
     );
 }
-
-    
