@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext, ChangeEvent } from 'react';
@@ -99,7 +98,7 @@ export default function SupplierContractPage() {
     },
   });
   
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, control } = useFieldArray({
     control: form.control,
     name: 'items',
   });
@@ -184,16 +183,16 @@ export default function SupplierContractPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Contract Details</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl><FormMessage /></FormItem> )} />
                   </div>
                 </div>
                 <Separator />
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Supplier Information</h3>
-                    <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormLabel>Supplier Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormLabel>Supplier Address</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="supplierContact" render={({ field }) => ( <FormItem><FormLabel>Contact Person</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={control} name="supplierName" render={({ field }) => ( <FormItem><FormLabel>Supplier Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={control} name="supplierAddress" render={({ field }) => ( <FormItem><FormLabel>Supplier Address</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={control} name="supplierContact" render={({ field }) => ( <FormItem><FormLabel>Contact Person</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
                  <Separator />
                   <div className="space-y-4">
@@ -216,22 +215,22 @@ export default function SupplierContractPage() {
                                  <div className="flex items-center gap-4">
                                   <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
                                       {watchedValues.items?.[index]?.photo ? (
-                                          <Image src={watchedValues.items[index].photo!} alt="Product" width={64} height={64} className="object-contain" />
+                                          <Image src={watchedValues.items[index].photo!.trimEnd()} alt="Product" width={64} height={64} className="object-contain" />
                                       ) : (
                                           <UploadCloud className="h-6 w-6 text-muted-foreground" />
                                       )}
                                   </div>
-                                  <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
+                                  <FormField control={control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                                       <FormItem className="w-full">
                                           <FormLabel>Photo URL</FormLabel>
                                           <FormControl><Input placeholder="https://..." {...photoField} /></FormControl>
                                       </FormItem>
                                   )} />
                                </div>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...f} /></FormControl></FormItem> )} />
+                                <FormField control={control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...f} /></FormControl></FormItem> )} />
                                 <div className="grid grid-cols-2 gap-2">
-                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => ( <FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem> )} />
+                                    <FormField control={control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem> )} />
+                                    <FormField control={control} name={`items.${index}.unitPrice`} render={({ field: f }) => ( <FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem> )} />
                                 </div>
                             </div>
                           </Card>
@@ -242,12 +241,12 @@ export default function SupplierContractPage() {
                    <Separator />
                    <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Terms & Conditions</h3>
-                        <FormField control={form.control} name="depositPercentage" render={({ field }) => ( <FormItem><FormLabel>Deposit (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="balanceTerms" render={({ field }) => ( <FormItem><FormLabel>Balance Payment Terms</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="qualityControl" render={({ field }) => ( <FormItem><FormLabel>Quality Control</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="shippingTerms" render={({ field }) => ( <FormItem><FormLabel>Shipping Terms (Incoterms)</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="leadTime" render={({ field }) => ( <FormItem><FormLabel>Lead Time</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="specificClauses" render={({ field }) => ( <FormItem><FormLabel>Specific Clauses</FormLabel><FormControl><Textarea placeholder="Add any specific clauses or notes here..." {...field} rows={4} /></FormControl></FormItem> )} />
+                        <FormField control={control} name="depositPercentage" render={({ field }) => ( <FormItem><FormLabel>Deposit (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={control} name="balanceTerms" render={({ field }) => ( <FormItem><FormLabel>Balance Payment Terms</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
+                        <FormField control={control} name="qualityControl" render={({ field }) => ( <FormItem><FormLabel>Quality Control</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
+                        <FormField control={control} name="shippingTerms" render={({ field }) => ( <FormItem><FormLabel>Shipping Terms (Incoterms)</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
+                        <FormField control={control} name="leadTime" render={({ field }) => ( <FormItem><FormLabel>Lead Time</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
+                        <FormField control={control} name="specificClauses" render={({ field }) => ( <FormItem><FormLabel>Specific Clauses</FormLabel><FormControl><Textarea placeholder="Add any specific clauses or notes here..." {...field} rows={4} /></FormControl></FormItem> )} />
                    </div>
               </form>
             </Form>
@@ -302,7 +301,7 @@ export default function SupplierContractPage() {
                               return (
                                 <tr key={index}>
                                     <td className="p-2 border align-top">
-                                        {item.photo && <img src={item.photo} alt={item.description} crossOrigin="anonymous" className="w-16 h-16 object-contain"/>}
+                                        {item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-16 h-16 object-contain"/>}
                                     </td>
                                     <td className="p-2 border align-top">{item.description}</td>
                                     <td className="p-2 border text-right align-top">{quantity}</td>
@@ -354,3 +353,5 @@ export default function SupplierContractPage() {
     </div>
   );
 }
+
+    
