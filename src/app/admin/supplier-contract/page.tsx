@@ -11,6 +11,8 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { PrintFooter } from '@/components/layout/print-footer';
+import { PrintFooter } from '@/components/ui/print-footer';
 import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
@@ -120,8 +122,38 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
     }
   };
   
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPdf = async () => {
+      const element = document.getElementById('pdf-content');
+      if (!element) return;
+  
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const data = canvas.toDataURL('image/png');
+  
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+  
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / canvasHeight;
+      
+      let imgWidth = pdfWidth;
+      let imgHeight = imgWidth / ratio;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+  
+      pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+  
+      while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+      }
+  
+      pdf.save(`contract-${watchedValues.contractNumber}.pdf`);
   };
 
   const onSubmit = async (values: ContractFormValues) => {
@@ -163,14 +195,6 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
   const depositAmount = totalAmount * ((watchedValues.depositPercentage || 0) / 100);
   const balanceAmount = totalAmount - depositAmount;
 
-  const itemChunks = [];
-  const ITEMS_PER_PAGE = 5;
-  if(watchedValues.items) {
-    for (let i = 0; i < watchedValues.items.length; i += ITEMS_PER_PAGE) {
-        itemChunks.push(watchedValues.items.slice(i, i + ITEMS_PER_PAGE));
-    }
-  }
-
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -181,8 +205,8 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-semibold">{editingContract ? 'Edit Contract' : 'Contract Details'}</h3>
                     <div className="flex gap-2">
-                        <Button type="button" variant="outline" onClick={handlePrint}>
-                            <Printer className="mr-2 h-4 w-4" /> Print
+                        <Button type="button" variant="outline" onClick={handleDownloadPdf}>
+                            <Printer className="mr-2 h-4 w-4" /> Export to PDF
                         </Button>
                         <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
                             <Save className="mr-2 h-4 w-4" /> {isSubmitting ? 'Saving...' : 'Save'}
@@ -250,9 +274,8 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2 lg:block print-block">
-          {itemChunks.map((chunk, pageIndex) => (
-            <div key={pageIndex} id={`pdf-content-${pageIndex}`} className="pdf-page bg-white p-8 shadow-lg ring-1 ring-black ring-opacity-5">
+        <div className="lg:col-span-2 print-block" id="pdf-content">
+            <div className="pdf-page bg-white p-8 shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="flex flex-col min-h-full">
                 <header className="flex justify-between items-start mb-8">
                   <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-20 object-contain" />}</div>
@@ -263,21 +286,19 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                   </div>
                 </header>
                 
-                {pageIndex === 0 && (
-                  <section className="grid grid-cols-2 gap-8 mb-8">
-                    <div>
-                      <h2 className="font-bold border-b mb-2 pb-1">买方 (The Buyer):</h2>
-                      <p className="font-semibold">{watchedValues.buyerName}</p>
-                      <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
-                    </div>
-                    <div>
-                      <h2 className="font-bold border-b mb-2 pb-1">卖方 (The Seller):</h2>
-                      <p className="font-semibold">{watchedValues.supplierName}</p>
-                      <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
-                      {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
-                    </div>
-                  </section>
-                )}
+                <section className="grid grid-cols-2 gap-8 mb-8">
+                  <div>
+                    <h2 className="font-bold border-b mb-2 pb-1">买方 (The Buyer):</h2>
+                    <p className="font-semibold">{watchedValues.buyerName}</p>
+                    <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
+                  </div>
+                  <div>
+                    <h2 className="font-bold border-b mb-2 pb-1">卖方 (The Seller):</h2>
+                    <p className="font-semibold">{watchedValues.supplierName}</p>
+                    <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
+                    {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
+                  </div>
+                </section>
 
                 <section>
                     <h2 className="font-bold text-center mb-2">1. 商品 (COMMODITY)</h2>
@@ -286,7 +307,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                             <tr className="border"><th className="p-2 border text-left w-20">图片 (Photo)</th><th className="p-2 border text-left">货描 (Description)</th><th className="p-2 border text-right">数量 (Quantity)</th><th className="p-2 border text-right">单价 (Unit Price CNY)</th><th className="p-2 border text-right">总价 (Total Amount CNY)</th></tr>
                         </thead>
                         <tbody>
-                            {chunk.map((item, index) => (
+                            {watchedValues.items?.map((item, index) => (
                                 <tr key={index}>
                                     <td className="p-2 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-16 h-16 object-contain"/>}</td>
                                     <td className="p-2 border align-top">{item.description}</td>
@@ -299,7 +320,6 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                     </table>
                 </section>
                 
-                {pageIndex === itemChunks.length - 1 && (
                   <>
                     <div className="flex justify-end mt-4">
                         <div className="w-1/2">
@@ -339,11 +359,9 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                       </div>
                     </section>
                   </>
-                )}
                 <PrintFooter />
               </div>
             </div>
-          ))}
         </div>
       </div>
     </>
@@ -500,6 +518,10 @@ function SupplierContractPageContent() {
                     <ContractHistory onEdit={handleEdit} refreshKey={refreshKey} />
                 </TabsContent>
             </Tabs>
+
+            <div className="hidden print-block">
+                <ContractGenerator key={generatorKey} editingContract={editingContract} onFinished={handleFinished} products={products} />
+            </div>
         </div>
     );
 }
