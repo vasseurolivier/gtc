@@ -20,7 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { PrintFooter } from '@/components/ui/print-footer';
+import { PrintFooter } from '@/components/layout/print-footer';
 import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
@@ -274,7 +274,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2 print-block" id="pdf-content">
+        <div className="lg:col-span-2 lg:block" id="pdf-content">
             <div className="pdf-page bg-white p-8 shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="flex flex-col min-h-full">
                 <header className="flex justify-between items-start mb-8">
