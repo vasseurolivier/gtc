@@ -196,7 +196,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                   </span>
                               </div>
 
-                              <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black pt-2 mt-2">
+                              <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t-2 border-black">
                                   <span>TOTAL :</span>
                                   <span className="text-right">
                                       <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
@@ -216,14 +216,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         )}
                         
-                        <div className="mb-8 border-t pt-4">
+                        <div className="mb-4 border-t pt-4">
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
-                            <p className="text-xs text-muted-foreground leading-tight">
-                                - Acompte (30%): <strong>¥{downPayment.toFixed(2)}</strong> (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)})
-                            </p>
-                            <p className="text-xs text-muted-foreground leading-tight">
-                                - Solde restant: <strong>¥{remainingBalance.toFixed(2)}</strong> (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})
-                            </p>
+                            <div className="text-xs text-muted-foreground space-y-1 leading-tight">
+                                <p>Acompte (30%): <strong>¥{downPayment.toFixed(2)}</strong> (ou {currency.symbol}{(downPayment * exchangeRate).toFixed(2)})</p>
+                                <p>Solde restant: <strong>¥{remainingBalance.toFixed(2)}</strong> (ou {currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)})</p>
+                            </div>
                         </div>
                   
                         <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>

@@ -163,7 +163,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                 </span>
                             </div>
                         
-                            <div className="flex justify-between font-bold text-sm leading-tight border-t-2 border-black pt-2 mt-2">
+                            <div className="flex justify-between font-bold text-sm pt-2 mt-2 border-t-2 border-black">
                                 <span>TOTAL (CNY) :</span>
                                 <span className="text-right">
                                     <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>
