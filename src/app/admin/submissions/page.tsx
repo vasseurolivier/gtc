@@ -118,7 +118,7 @@ export default function SubmissionsPage() {
                        <div className="flex items-center gap-4">
                           {!submission.read && <Badge>New</Badge>}
                           <span className="truncate max-w-xs">{submission.subject}</span>
-                          <span className="text-muted-foreground truncate max-w-xs">{submission.name}</span>
+                          <span className="text-muted-foreground truncate max-w-xs">{submission.name} ({submission.email})</span>
                        </div>
                        <span className="text-sm text-muted-foreground pr-4">
                           {submission.createdAt
