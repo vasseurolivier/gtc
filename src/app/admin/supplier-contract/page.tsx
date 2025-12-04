@@ -273,17 +273,16 @@ export default function SupplierContractPage() {
                                     <p className="leading-tight">This Agreement shall be governed by the law of China. Any dispute relating to its execution shall be submitted to the exclusive jurisdiction of the competent court of Yiwu.</p>
                                     <p className="leading-tight">本协议受中国法律管辖。任何与本协议执行相关的争议应提交至义乌市有管辖权的法院。</p>
                                 </div>
-                            </div>
-
-                            <div className="signature-block mt-10">
-                                <div className="grid grid-cols-2 gap-8 mt-12">
-                                    <div>
-                                        <p className="leading-tight">For the Client (客户方):</p>
-                                        <div className="border-b border-black mt-16"></div>
-                                    </div>
-                                    <div>
-                                        <p className="leading-tight">For the Supplier (供应商方):</p>
-                                        <div className="border-b border-black mt-16"></div>
+                                <div className="signature-block mt-10">
+                                    <div className="grid grid-cols-2 gap-8 mt-12">
+                                        <div>
+                                            <p className="leading-tight">For the Client (客户方):</p>
+                                            <div className="border-b border-black mt-16"></div>
+                                        </div>
+                                        <div>
+                                            <p className="leading-tight">For the Supplier (供应商方):</p>
+                                            <div className="border-b border-black mt-16"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
