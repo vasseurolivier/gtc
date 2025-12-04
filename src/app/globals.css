@@ -94,6 +94,8 @@ body {
   break-before: page;
 }
 
-#pdf-content * {
-  line-height: 1.2 !important;
+@media print {
+  body, body * {
+    line-height: 1.2 !important;
+  }
 }
