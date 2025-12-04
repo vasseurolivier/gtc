@@ -124,22 +124,25 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
   };
 
   const onSubmit = async (values: ContractFormValues) => {
-    
     const items = values.items || [];
+    let totalAmount = 0;
     items.forEach((item, index) => {
         if (!item) return;
         const quantity = Number(item.quantity) || 0;
         const unitPrice = Number(item.unitPrice) || 0;
         const newTotal = quantity * unitPrice;
-        form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+        form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
+        totalAmount += newTotal;
     });
-    const totalAmount = items.reduce((sum, item) => sum + (item?.total || 0), 0);
     form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+    
+    // We need to get the latest values after setting totals
+    const finalValues = form.getValues();
 
     setIsSubmitting(true);
     const result = editingContract
-        ? await updateSupplierContract(editingContract.id, values)
-        : await addSupplierContract(values);
+        ? await updateSupplierContract(editingContract.id, finalValues)
+        : await addSupplierContract(finalValues);
     
     if (result.success) {
       toast({ title: 'Success', description: result.message });
@@ -246,9 +249,9 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2 print-only">
+        <div className="lg:col-span-2 hidden lg:block print-block">
           {itemChunks.map((chunk, pageIndex) => (
-            <div key={pageIndex} id={`pdf-content-${pageIndex}`} className="pdf-page bg-white p-8">
+            <div key={pageIndex} id={`pdf-content-${pageIndex}`} className="pdf-page bg-white p-8 shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="flex flex-col min-h-full">
                 <header className="flex justify-between items-start mb-8">
                   <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-20 object-contain" />}</div>
@@ -288,7 +291,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                                     <td className="p-2 border align-top">{item.description}</td>
                                     <td className="p-2 border text-right align-top">{item.quantity}</td>
                                     <td className="p-2 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
-                                    <td className="p-2 border text-right align-top">¥{(item.quantity * item.unitPrice).toFixed(2)}</td>
+                                    <td className="p-2 border text-right align-top">¥{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>
