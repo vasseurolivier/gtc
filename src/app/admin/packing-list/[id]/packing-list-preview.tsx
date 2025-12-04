@@ -80,7 +80,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col leading-tight">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
               <div className="flex-grow">
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
@@ -162,7 +162,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                               </span>
                           </div>
                       
-                          <div className="flex justify-between font-bold text-sm border-t pt-1 mt-2">
+                          <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black">
                               <span>TOTAL (CNY) :</span>
                               <span className="text-right">
                                   <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>

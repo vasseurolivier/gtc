@@ -151,145 +151,145 @@ export default function SupplierContractPage() {
 
         <div className="lg:col-span-2">
             <div ref={printRef}>
-              <div className="bg-white rounded-lg shadow-lg border">
-                <header className="print-header text-center pt-8 pb-4">
-                    <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
-                    <p className="font-bold">采购协议</p>
-                </header>
-                <div className="print-document px-8 py-10 leading-tight">
-                    <section className="font-sans text-sm">
-                        <p className="mb-4">BETWEEN: <br/> 双方：</p>
+              <div id="pdf-content" className="bg-white rounded-lg shadow-lg border p-8 relative min-h-[29.7cm] flex flex-col">
+                <div className='flex-grow'>
+                    <header className="print-header text-center pt-8 pb-4">
+                        <h2 className="text-lg font-bold">SUPPLIER PROCUREMENT AGREEMENT</h2>
+                        <p className="font-bold">采购协议</p>
+                    </header>
+                    <div className="print-document px-8 py-10">
+                        <section className="font-sans text-sm">
+                            <p className="mb-4">BETWEEN: <br/> 双方：</p>
 
-                        <div className="mb-4">
-                            <p className="font-bold">1. THE CLIENT:</p>
-                            <p className="font-bold">1. 客户：</p>
-                            <p>{companyInfo?.name || '[Your Company Name]'}</p>
-                            <p>Address: {companyInfo?.address || '[Your Company Address]'}</p>
-                            <p>地址：{companyInfo?.address || '[您的公司地址]'}</p>
-                            <p>Represented by: VASSEUR OLIVIER, PIERRE, in their capacity as legal representative.</p>
-                            <p>代表人：VASSEUR OLIVIER, PIERRE，职位：法定代表人。</p>
-                            <p>Hereinafter referred to as "the Client".</p>
-                            <p>以下简称“客户”。</p>
-                        </div>
+                            <div className="mb-4">
+                                <p className="font-bold">1. THE CLIENT:</p>
+                                <p className="font-bold">1. 客户：</p>
+                                <p>{companyInfo?.name || '[Your Company Name]'}</p>
+                                <p>Address: {companyInfo?.address || '[Your Company Address]'}</p>
+                                <p>地址：{companyInfo?.address || '[您的公司地址]'}</p>
+                                <p>Represented by: VASSEUR OLIVIER, PIERRE, in their capacity as legal representative.</p>
+                                <p>代表人：VASSEUR OLIVIER, PIERRE，职位：法定代表人。</p>
+                                <p>Hereinafter referred to as "the Client".</p>
+                                <p>以下简称“客户”。</p>
+                            </div>
 
-                        <p className="text-center my-2">AND <br/>和</p>
+                            <p className="text-center my-2">AND <br/>和</p>
 
-                        <div className="mb-4">
-                            <p className="font-bold">2. THE SUPPLIER:</p>
-                            <p className="font-bold">2. 供应商：</p>
-                            <p>{watchedValues.supplierName || '[Supplier Name]'}</p>
-                            <p>Address: {watchedValues.supplierAddress || '[Supplier Address]'}</p>
-                            <p>地址：{watchedValues.supplierAddress || '[供应商地址]'}</p>
-                            <p>Represented by: {watchedValues.supplierRepresentative || '[Supplier Representative Name]'}, in their capacity as [Representative Title].</p>
-                            <p>代表人：{watchedValues.supplierRepresentative || '[供应商代表姓名]'}，职位：[代表职位]。</p>
-                            <p>Hereinafter referred to as "the Supplier".</p>
-                            <p>以下简称“供应商”。</p>
-                        </div>
-                        
-                        <p className="mb-4">Hereinafter collectively referred to as "the Parties".<br/>以下合称“双方”。</p>
-                        <p className="mb-6">IT IS AGREED AS FOLLOWS:<br/>经友好协商，达成如下协议：</p>
+                            <div className="mb-4">
+                                <p className="font-bold">2. THE SUPPLIER:</p>
+                                <p className="font-bold">2. 供应商：</p>
+                                <p>{watchedValues.supplierName || '[Supplier Name]'}</p>
+                                <p>Address: {watchedValues.supplierAddress || '[Supplier Address]'}</p>
+                                <p>地址：{watchedValues.supplierAddress || '[供应商地址]'}</p>
+                                <p>Represented by: {watchedValues.supplierRepresentative || '[Supplier Representative Name]'}, in their capacity as [Representative Title].</p>
+                                <p>代表人：{watchedValues.supplierRepresentative || '[供应商代表姓名]'}，职位：[代表职位]。</p>
+                                <p>Hereinafter referred to as "the Supplier".</p>
+                                <p>以下简称“供应商”。</p>
+                            </div>
+                            
+                            <p className="mb-4">Hereinafter collectively referred to as "the Parties".<br/>以下合称“双方”。</p>
+                            <p className="mb-6">IT IS AGREED AS FOLLOWS:<br/>经友好协商，达成如下协议：</p>
 
-                        <div className="space-y-4">
-                            <div>
-                                <h3 className="font-bold">ARTICLE 1: PURPOSE OF THE AGREEMENT</h3>
-                                <h3 className="font-bold">第一条：合同目的</h3>
-                                <p>This Agreement sets forth the terms and conditions under which the Supplier agrees to manufacture and sell to the Client the products described below.</p>
-                                <p>本协议旨在规定供应商为客户生产和销售下述产品的条款和条件。</p>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE 2: PRODUCT DESCRIPTION</h3>
-                                <h3 className="font-bold">第二条：产品描述</h3>
-                                <p>Description: {watchedValues.productDescription || '[Detailed product description, SKUs, materials, colors, etc.]'}</p>
-                                <p>描述：{watchedValues.productDescription || '[详细产品描述、SKU、材料、颜色等]'}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE 3: PRICE</h3>
-                                <h3 className="font-bold">第三条：价格</h3>
-                                <p>The price for the products is set at: {watchedValues.productPrice || '[Unit and total price, currency (e.g., 10,000 USD)]'}.</p>
-                                <p>产品价格定为：{watchedValues.productPrice || '[单价和总价，货币（例如：10,000美元）]'}。</p>
-                                <p>This price is understood as FOB (Free On Board) [Chinese Port, e.g., Shanghai], Incoterms 2020, unless otherwise agreed in writing by the Parties.</p>
-                                <p>除非双方另有书面约定，此价格为FOB（船上交货）[中国港口，如：上海]，《2020年国际贸易术语解释通则》。</p>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE 4: PAYMENT TERMS</h3>
-                                <h3 className="font-bold">第四条：付款条件</h3>
-                                <p>The payment terms are as follows:</p>
-                                <p>付款条件如下：</p>
-                                <p>{watchedValues.paymentTerms}</p>
-                                <p>{watchedValues.paymentTermsChinese}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE 5: DELIVERY LEAD TIME</h3>
-                                <h3 className="font-bold">第五条：交货时间</h3>
-                                <p>The delivery lead time is: {watchedValues.deliveryLeadTime}. This period starts from the date of the Supplier's actual receipt of the initial down payment.</p>
-                                <p>交货周期为：{watchedValues.deliveryLeadTime}。该周期自供应商实际收到首付款之日起计算。</p>
-                                <p>In case of delay in delivery, the Supplier shall be liable for a penalty of 1% of the total order value per day of delay, capped at 10% of the total order value.</p>
-                                <p>如果延迟交货，供应商应支付每日订单总额1%的罚款，罚款上限为订单总额的10%。</p>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE 6: QUALITY CONTROL</h3>
-                                <h3 className="font-bold">第六条：质量控制</h3>
-                                <p>The quality control procedures are as follows:</p>
-                                <p>质量控制程序如下：</p>
-                                <p>{watchedValues.qualityControl}. The Client reserves the right to appoint a third party to conduct this inspection. In case of major non-conformity, the Supplier undertakes to rework and correct the production at its own expense.</p>
-                                <p>{qualityControlChinese} 客户保留委托第三方进行检验的权利。如发现重大不符，供应商承诺自费返工并修正。</p>
-                            </div>
-                            {watchedValues.commissionPercentage > 0 && (
+                            <div className="space-y-4">
                                 <div>
-                                    <h3 className="font-bold">ARTICLE 7: COMMISSION</h3>
-                                    <h3 className="font-bold">第七条：佣金</h3>
-                                    <p>The Supplier agrees to pay the Client a commission of {watchedValues.commissionPercentage}% on the total amount of the order, excluding transport costs. This commission will be deducted from the final payment made by the Client.</p>
-                                    <p>供应商同意向客户支付订单总额（不含运输费用）的{watchedValues.commissionPercentage}%作为佣金。该佣金将从客户支付的最终款项中扣除。</p>
-                                </div>
-                            )}
-                            <div>
-                                <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '8' : '7'}: SUPPLIER'S OBLIGATIONS</h3>
-                                <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '八' : '七'}条：供应商的义务</h3>
-                                <ul className="list-disc pl-5">
-                                    <li>To deliver products that conform to the agreed specifications and quality standards.<br/>交付符合约定规格和质量标准的产品。</li>
-                                    <li>To respect the delivery lead times.<br/>遵守交货时间。</li>
-                                    <li>To provide all necessary documentation for exportation.<br/>提供出口所需的所有文件。</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '9' : '8'}: CLIENT'S OBLIGATIONS</h3>
-                                <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '九' : '八'}条：客户的义务</h3>
-                                <ul className="list-disc pl-5">
-                                    <li>To make payments according to the agreed schedule.<br/>按照约定的时间表付款。</li>
-                                    <li>To approve or reject samples and inspection reports within a reasonable timeframe.<br/>在合理的时间内确认或拒绝样品及检验报告。</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '10' : '9'}: CONFIDENTIALITY</h3>
-                                <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '十' : '九'}条：保密条款</h3>
-                                <p>The Parties agree not to disclose any confidential information exchanged within the framework of this agreement.</p>
-                                <p>双方同意不泄露在本协议框架内交换的任何机密信息。</p>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '11' : '10'}: GOVERNING LAW AND JURISDICTION</h3>
-                                <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '十一' : '十'}条：适用法律与管辖权</h3>
-                                <p>This Agreement shall be governed by the law of China. Any dispute relating to its execution shall be submitted to the exclusive jurisdiction of the competent court of Yiwu.</p>
-                                <p>本协议受中国法律管辖。任何与本协议执行相关的争议应提交至义乌市有管辖权的法院。</p>
-                            </div>
-                        </div>
-
-                        <div className="signature-block mt-10">
-                            <div className="grid grid-cols-2 gap-8 mt-12">
-                                <div>
-                                    <p>For the Client (客户方):</p>
-                                    <div className="border-b border-black mt-16"></div>
+                                    <h3 className="font-bold">ARTICLE 1: PURPOSE OF THE AGREEMENT</h3>
+                                    <h3 className="font-bold">第一条：合同目的</h3>
+                                    <p>This Agreement sets forth the terms and conditions under which the Supplier agrees to manufacture and sell to the Client the products described below.</p>
+                                    <p>本协议旨在规定供应商为客户生产和销售下述产品的条款和条件。</p>
                                 </div>
                                 <div>
-                                    <p>For the Supplier (供应商方):</p>
-                                    <div className="border-b border-black mt-16"></div>
+                                    <h3 className="font-bold">ARTICLE 2: PRODUCT DESCRIPTION</h3>
+                                    <h3 className="font-bold">第二条：产品描述</h3>
+                                    <p>Description: {watchedValues.productDescription || '[Detailed product description, SKUs, materials, colors, etc.]'}</p>
+                                    <p>描述：{watchedValues.productDescription || '[详细产品描述、SKU、材料、颜色等]'}</p>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE 3: PRICE</h3>
+                                    <h3 className="font-bold">第三条：价格</h3>
+                                    <p>The price for the products is set at: {watchedValues.productPrice || '[Unit and total price, currency (e.g., 10,000 USD)]'}.</p>
+                                    <p>产品价格定为：{watchedValues.productPrice || '[单价和总价，货币（例如：10,000美元）]'}。</p>
+                                    <p>This price is understood as FOB (Free On Board) [Chinese Port, e.g., Shanghai], Incoterms 2020, unless otherwise agreed in writing by the Parties.</p>
+                                    <p>除非双方另有书面约定，此价格为FOB（船上交货）[中国港口，如：上海]，《2020年国际贸易术语解释通则》。</p>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE 4: PAYMENT TERMS</h3>
+                                    <h3 className="font-bold">第四条：付款条件</h3>
+                                    <p>The payment terms are as follows:</p>
+                                    <p>付款条件如下：</p>
+                                    <p>{watchedValues.paymentTerms}</p>
+                                    <p>{watchedValues.paymentTermsChinese}</p>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE 5: DELIVERY LEAD TIME</h3>
+                                    <h3 className="font-bold">第五条：交货时间</h3>
+                                    <p>The delivery lead time is: {watchedValues.deliveryLeadTime}. This period starts from the date of the Supplier's actual receipt of the initial down payment.</p>
+                                    <p>交货周期为：{watchedValues.deliveryLeadTime}。该周期自供应商实际收到首付款之日起计算。</p>
+                                    <p>In case of delay in delivery, the Supplier shall be liable for a penalty of 1% of the total order value per day of delay, capped at 10% of the total order value.</p>
+                                    <p>如果延迟交货，供应商应支付每日订单总额1%的罚款，罚款上限为订单总额的10%。</p>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE 6: QUALITY CONTROL</h3>
+                                    <h3 className="font-bold">第六条：质量控制</h3>
+                                    <p>The quality control procedures are as follows:</p>
+                                    <p>质量控制程序如下：</p>
+                                    <p>{watchedValues.qualityControl}. The Client reserves the right to appoint a third party to conduct this inspection. In case of major non-conformity, the Supplier undertakes to rework and correct the production at its own expense.</p>
+                                    <p>{qualityControlChinese} 客户保留委托第三方进行检验的权利。如发现重大不符，供应商承诺自费返工并修正。</p>
+                                </div>
+                                {watchedValues.commissionPercentage > 0 && (
+                                    <div>
+                                        <h3 className="font-bold">ARTICLE 7: COMMISSION</h3>
+                                        <h3 className="font-bold">第七条：佣金</h3>
+                                        <p>The Supplier agrees to pay the Client a commission of {watchedValues.commissionPercentage}% on the total amount of the order, excluding transport costs. This commission will be deducted from the final payment made by the Client.</p>
+                                        <p>供应商同意向客户支付订单总额（不含运输费用）的{watchedValues.commissionPercentage}%作为佣金。该佣金将从客户支付的最终款项中扣除。</p>
+                                    </div>
+                                )}
+                                <div>
+                                    <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '8' : '7'}: SUPPLIER'S OBLIGATIONS</h3>
+                                    <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '八' : '七'}条：供应商的义务</h3>
+                                    <ul className="list-disc pl-5">
+                                        <li>To deliver products that conform to the agreed specifications and quality standards.<br/>交付符合约定规格和质量标准的产品。</li>
+                                        <li>To respect the delivery lead times.<br/>遵守交货时间。</li>
+                                        <li>To provide all necessary documentation for exportation.<br/>提供出口所需的所有文件。</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '9' : '8'}: CLIENT'S OBLIGATIONS</h3>
+                                    <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '九' : '八'}条：客户的义务</h3>
+                                    <ul className="list-disc pl-5">
+                                        <li>To make payments according to the agreed schedule.<br/>按照约定的时间表付款。</li>
+                                        <li>To approve or reject samples and inspection reports within a reasonable timeframe.<br/>在合理的时间内确认或拒绝样品及检验报告。</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '10' : '9'}: CONFIDENTIALITY</h3>
+                                    <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '十' : '九'}条：保密条款</h3>
+                                    <p>The Parties agree not to disclose any confidential information exchanged within the framework of this agreement.</p>
+                                    <p>双方同意不泄露在本协议框架内交换的任何机密信息。</p>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">ARTICLE {watchedValues.commissionPercentage > 0 ? '11' : '10'}: GOVERNING LAW AND JURISDICTION</h3>
+                                    <h3 className="font-bold">第{watchedValues.commissionPercentage > 0 ? '十一' : '十'}条：适用法律与管辖权</h3>
+                                    <p>This Agreement shall be governed by the law of China. Any dispute relating to its execution shall be submitted to the exclusive jurisdiction of the competent court of Yiwu.</p>
+                                    <p>本协议受中国法律管辖。任何与本协议执行相关的争议应提交至义乌市有管辖权的法院。</p>
                                 </div>
                             </div>
-                        </div>
-                    </section>
-                  </div>
-              </div>
-              <div className="print-footer-container no-print">
-                  <PrintFooter />
+
+                            <div className="signature-block mt-10">
+                                <div className="grid grid-cols-2 gap-8 mt-12">
+                                    <div>
+                                        <p>For the Client (客户方):</p>
+                                        <div className="border-b border-black mt-16"></div>
+                                    </div>
+                                    <div>
+                                        <p>For the Supplier (供应商方):</p>
+                                        <div className="border-b border-black mt-16"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                      </div>
+                </div>
+                <PrintFooter />
               </div>
             </div>
         </div>

@@ -93,3 +93,7 @@ body {
 .break-before-page {
   break-before: page;
 }
+
+#pdf-content * {
+  line-height: 1.2 !important;
+}

@@ -85,7 +85,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </Button>
             </div>
             
-            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col leading-tight">
+            <div id="pdf-content" className="p-8 relative min-h-[29.7cm] flex flex-col">
               <div className="flex-grow">
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
@@ -194,7 +194,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
                                 </span>
                             </div>
-                            <div className="flex justify-between font-bold text-sm border-t pt-1 mt-2">
+                            <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black">
                                 <span>TOTAL :</span>
                                 <span className="text-right">
                                     <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
