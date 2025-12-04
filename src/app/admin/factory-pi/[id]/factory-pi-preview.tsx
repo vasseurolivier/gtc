@@ -76,7 +76,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                     Export to PDF
                 </Button>
             </div>
-            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm]">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-24">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>

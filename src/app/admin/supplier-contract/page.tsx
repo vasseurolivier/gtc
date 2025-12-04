@@ -275,7 +275,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
         </Card>
 
         <div className="lg:col-span-2 lg:block">
-            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm]">
+            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-24">
               <div className="flex-grow">
                 <header className="flex justify-between items-start mb-4">
                   <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 object-contain" />}</div>

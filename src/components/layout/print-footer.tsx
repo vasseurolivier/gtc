@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext } from 'react';
@@ -14,7 +15,7 @@ export function PrintFooter() {
     const { companyInfo } = companyInfoContext;
 
     return (
-        <div className="absolute bottom-8 left-8 right-8 text-center text-xs text-muted-foreground pt-2">
+        <div className="absolute bottom-0 left-8 right-8 text-center text-[8px] text-muted-foreground py-4">
             <Separator className="my-2" />
             <p>Merci de votre confiance</p>
             <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
