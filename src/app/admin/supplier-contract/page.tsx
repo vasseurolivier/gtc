@@ -274,6 +274,8 @@ export default function SupplierContractPage() {
                                     <p className="leading-tight">本协议受中国法律管辖。任何与本协议执行相关的争议应提交至义乌市有管辖权的法院。</p>
                                 </div>
                                 <div className="signature-block mt-10">
+                                    <p className="leading-tight">Done in duplicate in Yiwu, on {format(watchedValues.contractDate, "MMMM d, yyyy", { locale: enUS })}.</p>
+                                    <p className="leading-tight">本协议一式两份，于 {format(watchedValues.contractDate, "yyyy年MM月dd日")} 在义乌签订。</p>
                                     <div className="grid grid-cols-2 gap-8 mt-12">
                                         <div>
                                             <p className="leading-tight">For the Client (客户方):</p>
