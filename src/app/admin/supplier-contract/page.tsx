@@ -20,7 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -110,28 +110,6 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
     }
   }, [companyInfoContext?.companyInfo, form, editingContract]);
   
-  useEffect(() => {
-    const subscription = form.watch((values, { name, type }) => {
-        if (name && (name.startsWith('items') || name === 'depositPercentage')) {
-            const items = values.items || [];
-            
-            items.forEach((item, index) => {
-                if (!item) return;
-                const quantity = Number(item.quantity) || 0;
-                const unitPrice = Number(item.unitPrice) || 0;
-                const newTotal = quantity * unitPrice;
-                if (item.total !== newTotal) {
-                     form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
-                }
-            });
-
-            const totalAmount = items.reduce((sum, item) => sum + (item?.total || 0), 0);
-            form.setValue("totalAmount", totalAmount, { shouldValidate: true });
-        }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
@@ -146,6 +124,18 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
   };
 
   const onSubmit = async (values: ContractFormValues) => {
+    
+    const items = values.items || [];
+    items.forEach((item, index) => {
+        if (!item) return;
+        const quantity = Number(item.quantity) || 0;
+        const unitPrice = Number(item.unitPrice) || 0;
+        const newTotal = quantity * unitPrice;
+        form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+    });
+    const totalAmount = items.reduce((sum, item) => sum + (item?.total || 0), 0);
+    form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+
     setIsSubmitting(true);
     const result = editingContract
         ? await updateSupplierContract(editingContract.id, values)
@@ -165,7 +155,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
   }
   const { companyInfo } = companyInfoContext;
   
-  const totalAmount = watchedValues.totalAmount || 0;
+  const totalAmount = watchedValues.items?.reduce((sum, item) => sum + ((item?.quantity || 0) * (item?.unitPrice || 0)), 0) || 0;
   const depositAmount = totalAmount * ((watchedValues.depositPercentage || 0) / 100);
   const balanceAmount = totalAmount - depositAmount;
 
@@ -298,7 +288,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                                     <td className="p-2 border align-top">{item.description}</td>
                                     <td className="p-2 border text-right align-top">{item.quantity}</td>
                                     <td className="p-2 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
-                                    <td className="p-2 border text-right align-top">¥{item.total.toFixed(2)}</td>
+                                    <td className="p-2 border text-right align-top">¥{(item.quantity * item.unitPrice).toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>
