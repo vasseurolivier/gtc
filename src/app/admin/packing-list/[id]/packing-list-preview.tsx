@@ -89,28 +89,28 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         }
                     </div>
                     <div className="text-right w-1/3">
-                        <h1 className="text-base font-bold text-black">PACKING LIST</h1>
-                        <p className="mt-1 text-xs text-muted-foreground">N° {packingList.listId}</p>
+                        <h1 className="text-base font-bold text-black leading-tight">PACKING LIST</h1>
+                        <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {packingList.listId}</p>
                     </div>
                 </header>
               
                   <section>
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                       <div>
-                              <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                              <p className="font-bold">{companyInfo?.name}</p>
-                              <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
+                              <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">ÉMIS PAR</h3>
+                              <p className="font-bold leading-tight">{companyInfo?.name}</p>
+                              <p className="whitespace-pre-wrap leading-tight">{companyInfo?.address}</p>
                           </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-8 my-4 text-xs">
                           <div>
-                              <h3 className="font-semibold text-muted-foreground mb-1">DATE</h3>
-                              <p>{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
+                              <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">DATE</h3>
+                              <p className="leading-tight">{format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
                           </div>
                           <div>
-                              <h3 className="font-semibold text-muted-foreground mb-1">NUMÉRO DE RÉFÉRENCE</h3>
-                              <p>{packingList.listId}</p>
+                              <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">NUMÉRO DE RÉFÉRENCE</h3>
+                              <p className="leading-tight">{packingList.listId}</p>
                           </div>
                       </div>
                   </section>
@@ -140,12 +140,12 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                                   </div>
                                               }
                                           </td>
-                                          <td className="p-1 align-top font-medium">{item.description}</td>
-                                          <td className="p-1 align-top text-right">{item.sku}</td>
-                                          <td className="p-1 align-top text-right">{item.quantity}</td>
-                                          <td className="p-1 align-top text-right"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
-                                          <td className="p-1 align-top text-right font-semibold"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
-                                          <td className="p-1 align-top">{item.remarks}</td>
+                                          <td className="p-1 align-top font-medium leading-tight">{item.description}</td>
+                                          <td className="p-1 align-top text-right leading-tight">{item.sku}</td>
+                                          <td className="p-1 align-top text-right leading-tight">{item.quantity}</td>
+                                          <td className="p-1 align-top text-right leading-tight"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
+                                          <td className="p-1 align-top text-right font-semibold leading-tight"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
+                                          <td className="p-1 align-top leading-tight">{item.remarks}</td>
                                       </tr>
                                   );
                               })}
@@ -155,14 +155,14 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
 
                   <div className="flex justify-end pt-4">
                       <div className="w-full md:w-2/3 lg:w-1/2 space-y-0 text-xs">
-                          <div className="flex justify-between">
+                          <div className="flex justify-between leading-tight">
                               <span className="text-muted-foreground">Total Quantity :</span>
                               <span className="text-right">
                                 <span className="font-bold">{totals.totalQuantity}</span>
                               </span>
                           </div>
                       
-                          <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black">
+                          <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black leading-tight">
                               <span>TOTAL (CNY) :</span>
                               <span className="text-right">
                                   <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>
