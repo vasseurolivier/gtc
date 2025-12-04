@@ -32,7 +32,7 @@ async function ProductProfileContent({ id }: { id: string }) {
     }
     
     const profitValue = product.price - (product.purchasePrice || 0);
-    const profitPercentage = product.price > 0 && (product.purchasePrice || 0) > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
+    const profitPercentage = product.price > 0 && product.purchasePrice && product.purchasePrice > 0 ? (profitValue / (product.purchasePrice || 1)) * 100 : 0;
     const hasPricingInfo = product.price > 0 && product.purchasePrice && product.purchasePrice > 0;
 
     return (
