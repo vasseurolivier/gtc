@@ -86,7 +86,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </div>
             
             <div className="relative">
-              <div id="pdf-content" className="p-8 bg-white">
+              <div id="pdf-content" className="p-8 bg-white min-h-[297mm]">
                 <div className="flex-grow">
                   <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                       <div>
@@ -195,14 +195,14 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                       <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
                                   </span>
                               </div>
-                              <div className="pt-2 mt-2 border-t-2 border-black">
-                                <div className="flex justify-between font-bold text-sm leading-tight">
-                                    <span>TOTAL :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
-                                    </span>
-                                </div>
+                              <div className="pt-2 my-2 border-t-2 border-black" />
+
+                              <div className="flex justify-between font-bold text-sm leading-tight">
+                                  <span>TOTAL :</span>
+                                  <span className="text-right">
+                                      <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
+                                      <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
+                                  </span>
                               </div>
                               <div className="flex justify-between leading-tight">
                                   <span className="text-muted-foreground">Acompte à payer :</span>
@@ -232,10 +232,10 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         )}
                     </div>
                 </div>
-                <div className="break-before-page">
-                  <div className="text-left border-t pt-4">
-                      <h3 className="font-semibold mb-1 text-xs leading-tight">Coordonnées Bancaires :</h3>
-                      <div className="text-xs text-muted-foreground leading-tight">
+                <div className="break-before-page pt-4">
+                  <div className="text-left">
+                      <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
+                      <div className="text-xs text-muted-foreground space-y-1 leading-tight">
                           <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
                           <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                           <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>

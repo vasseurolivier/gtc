@@ -77,7 +77,7 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                 </Button>
             </div>
             <div className="relative">
-                <div id="pdf-content" className="p-8 bg-white">
+                <div id="pdf-content" className="p-8 bg-white min-h-[297mm]">
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                             <div>
@@ -149,7 +149,9 @@ export function FactoryPiPreview({ factoryPi }: { factoryPi: FactoryPi }) {
                                     </span>
                                 </div>
                             
-                                <div className="flex justify-between font-bold text-sm pt-1 mt-2 border-t-2 border-black leading-tight">
+                                <div className="pt-2 my-2 border-t-2 border-black" />
+
+                                <div className="flex justify-between font-bold text-sm leading-tight">
                                     <span>TOTAL (CNY) :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{totals.totalAmountCny.toFixed(2)}</span>

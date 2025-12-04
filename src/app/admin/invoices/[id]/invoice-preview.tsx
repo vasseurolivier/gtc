@@ -94,7 +94,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             </div>
             
             <div className="relative">
-                <div id="pdf-content" className="p-8 bg-white">
+                <div id="pdf-content" className="p-8 bg-white min-h-[297mm]">
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                             <div>
@@ -203,15 +203,16 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <span className="text-muted-foreground"> ({currency.symbol}{(transportCost * exchangeRate).toFixed(2)})</span>
                                     </span>
                                 </div>
-                                <div className="pt-2 mt-2 border-t-2 border-black">
-                                    <div className="flex justify-between font-bold text-sm leading-tight">
-                                        <span>TOTAL :</span>
-                                        <span className="text-right">
-                                            <span className="font-bold">¥{invoice.totalAmount.toFixed(2)}</span>
-                                            <span className="text-muted-foreground"> ({currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)})</span>
-                                        </span>
-                                    </div>
+                                <div className="pt-2 my-2 border-t-2 border-black" />
+
+                                <div className="flex justify-between font-bold text-sm leading-tight">
+                                    <span>TOTAL :</span>
+                                    <span className="text-right">
+                                        <span className="font-bold">¥{invoice.totalAmount.toFixed(2)}</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)})</span>
+                                    </span>
                                 </div>
+
                                 <div className="flex justify-between leading-tight">
                                     <span className="text-muted-foreground">Montant Payé :</span>
                                     <span className="text-right">
@@ -229,20 +230,18 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                         </div>
 
-                    </div>
-                     <div className="break-before-page">
-                        <div className="mt-8 pt-4">
-                            <h3 className="font-semibold mb-1 text-xs leading-tight">Coordonnées Bancaires :</h3>
-                            <div className="text-xs text-muted-foreground leading-tight">
-                                <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
-                                <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
-                                <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
-                                <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
-                                <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
-                                <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
-                                <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
-                            </div>
+                     <div className="break-before-page mt-8 pt-4">
+                        <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
+                        <div className="text-xs text-muted-foreground space-y-1 leading-tight">
+                            <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
+                            <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
+                            <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
+                            <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
+                            <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
+                            <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
+                            <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                         </div>
+                    </div>
                     </div>
                 </div>
                 <PrintFooter />
