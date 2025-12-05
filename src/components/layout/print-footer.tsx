@@ -15,7 +15,7 @@ export function PrintFooter() {
     const { companyInfo } = companyInfoContext;
 
     return (
-        <div className="absolute bottom-0 left-8 right-8 text-center text-[8px] text-muted-foreground py-4">
+        <div className="absolute bottom-0 left-8 right-8 text-center text-[8px] text-muted-foreground py-2">
             <Separator className="my-2" />
             <p>Merci de votre confiance</p>
             <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
