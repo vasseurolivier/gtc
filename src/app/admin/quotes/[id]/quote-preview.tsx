@@ -217,9 +217,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
                             <p className="text-xs text-muted-foreground space-y-1 leading-tight">
                                 Acompte (30%): <strong>¥{(quote.totalAmount * 0.3).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * 0.3 * exchangeRate).toFixed(2)})
+                                <br />
+                                <span className="text-xs">Payable dans les 3 jours suivant la réception de cette proforma.</span>
                             </p>
-                            <p className="text-xs text-muted-foreground space-y-1 leading-tight">
+                            <p className="text-xs text-muted-foreground space-y-1 leading-tight mt-2">
                                 Solde restant (70%): <strong>¥{(quote.totalAmount * 0.7).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * 0.7 * exchangeRate).toFixed(2)})
+                                <br />
+                                <span className="text-xs">Payable après le contrôle qualité et avant le départ de l'usine.</span>
                             </p>
                         </div>
                     

@@ -218,8 +218,10 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             <p className="text-xs text-muted-foreground space-y-1 leading-tight">
                                 Montant Payé: <strong>¥{(invoice.amountPaid || 0).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)})
                             </p>
-                            <p className="text-xs text-muted-foreground space-y-1 leading-tight">
+                            <p className="text-xs text-muted-foreground space-y-1 leading-tight mt-2">
                                 Solde restant dû: <strong>¥{(invoice.totalAmount - (invoice.amountPaid || 0)).toFixed(2)}</strong> (ou {currency.symbol}{((invoice.totalAmount - (invoice.amountPaid || 0)) * exchangeRate).toFixed(2)})
+                                <br />
+                                <span className="text-xs">Payable après le contrôle qualité et avant le départ de l'usine.</span>
                             </p>
                         </div>
                     
