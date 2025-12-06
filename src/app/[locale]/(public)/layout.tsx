@@ -10,9 +10,9 @@ export default async function PublicLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const dictionary = await getDictionary(locale);
   return (
     <PublicProviders>
