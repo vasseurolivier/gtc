@@ -9,10 +9,9 @@ import { Locale } from '@/i18n-config';
 export default async function TradeCitiesPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   const tradeCitiesDict = dictionary.tradeCitiesPage;
 
   const cities = [
@@ -113,7 +112,3 @@ export default async function TradeCitiesPage({
     </>
   );
 }
-
-    
-
-    

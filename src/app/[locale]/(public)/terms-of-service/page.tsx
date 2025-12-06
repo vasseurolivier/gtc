@@ -5,10 +5,9 @@ import { Locale } from '@/i18n-config';
 export default async function TermsOfServicePage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   const pageDict = dictionary.termsOfServicePage;
 
   return (
@@ -40,5 +39,3 @@ export default async function TermsOfServicePage({
     </div>
   );
 }
-
-    

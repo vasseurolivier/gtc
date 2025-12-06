@@ -8,10 +8,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 export default async function ContactPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   const heroImage = PlaceHolderImages.find(p => p.id === 'contact-hero');
   
   return (
@@ -43,8 +42,3 @@ export default async function ContactPage({
     </>
   );
 }
-
-    
-    
-
-    

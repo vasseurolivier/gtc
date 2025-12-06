@@ -12,8 +12,7 @@ export default async function PublicLayout({
   children: React.ReactNode;
   params: { locale: Locale };
 }) {
-  const { locale } = params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   return (
     <PublicProviders>
       <div className="min-h-screen">

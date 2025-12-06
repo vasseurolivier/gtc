@@ -8,10 +8,9 @@ import { Locale } from '@/i18n-config';
 export default async function EcommerceSolutionsPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   const ecommerceDict = dictionary.ecommerceSolutionsPage;
 
   const ecommerceFeatures = [
@@ -146,7 +145,3 @@ export default async function EcommerceSolutionsPage({
     </>
   );
 }
-
-    
-
-    
