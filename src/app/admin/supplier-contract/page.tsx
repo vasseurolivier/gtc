@@ -312,7 +312,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                                     <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-10 h-10 object-contain"/>}</td>
                                     <td className="p-1 border align-top">{item.description}</td>
                                     <td className="p-1 border text-right align-top">{item.quantity}</td>
-                                    <td className="p-1 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
+                                    <td className="p-1 border text-right align-top">¥{(item.unitPrice || 0).toFixed(2)}</td>
                                     <td className="p-1 border text-right align-top">¥{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}</td>
                                 </tr>
                             ))}
