@@ -5,12 +5,14 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 import { PublicProviders } from '@/components/layout/public-providers';
 
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: { locale: Locale };
 }) {
-  const dictionary = {} as any; // Temporary fix to allow build to pass
+  const dictionary = await getDictionary(params.locale);
 
   return (
     <PublicProviders>
