@@ -8,6 +8,5 @@ const dictionaries = {
 }
 
 export const getDictionary = async (locale: Locale) => {
-    const selectedLocale = i18n.locales.includes(locale) ? locale : i18n.defaultLocale;
-    return dictionaries[selectedLocale]();
+    return i18n.locales.includes(locale) ? dictionaries[locale]() : dictionaries.fr();
 }
