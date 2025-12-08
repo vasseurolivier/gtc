@@ -164,18 +164,15 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
         const quantity = Number(item.quantity) || 0;
         const unitPrice = Number(item.unitPrice) || 0;
         const newTotal = quantity * unitPrice;
-        form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
+        values.items[index].total = newTotal;
         totalAmount += newTotal;
     });
-    form.setValue("totalAmount", totalAmount, { shouldValidate: true });
-    
-    // We need to get the latest values after setting totals
-    const finalValues = form.getValues();
+    values.totalAmount = totalAmount;
 
     setIsSubmitting(true);
     const result = editingContract
-        ? await updateSupplierContract(editingContract.id, finalValues)
-        : await addSupplierContract(finalValues);
+        ? await updateSupplierContract(editingContract.id, values)
+        : await addSupplierContract(values);
     
     if (result.success) {
       toast({ title: 'Success', description: result.message });
@@ -201,14 +198,14 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
         <Card className="lg:col-span-1 no-print">
           <CardContent className="p-6">
             <Form {...form}>
-              <form className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-semibold">{editingContract ? 'Edit Contract' : 'Contract Details'}</h3>
                     <div className="flex gap-2">
                         <Button type="button" variant="outline" onClick={handleDownloadPdf}>
                             <Printer className="mr-2 h-4 w-4" /> Export to PDF
                         </Button>
-                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting}>
                             <Save className="mr-2 h-4 w-4" /> {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
                     </div>
@@ -282,7 +279,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                   <div className="text-right">
                     <h1 className="text-lg font-bold text-primary">PURCHASE CONTRACT</h1>
                     <p className="text-xs text-muted-foreground mt-1">合同编号 (Contract No.): {watchedValues.contractNumber}</p>
-                    <p className="text-xs text-muted-foreground">签订日期 (Date): {format(watchedValues.date, 'yyyy-MM-dd')}</p>
+                    <p className="text-xs text-muted-foreground">签订日期 (Date): {format(watchedValues.date || new Date(), 'yyyy-MM-dd')}</p>
                   </div>
                 </header>
                 
