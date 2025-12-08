@@ -48,15 +48,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb',
     },
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/fr',
-        permanent: true,
-      },
-    ]
-  },
 };
 
 export default nextConfig;
