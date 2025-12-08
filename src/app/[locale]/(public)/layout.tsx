@@ -7,12 +7,12 @@ import { PublicProviders } from '@/components/layout/public-providers';
 
 export default async function PublicLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
   params: { locale: Locale };
 }) {
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
 
   return (
     <PublicProviders>
