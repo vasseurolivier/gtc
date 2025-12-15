@@ -291,44 +291,44 @@ function ProtectedAdminLayout({
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar className="no-print bg-muted/20">
-        <SidebarContent>
-          <SidebarHeader>
-             <Link href="/" className="flex items-center gap-2">
-                {companyInfoContext?.companyInfo.logo && <Image src={companyInfoContext.companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
-            </Link>
-          </SidebarHeader>
-          <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
-                  <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
-                    <span>
-                      {item.icon}
-                      <span>{item.label}</span>
-                        {item.badge && item.badge > 0 && (
-                        <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                      )}
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-          <SidebarFooter>
-            <AdminSettings />
-            <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </SidebarFooter>
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        {children}
-      </SidebarInset>
-    </SidebarProvider>
+      <SidebarProvider>
+        <Sidebar className="no-print bg-muted/20">
+          <SidebarContent>
+            <SidebarHeader>
+               <Link href="/" className="flex items-center gap-2">
+                  {companyInfoContext?.companyInfo.logo && <Image src={companyInfoContext.companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
+              </Link>
+            </SidebarHeader>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <Link href={item.href} passHref>
+                    <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
+                      <span>
+                        {item.icon}
+                        <span>{item.label}</span>
+                          {item.badge && item.badge > 0 && (
+                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                        )}
+                      </span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+            <SidebarFooter>
+              <AdminSettings />
+              <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </SidebarFooter>
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
   );
 }
 
@@ -339,16 +339,16 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  if (pathname === '/admin/login') {
-    return <AppProviders>{children}</AppProviders>;
+  if (pathname.startsWith('/admin')) {
+    return (
+      <AppProviders>
+        <CompanyInfoProvider>
+            <CurrencyProvider>
+                <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
+            </CurrencyProvider>
+        </CompanyInfoProvider>
+      </AppProviders>
+    )
   }
-  return (
-    <AppProviders>
-      <CompanyInfoProvider>
-          <CurrencyProvider>
-              <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
-          </CurrencyProvider>
-      </CompanyInfoProvider>
-    </AppProviders>
-  )
+  return <>{children}</>
 }

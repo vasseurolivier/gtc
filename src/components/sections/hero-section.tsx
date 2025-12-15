@@ -12,22 +12,9 @@ import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
 export function HeroSection({ dictionary }: { dictionary: any }) {
-  const pathname = usePathname();
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
   const companyInfoContext = useContext(CompanyInfoContext);
   const brochureUrl = companyInfoContext?.companyInfo.brochureUrl;
-  
-  const getCurrentLocale = () => {
-    if (!pathname) return i18n.defaultLocale;
-    const segments = pathname.split('/');
-    if (segments.length > 1 && i18n.locales.includes(segments[1] as any)) {
-      return segments[1];
-    }
-    return i18n.defaultLocale;
-  }
-  const locale = getCurrentLocale();
-
-  const localePrefixed = (path: string) => `/${locale}${path}`;
 
   return (
     <section className="relative w-full h-screen text-primary-foreground overflow-hidden">
@@ -53,7 +40,7 @@ export function HeroSection({ dictionary }: { dictionary: any }) {
                 </div>
                 <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                    <Link href={localePrefixed("/contact")}>
+                    <Link href={"/contact"}>
                         {dictionary.heroSection.ctaButton}
                         <ArrowRight className="ml-2" />
                     </Link>
