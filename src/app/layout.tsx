@@ -2,7 +2,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '@/components/app-providers';
-import { i18n, type Locale } from '@/i18n-config';
 import { PublicProviders } from '@/components/layout/public-providers';
 import Script from 'next/script';
 import { Header } from '@/components/layout/header';
