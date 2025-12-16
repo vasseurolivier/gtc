@@ -1,5 +1,4 @@
 
-import { PublicProviders } from '@/components/layout/public-providers';
 import { ReactNode } from 'react';
 
 export default async function PublicLayout({
@@ -7,11 +6,13 @@ export default async function PublicLayout({
   params,
 }: {
   children: ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  
   return (
-    <PublicProviders>
+    <div>
       {children}
-    </PublicProviders>
+    </div>
   );
 }
