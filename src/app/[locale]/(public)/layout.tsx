@@ -10,7 +10,7 @@ export default async function PublicLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: { locale: Locale };
 }) {
   const validLocale = params.locale === 'fr' || params.locale === 'en' ? params.locale : 'fr';
   const dictionary = await getDictionary(validLocale);
