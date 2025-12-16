@@ -7,10 +7,8 @@ export default async function PublicLayout({
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ locale: string }>;
+  params: { locale: string };
 }) {
-  const { locale } = await params;
-  
   return (
     <PublicProviders>
       {children}

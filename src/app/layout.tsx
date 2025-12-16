@@ -2,7 +2,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '@/components/app-providers';
-import { PublicProviders } from '@/components/layout/public-providers';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
@@ -36,9 +35,7 @@ export default function RootLayout({
       </head>
       <body className="font-body bg-background text-foreground antialiased">
           <AppProviders>
-            <PublicProviders>
-               {children}
-            </PublicProviders>
+            {children}
           </AppProviders>
       </body>
     </html>
