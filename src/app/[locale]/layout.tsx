@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { i18n, Locale } from '@/i18n-config';
 import { getDictionary } from '@/lib/get-dictionary';
