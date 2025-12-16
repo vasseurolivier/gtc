@@ -7,18 +7,18 @@ import Script from 'next/script';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { getDictionary } from '@/lib/get-dictionary';
+import { i18n, Locale } from '@/i18n-config';
 
 export const metadata: Metadata = {
   title: 'Global Trading China',
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const dictionary = await getDictionary('fr');
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
@@ -39,15 +39,11 @@ export default async function RootLayout({
         </Script>
       </head>
       <body className="font-body bg-background text-foreground antialiased">
-        <AppProviders>
-          <PublicProviders>
-            <div className="min-h-screen">
-              <Header dictionary={dictionary.header || {}} />
-              <main>{children}</main>
-              <Footer dictionary={dictionary.footer || {}} />
-            </div>
-          </PublicProviders>
-        </AppProviders>
+          <AppProviders>
+            <PublicProviders>
+               {children}
+            </PublicProviders>
+          </AppProviders>
       </body>
     </html>
   );

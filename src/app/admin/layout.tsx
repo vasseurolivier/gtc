@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -339,15 +338,19 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  if (pathname.startsWith('/admin')) {
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     return (
-      <AppProviders>
-        <CompanyInfoProvider>
-            <CurrencyProvider>
-                <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
-            </CurrencyProvider>
-        </CompanyInfoProvider>
-      </AppProviders>
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          <AppProviders>
+            <CompanyInfoProvider>
+                <CurrencyProvider>
+                    <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
+                </CurrencyProvider>
+            </CompanyInfoProvider>
+          </AppProviders>
+        </body>
+      </html>
     )
   }
   return <>{children}</>
