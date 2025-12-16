@@ -4,7 +4,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
 export default async function CustomServicesPage() {
   const dictionary = await getDictionary('fr');

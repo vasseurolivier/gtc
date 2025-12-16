@@ -5,7 +5,6 @@ import { ClipboardList, Microscope, Ship, BookCopy, Timer, Globe, CheckCircle, H
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
 export default async function TradingLogisticsPage() {
   const dictionary = await getDictionary('fr');

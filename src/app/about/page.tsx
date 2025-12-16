@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Building, Target, Users, ShieldCheck, Handshake, Globe, Package, Shirt, Gem, ToyBrick, Sofa, Tv, Car, Wrench } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 import {
   Carousel,
   CarouselContent,

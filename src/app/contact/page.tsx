@@ -1,7 +1,6 @@
 
 import { ContactSection } from "@/components/sections/contact-section";
 import { getDictionary } from "@/lib/get-dictionary";
-import { Locale } from "@/i18n-config";
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 

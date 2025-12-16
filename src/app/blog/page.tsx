@@ -1,6 +1,5 @@
 
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
 export default async function BlogPage() {
   const dictionary = await getDictionary('fr');

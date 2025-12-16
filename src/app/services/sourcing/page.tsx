@@ -4,7 +4,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, FileSignature, Handshake, Beaker, Factory, Shirt, ToyBrick, Lamp } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
 export default async function SourcingPage() {
   const dictionary = await getDictionary('fr');

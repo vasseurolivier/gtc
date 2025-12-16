@@ -4,7 +4,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Building, Wifi, Package } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
 export default async function TradeCitiesPage() {
   const dictionary = await getDictionary('fr');

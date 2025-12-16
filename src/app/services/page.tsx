@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale, i18n } from '@/i18n-config';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 

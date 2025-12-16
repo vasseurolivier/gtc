@@ -1,6 +1,5 @@
 
 import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
 export default async function LegalNoticePage() {
   const dictionary = await getDictionary('fr');
