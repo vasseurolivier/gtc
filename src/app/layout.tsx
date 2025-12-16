@@ -4,10 +4,6 @@ import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import { PublicProviders } from '@/components/layout/public-providers';
 import Script from 'next/script';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { getDictionary } from '@/lib/get-dictionary';
-import { i18n, Locale } from '@/i18n-config';
 
 export const metadata: Metadata = {
   title: 'Global Trading China',

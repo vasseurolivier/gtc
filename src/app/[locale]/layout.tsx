@@ -1,9 +1,8 @@
 
-import type { Metadata } from 'next';
-import { i18n, Locale } from '@/i18n-config';
-import { getDictionary } from '@/lib/get-dictionary';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { getDictionary } from '@/lib/get-dictionary';
+import { i18n, Locale } from '@/i18n-config';
 
 export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ locale }));
