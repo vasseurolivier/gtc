@@ -7,11 +7,11 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
 export default async function Home({
-  params,
+  params: { locale },
 }: {
   params: { locale: Locale };
 }) {
-  const dictionary = await getDictionary(params.locale);
+  const dictionary = await getDictionary(locale);
   return (
     <>
       <HeroSection dictionary={dictionary} />
