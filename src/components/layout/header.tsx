@@ -130,7 +130,7 @@ export function Header({ dictionary }: { dictionary: any }) {
               <div style={{width: '50px', height: '12px'}} />
             )}
             <span className={cn("font-bold sm:inline-block font-headline text-lg text-white hidden")}>
-              Global Trading China
+              Global <span className="text-red-500">Trading</span> China
             </span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
