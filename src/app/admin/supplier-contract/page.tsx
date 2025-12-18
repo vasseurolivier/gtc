@@ -191,8 +191,9 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
   }
   const { companyInfo } = companyInfoContext;
   
-  const totalAmount = watchedValues.items?.reduce((sum, item) => sum + ((item?.quantity || 0) * (item?.unitPrice || 0)), 0) || 0;
-  const depositAmount = totalAmount * ((watchedValues.depositPercentage || 0) / 100);
+  const totalAmount = watchedValues.items?.reduce((sum, item) => sum + ((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0)), 0) || 0;
+  const depositPercentage = Number(watchedValues.depositPercentage) || 0;
+  const depositAmount = totalAmount * (depositPercentage / 100);
   const balanceAmount = totalAmount - depositAmount;
 
   return (
@@ -307,15 +308,20 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                             <tr className="border"><th className="p-1 border text-left w-12">图片 (Photo)</th><th className="p-1 border text-left">货描 (Description)</th><th className="p-1 border text-right">数量 (Quantity)</th><th className="p-1 border text-right">单价 (Unit Price CNY)</th><th className="p-1 border text-right">总价 (Total Amount CNY)</th></tr>
                         </thead>
                         <tbody>
-                            {watchedValues.items?.map((item, index) => (
-                                <tr key={index}>
-                                    <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-10 h-10 object-contain"/>}</td>
-                                    <td className="p-1 border align-top">{item.description}</td>
-                                    <td className="p-1 border text-right align-top">{item.quantity}</td>
-                                    <td className="p-1 border text-right align-top">¥{item.unitPrice.toFixed(2)}</td>
-                                    <td className="p-1 border text-right align-top">¥{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}</td>
-                                </tr>
-                            ))}
+                            {watchedValues.items?.map((item, index) => {
+                                const unitPrice = Number(item.unitPrice) || 0;
+                                const quantity = Number(item.quantity) || 0;
+                                const total = quantity * unitPrice;
+                                return (
+                                    <tr key={index}>
+                                        <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-10 h-10 object-contain"/>}</td>
+                                        <td className="p-1 border align-top">{item.description}</td>
+                                        <td className="p-1 border text-right align-top">{quantity}</td>
+                                        <td className="p-1 border text-right align-top">¥{unitPrice.toFixed(2)}</td>
+                                        <td className="p-1 border text-right align-top">¥{total.toFixed(2)}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </section>
@@ -336,7 +342,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                     <section className="mt-4 space-y-1 text-xs">
                         <h2 className="font-bold text-center mb-2">2. 合同条款 (TERMS)</h2>
                         <p><strong>- 质量要求 (Quality Control):</strong> {watchedValues.qualityControl}. {watchedValues.qualityControl?.toLowerCase().includes('aql') ? 'AQL (可接受质量水平) 国际抽样标准' : ''}</p>
-                        <p><strong>- 付款条件 (Payment Terms):</strong> {watchedValues.depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
+                        <p><strong>- 付款条件 (Payment Terms):</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
                         <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>
                         <p><strong>- 交货时间 (Lead Time):</strong> {watchedValues.leadTime}.</p>
                         {watchedValues.specificClauses && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
