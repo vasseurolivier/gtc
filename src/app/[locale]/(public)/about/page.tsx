@@ -17,10 +17,9 @@ import {
 export default async function AboutPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   
   const aboutPageDict = dictionary.aboutPage;
 
@@ -229,7 +228,3 @@ export default async function AboutPage({
     </>
   );
 }
-
-    
-
-    
