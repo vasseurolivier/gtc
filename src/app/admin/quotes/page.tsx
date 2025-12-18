@@ -506,10 +506,10 @@ function QuotesPageContent() {
                           <div className="grid grid-cols-1 md:grid-cols-[1fr_80px_110px_110px] gap-2 items-start">
                               <div className="space-y-2">
                                 <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                    <SelectTrigger><SelectValue placeholder="Select a product or describe" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
                                     <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent>
                                 </Select>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (<FormItem><FormControl><Input placeholder="Or type item description" {...f} /></FormControl><FormMessage/></FormItem>)}/>
+                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="Or type item description" {...f} /></FormControl><FormMessage/></FormItem>)}/>
                               </div>
                               <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>)}/>
                               <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>)}/>
