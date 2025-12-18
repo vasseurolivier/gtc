@@ -174,7 +174,7 @@ export function Header({ dictionary }: { dictionary: any }) {
         <div className="flex items-center gap-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className={cn("text-white hover:text-white/90 hover:bg-white/10")}>
+                <Button variant="ghost" size="icon" className={cn("text-red-500 hover:text-red-500/90 hover:bg-white/10")}>
                     <Globe className="h-5 w-5" />
                 </Button>
                 </DropdownMenuTrigger>
