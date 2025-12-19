@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/carousel"
 
 export default async function AboutPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   
   const aboutPageDict = dictionary.aboutPage;
 

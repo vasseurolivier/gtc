@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import '../globals.css';
 import { AppProviders } from '@/components/app-providers';
@@ -16,13 +17,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
   params: { locale: Locale };
 }) {
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={params.locale} suppressHydrationWarning>
       <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -6,11 +6,11 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default async function ContactPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   const heroImage = PlaceHolderImages.find(p => p.id === 'contact-hero');
   
   return (

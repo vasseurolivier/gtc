@@ -6,11 +6,11 @@ import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
 export default async function EcommerceSolutionsPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   const ecommerceDict = dictionary.ecommerceSolutionsPage;
 
   const ecommerceFeatures = [
