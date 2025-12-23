@@ -9,9 +9,9 @@ export default async function PublicLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: { locale: string };
 }) {
-  const { locale } = await params;
+  const locale = params.locale as Locale;
   const dictionary = await getDictionary(locale);
   return (
       <div className="min-h-screen flex flex-col">

@@ -15,16 +15,15 @@ export const metadata: Metadata = {
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: { locale: string };
 }) {
-  const { locale } = await params;
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={params.locale} suppressHydrationWarning>
       <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
