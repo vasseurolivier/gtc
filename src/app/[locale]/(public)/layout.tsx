@@ -16,12 +16,10 @@ export default async function PublicLayout({
   return (
     <PublicProviders>
       <div className="min-h-screen">
-        <Header dictionary={dictionary.header} />
+        <Header dictionary={dictionary.header} lang={params.locale} />
         <main>{children}</main>
-        <Footer dictionary={dictionary.footer} />
+        <Footer dictionary={dictionary.footer} lang={params.locale} />
       </div>
     </PublicProviders>
   );
 }
-
-    

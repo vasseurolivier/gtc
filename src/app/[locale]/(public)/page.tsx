@@ -14,12 +14,10 @@ export default async function Home({
   const dictionary = await getDictionary(params.locale);
   return (
     <>
-      <HeroSection dictionary={dictionary} />
+      <HeroSection dictionary={dictionary} lang={params.locale} />
       <ServicesSection dictionary={dictionary.servicesSection} />
-      <AboutSection dictionary={dictionary.aboutSection} />
+      <AboutSection dictionary={dictionary.aboutSection} lang={params.locale} />
       <ProcessSection dictionary={dictionary.processSection} />
     </>
   );
 }
-
-    
