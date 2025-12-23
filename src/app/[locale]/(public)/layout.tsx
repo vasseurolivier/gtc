@@ -3,7 +3,6 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
-import { PublicProviders } from '@/components/layout/public-providers';
 
 export default async function PublicLayout({
   children,
@@ -14,12 +13,10 @@ export default async function PublicLayout({
 }) {
   const dictionary = await getDictionary(params.locale);
   return (
-    <PublicProviders>
-      <div className="min-h-screen">
+      <div className="min-h-screen flex flex-col">
         <Header dictionary={dictionary.header} lang={params.locale} />
-        <main>{children}</main>
+        <main className="flex-grow">{children}</main>
         <Footer dictionary={dictionary.footer} lang={params.locale} />
       </div>
-    </PublicProviders>
   );
 }
