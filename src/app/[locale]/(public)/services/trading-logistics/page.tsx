@@ -10,9 +10,10 @@ import { Locale } from '@/i18n-config';
 export default async function TradingLogisticsPage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const dictionary = await getDictionary(params.locale);
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
   const tradingLogisticsDict = dictionary.tradingLogisticsPage;
 
   const tradingFeatures = [
@@ -248,5 +249,3 @@ export default async function TradingLogisticsPage({
     </>
   );
 }
-
-    

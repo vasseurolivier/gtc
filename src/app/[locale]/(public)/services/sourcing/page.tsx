@@ -9,9 +9,10 @@ import { Locale } from '@/i18n-config';
 export default async function SourcingPage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const dictionary = await getDictionary(params.locale);
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
   const sourcingPageDict = dictionary.sourcingPage;
 
   const sourcingFeatures = [
@@ -178,5 +179,3 @@ export default async function SourcingPage({
     </>
   );
 }
-
-    

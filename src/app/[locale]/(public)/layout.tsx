@@ -9,14 +9,15 @@ export default async function PublicLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const dictionary = await getDictionary(params.locale);
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
   return (
       <div className="min-h-screen flex flex-col">
-        <Header dictionary={dictionary.header} lang={params.locale} />
+        <Header dictionary={dictionary.header} lang={locale} />
         <main className="flex-grow">{children}</main>
-        <Footer dictionary={dictionary.footer} lang={params.locale} />
+        <Footer dictionary={dictionary.footer} lang={locale} />
       </div>
   );
 }
