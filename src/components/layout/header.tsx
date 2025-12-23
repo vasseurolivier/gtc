@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -20,11 +19,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { i18n } from '@/i18n-config';
+import { i18n, Locale } from '@/i18n-config';
 import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
-export function Header({ dictionary }: { dictionary: any }) {
+export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -47,16 +46,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     setActivePath(pathname);
   }, [pathname]);
 
-  const getCurrentLocale = () => {
-    if (!pathname) return i18n.defaultLocale;
-    const segments = pathname.split('/');
-    if (segments.length > 1 && i18n.locales.includes(segments[1] as any)) {
-      return segments[1];
-    }
-    return i18n.defaultLocale;
-  }
-  const locale = getCurrentLocale();
-
+  
   const navItems = [
     { href: '/', label: dictionary.home },
     { href: '/about', label: dictionary.about },
@@ -80,7 +70,7 @@ export function Header({ dictionary }: { dictionary: any }) {
     return segments.join('/')
   }
   
-  const localePrefixed = (path: string) => `/${locale}${path}`;
+  const localePrefixed = (path: string) => `/${lang}${path}`;
   const isHomePage = activePath === localePrefixed('/');
 
   const headerClasses = cn(
@@ -91,14 +81,14 @@ export function Header({ dictionary }: { dictionary: any }) {
   );
   
   const linkClasses = (href: string, isServices = false) => {
-    const fullPath = `/${locale}${href}`.replace(/\/$/, '');
-    const currentBasePath = `/${locale}`;
+    const fullPath = `/${lang}${href}`.replace(/\/$/, '');
+    const currentBasePath = `/${lang}`;
     
     let isActive = false;
     if (isServices) {
-        isActive = activePath.startsWith(`/${locale}/services`);
+        isActive = activePath.startsWith(`/${lang}/services`);
     } else if (href === '/') {
-        isActive = activePath === `/${locale}` || activePath === `/${locale}/`;
+        isActive = activePath === `/${lang}` || activePath === `/${lang}/`;
     } else {
         isActive = activePath.startsWith(fullPath);
     }
@@ -113,7 +103,7 @@ export function Header({ dictionary }: { dictionary: any }) {
   const dropdownTriggerClasses = cn(
     "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-    activePath.startsWith(`/${locale}/services`)
+    activePath.startsWith(`/${lang}/services`)
       ? "text-white after:w-full"
       : "hover:text-white/90"
   );
@@ -213,7 +203,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${locale}`)) ? "text-primary font-bold" : "text-foreground"
+                            (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${lang}`)) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {item.label}
@@ -224,7 +214,7 @@ export function Header({ dictionary }: { dictionary: any }) {
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
                             "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                            activePath.startsWith(`/${locale}/services`) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(`/${lang}/services`) ? "text-primary font-bold" : "text-foreground"
                             )}>
                             {dictionary.services}
                             </AccordionTrigger>

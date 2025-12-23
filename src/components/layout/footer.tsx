@@ -1,31 +1,19 @@
-
 "use client";
 
 import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { i18n } from '@/i18n-config';
+import { i18n, Locale } from '@/i18n-config';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
 
-export function Footer({ dictionary }: { dictionary: any }) {
-  const pathname = usePathname();
+export function Footer({ dictionary, lang }: { dictionary: any, lang: Locale }) {
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
   
-  const getCurrentLocale = () => {
-    if (!pathname) return i18n.defaultLocale;
-    const segments = pathname.split('/');
-    if (segments.length > 1 && i18n.locales.includes(segments[1] as any)) {
-      return segments[1];
-    }
-    return i18n.defaultLocale;
-  }
-  const locale = getCurrentLocale();
-  
-  const localePrefixed = (path: string) => `/${locale}${path}`;
+  const localePrefixed = (path: string) => `/${lang}${path}`;
 
   return (
     <footer className="bg-secondary">
