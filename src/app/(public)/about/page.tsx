@@ -101,12 +101,12 @@ export default function AboutPage() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
-        <div className="relative h-full flex flex-col justify-center items-center text-center p-4">
+        <div className="relative h-full flex flex-col justify-end items-start text-left p-8 md:p-16">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   {aboutPageDict.hero.title}
               </h1>
-              <div className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl text-lg md:text-xl text-neutral-200">
                   {aboutPageDict.hero.subtitle}
               </div>
           </div>
