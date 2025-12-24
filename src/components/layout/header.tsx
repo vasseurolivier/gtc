@@ -124,45 +124,45 @@ export function Header() {
               Global <span className="text-red-500">Trading</span> China
             </span>
           </Link>
-          <nav className="hidden md:flex items-center space-x-6">
-            {navItems.map((item) => (
-            <Link
-                key={item.href}
-                href={item.href}
-                className={linkClasses(item.href)}
-            >
-                {item.label}
-            </Link>
-            ))}
-            <DropdownMenu>
-            <DropdownMenuTrigger className={dropdownTriggerClasses}>
-                {dictionary.services} <ChevronDown className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                {servicesItems.map((item) => (
-                <DropdownMenuItem key={item.href} asChild>
-                    <Link href={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
-                ))}
-            </DropdownMenuContent>
-            </DropdownMenu>
-            <Link
-                key={citiesItem.href}
-                href={citiesItem.href}
-                className={linkClasses(citiesItem.href)}
-            >
-                {citiesItem.label}
-            </Link>
-            <Link
-                key={contactItem.href}
-                href={contactItem.href}
-                className={linkClasses(contactItem.href)}
-            >
-                {contactItem.label}
-            </Link>
-          </nav>
         </div>
         <div className="flex items-center gap-2">
+            <nav className="hidden md:flex items-center space-x-6">
+                {navItems.map((item) => (
+                <Link
+                    key={item.href}
+                    href={item.href}
+                    className={linkClasses(item.href)}
+                >
+                    {item.label}
+                </Link>
+                ))}
+                <DropdownMenu>
+                <DropdownMenuTrigger className={dropdownTriggerClasses}>
+                    {dictionary.services} <ChevronDown className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    {servicesItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                        <Link href={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+                </DropdownMenu>
+                <Link
+                    key={citiesItem.href}
+                    href={citiesItem.href}
+                    className={linkClasses(citiesItem.href)}
+                >
+                    {citiesItem.label}
+                </Link>
+                <Link
+                    key={contactItem.href}
+                    href={contactItem.href}
+                    className={linkClasses(contactItem.href)}
+                >
+                    {contactItem.label}
+                </Link>
+            </nav>
             <div className="md:hidden">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
