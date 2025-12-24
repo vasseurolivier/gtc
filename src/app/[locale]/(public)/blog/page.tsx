@@ -5,10 +5,9 @@ import { Locale } from '@/i18n-config';
 export default async function BlogPage({
   params,
 }: {
-  params: { locale: string };
+  params: { locale: Locale };
 }) {
-  const locale = params.locale as Locale;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   return (
     <div className="container py-16 md:py-24">
       <div className="max-w-4xl mx-auto">

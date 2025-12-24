@@ -17,10 +17,9 @@ import {
 export default async function AboutPage({
   params,
 }: {
-  params: { locale: string };
+  params: { locale: Locale };
 }) {
-  const locale = params.locale as Locale;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   
   const aboutPageDict = dictionary.aboutPage;
 

@@ -9,15 +9,14 @@ import { Locale } from '@/i18n-config';
 export default async function Home({
   params,
 }: {
-  params: { locale: string };
+  params: { locale: Locale };
 }) {
-  const locale = params.locale as Locale;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(params.locale);
   return (
     <>
-      <HeroSection dictionary={dictionary} lang={locale} />
+      <HeroSection dictionary={dictionary} lang={params.locale} />
       <ServicesSection dictionary={dictionary.servicesSection} />
-      <AboutSection dictionary={dictionary.aboutSection} lang={locale} />
+      <AboutSection dictionary={dictionary.aboutSection} lang={params.locale} />
       <ProcessSection dictionary={dictionary.processSection} />
     </>
   );

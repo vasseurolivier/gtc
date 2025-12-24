@@ -20,7 +20,7 @@ export default async function RootLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: { locale: Locale };
 }) {
   return (
     <html lang={params.locale} suppressHydrationWarning>
