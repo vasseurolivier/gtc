@@ -3,15 +3,34 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Building, Wifi, Package } from 'lucide-react';
-import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 
-export default async function TradeCitiesPage(props: Promise<{
-  params: { locale: Locale };
-}>) {
-  const { params } = await props;
-  const dictionary = await getDictionary(params.locale);
-  const tradeCitiesDict = dictionary.tradeCitiesPage;
+export default function TradeCitiesPage() {
+  const tradeCitiesDict = {
+    hero: {
+      title: "Pôles Commerciaux Stratégiques pour le Sourcing en Chine",
+      subtitle: "Découvrez les villes clés au cœur du commerce mondial et comment nous vous y donnons un accès privilégié."
+    },
+    cities: {
+      guangzhou: {
+        name: "Guangzhou (Canton)",
+        subtitle: "La Capitale Mondiale du Commerce Traditionnel",
+        description: "Port commercial historique, Guangzhou est un hub essentiel, célèbre pour la Foire de Canton. La ville excelle dans le sourcing de textile, vêtements, maroquinerie et électronique grand public.",
+        specialties: ["Textile & Habillement", "Foire de Canton", "Électronique", "Articles en cuir"]
+      },
+      shenzhen: {
+        name: "Shenzhen",
+        subtitle: "La Silicon Valley du Hardware",
+        description: "Voisine de Hong Kong, Shenzhen est l'épicentre mondial de la fabrication électronique, des composants aux produits finis. Si votre projet concerne la high-tech, les gadgets ou les startups, Shenzhen est la ville de sourcing incontournable.",
+        specialties: ["Électronique grand public", "Composants", "Startups Tech", "Innovation"]
+      },
+      yiwu: {
+        name: "Yiwu",
+        subtitle: "Le plus Grand Marché de Gros au Monde",
+        description: "Yiwu abrite l'immense 'International Trade City'. C'est le paradis pour le sourcing de petits articles, biens de consommation, jouets, et bijoux. Idéal pour les acheteurs cherchant de faibles MOQ sur une très grande variété de produits.",
+        specialties: ["Petites marchandises", "Jouets & Gadgets", "Bijoux & Accessoires", "Faibles MOQ"]
+      }
+    }
+  };
 
   const cities = [
     {

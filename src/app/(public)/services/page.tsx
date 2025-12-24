@@ -5,20 +5,61 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { getDictionary } from '@/lib/get-dictionary';
-import { Locale, i18n } from '@/i18n-config';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default async function ServicesPage(props: Promise<{
-  params: { locale: Locale };
-}>) {
-  const { params } = await props;
-  const dictionary = await getDictionary(params.locale);
-  const servicesPageDict = dictionary.servicesPage;
+export default function ServicesPage() {
+  const servicesPageDict = {
+    hero: {
+      title: "Solutions Complètes pour votre Chaîne d'Approvisionnement",
+      subtitle: "De la recherche de fournisseur à la livraison, découvrez comment nous sécurisons chaque étape de votre importation depuis la Chine."
+    },
+    learnMore: "En savoir plus",
+    services: {
+      sourcing: {
+        title: "Sourcing et Achat",
+        shortDescription: "Trouvez et évaluez les meilleurs fournisseurs chinois pour vos produits.",
+        details: [
+          { title: "Identification de Fournisseurs Qualifiés", description: "Recherche et sélection de fabricants correspondant à votre cahier des charges et à vos exigences de qualité." },
+          { title: "Vérification et Audit d'Usine", description: "Inspections sur site pour évaluer la capacité de production, les certifications et la conformité sociale (BSCI)." },
+          { title: "Négociation de Prix et Conditions", description: "Obtention des meilleures conditions tarifaires et de paiement grâce à notre connaissance du marché local." },
+          { title: "Gestion des Échantillons", description: "Coordination de la création et de l'envoi d'échantillons pour validation avant toute production de masse." }
+        ]
+      },
+      trading: {
+        title: "Trading et Logistique Internationale",
+        shortDescription: "Facilitez vos opérations d'import-export avec une gestion logistique complète.",
+        details: [
+          { title: "Gestion et Suivi des Commandes", description: "Suivi rigoureux de la production et communication constante avec les fournisseurs pour garantir le respect des délais." },
+          { title: "Contrôle Qualité (AQL)", description: "Inspections pré-production, en cours de production et finales pour assurer la conformité totale de vos produits." },
+          { title: "Logistique et Dédouanement", description: "Organisation du transport (aérien, maritime, ferroviaire), gestion du dédouanement et de la documentation nécessaire." },
+          { title: "Consolidation des Expéditions", description: "Regroupement de vos commandes de différents fournisseurs pour optimiser les coûts de transport depuis la Chine." }
+        ]
+      },
+      ecommerce: {
+        title: "Solutions E-commerce & Dropshipping",
+        shortDescription: "Un soutien de bout en bout pour votre boutique en ligne, d'Amazon FBA à Shopify.",
+        details: [
+          { title: "Sourcing de Produits Gagnants", description: "Identification de produits tendance à fort potentiel pour les plateformes comme Amazon FBA, Shopify, etc." },
+          { title: "Branding et Packaging Personnalisé", description: "Création de votre identité de marque, du logo à l'emballage sur mesure pour vous différencier." },
+          { title: "Préparation FBA et 3PL Conforme", description: "Étiquetage, emballage et préparation des produits selon les standards stricts d'Amazon ou autres centres logistiques." },
+          { title: "Dropshipping et Fulfillment depuis la Chine", description: "Gestion des stocks et expédition directe à vos clients finaux depuis nos entrepôts, optimisant vos flux." }
+        ]
+      },
+      custom: {
+        title: "Services sur Mesure & Conseil",
+        shortDescription: "Des solutions personnalisées pour vos besoins uniques d'importation.",
+        details: [
+          { title: "Développement de Produit (OEM/ODM)", description: "Accompagnement de l'idée au prototype, incluant la conception, l'ingénierie et la recherche de matériaux." },
+          { title: "Assistance Salons (Foire de Canton)", description: "Accompagnement et traduction lors de vos visites sur les salons professionnels en Chine." },
+          { title: "Conseil en Stratégie d'Achat", description: "Analyse de votre chaîne d'approvisionnement et proposition de pistes d'optimisation pour réduire les coûts et les risques." },
+          { title: "Gestion de Projets d'Importation Complexes", description: "Prise en charge de projets spécifiques nécessitant une coordination multi-fournisseurs et des compétences techniques pointues." }
+        ]
+      }
+    }
+  };
   const heroImage = PlaceHolderImages.find(p => p.id === 'services-hero');
 
-  const localePrefixed = (path: string) => `/${params.locale}${path}`;
 
   const services = [
     {
@@ -93,7 +134,7 @@ export default async function ServicesPage(props: Promise<{
                       {service.shortDescription}
                     </CardDescription>
                     <Button asChild className="mt-6 w-fit">
-                      <Link href={localePrefixed(service.link)}>
+                      <Link href={service.link}>
                         {servicesPageDict.learnMore}
                         <ChevronRight className="ml-2 h-4 w-4"/>
                       </Link>

@@ -1,12 +1,12 @@
 
-import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
+export default function BlogPage() {
+  const dictionary = {
+    blogPage: {
+      title: "Blog sur le Sourcing en Chine",
+      content: "Nos articles et conseils sur l'import-export, le contrôle qualité et la logistique depuis la Chine seront bientôt disponibles..."
+    }
+  };
 
-export default async function BlogPage(props: Promise<{
-  params: { locale: Locale };
-}>) {
-  const { params } = await props;
-  const dictionary = await getDictionary(params.locale);
   return (
     <div className="container py-16 md:py-24">
       <div className="max-w-4xl mx-auto">

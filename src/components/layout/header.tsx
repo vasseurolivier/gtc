@@ -20,17 +20,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { i18n, Locale } from '@/i18n-config';
 import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { defaultLocale } from '@/i18n-config';
 
-export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) {
+export function Header({ dictionary, lang }: { dictionary: any, lang: string}) {
+
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const localePrefixed = (path: string) => {
+    if (lang === defaultLocale) return path;
+    return `/${lang}${path}`;
+  }
 
 
   useEffect(() => {
@@ -64,15 +70,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
   const citiesItem = { href: '/trade-cities', label: dictionary.tradeHubs };
   const contactItem = { href: '/contact', label: dictionary.contact };
 
-  const redirectedPathName = (newLocale: string) => {
-    if (!pathname) return `/${newLocale}`
-    const segments = pathname.split('/')
-    segments[1] = newLocale
-    return segments.join('/')
-  }
-  
-  const localePrefixed = (path: string) => `/${lang}${path}`;
-  const isHomePage = activePath === localePrefixed('/');
+  const isHomePage = activePath === '/' || activePath === `/${lang}`;
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-300",
@@ -82,14 +80,13 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
   );
   
   const linkClasses = (href: string, isServices = false) => {
-    const fullPath = `/${lang}${href}`.replace(/\/$/, '');
-    const currentBasePath = `/${lang}`;
+    const fullPath = localePrefixed(href);
     
     let isActive = false;
     if (isServices) {
-        isActive = activePath.startsWith(`/${lang}/services`);
+        isActive = activePath.startsWith(localePrefixed('/services'));
     } else if (href === '/') {
-        isActive = activePath === `/${lang}` || activePath === `/${lang}/`;
+        isActive = activePath === `/` || activePath === `/${lang}`;
     } else {
         isActive = activePath.startsWith(fullPath);
     }
@@ -104,7 +101,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
   const dropdownTriggerClasses = cn(
     "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-    activePath.startsWith(`/${lang}/services`)
+    activePath.startsWith(localePrefixed('/services'))
       ? "text-white after:w-full"
       : "hover:text-white/90"
   );
@@ -163,22 +160,6 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
           </nav>
         </div>
         <div className="flex items-center gap-2">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className={cn("text-red-500 hover:text-red-500/90 hover:bg-white/10")}>
-                    <Globe className="h-5 w-5" />
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                {i18n.locales.map(l => (
-                    <DropdownMenuItem key={l} asChild>
-                    <Link href={redirectedPathName(l)}>
-                        {l === 'en' ? 'English' : 'Français'}
-                    </Link>
-                    </DropdownMenuItem>
-                ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
             <div className="md:hidden">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
@@ -204,7 +185,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            (activePath === localePrefixed(item.href) || (item.href === '/' && activePath === `/${lang}`)) ? "text-primary font-bold" : "text-foreground"
+                            (activePath === item.href || (item.href === '/' && activePath === `/${lang}`)) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {item.label}
@@ -215,7 +196,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
                             "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                            activePath.startsWith(`/${lang}/services`) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(localePrefixed('/services')) ? "text-primary font-bold" : "text-foreground"
                             )}>
                             {dictionary.services}
                             </AccordionTrigger>
@@ -228,7 +209,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={cn(
                                     "text-base font-medium transition-colors hover:text-primary py-2",
-                                    activePath === localePrefixed(item.href) ? "text-primary font-bold" : "text-muted-foreground"
+                                    activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
                                     )}
                                 >
                                     {item.label}
@@ -244,7 +225,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            activePath.startsWith(localePrefixed(citiesItem.href)) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(citiesItem.href) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {citiesItem.label}
@@ -255,7 +236,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: Locale }) 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            activePath.startsWith(localePrefixed(contactItem.href)) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith(contactItem.href) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {contactItem.label}

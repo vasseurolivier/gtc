@@ -5,17 +5,19 @@ import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { i18n, Locale } from '@/i18n-config';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { defaultLocale } from '@/i18n-config';
 
-
-export function Footer({ dictionary, lang }: { dictionary: any, lang: Locale }) {
+export function Footer({ dictionary, lang }: { dictionary: any, lang: string }) {
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
-  
-  const localePrefixed = (path: string) => `/${lang}${path}`;
 
+  const localePrefixed = (path: string) => {
+    if (lang === defaultLocale) return path;
+    return `/${lang}${path}`;
+  }
+  
   return (
     <footer className="bg-secondary">
       <div className="container py-12 px-4 sm:px-6 lg:px-8">

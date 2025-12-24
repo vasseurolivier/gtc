@@ -4,8 +4,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Building, Target, Users, ShieldCheck, Handshake, Globe, Package, Shirt, Gem, ToyBrick, Sofa, Tv, Car, Wrench } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { getDictionary } from '@/lib/get-dictionary';
-import { Locale } from '@/i18n-config';
 import {
   Carousel,
   CarouselContent,
@@ -14,48 +12,57 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 
-export default async function AboutPage(props: Promise<{
-  params: { locale: Locale };
-}>) {
-  const { params } = await props;
-  const dictionary = await getDictionary(params.locale);
-  
-  const aboutPageDict = dictionary.aboutPage;
+export default function AboutPage() {
+  const aboutPageDict = {
+    hero: {
+      title: "Notre Mission : Simplifier et Sécuriser vos Achats en Chine",
+      subtitle: "Nous sommes votre partenaire de sourcing dédié, transformant les opportunités du marché chinois en succès pour votre entreprise."
+    },
+    aboutUs: {
+      title: "Qui Sommes-Nous ?",
+      p1: "Global Trading China est née de la conviction que l'accès au vaste et complexe marché chinois devrait être simple et sécurisé pour toute entreprise. Fondée par des experts du commerce international avec des années d'expérience sur le terrain, notre société sert de pont entre les ambitions des entrepreneurs mondiaux et l'incroyable potentiel de production de la Chine.",
+      p2: "Nous ne sommes pas de simples intermédiaires. Nous sommes une extension de votre équipe, votre agent de sourcing en Chine. Notre mission est de défendre vos intérêts, de garantir la qualité de vos produits grâce à des audits et des contrôles rigoureux, et d'optimiser votre chaîne d'approvisionnement pour une croissance durable."
+    },
+    values: {
+      value1: { title: "Partenariat", description: "Nous construisons des relations à long terme basées sur la confiance et la transparence pour tous vos projets d'import." },
+      value2: { title: "Rigueur", description: "Chaque étape, du sourcing au contrôle qualité, est menée avec la plus grande exigence pour garantir votre satisfaction." },
+      value3: { title: "Expertise Locale", description: "Notre présence en Chine est votre meilleur atout pour naviguer le marché, trouver les bons fournisseurs et négocier efficacement." }
+    },
+    advantages: {
+      title: "Pourquoi Travailler Avec un Agent de Sourcing ?",
+      subtitle: "Découvrez les avantages clés qui font de nous votre partenaire idéal pour vos achats en Chine.",
+      advantage1: { title: "Interlocuteur Unique", description: "Simplifiez vos opérations d'import. Nous centralisons la communication et gérons pour vous l'ensemble des acteurs, des fournisseurs aux transporteurs." },
+      advantage2: { title: "Sécurisation des Risques", description: "Nous protégeons vos investissements grâce à des contrôles qualité AQL, des audits d'usines et une gestion sécurisée des paiements." },
+      advantage3: { title: "Présence sur le Terrain", description: "Notre équipe en Chine lève la barrière de la langue, comprend la culture locale et réagit en temps réel à tout imprévu de production." }
+    },
+    productSectors: {
+      title: "Nos Secteurs de Sourcing",
+      subtitle: "Notre expertise en approvisionnement couvre un large éventail d'industries, nous permettant de répondre à des besoins variés et spécifiques.",
+      sectors: {
+        textiles: "Textile & Habillement",
+        electronics: "Électronique",
+        furniture: "Mobilier & Décoration",
+        jewelry: "Bijoux & Accessoires",
+        toys: "Jouets & Jeux",
+        packaging: "Packaging",
+        tools: "Outillage & Quincaillerie",
+        autoParts: "Pièces Automobiles",
+        promotionalItems: "Objets Publicitaires",
+        buildingMaterials: "Matériaux de Construction"
+      }
+    }
+  };
 
   const values = [
-    {
-      icon: <Users className="h-8 w-8 text-primary" />,
-      title: aboutPageDict.values.value1.title,
-      description: aboutPageDict.values.value1.description
-    },
-    {
-      icon: <Target className="h-8 w-8 text-primary" />,
-      title: aboutPageDict.values.value2.title,
-      description: aboutPageDict.values.value2.description
-    },
-    {
-      icon: <Building className="h-8 w-8 text-primary" />,
-      title: aboutPageDict.values.value3.title,
-      description: aboutPageDict.values.value3.description
-    }
+    { icon: <Users className="h-8 w-8 text-primary" />, title: aboutPageDict.values.value1.title, description: aboutPageDict.values.value1.description },
+    { icon: <Target className="h-8 w-8 text-primary" />, title: aboutPageDict.values.value2.title, description: aboutPageDict.values.value2.description },
+    { icon: <Building className="h-8 w-8 text-primary" />, title: aboutPageDict.values.value3.title, description: aboutPageDict.values.value3.description }
   ];
 
   const advantages = [
-    {
-      icon: <Handshake className="h-10 w-10 text-primary" />,
-      title: aboutPageDict.advantages.advantage1.title,
-      description: aboutPageDict.advantages.advantage1.description,
-    },
-    {
-        icon: <ShieldCheck className="h-10 w-10 text-primary" />,
-        title: aboutPageDict.advantages.advantage2.title,
-        description: aboutPageDict.advantages.advantage2.description,
-    },
-    {
-        icon: <Globe className="h-10 w-10 text-primary" />,
-        title: aboutPageDict.advantages.advantage3.title,
-        description: aboutPageDict.advantages.advantage3.description,
-    }
+    { icon: <Handshake className="h-10 w-10 text-primary" />, title: aboutPageDict.advantages.advantage1.title, description: aboutPageDict.advantages.advantage1.description },
+    { icon: <ShieldCheck className="h-10 w-10 text-primary" />, title: aboutPageDict.advantages.advantage2.title, description: aboutPageDict.advantages.advantage2.description },
+    { icon: <Globe className="h-10 w-10 text-primary" />, title: aboutPageDict.advantages.advantage3.title, description: aboutPageDict.advantages.advantage3.description }
   ];
   
   const productSectors = [

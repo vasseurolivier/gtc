@@ -5,11 +5,14 @@ import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { Locale } from '@/i18n-config';
+import { defaultLocale } from '@/i18n-config';
 
-
-export function AboutSection({ dictionary, lang }: { dictionary: any, lang: Locale }) {
+export function AboutSection({ dictionary, lang }: { dictionary: any, lang: string}) {
   const aboutImage = PlaceHolderImages.find(p => p.id === 'about-home');
+  const localePrefixed = (path: string) => {
+    if (lang === defaultLocale) return path;
+    return `/${lang}${path}`;
+  }
   
   return (
     <section className="py-16 md:py-24 bg-card">
@@ -28,7 +31,7 @@ export function AboutSection({ dictionary, lang }: { dictionary: any, lang: Loca
               </div>
             </div>
             <Button size="lg" className="mt-8" asChild>
-                <Link href={`/${lang}/about`}>
+                <Link href={localePrefixed(`/about`)}>
                     {dictionary.button}
                     <ArrowRight className="ml-2" />
                 </Link>

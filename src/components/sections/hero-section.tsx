@@ -5,17 +5,20 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { HeroContactForm } from '@/components/forms/hero-contact-form';
-import { Locale } from '@/i18n-config';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { defaultLocale } from '@/i18n-config';
 
-export function HeroSection({ dictionary, lang }: { dictionary: any, lang: Locale }) {
+export function HeroSection({ dictionary, lang }: { dictionary: any, lang: string }) {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
   const companyInfoContext = useContext(CompanyInfoContext);
   const brochureUrl = companyInfoContext?.companyInfo.brochureUrl;
-  
-  const localePrefixed = (path: string) => `/${lang}${path}`;
+
+  const localePrefixed = (path: string) => {
+    if (lang === defaultLocale) return path;
+    return `/${lang}${path}`;
+  }
 
   return (
     <section className="relative w-full h-screen text-primary-foreground overflow-hidden">

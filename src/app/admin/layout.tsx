@@ -46,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
+import { defaultLocale } from '@/i18n-config';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -231,6 +232,7 @@ function ProtectedAdminLayout({
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
+  
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
@@ -339,7 +341,7 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  if (pathname === '/admin/login') {
+  if (pathname.endsWith('/admin/login')) {
     return <AppProviders>{children}</AppProviders>;
   }
   return (
