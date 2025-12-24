@@ -4,6 +4,8 @@ import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import Script from 'next/script';
 import { CompanyInfoProvider } from '@/context/company-info-context';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
 
 export const metadata: Metadata = {
   title: 'Global Trading China',
@@ -37,7 +39,11 @@ export default function RootLayout({
       <body className="font-body bg-background text-foreground antialiased">
         <AppProviders>
           <CompanyInfoProvider>
-            {children}
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
           </CompanyInfoProvider>
         </AppProviders>
       </body>

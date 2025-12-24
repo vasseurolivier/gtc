@@ -8,7 +8,6 @@ import { HeroContactForm } from '@/components/forms/hero-contact-form';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { defaultLocale } from '@/i18n-config';
 
 export function HeroSection() {
   const dictionary = {
@@ -34,15 +33,9 @@ export function HeroSection() {
       }
     }
   };
-  const lang = defaultLocale;
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
   const companyInfoContext = useContext(CompanyInfoContext);
   const brochureUrl = companyInfoContext?.companyInfo.brochureUrl;
-
-  const localePrefixed = (path: string) => {
-    // Internationalization is removed, so we just return the path.
-    return path;
-  }
 
   return (
     <section className="relative w-full h-screen text-primary-foreground overflow-hidden">
@@ -68,7 +61,7 @@ export function HeroSection() {
                 </div>
                 <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                    <Link href={localePrefixed("/contact")}>
+                    <Link href="/contact">
                         {dictionary.heroSection.ctaButton}
                         <ArrowRight className="ml-2" />
                     </Link>

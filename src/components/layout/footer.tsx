@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { defaultLocale } from '@/i18n-config';
 
 export function Footer() {
   const dictionary = {
@@ -24,14 +23,8 @@ export function Footer() {
       contactUs: "Nous Contacter",
       rightsReserved: "Tous droits réservés."
   };
-  const lang = defaultLocale;
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
-
-  const localePrefixed = (path: string) => {
-    // Internationalization is removed, so we just return the path.
-    return path;
-  }
   
   return (
     <footer className="bg-secondary">
@@ -51,18 +44,18 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-headline font-semibold">{dictionary.navigation}</h3>
             <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href={localePrefixed("/")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.home}</Link></li>
-                <li><Link href={localePrefixed("/about")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.about}</Link></li>
-                <li><Link href={localePrefixed("/services")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.services}</Link></li>
-                 <li><Link href={localePrefixed("/contact")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.contact}</Link></li>
+                <li><Link href="/" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.home}</Link></li>
+                <li><Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.about}</Link></li>
+                <li><Link href="/services" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.services}</Link></li>
+                 <li><Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.contact}</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-headline font-semibold">{dictionary.legal}</h3>
             <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href={localePrefixed("/legal-notice")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.legalNotice}</Link></li>
-                <li><Link href={localePrefixed("/privacy-policy")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.privacyPolicy}</Link></li>
-                <li><Link href={localePrefixed("/terms-of-service")} className="text-muted-foreground hover:text-primary transition-colors">{dictionary.termsOfService}</Link></li>
+                <li><Link href="/legal-notice" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.legalNotice}</Link></li>
+                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.privacyPolicy}</Link></li>
+                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors">{dictionary.termsOfService}</Link></li>
             </ul>
           </div>
           <div>

@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/accordion"
 import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { defaultLocale } from '@/i18n-config';
 
 export function Header() {
   const dictionary = {
@@ -37,7 +36,6 @@ export function Header() {
     tradeHubs: 'Pôles Commerciaux',
     contact: 'Contact',
   };
-  const lang = defaultLocale;
 
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
@@ -45,12 +43,6 @@ export function Header() {
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const localePrefixed = (path: string) => {
-    // Internationalization is removed, so we just return the path.
-    return path;
-  }
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,15 +85,13 @@ export function Header() {
   );
   
   const linkClasses = (href: string, isServices = false) => {
-    const fullPath = localePrefixed(href);
-    
     let isActive = false;
     if (isServices) {
-        isActive = activePath.startsWith(localePrefixed('/services'));
+        isActive = activePath.startsWith('/services');
     } else if (href === '/') {
         isActive = activePath === `/`;
     } else {
-        isActive = activePath.startsWith(fullPath);
+        isActive = activePath.startsWith(href);
     }
 
     return cn(
@@ -114,7 +104,7 @@ export function Header() {
   const dropdownTriggerClasses = cn(
     "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-    activePath.startsWith(localePrefixed('/services'))
+    activePath.startsWith('/services')
       ? "text-white after:w-full"
       : "hover:text-white/90"
   );
@@ -124,7 +114,7 @@ export function Header() {
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href={localePrefixed('/')} className="flex items-center space-x-2">
+          <Link href={'/'} className="flex items-center space-x-2">
             {publicLogo ? (
               <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
             ) : (
@@ -138,7 +128,7 @@ export function Header() {
             {navItems.map((item) => (
             <Link
                 key={item.href}
-                href={localePrefixed(item.href)}
+                href={item.href}
                 className={linkClasses(item.href)}
             >
                 {item.label}
@@ -151,21 +141,21 @@ export function Header() {
             <DropdownMenuContent>
                 {servicesItems.map((item) => (
                 <DropdownMenuItem key={item.href} asChild>
-                    <Link href={localePrefixed(item.href)}>{item.label}</Link>
+                    <Link href={item.href}>{item.label}</Link>
                 </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>
             </DropdownMenu>
             <Link
                 key={citiesItem.href}
-                href={localePrefixed(citiesItem.href)}
+                href={citiesItem.href}
                 className={linkClasses(citiesItem.href)}
             >
                 {citiesItem.label}
             </Link>
             <Link
                 key={contactItem.href}
-                href={localePrefixed(contactItem.href)}
+                href={contactItem.href}
                 className={linkClasses(contactItem.href)}
             >
                 {contactItem.label}
@@ -182,7 +172,7 @@ export function Header() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
-                    <Link href={localePrefixed('/')} className="mb-8 flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href={'/'} className="mb-8 flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
                      {publicLogo ? (
                         <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                      ) : (
@@ -194,7 +184,7 @@ export function Header() {
                     {navItems.map((item) => (
                         <Link
                         key={item.href}
-                        href={localePrefixed(item.href)}
+                        href={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
@@ -209,7 +199,7 @@ export function Header() {
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
                             "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                            activePath.startsWith(localePrefixed('/services')) ? "text-primary font-bold" : "text-foreground"
+                            activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
                             )}>
                             {dictionary.services}
                             </AccordionTrigger>
@@ -218,7 +208,7 @@ export function Header() {
                                 {servicesItems.map((item) => (
                                 <Link
                                     key={item.href}
-                                    href={localePrefixed(item.href)}
+                                    href={item.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={cn(
                                     "text-base font-medium transition-colors hover:text-primary py-2",
@@ -234,7 +224,7 @@ export function Header() {
                         </Accordion>
                         <Link
                         key={citiesItem.href}
-                        href={localePrefixed(citiesItem.href)}
+                        href={citiesItem.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
@@ -245,7 +235,7 @@ export function Header() {
                         </Link>
                         <Link
                         key={contactItem.href}
-                        href={localePrefixed(contactItem.href)}
+                        href={contactItem.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",

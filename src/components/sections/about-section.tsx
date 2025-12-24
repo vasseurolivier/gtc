@@ -14,10 +14,6 @@ export function AboutSection() {
       button: "En savoir plus"
   };
   const aboutImage = PlaceHolderImages.find(p => p.id === 'about-home');
-  const localePrefixed = (path: string) => {
-    // Internationalization is removed, so we just return the path.
-    return path;
-  }
   
   return (
     <section className="py-16 md:py-24 bg-card">
@@ -36,7 +32,7 @@ export function AboutSection() {
               </div>
             </div>
             <Button size="lg" className="mt-8" asChild>
-                <Link href={localePrefixed(`/about`)}>
+                <Link href={`/about`}>
                     {dictionary.button}
                     <ArrowRight className="ml-2" />
                 </Link>
