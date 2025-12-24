@@ -10,14 +10,38 @@ import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { defaultLocale } from '@/i18n-config';
 
-export function HeroSection({ dictionary, lang }: { dictionary: any, lang: string }) {
+export function HeroSection() {
+  const dictionary = {
+    heroSection: {
+      title: "Votre Partenaire Stratégique pour le Sourcing en Chine",
+      subtitle: "Nous transformons vos idées en succès commerciaux grâce à notre expertise en sourcing, trading et solutions e-commerce.",
+      ctaButton: "Demander un devis",
+      brochureButton: "Télécharger la brochure"
+    },
+    contactSection: {
+      title: "Commencez Votre Projet",
+      subtitle: "Remplissez ce formulaire et notre équipe vous contactera sous 24h.",
+      form: {
+        name: { label: "Votre nom", placeholder: "Jean Dupont" },
+        email: { label: "Votre email", placeholder: "jean.dupont@exemple.com" },
+        phone: { label: "Téléphone / WhatsApp", placeholder: "+33 6 12 34 56 78" },
+        message: { label: "Votre message", placeholder: "Parlez-nous de votre projet..." },
+        submit: "Envoyer"
+      },
+      toast: {
+        success: { title: "Message envoyé !", description: "Merci de nous avoir contactés. Nous reviendrons vers vous rapidement." },
+        error: { title: "Échec de l'envoi du message", db: "Un problème est survenu. Veuillez réessayer plus tard.", unexpected: "Une erreur inattendue est survenue." }
+      }
+    }
+  };
+  const lang = defaultLocale;
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
   const companyInfoContext = useContext(CompanyInfoContext);
   const brochureUrl = companyInfoContext?.companyInfo.brochureUrl;
 
   const localePrefixed = (path: string) => {
-    if (lang === defaultLocale) return path;
-    return `/${lang}${path}`;
+    // Internationalization is removed, so we just return the path.
+    return path;
   }
 
   return (

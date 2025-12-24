@@ -1,8 +1,29 @@
+
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
 
-export function ServicesSection({ dictionary }: { dictionary: any }) {
+export function ServicesSection() {
+  const dictionary = {
+      title: "Nos Services",
+      subtitle: "Des solutions complètes pour sécuriser et optimiser votre chaîne d'approvisionnement depuis la Chine.",
+      sourcing: {
+          title: "Sourcing & Achat",
+          description: "Trouvez et évaluez les meilleurs fournisseurs pour vos produits grâce à notre expertise locale et nos audits d'usine."
+      },
+      trading: {
+          title: "Trading & Logistique",
+          description: "Optimisez vos importations avec un suivi de production, des contrôles qualité AQL et une gestion logistique complète."
+      },
+      ecommerce: {
+          title: "Solutions E-commerce",
+          description: "De la recherche de produits gagnants au branding et à la préparation FBA, nous sommes votre partenaire pour le succès en ligne."
+      },
+      custom: {
+          title: "Services Sur-Mesure",
+          description: "Accompagnement personnalisé pour le développement de produits (OEM/ODM), les salons et vos projets d'importation complexes."
+      }
+  };
   const services = [
     {
       icon: <PackageSearch className="h-10 w-10 text-primary" />,

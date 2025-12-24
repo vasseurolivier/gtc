@@ -1,7 +1,32 @@
+
 "use client";
 import { Contact, FileText, PackageCheck, Ship, Target } from 'lucide-react';
 
-export function ProcessSection({ dictionary }: { dictionary: any }) {
+export function ProcessSection() {
+    const dictionary = {
+        title: "Notre Processus en 5 Étapes",
+        subtitle: "De la prise de contact à la livraison finale, nous assurons un suivi transparent et rigoureux de votre projet.",
+        step1: {
+            title: "Prise de Contact",
+            description: "Vous nous soumettez votre cahier des charges. Nous analysons votre besoin et vous conseillons."
+        },
+        step2: {
+            title: "Sourcing & Devis",
+            description: "Nous identifions et auditons les fournisseurs. Vous recevez une proforma détaillée."
+        },
+        step3: {
+            title: "Production & Suivi",
+            description: "Nous validons les échantillons, lançons la production et effectuons des contrôles qualité (AQL)."
+        },
+        step4: {
+            title: "Logistique",
+            description: "Nous gérons l'emballage, le dédouanement et le transport (maritime, aérien, ferroviaire)."
+        },
+        step5: {
+            title: "Livraison",
+            description: "Vous recevez votre marchandise. Nous assurons le suivi post-livraison."
+        }
+    };
   const processSteps = [
     { icon: <Contact className="h-8 w-8 text-accent-foreground" />, title: dictionary.step1.title, description: dictionary.step1.description },
     { icon: <FileText className="h-8 w-8 text-accent-foreground" />, title: dictionary.step2.title, description: dictionary.step2.description },

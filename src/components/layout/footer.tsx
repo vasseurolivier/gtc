@@ -9,13 +9,28 @@ import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { defaultLocale } from '@/i18n-config';
 
-export function Footer({ dictionary, lang }: { dictionary: any, lang: string }) {
+export function Footer() {
+  const dictionary = {
+      tagline: "Votre partenaire de confiance pour le sourcing et le commerce en Chine.",
+      navigation: "Navigation",
+      home: "Accueil",
+      about: "À Propos",
+      services: "Services",
+      contact: "Contact",
+      legal: "Légal",
+      legalNotice: "Mentions Légales",
+      privacyPolicy: "Politique de Confidentialité",
+      termsOfService: "Conditions Générales",
+      contactUs: "Nous Contacter",
+      rightsReserved: "Tous droits réservés."
+  };
+  const lang = defaultLocale;
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
 
   const localePrefixed = (path: string) => {
-    if (lang === defaultLocale) return path;
-    return `/${lang}${path}`;
+    // Internationalization is removed, so we just return the path.
+    return path;
   }
   
   return (

@@ -4,8 +4,6 @@ import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import { PublicProviders } from '@/components/layout/public-providers';
 import Script from 'next/script';
-import { defaultLocale } from '@/i18n-config';
-
 
 export const metadata: Metadata = {
   title: 'Global Trading China',
@@ -18,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang={defaultLocale} suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -24,7 +24,20 @@ import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { defaultLocale } from '@/i18n-config';
 
-export function Header({ dictionary, lang }: { dictionary: any, lang: string}) {
+export function Header() {
+  const dictionary = {
+    home: 'Accueil',
+    about: 'À Propos',
+    services: 'Nos Services',
+    allServices: 'Tous les services',
+    sourcingAndPurchasing: 'Sourcing et Achat',
+    tradingAndLogistics: 'Trading et Logistique',
+    ecommerceSolutions: 'Solutions E-commerce',
+    customServices: 'Services sur Mesure',
+    tradeHubs: 'Pôles Commerciaux',
+    contact: 'Contact',
+  };
+  const lang = defaultLocale;
 
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
@@ -34,8 +47,8 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: string}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const localePrefixed = (path: string) => {
-    if (lang === defaultLocale) return path;
-    return `/${lang}${path}`;
+    // Internationalization is removed, so we just return the path.
+    return path;
   }
 
 
@@ -70,7 +83,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: string}) {
   const citiesItem = { href: '/trade-cities', label: dictionary.tradeHubs };
   const contactItem = { href: '/contact', label: dictionary.contact };
 
-  const isHomePage = activePath === '/' || activePath === `/${lang}`;
+  const isHomePage = activePath === '/';
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-300",
@@ -86,7 +99,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: string}) {
     if (isServices) {
         isActive = activePath.startsWith(localePrefixed('/services'));
     } else if (href === '/') {
-        isActive = activePath === `/` || activePath === `/${lang}`;
+        isActive = activePath === `/`;
     } else {
         isActive = activePath.startsWith(fullPath);
     }
@@ -185,7 +198,7 @@ export function Header({ dictionary, lang }: { dictionary: any, lang: string}) {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            (activePath === item.href || (item.href === '/' && activePath === `/${lang}`)) ? "text-primary font-bold" : "text-foreground"
+                            (activePath === item.href) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {item.label}
