@@ -273,7 +273,6 @@ function ProtectedAdminLayout({
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
-    { href: '/admin/factory-pi', icon: <Factory />, label: 'Proformas Usine' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
     { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
