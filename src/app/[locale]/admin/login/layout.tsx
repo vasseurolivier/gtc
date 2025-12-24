@@ -1,4 +1,3 @@
-
 export default function LoginLayout({
   children,
 }: {
@@ -6,5 +5,3 @@ export default function LoginLayout({
 }) {
   return <>{children}</>;
 }
-
-    

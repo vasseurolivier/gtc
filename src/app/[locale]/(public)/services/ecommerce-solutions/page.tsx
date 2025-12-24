@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Lightbulb, Package, Boxes, Rocket } from 'lucide-react';

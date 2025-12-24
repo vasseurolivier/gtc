@@ -1,4 +1,3 @@
-
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { ArrowLeftRight, PackageSearch, ShoppingCart, Wrench } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';

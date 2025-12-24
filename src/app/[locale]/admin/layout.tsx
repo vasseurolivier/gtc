@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -46,7 +45,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { Locale } from '@/i18n-config';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -224,23 +222,27 @@ function AdminSettings() {
 
 function ProtectedAdminLayout({
   children,
+  locale
 }: {
   children: React.ReactNode;
+  locale: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
+  
+  const localePrefixed = (path: string) => `/${locale}${path}`;
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
-      router.push('/admin/login');
+      router.push(localePrefixed('/admin/login'));
     } else {
       setIsAuthenticated(true);
     }
-  }, [router, pathname]);
+  }, [router, pathname, locale, localePrefixed]);
 
 
   useEffect(() => {
@@ -264,7 +266,7 @@ function ProtectedAdminLayout({
 
   const handleLogout = () => {
     sessionStorage.removeItem('isAdminAuthenticated');
-    router.push('/admin/login');
+    router.push(localePrefixed('/admin/login'));
   };
 
   const navItems = [
@@ -303,8 +305,8 @@ function ProtectedAdminLayout({
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
-                  <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
+                <Link href={localePrefixed(item.href)} passHref>
+                  <SidebarMenuButton asChild isActive={activePath === localePrefixed(item.href) || activePath.startsWith(`${localePrefixed(item.href)}/`)}>
                     <span>
                       {item.icon}
                       <span>{item.label}</span>
@@ -334,12 +336,12 @@ function ProtectedAdminLayout({
 }
 
 
-export default async function AdminRootLayout({
+export default function AdminRootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: { locale: string }
 }) {
   const pathname = usePathname();
   if (pathname.endsWith('/admin/login')) {
@@ -349,7 +351,7 @@ export default async function AdminRootLayout({
     <AppProviders>
       <CompanyInfoProvider>
           <CurrencyProvider>
-              <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
+              <ProtectedAdminLayout locale={params.locale}>{children}</ProtectedAdminLayout>
           </CurrencyProvider>
       </CompanyInfoProvider>
     </AppProviders>

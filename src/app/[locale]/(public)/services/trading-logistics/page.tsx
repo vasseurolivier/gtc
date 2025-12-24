@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ClipboardList, Microscope, Ship, BookCopy, Timer, Globe, CheckCircle, HelpCircle, FileText } from 'lucide-react';

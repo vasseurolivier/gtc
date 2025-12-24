@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FlaskConical, Users, Briefcase, Network, CheckCircle } from 'lucide-react';

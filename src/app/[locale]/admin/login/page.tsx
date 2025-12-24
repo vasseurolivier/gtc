@@ -1,10 +1,7 @@
-
-// This is a simple, non-production-ready auth mechanism.
-// Do not use this in a real application.
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,10 +12,13 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const { toast } = useToast();
 
+  const localePrefixed = (path: string) => `/${locale}${path}`;
+
   useEffect(() => {
-    // Redirect if already authenticated
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
     if (authStatus === 'true') {
         setIsAuthenticated(true);
@@ -27,13 +27,12 @@ export default function AdminLoginPage() {
   
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/admin/dashboard');
+      router.push(localePrefixed('/admin/dashboard'));
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, localePrefixed]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this should be a call to a server-side authentication endpoint.
     if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === "admin123") {
       sessionStorage.setItem('isAdminAuthenticated', 'true');
       setIsAuthenticated(true);
