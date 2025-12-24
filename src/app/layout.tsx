@@ -4,8 +4,7 @@ import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import Script from 'next/script';
 import { CompanyInfoProvider } from '@/context/company-info-context';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'Global Trading China',
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
@@ -39,11 +38,7 @@ export default function RootLayout({
       <body className="font-body bg-background text-foreground antialiased">
         <AppProviders>
           <CompanyInfoProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-            </div>
+            {children}
           </CompanyInfoProvider>
         </AppProviders>
       </body>
