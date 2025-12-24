@@ -334,12 +334,12 @@ function ProtectedAdminLayout({
 }
 
 
-export default function AdminRootLayout({
+export default async function AdminRootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: Locale };
+  params: { locale: string };
 }) {
   const pathname = usePathname();
   if (pathname.endsWith('/admin/login')) {
@@ -355,5 +355,3 @@ export default function AdminRootLayout({
     </AppProviders>
   )
 }
-
-    

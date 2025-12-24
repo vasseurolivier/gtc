@@ -178,5 +178,3 @@ export default async function SourcingPage({
     </>
   );
 }
-
-    

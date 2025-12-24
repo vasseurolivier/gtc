@@ -43,5 +43,3 @@ export default async function LegalNoticePage({
     </div>
   );
 }
-
-    

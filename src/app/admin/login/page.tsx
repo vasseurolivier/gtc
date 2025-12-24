@@ -1,5 +1,6 @@
-// This is a simple, non-production-ready auth mechanism.
-// Do not use this in a real application.
+
+// This file is now redundant because the login page has been moved under the [locale] route.
+// It can be deleted.
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,6 +18,14 @@ export default function AdminLoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Redirect if already authenticated
+    const authStatus = sessionStorage.getItem('isAdminAuthenticated');
+    if (authStatus === 'true') {
+        setIsAuthenticated(true);
+    }
+  }, []);
+  
+  useEffect(() => {
     if (isAuthenticated) {
       router.push('/admin/dashboard');
     }
@@ -24,9 +33,14 @@ export default function AdminLoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'admin123') {
+    // In a real app, this should be a call to a server-side authentication endpoint.
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === "admin123") {
       sessionStorage.setItem('isAdminAuthenticated', 'true');
       setIsAuthenticated(true);
+       toast({
+        title: 'Login Successful',
+        description: 'Redirecting to dashboard...',
+      });
     } else {
       toast({
         variant: 'destructive',

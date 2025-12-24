@@ -112,5 +112,3 @@ export default async function TradeCitiesPage({
     </>
   );
 }
-
-    
