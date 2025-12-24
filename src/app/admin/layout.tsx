@@ -46,7 +46,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
-import { defaultLocale } from '@/i18n-config';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
