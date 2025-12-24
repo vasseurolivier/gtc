@@ -77,7 +77,7 @@ export function Header() {
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-300",
-    isScrolled
+    isScrolled || pathname !== '/'
       ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
       : "bg-transparent border-transparent"
   );
@@ -110,17 +110,19 @@ export function Header() {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-16 items-center justify-between">
-        <Link href={'/'} className="flex items-center space-x-2">
-            {publicLogo ? (
-            <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
-            ) : (
-            <div style={{width: '50px', height: '12px'}} />
-            )}
-            <span className={cn("font-bold sm:inline-block font-headline text-lg text-white hidden")}>
-            Global <span className="text-red-500">Trading</span> China
-            </span>
-        </Link>
+      <div className="container flex h-16 items-center">
+        <div className="flex items-center flex-1">
+            <Link href={'/'} className="flex items-center space-x-2">
+                {publicLogo ? (
+                <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
+                ) : (
+                <div style={{width: '50px', height: '12px'}} />
+                )}
+                <span className={cn("font-bold sm:inline-block font-headline text-lg text-white hidden")}>
+                Global <span className="text-red-500">Trading</span> China
+                </span>
+            </Link>
+        </div>
         
         <div className="flex items-center gap-2">
             <nav className="hidden md:flex items-center space-x-6">
