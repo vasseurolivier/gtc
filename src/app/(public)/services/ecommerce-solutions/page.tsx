@@ -30,7 +30,7 @@ export default function EcommerceSolutionsPage() {
 
   return (
     <>
-      <section className="relative w-full h-[60vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
+      <section className="relative w-full h-[84vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -119,5 +119,3 @@ export default function EcommerceSolutionsPage() {
     </>
   );
 }
-
-    
