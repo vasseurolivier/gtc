@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params,
 }: {
