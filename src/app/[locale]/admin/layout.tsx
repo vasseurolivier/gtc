@@ -46,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
+import { Locale } from '@/i18n-config';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -335,8 +336,10 @@ function ProtectedAdminLayout({
 
 export default function AdminRootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: { locale: Locale };
 }) {
   const pathname = usePathname();
   if (pathname.endsWith('/admin/login')) {
@@ -352,3 +355,5 @@ export default function AdminRootLayout({
     </AppProviders>
   )
 }
+
+    
