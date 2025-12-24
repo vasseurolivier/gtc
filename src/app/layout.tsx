@@ -3,8 +3,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import Script from 'next/script';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { CompanyInfoProvider } from '@/context/company-info-context';
 
 export const metadata: Metadata = {
@@ -39,11 +37,7 @@ export default function RootLayout({
       <body className="font-body bg-background text-foreground antialiased">
         <AppProviders>
           <CompanyInfoProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-            </div>
+            {children}
           </CompanyInfoProvider>
         </AppProviders>
       </body>
