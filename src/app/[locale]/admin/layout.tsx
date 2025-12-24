@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -45,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
+import { Locale } from '@/i18n-config';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -225,7 +227,7 @@ function ProtectedAdminLayout({
   locale
 }: {
   children: React.ReactNode;
-  locale: string;
+  locale: Locale;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -336,13 +338,11 @@ function ProtectedAdminLayout({
 }
 
 
-export default function AdminRootLayout({
-  children,
-  params,
-}: {
+export default async function AdminRootLayout(props: Promise<{
   children: React.ReactNode;
-  params: { locale: string }
-}) {
+  params: { locale: Locale }
+}>) {
+  const { children, params } = await props;
   const pathname = usePathname();
   if (pathname.endsWith('/admin/login')) {
     return <AppProviders>{children}</AppProviders>;

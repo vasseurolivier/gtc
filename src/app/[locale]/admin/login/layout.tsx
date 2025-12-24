@@ -1,7 +1,10 @@
+
+import { ReactNode } from "react";
+
 export default function LoginLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return <>{children}</>;
 }

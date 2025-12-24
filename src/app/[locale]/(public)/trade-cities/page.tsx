@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -5,11 +6,10 @@ import { Building, Wifi, Package } from 'lucide-react';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function TradeCitiesPage({
-  params,
-}: {
+export default async function TradeCitiesPage(props: Promise<{
   params: { locale: Locale };
-}) {
+}>) {
+  const { params } = await props;
   const dictionary = await getDictionary(params.locale);
   const tradeCitiesDict = dictionary.tradeCitiesPage;
 

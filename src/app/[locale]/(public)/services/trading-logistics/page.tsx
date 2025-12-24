@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ClipboardList, Microscope, Ship, BookCopy, Timer, Globe, CheckCircle, HelpCircle, FileText } from 'lucide-react';
@@ -6,11 +7,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function TradingLogisticsPage({
-  params,
-}: {
+export default async function TradingLogisticsPage(props: Promise<{
   params: { locale: Locale };
-}) {
+}>) {
+  const { params } = await props;
   const dictionary = await getDictionary(params.locale);
   const tradingLogisticsDict = dictionary.tradingLogisticsPage;
 

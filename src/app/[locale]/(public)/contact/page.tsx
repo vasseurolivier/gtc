@@ -1,14 +1,14 @@
+
 import { ContactSection } from "@/components/sections/contact-section";
 import { getDictionary } from "@/lib/get-dictionary";
 import { Locale } from "@/i18n-config";
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default async function ContactPage({
-  params,
-}: {
+export default async function ContactPage(props: Promise<{
   params: { locale: Locale };
-}) {
+}>) {
+  const { params } = await props;
   const dictionary = await getDictionary(params.locale);
   const heroImage = PlaceHolderImages.find(p => p.id === 'contact-hero');
   

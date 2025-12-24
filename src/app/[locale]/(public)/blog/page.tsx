@@ -1,11 +1,11 @@
+
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function BlogPage({
-  params,
-}: {
+export default async function BlogPage(props: Promise<{
   params: { locale: Locale };
-}) {
+}>) {
+  const { params } = await props;
   const dictionary = await getDictionary(params.locale);
   return (
     <div className="container py-16 md:py-24">

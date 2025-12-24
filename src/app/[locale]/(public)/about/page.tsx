@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -13,11 +14,10 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 
-export default async function AboutPage({
-  params,
-}: {
+export default async function AboutPage(props: Promise<{
   params: { locale: Locale };
-}) {
+}>) {
+  const { params } = await props;
   const dictionary = await getDictionary(params.locale);
   
   const aboutPageDict = dictionary.aboutPage;

@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import '../globals.css';
 import { AppProviders } from '@/components/app-providers';
@@ -14,13 +15,11 @@ export const metadata: Metadata = {
   description: 'Global Trading, Sourcing, and E-commerce Solutions from China',
 };
 
-export default async function RootLayout({
-  children,
-  params,
-}: {
+export default async function RootLayout(props: Promise<{
   children: React.ReactNode;
   params: { locale: Locale };
-}) {
+}>) {
+  const { children, params } = await props;
   return (
     <html lang={params.locale} suppressHydrationWarning>
       <head>

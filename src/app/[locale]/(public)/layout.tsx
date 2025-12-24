@@ -1,15 +1,14 @@
+
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { getDictionary } from '@/lib/get-dictionary';
 import { Locale } from '@/i18n-config';
 
-export default async function PublicLayout({
-  children,
-  params,
-}: {
+export default async function PublicLayout(props: Promise<{
   children: React.ReactNode;
   params: { locale: Locale };
-}) {
+}>) {
+  const { children, params } = await props;
   const dictionary = await getDictionary(params.locale);
   return (
       <div className="min-h-screen flex flex-col">
