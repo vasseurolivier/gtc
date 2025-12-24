@@ -148,8 +148,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                             )}
                                         </td>
                                         <td className="p-1 align-top border">
-                                            <p className="font-medium leading-tight">{item.description}</p>
-                                            {product?.description && <p className="text-[10px] text-muted-foreground leading-tight">{product.description}</p>}
+                                            <p className="font-medium leading-tight">{product?.name || item.description}</p>
+                                            <p className="text-[10px] text-muted-foreground leading-tight">{item.description}</p>
                                         </td>
                                         <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
                                         <td className="p-1 align-top text-right leading-tight border">
@@ -244,3 +244,5 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         </main>
     );
 }
+
+    

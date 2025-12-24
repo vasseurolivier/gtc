@@ -274,7 +274,7 @@ function QuotesPageContent() {
     const product = products.find(p => p.id === productId);
     if (product) {
         form.setValue(`items.${index}.sku`, product.sku);
-        form.setValue(`items.${index}.description`, product.name);
+        form.setValue(`items.${index}.description`, product.description || product.name);
         form.setValue(`items.${index}.unitPrice`, product.price);
         form.setValue(`items.${index}.purchasePrice`, product.purchasePrice || 0);
         form.setValue(`items.${index}.photo`, product.imageUrl || "");
@@ -503,20 +503,47 @@ function QuotesPageContent() {
                           <div className="flex justify-end">
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-[1fr_80px_110px_110px] gap-2 items-start">
-                              <div className="space-y-2">
-                                <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                    <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
-                                    <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent>
-                                </Select>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="Or type item description" {...f} /></FormControl><FormMessage/></FormItem>)}/>
-                              </div>
-                              <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>)}/>
-                              <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>)}/>
-                              <div className="text-right">
-                                <FormLabel>Total</FormLabel>
-                                <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
-                              </div>
+                          <div className="space-y-2">
+                                <FormField
+                                  control={form.control}
+                                  name={`items.${index}.description`}
+                                  render={({ field: f }) => (
+                                      <FormItem>
+                                          <FormLabel>Product</FormLabel>
+                                           <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a product or type manually" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {products.map(p => (
+                                                        <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                      </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={`items.${index}.description`}
+                                    render={({ field: f }) => (
+                                        <FormItem>
+                                            <FormLabel>Description</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Detailed product description..." {...f} rows={2} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-start">
+                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>)}/>
+                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>)}/>
+                                    <div className="text-right">
+                                        <FormLabel>Total</FormLabel>
+                                        <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
+                                    </div>
+                                </div>
                           </div>
                            <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
                              <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
@@ -673,3 +700,5 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
+
+    
