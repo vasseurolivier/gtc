@@ -8,7 +8,7 @@ import { getPackingListById } from '@/actions/packing-lists';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { PackingListPreview } from './packing-list-preview';
+import { PackingListPreview } from '../[id]/packing-list-preview';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
 export default function PackingListViewPageContent() {
