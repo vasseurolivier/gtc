@@ -11,15 +11,22 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import * as XLSX from 'xlsx';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 export default function CustomerProfilePage() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         if (id) {
             getCustomerById(id)
                 .then(data => {
@@ -33,7 +40,7 @@ export default function CustomerProfilePage() {
                     setIsLoading(false);
                 });
         }
-    }, [id]);
+    }, [id, router]);
 
     const getStatusBadgeVariant = (status: any) => {
         switch (status) {

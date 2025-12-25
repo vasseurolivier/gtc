@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import type { Invoice } from '@/actions/invoices';
 import { getInvoiceById } from '@/actions/invoices';
@@ -18,12 +19,19 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 
 export default function InvoicePreviewPageContent() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         if (id) {
             setIsLoading(true);
             async function getInvoiceData(id: string) {
@@ -47,7 +55,7 @@ export default function InvoicePreviewPageContent() {
                 .finally(() => setIsLoading(false));
         }
 
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import type { PackingList } from '@/actions/packing-lists';
 import { getPackingListById } from '@/actions/packing-lists';
@@ -14,12 +14,19 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 
 export default function PackingListViewPageContent() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [packingList, setPackingList] = useState<PackingList | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+
         if (id) {
             getPackingListById(id)
                 .then(data => {
@@ -35,7 +42,7 @@ export default function PackingListViewPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (

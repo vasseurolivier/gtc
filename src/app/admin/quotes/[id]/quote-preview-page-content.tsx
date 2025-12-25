@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import type { Quote } from '@/actions/quotes';
 import { getQuoteById } from '@/actions/quotes';
@@ -18,12 +19,19 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 
 export default function QuotePreviewPageContent() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
+        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        if (isAuthenticated !== 'true') {
+          router.push('/admin/login');
+          return;
+        }
+        
         if (!id) return;
 
         async function getQuoteData(id: string) {
@@ -48,7 +56,7 @@ export default function QuotePreviewPageContent() {
         }
 
         getQuoteData(id);
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
