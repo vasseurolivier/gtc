@@ -38,6 +38,10 @@ const packingListItemSchema = z.object({
   quantity: z.coerce.number().positive('Quantity must be positive.'),
   unitPriceCny: z.coerce.number().nonnegative('Price must be non-negative.'),
   remarks: z.string().optional(),
+  weight: z.coerce.number().nonnegative("Weight cannot be negative.").optional().default(0),
+  width: z.coerce.number().nonnegative("Width cannot be negative.").optional().default(0),
+  height: z.coerce.number().nonnegative("Height cannot be negative.").optional().default(0),
+  length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
 });
 
 const packingListSchema = z.object({
@@ -64,6 +68,10 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                 photo: item.photo || '',
                 sku: item.sku || '',
                 remarks: item.remarks || '',
+                weight: item.weight || 0,
+                width: item.width || 0,
+                height: item.height || 0,
+                length: item.length || 0,
             }))
         };
     }
@@ -77,6 +85,10 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
         quantity: 1,
         unitPriceCny: 0,
         remarks: '',
+        weight: 0,
+        width: 0,
+        height: 0,
+        length: 0,
       }],
     };
   };
@@ -105,6 +117,10 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
       form.setValue(`items.${index}.sku`, product.sku);
       form.setValue(`items.${index}.description`, product.name);
       form.setValue(`items.${index}.photo`, product.imageUrl || "");
+      form.setValue(`items.${index}.weight`, product.weight || 0);
+      form.setValue(`items.${index}.width`, product.width || 0);
+      form.setValue(`items.${index}.height`, product.height || 0);
+      form.setValue(`items.${index}.length`, product.length || 0);
     }
   };
 
@@ -190,6 +206,12 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                           <FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        <FormField control={form.control} name={`items.${index}.weight`} render={({ field }) => ( <FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name={`items.${index}.length`} render={({ field }) => ( <FormItem><FormLabel>L (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name={`items.${index}.width`} render={({ field }) => ( <FormItem><FormLabel>W (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name={`items.${index}.height`} render={({ field }) => ( <FormItem><FormLabel>H (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem> )} />
+                      </div>
                       <FormField control={form.control} name={`items.${index}.remarks`} render={({ field }) => (
                         <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
@@ -197,7 +219,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                   </Card>
                 ))}
               </div>
-              <Button type="button" variant="outline" size="sm" onClick={() => append({ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '' })}>
+              <Button type="button" variant="outline" size="sm" onClick={() => append({ photo: '', sku: '', description: '', quantity: 1, unitPriceCny: 0, remarks: '', weight: 0, width: 0, height: 0, length: 0 })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
               </Button>
               <div className="flex justify-end gap-2">
@@ -233,6 +255,7 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Unit Price (CNY)</TableHead>
+                  <TableHead className="text-right">Dimensions & Weight</TableHead>
                   <TableHead className="text-right">Total (CNY)</TableHead>
                   <TableHead>Remarks</TableHead>
                 </TableRow>
@@ -252,7 +275,15 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
                       <TableCell>{item.sku}</TableCell>
                       <TableCell className="font-medium">{item.description}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">¥{(Number(item.unitPriceCny) || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-right">¥{unitPriceCny.toFixed(2)}</TableCell>
+                       <TableCell className="text-right">
+                        {item.weight || item.length || item.width || item.height ? (
+                            <div className="text-xs">
+                                {item.weight && <div>{item.weight} kg</div>}
+                                {(item.length || item.width || item.height) && <div>{item.length || 0}x{item.width || 0}x{item.height || 0} cm</div>}
+                            </div>
+                        ) : 'N/A'}
+                      </TableCell>
                       <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
                       <TableCell>{item.remarks}</TableCell>
                     </TableRow>

@@ -12,6 +12,10 @@ const packingListItemSchema = z.object({
   quantity: z.coerce.number().positive('Quantity must be positive.'),
   unitPriceCny: z.coerce.number().nonnegative('Price must be non-negative.'),
   remarks: z.string().optional(),
+  weight: z.coerce.number().nonnegative("Weight cannot be negative.").optional().default(0),
+  width: z.coerce.number().nonnegative("Width cannot be negative.").optional().default(0),
+  height: z.coerce.number().nonnegative("Height cannot be negative.").optional().default(0),
+  length: z.coerce.number().nonnegative("Length cannot be negative.").optional().default(0),
 });
 
 const packingListSchema = z.object({

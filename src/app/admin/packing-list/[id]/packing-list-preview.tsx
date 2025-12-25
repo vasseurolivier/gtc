@@ -123,6 +123,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                               <th className="p-2 text-right font-bold w-[12%] border">SKU</th>
                               <th className="p-2 text-right font-bold border">Quantity</th>
                               <th className="p-2 text-right font-bold border">Unit Price (CNY)</th>
+                              <th className="p-2 text-right font-bold border">Dimensions & Weight</th>
                               <th className="p-2 text-right font-bold border">Total (CNY)</th>
                               <th className="p-2 font-bold border">Remarks</th>
                           </tr>
@@ -144,6 +145,14 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                           <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
                                           <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
                                           <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
+                                          <td className="p-1 align-top text-right leading-tight border">
+                                            {item.weight || item.length || item.width || item.height ? (
+                                                <>
+                                                    {item.weight && <div>{item.weight} kg</div>}
+                                                    {(item.length || item.width || item.height) && <div>{item.length || 0}x{item.width || 0}x{item.height || 0} cm</div>}
+                                                </>
+                                            ) : 'N/A'}
+                                          </td>
                                           <td className="p-1 align-top text-right font-semibold leading-tight border"><span className="font-bold">¥{totalCny.toFixed(2)}</span></td>
                                           <td className="p-1 align-top leading-tight border">{item.remarks}</td>
                                       </tr>
