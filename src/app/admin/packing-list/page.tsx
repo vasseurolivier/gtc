@@ -403,7 +403,7 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: PackingLis
                   <TableCell>{list.items.length}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/packing-list/${list.id}`} target="_blank">
+                      <Link href={`/admin/packing-list/${list.id}`}>
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
