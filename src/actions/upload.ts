@@ -46,7 +46,7 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
     } catch (error: any) {
         console.error('Upload failed:', error);
          if (error instanceof z.ZodError) {
-            return { success: false, message: 'Validation failed.', errors: error.errors };
+            return { success: false, message: 'Validation failed.' };
         }
         return { success: false, message: error.message || 'An unexpected error occurred during upload.' };
     }
