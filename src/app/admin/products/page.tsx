@@ -18,11 +18,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
+import { uploadImage } from '@/actions/upload';
 import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { app as firebaseApp } from '@/lib/firebase';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -142,37 +141,28 @@ export default function ProductsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        toast({
-            variant: 'destructive',
-            title: 'File too large',
-            description: 'Please upload an image smaller than 10MB.',
-        });
-        return;
-    }
-
     setIsUploading(true);
-    try {
-        const storage = getStorage(firebaseApp);
-        const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        
-        form.setValue("imageUrl", downloadURL, { shouldValidate: true });
+
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const result = await uploadImage(formData);
+
+    if (result.success && result.url) {
+        form.setValue("imageUrl", result.url, { shouldValidate: true });
         toast({
             title: 'Image uploaded',
             description: 'Your image has been successfully uploaded.',
         });
-
-    } catch (error: any) {
+    } else {
         toast({
             variant: 'destructive',
             title: 'Upload Failed',
-            description: error.message,
+            description: result.message,
         });
-    } finally {
-        setIsUploading(false);
     }
+
+    setIsUploading(false);
   };
 
 
@@ -487,7 +477,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    
-
-    
