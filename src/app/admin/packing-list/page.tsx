@@ -3,12 +3,11 @@
 'use client';
 
 import { useState, useContext, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import Image from 'next/image';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,20 +15,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Printer, Loader2, PlusCircle, Trash2, UploadCloud, Save, Eye, FileUp, Pencil } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Save, Eye, FileUp, Pencil } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { CurrencyContext } from '@/context/currency-context';
 import { useToast } from '@/hooks/use-toast';
-import { CompanyInfoContext } from '@/context/company-info-context';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { getProducts, Product } from '@/actions/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-export const maxDuration = 60; // Increase timeout to 60 seconds
-export const dynamic = 'force-dynamic'; // Ensure the page is always dynamically rendered
+import { UploadCloud } from 'lucide-react';
+import Image from 'next/image';
 
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
@@ -52,11 +48,9 @@ const packingListSchema = z.object({
 
 type PackingListValues = z.infer<typeof packingListSchema>;
 
-function PackingListGenerator({ editingList, onFinishedEditing, products }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[] }) {
+function PackingListForm({ editingList, onFinishedEditing, products }: { editingList: PackingList | null, onFinishedEditing: () => void, products: Product[] }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const currencyContext = useContext(CurrencyContext);
-  const companyInfoContext = useContext(CompanyInfoContext);
 
   const getInitialValues = () => {
     if (editingList) {
@@ -102,15 +96,9 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     control: form.control,
     name: 'items',
   });
-
+  
   const watchedItems = form.watch('items');
 
-  if (!currencyContext || !companyInfoContext) {
-    return <Loader2 className="h-16 w-16 animate-spin text-primary" />;
-  }
-  const { currency, exchangeRate } = currencyContext;
-  const { companyInfo } = companyInfoContext;
-  
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
@@ -123,16 +111,6 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
       form.setValue(`items.${index}.length`, product.length || 0);
     }
   };
-
-  const totals = watchedItems.reduce((acc, item) => {
-    const quantity = Number(item.quantity) || 0;
-    const unitPrice = Number(item.unitPriceCny) || 0;
-    const totalCny = quantity * unitPrice;
-    acc.totalQuantity += quantity;
-    acc.totalAmountCny += totalCny;
-    return acc;
-  }, { totalQuantity: 0, totalAmountCny: 0 });
-
 
   const onSubmit = async (values: PackingListValues) => {
     setIsSubmitting(true);
@@ -148,12 +126,11 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
     }
     setIsSubmitting(false);
   };
-
+  
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <Card className="lg:col-span-1 no-print">
+    <Card>
         <CardContent className="p-6">
-          <h3 className="text-xl font-semibold mb-4">{editingList ? 'Edit Packing List' : 'Packing List Details'}</h3>
+          <h3 className="text-xl font-semibold mb-4">{editingList ? 'Edit Packing List' : 'Create New Packing List'}</h3>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -233,93 +210,10 @@ function PackingListGenerator({ editingList, onFinishedEditing, products }: { ed
           </Form>
         </CardContent>
       </Card>
-      <div className="lg:col-span-2 print-content">
-        <Card>
-          <CardContent className="p-8">
-            <header className="flex justify-between items-start mb-8 border-b pb-8">
-              <div>
-                {companyInfo.logo && <Image src={companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
-                <h2 className="text-xl font-bold mt-4">{companyInfo.name}</h2>
-              </div>
-              <div className="text-right">
-                <h1 className="text-3xl font-bold text-primary">PACKING LIST</h1>
-                <p className="text-muted-foreground mt-2"># {form.getValues('listId')}</p>
-                <p className="text-muted-foreground mt-1">Date: {format(form.getValues('date'), 'dd MMM yyyy')}</p>
-              </div>
-            </header>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Photo</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Unit Price (CNY)</TableHead>
-                  <TableHead className="text-right">Dimensions & Weight</TableHead>
-                  <TableHead className="text-right">Total (CNY)</TableHead>
-                  <TableHead>Remarks</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {watchedItems.map((item, index) => {
-                  const quantity = Number(item.quantity) || 0;
-                  const unitPriceCny = Number(item.unitPriceCny) || 0;
-                  const totalCny = quantity * unitPriceCny;
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {item.photo && <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
-                          <Image src={item.photo} alt={item.description} width={64} height={64} className="object-contain" />
-                        </div>}
-                      </TableCell>
-                      <TableCell>{item.sku}</TableCell>
-                      <TableCell className="font-medium">{item.description}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">¥{unitPriceCny.toFixed(2)}</TableCell>
-                       <TableCell className="text-right">
-                        {item.weight || item.length || item.width || item.height ? (
-                            <div className="text-xs">
-                                {item.weight && <div>{item.weight} kg</div>}
-                                {(item.length || item.width || item.height) && <div>{item.length || 0}x{item.width || 0}x{item.height || 0} cm</div>}
-                            </div>
-                        ) : 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">¥{totalCny.toFixed(2)}</TableCell>
-                      <TableCell>{item.remarks}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-            <Separator className="my-4" />
-            <div className="flex justify-end">
-              <div className="w-full md:w-1/2">
-                <Table>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-bold">TOTAL QUANTITY</TableCell>
-                      <TableCell className="text-right font-bold">{totals.totalQuantity}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-bold">TOTAL AMOUNT (CNY)</TableCell>
-                      <TableCell className="text-right font-bold">¥{totals.totalAmountCny.toFixed(2)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-bold">TOTAL AMOUNT ({currency.code})</TableCell>
-                      <TableCell className="text-right font-bold">{currency.symbol}{(totals.totalAmountCny * exchangeRate).toFixed(2)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
   );
 }
 
-function PackingListHistory({ onEdit, onForceRefresh }: { onEdit: (list: PackingList) => void, onForceRefresh: () => void }) {
+function PackingListHistory({ onEdit, onForceRefresh, refreshKey }: { onEdit: (list: PackingList) => void, onForceRefresh: () => void, refreshKey: number }) {
   const [packingLists, setPackingLists] = useState<PackingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -337,7 +231,7 @@ function PackingListHistory({ onEdit, onForceRefresh }: { onEdit: (list: Packing
       }
     }
     fetchLists();
-  }, [onForceRefresh]);
+  }, [refreshKey]);
   
   const handleDelete = async (id: string) => {
     const result = await deletePackingList(id);
@@ -477,24 +371,18 @@ function PackingListPageContent() {
   }
 
   return (
-    <div className="container py-8 printable-area">
-      <div className="flex justify-between items-center mb-8 no-print">
+    <div className="container py-8">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Packing List</h1>
-        <div className="flex gap-2">
-            <Button onClick={() => window.print()} disabled={activeTab !== 'generator'}>
-              <Printer className="mr-2 h-4 w-4" />
-              Export to PDF
+        {activeTab === 'generator' && editingList && (
+            <Button variant="outline" onClick={handleNewList}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Create New List
             </Button>
-            {activeTab === 'generator' && editingList && (
-                <Button variant="outline" onClick={handleNewList}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New List
-                </Button>
-            )}
-        </div>
+        )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="no-print">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="mb-4">
           <TabsTrigger value="generator">{editingList ? 'Edit List' : 'Generator'}</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
@@ -503,7 +391,7 @@ function PackingListPageContent() {
           {isLoadingProducts ? (
             <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
           ) : (
-            <PackingListGenerator 
+            <PackingListForm 
                 key={generatorKey}
                 editingList={editingList} 
                 onFinishedEditing={handleFinishEditing} 
@@ -512,23 +400,9 @@ function PackingListPageContent() {
           )}
         </TabsContent>
         <TabsContent value="history">
-          <PackingListHistory onEdit={handleEdit} onForceRefresh={() => setHistoryRefreshKey(k => k + 1)} />
+          <PackingListHistory onEdit={handleEdit} onForceRefresh={() => setHistoryRefreshKey(k => k + 1)} refreshKey={historyRefreshKey} />
         </TabsContent>
       </Tabs>
-      
-      <div className="hidden print-block">
-        <div className="print-content-standalone">
-            {/* This will be rendered only for printing */}
-            {!isLoadingProducts && 
-              <PackingListGenerator 
-                key={generatorKey} // Use the same key to ensure it reflects the current state
-                editingList={editingList} 
-                onFinishedEditing={handleFinishEditing}
-                products={products}
-              />
-            }
-        </div>
-      </div>
     </div>
   );
 }

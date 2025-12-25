@@ -72,7 +72,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
     }
 
     return (
-        <main className="w-full mx-auto bg-white">
+        <main className="w-full mx-auto bg-white" id="invoice-preview">
              <div className="p-8 flex justify-end no-print">
                 <Button onClick={handleDownloadPdf}>
                     <Printer className="mr-2 h-4 w-4" />

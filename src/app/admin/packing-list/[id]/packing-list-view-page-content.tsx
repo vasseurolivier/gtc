@@ -8,7 +8,7 @@ import { getPackingListById } from '@/actions/packing-lists';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { PackingListPreview } from '../[id]/packing-list-preview';
+import { PackingListPreview } from './packing-list-preview';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
 export default function PackingListViewPageContent() {
@@ -66,7 +66,7 @@ export default function PackingListViewPageContent() {
 
     return (
         <div className="container py-8">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-8 no-print">
                 <Button variant="ghost" asChild>
                     <Link href="/admin/packing-list">
                         <ArrowLeft className="mr-2 h-4 w-4" />
