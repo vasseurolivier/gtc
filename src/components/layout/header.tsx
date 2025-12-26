@@ -77,7 +77,7 @@ export function Header() {
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-300",
-    isScrolled || pathname !== '/'
+    isScrolled
       ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
       : "bg-transparent border-transparent"
   );
@@ -110,8 +110,8 @@ export function Header() {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
+      <div className="container flex h-16 items-center">
+        <div className="flex flex-1 items-center gap-6">
             <Link href={'/'} className="flex items-center space-x-2">
                 {publicLogo ? (
                 <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
