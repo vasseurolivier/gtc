@@ -36,15 +36,17 @@ export default function Home() {
       <ServicesSection />
       <AboutSection />
       <ProcessSection />
-       <div className="container text-center pt-16 md:pt-24">
-          <h2 className="text-3xl md:text-4xl font-headline font-bold">
-            Nous contacter
-          </h2>
-          <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            {dictionary.contactSection.subtitle}
+      <section className="bg-card">
+        <div className="container text-center pt-16 md:pt-24">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">
+              Nous contacter
+            </h2>
+            <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              {dictionary.contactSection.subtitle}
+            </div>
           </div>
-        </div>
-      <ContactSection dictionary={dictionary.contactSection} />
+        <ContactSection dictionary={dictionary.contactSection} />
+      </section>
     </>
   );
 }
