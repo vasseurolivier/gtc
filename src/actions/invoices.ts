@@ -45,6 +45,7 @@ export interface Invoice {
     items: InvoiceItem[];
     totalAmount: number;
     amountPaid?: number;
+    amountPaidCurrency?: 'CNY' | 'EUR' | 'USD';
     status: "unpaid" | "paid" | "overdue" | "cancelled" | "partially_paid";
     issueDate: string;
     dueDate: string;
@@ -255,9 +256,9 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
 }
 
 
-export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
+export async function updateInvoiceAmountPaid(id: string, amount: number, currency: 'CNY' | 'EUR' | 'USD', exchangeRate: number) {
     try {
-        if (typeof amountPaid !== 'number' || amountPaid < 0) {
+        if (typeof amount !== 'number' || amount < 0) {
             return { success: false, message: 'Invalid amount paid value.' };
         }
         
@@ -272,15 +273,19 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
         const totalAmount = invoiceData.totalAmount;
         let newStatus: Invoice['status'] = invoiceData.status;
 
+        // Convert amount to CNY if it's in a foreign currency
+        const amountInCny = currency === 'CNY' ? amount : amount / exchangeRate;
+        const newTotalAmountPaidInCny = (invoiceData.amountPaid || 0) + amountInCny;
+
         const updateData: { amountPaid: number, status: string, paymentDate?: Date | null } = {
-            amountPaid: amountPaid,
+            amountPaid: newTotalAmountPaidInCny,
             status: newStatus
         };
 
-        if (amountPaid >= totalAmount) {
+        if (newTotalAmountPaidInCny >= totalAmount) {
             newStatus = 'paid';
             updateData.paymentDate = invoiceData.paymentDate ? invoiceData.paymentDate.toDate() : new Date();
-        } else if (amountPaid > 0) {
+        } else if (newTotalAmountPaidInCny > 0) {
             newStatus = 'partially_paid';
             updateData.paymentDate = null; // Clear payment date if not fully paid
         } else if (invoiceData.status !== 'cancelled' && invoiceData.dueDate.toDate() < new Date()) {
@@ -295,7 +300,7 @@ export async function updateInvoiceAmountPaid(id: string, amountPaid: number) {
 
         await updateDoc(invoiceRef, updateData);
 
-        return { success: true, message: 'Amount paid updated successfully!', newStatus: newStatus };
+        return { success: true, message: `Payment of ${amount} ${currency} recorded.`, newStatus: newStatus, newAmountPaid: newTotalAmountPaidInCny };
     } catch (error: any) {
         console.error('Error updating amount paid:', error);
         return { success: false, message: 'An unexpected error occurred.' };
