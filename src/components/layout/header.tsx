@@ -111,21 +111,15 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center gap-6">
             <Link href={'/'} className="flex items-center space-x-2">
                 {publicLogo ? (
                 <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
                 ) : (
                 <div style={{width: '50px', height: '12px'}} />
                 )}
-                <span className={cn("font-bold sm:inline-block font-headline text-lg text-white hidden")}>
-                Global <span className="text-red-500">Trading</span> China
-                </span>
             </Link>
-        </div>
-        
-        <div className="flex items-center gap-2">
-            <nav className="hidden md:flex items-center space-x-6">
+             <nav className="hidden md:flex items-center space-x-6">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
@@ -162,6 +156,9 @@ export function Header() {
                     {contactItem.label}
                 </Link>
             </nav>
+        </div>
+        
+        <div className="flex items-center gap-2">
             <div className="md:hidden">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
