@@ -77,7 +77,7 @@ export function Header() {
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-300",
-    isScrolled
+    isScrolled || pathname !== '/'
       ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
       : "bg-transparent border-transparent"
   );
@@ -94,16 +94,16 @@ export function Header() {
 
     return cn(
       "relative transition-colors font-semibold text-xl text-white",
-      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-      isActive ? "text-white after:w-full" : "hover:text-white/90"
+      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
+      isActive ? "text-red-500 after:w-full" : "hover:text-white/90"
     );
   };
   
   const dropdownTriggerClasses = cn(
     "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-xl text-white",
-     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
+     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
     activePath.startsWith('/services')
-      ? "text-white after:w-full"
+      ? "text-red-500 after:w-full"
       : "hover:text-white/90"
   );
 
@@ -174,7 +174,6 @@ export function Header() {
                      ) : (
                         <div style={{width: '50px', height: '12px'}} />
                      )}
-                    <span className="font-bold font-headline text-lg hidden">Global Trading China</span>
                     </Link>
                     <nav className="flex flex-col space-y-2">
                     {navItems.map((item) => (
