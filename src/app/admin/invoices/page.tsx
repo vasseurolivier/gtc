@@ -266,7 +266,6 @@ export default function InvoicesPage() {
                      <SelectContent>
                          <SelectItem value="CNY">CNY</SelectItem>
                          <SelectItem value="EUR">EUR</SelectItem>
-                         <SelectItem value="USD">USD</SelectItem>
                      </SelectContent>
                  </Select>
                  {isUpdatingAmount === invoice.id ? (
