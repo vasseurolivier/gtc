@@ -307,3 +307,4 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
