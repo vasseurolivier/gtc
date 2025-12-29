@@ -16,22 +16,21 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, PlusCircle, Trash2, Save, Eye, FileUp, Pencil, Printer } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { PrintFooter } from '@/components/layout/print-footer';
+import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { getProducts, Product } from '@/actions/products';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UploadCloud } from 'lucide-react';
 import Image from 'next/image';
+
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { PrintFooter } from '@/components/layout/print-footer';
-import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
-
+import { getProducts, Product } from '@/actions/products';
+import { addPackingList, getPackingLists, PackingList, deletePackingList, updatePackingList } from '@/actions/packing-lists';
 
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
@@ -411,11 +410,6 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: PackingLis
                     <Button variant="ghost" size="icon" onClick={() => onEdit(list)}>
                         <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/quotes?fromPackingList=${list.id}`}>
-                        <FileUp className="h-4 w-4" />
-                      </Link>
-                    </Button>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -449,10 +443,9 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: PackingLis
 }
 
 function PackingListPageContent() {
-  const [activeTab, setActiveTab] = useState("generator");
+  const [view, setView] = useState<'history' | 'form'>('history');
   const [editingList, setEditingList] = useState<PackingList | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
-  const [generatorKey, setGeneratorKey] = useState('new-0');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
@@ -472,70 +465,45 @@ function PackingListPageContent() {
   
   const handleEdit = (list: PackingList) => {
     setEditingList(list);
-    setGeneratorKey(`edit-${list.id}-${Date.now()}`); // Use a unique key to force re-mount
-    setActiveTab("generator");
-  };
-
-  const handleFinishEditing = () => {
-    setEditingList(null);
-    setGeneratorKey(`new-${Date.now()}`); // Force re-mount for a new form
-    setHistoryRefreshKey(prev => prev + 1); // Force re-render of history component
-    setActiveTab("history");
+    setView('form');
   };
   
-  const handleNewList = () => {
+  const handleNew = () => {
     setEditingList(null);
-    setGeneratorKey(`new-${Date.now()}`);
-    setActiveTab("generator");
+    setView('form');
   }
 
-  const handleTabChange = (value: string) => {
-      if (value === 'generator' && activeTab === 'generator' && !editingList) {
-         handleNewList();
-      } else {
-        setActiveTab(value);
-      }
-      if (value === 'generator' && editingList) {
-          // If we are editing, and click the generator tab, it should not reset.
-          // If we want to create a new one, we use the button.
-      } else if (value === 'generator') {
-          handleNewList();
-      }
+  const handleFinishedEditing = () => {
+    setEditingList(null);
+    setHistoryRefreshKey(prev => prev + 1);
+    setView('history');
+  };
+  
+  if (isLoadingProducts) {
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Packing List</h1>
-        {activeTab === 'history' && (
-            <Button variant="outline" onClick={handleNewList}>
+        {view === 'history' && (
+            <Button variant="outline" onClick={handleNew}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Create New List
             </Button>
         )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="generator">{editingList ? 'Edit List' : 'Generator'}</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
-        <TabsContent value="generator">
-          {isLoadingProducts ? (
-            <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-          ) : (
-            <PackingListForm 
-                key={generatorKey}
-                editingList={editingList} 
-                onFinishedEditing={handleFinishEditing} 
-                products={products}
-            />
-          )}
-        </TabsContent>
-        <TabsContent value="history">
-          <ContractHistory onEdit={handleEdit} refreshKey={historyRefreshKey} />
-        </TabsContent>
-      </Tabs>
+      {view === 'form' ? (
+        <PackingListForm 
+            editingList={editingList} 
+            onFinishedEditing={handleFinishedEditing} 
+            products={products}
+        />
+      ) : (
+        <ContractHistory onEdit={handleEdit} refreshKey={historyRefreshKey} />
+      )}
     </div>
   );
 }
