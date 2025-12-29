@@ -30,6 +30,8 @@ import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { PrintFooter } from '@/components/layout/print-footer';
+import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
+
 
 const packingListItemSchema = z.object({
   photo: z.string().optional(),
