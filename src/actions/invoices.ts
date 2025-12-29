@@ -32,6 +32,7 @@ const invoiceSchema = z.object({
   status: invoiceStatusSchema,
   supplierCostTotal: z.coerce.number().nonnegative("Supplier cost cannot be negative.").optional().default(0),
   supplierCostPaid: z.coerce.number().nonnegative("Supplier amount paid cannot be negative.").optional().default(0),
+  transportCost: z.coerce.number().optional(),
 });
 
 
@@ -55,6 +56,7 @@ export interface Invoice {
     createdAt: string;
     supplierCostTotal?: number;
     supplierCostPaid?: number;
+    transportCost?: number;
 }
 
 export async function addInvoiceFromOrder(order: Order) {
@@ -78,6 +80,7 @@ export async function addInvoiceFromOrder(order: Order) {
           amountPaid: 0,
           supplierCostTotal: supplierCostTotal,
           supplierCostPaid: 0,
+          transportCost: order.transportCost || 0,
         };
         
         const validatedData = invoiceSchema.parse(newInvoiceData);
@@ -156,6 +159,7 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
             })),
             totalAmount: quote.totalAmount,
             supplierCostTotal: supplierCostTotal,
+            transportCost: quote.transportCost || 0,
             // We don't update status or amountPaid from here, as those are managed separately
         };
         

@@ -5,7 +5,7 @@
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
-import { addOrder, updateOrderFromQuote } from './orders';
+import { addOrder, updateOrderFromQuote, Order } from './orders';
 import { addInvoiceFromOrder, updateInvoiceFromQuote } from './invoices';
 
 const quoteItemSchema = z.object({
@@ -190,11 +190,10 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
             if(fullQuote) {
                 const orderResult = await addOrder(fullQuote);
                 if (orderResult.success && orderResult.id) {
-                     await addInvoiceFromOrder({
-                        ...fullQuote,
-                        id: orderResult.id, // The ID of the newly created order
-                        orderNumber: `O-${fullQuote.quoteNumber.replace('PI-', '')}`,
-                     } as any);
+                     const orderDataForInvoice = await getOrderById(orderResult.id);
+                     if (orderDataForInvoice) {
+                        await addInvoiceFromOrder(orderDataForInvoice);
+                     }
                 }
             }
         }
