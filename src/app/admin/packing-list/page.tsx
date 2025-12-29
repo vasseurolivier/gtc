@@ -13,7 +13,6 @@ import html2canvas from 'html2canvas';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -132,7 +131,7 @@ function LivePreview({ watchedValues }: { watchedValues: PackingListValues }) {
                                         <td className="p-1 align-top font-medium leading-tight border">{item.description}</td>
                                         <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
                                         <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
-                                        <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{(item.unitPriceCny || 0).toFixed(2)}</span></td>
+                                        <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{Number(item.unitPriceCny || 0).toFixed(2)}</span></td>
                                         <td className="p-1 align-top text-right leading-tight border">
                                             {(item.weight || item.length || item.width || item.height) ? (<> {item.weight && <div>{item.weight} kg</div>} {(item.length || item.width || item.height) && <div>{item.length || 0}x{item.width || 0}x{item.height || 0} cm</div>} </>) : 'N/A'}
                                         </td>
