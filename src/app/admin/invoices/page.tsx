@@ -140,8 +140,8 @@ export default function InvoicesPage() {
       if (!payment || payment.amount === undefined) return;
 
       const amount = parseFloat(payment.amount);
-      if (isNaN(amount) || amount < 0) {
-          toast({ variant: "destructive", title: "Invalid input", description: "Please enter a valid positive number for the payment." });
+      if (isNaN(amount)) {
+          toast({ variant: "destructive", title: "Invalid input", description: "Please enter a valid number for the payment." });
           return;
       }
       
@@ -165,9 +165,9 @@ export default function InvoicesPage() {
 
 
   useEffect(() => {
-    const initialPayments: Record<string, { amount: string; currency: 'CNY' | 'EUR' | 'USD' }> = {};
+    const initialPayments: Record<string, { amount: string; currency: 'CNY' | 'EUR' }> = {};
     invoices.forEach(inv => {
-        initialPayments[inv.id] = { amount: '', currency: currency.code as 'EUR' | 'USD' || 'CNY' };
+        initialPayments[inv.id] = { amount: '', currency: currency.code as 'EUR' || 'CNY' };
     });
     setPaymentInputs(initialPayments);
   }, [invoices, currency.code]);

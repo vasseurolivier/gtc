@@ -258,7 +258,7 @@ export async function updateInvoiceStatus(id: string, status: z.infer<typeof inv
 
 export async function updateInvoiceAmountPaid(id: string, amount: number, currency: 'CNY' | 'EUR' | 'USD', exchangeRate: number) {
     try {
-        if (typeof amount !== 'number' || amount < 0) {
+        if (typeof amount !== 'number') {
             return { success: false, message: 'Invalid amount paid value.' };
         }
         
@@ -300,7 +300,8 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
 
         await updateDoc(invoiceRef, updateData);
 
-        return { success: true, message: `Payment of ${amount} ${currency} recorded.`, newStatus: newStatus, newAmountPaid: newTotalAmountPaidInCny };
+        const operation = amount >= 0 ? 'Payment' : 'Correction';
+        return { success: true, message: `${operation} of ${amount} ${currency} recorded.`, newStatus: newStatus, newAmountPaid: newTotalAmountPaidInCny };
     } catch (error: any) {
         console.error('Error updating amount paid:', error);
         return { success: false, message: 'An unexpected error occurred.' };
