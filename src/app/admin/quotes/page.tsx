@@ -35,6 +35,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { app as firebaseApp } from '@/lib/firebase';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -62,6 +63,8 @@ const formSchema = z.object({
   status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
   notes: z.string().optional(),
+  depositRequired: z.boolean().default(true),
+  depositPercentage: z.coerce.number().min(0).max(100).optional().default(30),
 });
 
 function QuotesPageContent() {
@@ -96,6 +99,8 @@ function QuotesPageContent() {
       status: "draft",
       shippingAddress: "",
       notes: "",
+      depositRequired: true,
+      depositPercentage: 30,
     },
   });
 
@@ -107,6 +112,7 @@ function QuotesPageContent() {
   const watchItems = form.watch("items");
   const watchTransportCost = form.watch("transportCost");
   const watchCommissionRate = form.watch("commissionRate");
+  const watchDepositRequired = form.watch("depositRequired");
   
   const [isSavingProduct, setIsSavingProduct] = useState<number | null>(null);
   
@@ -218,6 +224,8 @@ function QuotesPageContent() {
                     validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
                     items: newItems,
                     status: "draft",
+                    depositRequired: true,
+                    depositPercentage: 30,
                     // Reset other fields
                 });
                 setIsDialogOpen(true);
@@ -240,7 +248,9 @@ function QuotesPageContent() {
             ...quote,
             issueDate: new Date(quote.issueDate),
             validUntil: new Date(quote.validUntil),
-            items: quote.items.map(item => ({...item, photo: ''})) // photos are not persisted on quote
+            items: quote.items.map(item => ({...item, photo: ''})), // photos are not persisted on quote
+            depositRequired: quote.depositRequired !== false, // default to true if undefined
+            depositPercentage: quote.depositPercentage || 30,
         });
     } else {
         form.reset({
@@ -257,6 +267,8 @@ function QuotesPageContent() {
             notes: "",
             customerId: undefined,
             customerName: undefined,
+            depositRequired: true,
+            depositPercentage: 30,
         });
     }
     setIsDialogOpen(true);
@@ -615,6 +627,45 @@ function QuotesPageContent() {
                         <FormMessage />
                     </FormItem>
                   )} />
+                  
+                 <Card className="p-4">
+                    <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Payment Terms</h4></CardHeader>
+                    <CardContent className="p-0">
+                         <div className="space-y-4">
+                             <FormField
+                                control={form.control}
+                                name="depositRequired"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel>Deposit Required?</FormLabel>
+                                        <FormMessage />
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            {watchDepositRequired && (
+                                <FormField
+                                    control={form.control}
+                                    name="depositPercentage"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Deposit Percentage (%)</FormLabel>
+                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                         </div>
+                    </CardContent>
+                 </Card>
                 
                  <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>

@@ -33,6 +33,8 @@ const quoteSchema = z.object({
   status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
   notes: z.string().optional(),
+  depositRequired: z.boolean().default(true),
+  depositPercentage: z.coerce.number().min(0).max(100).optional().default(30),
 });
 
 export interface QuoteItem {
@@ -60,6 +62,8 @@ export interface Quote {
     issueDate: string;
     validUntil: string;
     createdAt: string;
+    depositRequired?: boolean;
+    depositPercentage?: number;
 }
 
 export async function addQuote(values: z.infer<typeof quoteSchema>) {
