@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase'; // Use client-side db
 
 export interface CompanyInfo {
@@ -33,27 +33,27 @@ const defaultCompanyInfo: CompanyInfo = {
 };
 
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
+  const [companyInfo, setCompanyInfoState] = useState<CompanyInfo>(defaultCompanyInfo);
   const [isCompanyInfoLoaded, setIsCompanyInfoLoaded] = useState(false);
 
   useEffect(() => {
     const docRef = doc(db, 'companyInfo', 'main');
     
-    // onSnapshot provides real-time updates.
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        const firestoreData = docSnap.data() as Partial<CompanyInfo>;
-        setCompanyInfo(prevInfo => ({ ...defaultCompanyInfo, ...prevInfo, ...firestoreData }));
+        setCompanyInfoState(prev => ({ ...prev, ...docSnap.data() as Partial<CompanyInfo> }));
       } else {
+        // If the document does not exist, create it with default values.
         setDoc(docRef, defaultCompanyInfo).catch(error => {
             console.error("Failed to create initial company info document:", error);
         });
-        setCompanyInfo(defaultCompanyInfo);
+        setCompanyInfoState(defaultCompanyInfo);
       }
       setIsCompanyInfoLoaded(true);
     }, (error) => {
         console.error("Failed to listen to company info from Firestore:", error);
-        setCompanyInfo(defaultCompanyInfo);
+        // Fallback to default if there's an error
+        setCompanyInfoState(defaultCompanyInfo);
         setIsCompanyInfoLoaded(true);
     });
 
@@ -64,16 +64,14 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     const docRef = doc(db, 'companyInfo', 'main');
     try {
         await setDoc(docRef, newInfo, { merge: true });
-        // The onSnapshot listener will update the local state automatically,
-        // but we can set it here for immediate UI feedback if needed.
-        // setCompanyInfo(newInfo); // This line is not strictly necessary due to onSnapshot
+        // The onSnapshot listener will update the local state automatically.
     } catch (error) {
         console.error('Failed to save company info to Firestore', error);
     }
   };
   
   const value = { 
-    companyInfo, 
+    companyInfo: companyInfo, 
     setCompanyInfo: handleSetCompanyInfo,
     isCompanyInfoLoaded
   };
