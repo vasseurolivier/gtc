@@ -30,6 +30,7 @@ const invoiceSchema = z.object({
   totalAmount: z.coerce.number(),
   amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
   status: invoiceStatusSchema,
+  supplierCostPaid: z.coerce.number().nonnegative("Supplier amount paid cannot be negative.").optional().default(0),
 });
 
 
@@ -51,6 +52,8 @@ export interface Invoice {
     dueDate: string;
     paymentDate?: string;
     createdAt: string;
+    supplierCostTotal?: number;
+    supplierCostPaid?: number;
 }
 
 export async function addInvoiceFromOrder(order: Order) {
@@ -70,6 +73,7 @@ export async function addInvoiceFromOrder(order: Order) {
           totalAmount: order.totalAmount,
           status: 'unpaid' as const,
           amountPaid: 0,
+          supplierCostPaid: 0,
         };
         
         const validatedData = invoiceSchema.parse(newInvoiceData);
@@ -165,17 +169,27 @@ export async function getInvoices(): Promise<Invoice[]> {
     const querySnapshot = await getDocs(q);
     
     const invoices: Invoice[] = [];
-    querySnapshot.forEach((doc) => {
+
+    for (const doc of querySnapshot.docs) {
         const data = doc.data();
-        invoices.push({
+        const invoice: Invoice = {
           id: doc.id,
           ...data,
           issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
           dueDate: data.dueDate?.toDate().toISOString() || new Date().toISOString(),
           paymentDate: data.paymentDate?.toDate().toISOString() || undefined,
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
-        } as Invoice);
-    });
+        } as Invoice;
+        
+        // Fetch associated order to calculate supplier cost
+        if (invoice.orderId) {
+            const order = await getOrderById(invoice.orderId);
+            if (order) {
+                invoice.supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+            }
+        }
+        invoices.push(invoice);
+    }
 
     return invoices;
   } catch (error) {
@@ -195,7 +209,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
 
         const data = invoiceSnap.data();
 
-        return {
+        const invoice = {
             id: invoiceSnap.id,
             ...data,
             issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
@@ -203,6 +217,15 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
             paymentDate: data.paymentDate?.toDate().toISOString() || undefined,
             createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice;
+        
+        if (invoice.orderId) {
+            const order = await getOrderById(invoice.orderId);
+            if (order) {
+                invoice.supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+            }
+        }
+        
+        return invoice;
 
     } catch (error) {
         console.error("Error fetching invoice details:", error);
@@ -308,3 +331,30 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
     }
 }
 
+
+export async function updateInvoiceSupplierCostPaid(id: string, amount: number) {
+    try {
+        if (typeof amount !== 'number') {
+            return { success: false, message: 'Invalid amount paid value.' };
+        }
+        
+        const invoiceRef = doc(db, 'invoices', id);
+        const invoiceSnap = await getDoc(invoiceRef);
+
+        if (!invoiceSnap.exists()) {
+            return { success: false, message: 'Invoice not found.' };
+        }
+        
+        const invoiceData = invoiceSnap.data();
+        const newSupplierCostPaid = (invoiceData.supplierCostPaid || 0) + amount;
+
+        await updateDoc(invoiceRef, { supplierCostPaid: newSupplierCostPaid });
+
+        const operation = amount >= 0 ? 'Payment' : 'Correction';
+        return { success: true, message: `${operation} of ¥${amount.toFixed(2)} to supplier recorded.`, newSupplierCostPaid: newSupplierCostPaid };
+
+    } catch (error: any) {
+        console.error('Error updating supplier cost paid:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}

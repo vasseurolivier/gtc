@@ -16,10 +16,10 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, Invoice } from '@/actions/invoices';
+import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getOrders, Order } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Check } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -122,18 +122,32 @@ export default function InvoicesPage() {
     }
   }
 
-  const [paymentInputs, setPaymentInputs] = useState<Record<string, { amount: string; currency: 'CNY' | 'EUR' | 'USD' }>>({});
+  const [paymentInputs, setPaymentInputs] = useState<Record<string, { amount: string; currency: 'CNY' | 'EUR' }>>({});
+  const [supplierPaymentInputs, setSupplierPaymentInputs] = useState<Record<string, { amount: string }>>({});
+
   const [isUpdatingAmount, setIsUpdatingAmount] = useState<string | null>(null);
+  const [isUpdatingSupplierAmount, setIsUpdatingSupplierAmount] = useState<string | null>(null);
+
 
   const handlePaymentInputChange = (invoiceId: string, field: 'amount' | 'currency', value: string) => {
       setPaymentInputs(prev => ({
           ...prev,
           [invoiceId]: {
-              ...prev[invoiceId],
+              ...(prev[invoiceId] || { amount: '', currency: 'CNY' }),
               [field]: value,
           },
       }));
   };
+  
+  const handleSupplierPaymentInputChange = (invoiceId: string, value: string) => {
+    setSupplierPaymentInputs(prev => ({
+        ...prev,
+        [invoiceId]: {
+            ...prev[invoiceId],
+            amount: value
+        }
+    }));
+};
 
   const handleUpdateAmountPaid = async (invoiceId: string) => {
       const payment = paymentInputs[invoiceId];
@@ -156,8 +170,34 @@ export default function InvoicesPage() {
               ? { ...inv, amountPaid: result.newAmountPaid, status: result.newStatus! } 
               : inv
           ));
-          // Reset input field after successful update
           handlePaymentInputChange(invoiceId, 'amount', '');
+      } else {
+          toast({ variant: "destructive", title: "Error", description: result.message });
+      }
+  };
+  
+  const handleUpdateSupplierCostPaid = async (invoiceId: string) => {
+      const payment = supplierPaymentInputs[invoiceId];
+      if (!payment || payment.amount === undefined) return;
+      
+      const amount = parseFloat(payment.amount);
+      if (isNaN(amount)) {
+          toast({ variant: "destructive", title: "Invalid input", description: "Please enter a valid number."});
+          return;
+      }
+
+      setIsUpdatingSupplierAmount(invoiceId);
+      const result = await updateInvoiceSupplierCostPaid(invoiceId, amount);
+      setIsUpdatingSupplierAmount(null);
+
+      if (result.success) {
+          toast({ title: "Success", description: result.message });
+          setInvoices(prev => prev.map(inv =>
+            inv.id === invoiceId
+            ? { ...inv, supplierCostPaid: result.newSupplierCostPaid }
+            : inv
+          ));
+          handleSupplierPaymentInputChange(invoiceId, '');
       } else {
           toast({ variant: "destructive", title: "Error", description: result.message });
       }
@@ -166,10 +206,13 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     const initialPayments: Record<string, { amount: string; currency: 'CNY' | 'EUR' }> = {};
+    const initialSupplierPayments: Record<string, { amount: string }> = {};
     invoices.forEach(inv => {
         initialPayments[inv.id] = { amount: '', currency: currency.code as 'EUR' || 'CNY' };
+        initialSupplierPayments[inv.id] = { amount: '' };
     });
     setPaymentInputs(initialPayments);
+    setSupplierPaymentInputs(initialSupplierPayments);
   }, [invoices, currency.code]);
 
 
@@ -206,12 +249,15 @@ export default function InvoicesPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Invoice #</TableHead>
-            <TableHead>Customer</TableHead>
+            <TableHead>Client</TableHead>
+            <TableHead>Total Facturé</TableHead>
+            <TableHead>Montant Payé</TableHead>
+            <TableHead>Solde Client</TableHead>
+            <TableHead>Coût Usine</TableHead>
+            <TableHead>Payé à l'Usine</TableHead>
+            <TableHead>Solde Usine</TableHead>
+            <TableHead>Bénéfice</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Total</TableHead>
-            <TableHead className="text-right">Amount Paid</TableHead>
-            <TableHead>Add Payment</TableHead>
-            <TableHead className="text-right">Remaining Balance</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -219,38 +265,22 @@ export default function InvoicesPage() {
       <TableBody>
         {invoiceList.map((invoice) => {
           const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
+          const supplierBalance = (invoice.supplierCostTotal || 0) - (invoice.supplierCostPaid || 0);
+          const profit = invoice.totalAmount - (invoice.supplierCostTotal || 0);
           return(
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
             <TableCell>{invoice.customerName}</TableCell>
-            <TableCell>
-              <Select onValueChange={(value: Invoice['status']) => handleStatusChange(invoice.id, value)} defaultValue={invoice.status}>
-                <SelectTrigger className="w-36">
-                   <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="unpaid">Unpaid</SelectItem>
-                    <SelectItem value="partially_paid">Partially Paid</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
             <TableCell className="text-right">
                 <div>¥{invoice.totalAmount.toFixed(2)}</div>
                 <div className="text-xs text-muted-foreground">{currency.symbol}{(invoice.totalAmount * exchangeRate).toFixed(2)}</div>
             </TableCell>
             <TableCell className="text-right">
-                <div>¥{(invoice.amountPaid || 0).toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground">{currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}</div>
-            </TableCell>
-            <TableCell>
-               <div className="flex items-center justify-end gap-1">
+                <div className="flex items-center justify-end gap-1">
                  <Input
                    type="number"
                    step="0.01"
-                   placeholder="Amount"
+                   placeholder="Ajouter..."
                    className="w-24 h-8"
                    value={paymentInputs[invoice.id]?.amount || ''}
                    onChange={(e) => handlePaymentInputChange(invoice.id, 'amount', e.target.value)}
@@ -276,10 +306,56 @@ export default function InvoicesPage() {
                    </Button>
                  )}
                </div>
+                <div>¥{(invoice.amountPaid || 0).toFixed(2)}</div>
+                <div className="text-xs text-muted-foreground">{currency.symbol}{((invoice.amountPaid || 0) * exchangeRate).toFixed(2)}</div>
             </TableCell>
-            <TableCell className="text-right font-medium">
+             <TableCell className="text-right font-medium">
                 <div className={remainingBalance > 0 ? 'text-destructive' : 'text-green-600'}>¥{remainingBalance.toFixed(2)}</div>
                 <div className={`text-xs ${remainingBalance > 0 ? 'text-destructive/80' : 'text-green-600/80'}`}>{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right bg-muted">
+                <div>¥{(invoice.supplierCostTotal || 0).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right bg-muted">
+                <div className="flex items-center justify-end gap-1">
+                     <Input
+                       type="number"
+                       step="0.01"
+                       placeholder="Ajouter..."
+                       className="w-24 h-8"
+                       value={supplierPaymentInputs[invoice.id]?.amount || ''}
+                       onChange={(e) => handleSupplierPaymentInputChange(invoice.id, e.target.value)}
+                       disabled={isUpdatingSupplierAmount === invoice.id}
+                     />
+                      {isUpdatingSupplierAmount === invoice.id ? (
+                       <Loader2 className="h-4 w-4 animate-spin" />
+                     ) : (
+                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateSupplierCostPaid(invoice.id)}>
+                        <Check className="h-4 w-4" />
+                       </Button>
+                     )}
+                </div>
+                <div>¥{(invoice.supplierCostPaid || 0).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right font-medium bg-muted">
+                <div className={supplierBalance > 0 ? 'text-destructive' : 'text-green-600'}>¥{supplierBalance.toFixed(2)}</div>
+            </TableCell>
+            <TableCell className={`text-right font-bold ${profit >=0 ? 'text-green-600' : 'text-red-600'}`}>
+                ¥{profit.toFixed(2)}
+            </TableCell>
+            <TableCell>
+              <Select onValueChange={(value: Invoice['status']) => handleStatusChange(invoice.id, value)} defaultValue={invoice.status}>
+                <SelectTrigger className="w-36">
+                   <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                    <SelectItem value="partially_paid">Partially Paid</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
             </TableCell>
             <TableCell className="text-right">
                 <Button variant="ghost" size="icon" asChild>
