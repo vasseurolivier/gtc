@@ -587,19 +587,25 @@ function QuotesPageContent() {
                     </Button>
                     <Separator className="my-4" />
                     <div className="flex justify-end">
-                      <div className="w-1/2 space-y-2">
+                      <div className="w-full md:w-1/2 space-y-2">
                         <div className="flex justify-between items-center">
                           <span>Subtotal</span>
                           <span>¥{subTotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between items-center gap-2">
-                           <FormField control={form.control} name="transportCost" render={({ field }) => (
-                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Transport Cost (CNY)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
+                         <div className="flex justify-between items-center gap-4">
+                           <FormLabel className="whitespace-nowrap">Transport Cost (CNY)</FormLabel>
+                            <FormField control={form.control} name="transportCost" render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                <FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl>
+                                </FormItem>
                            )}/>
                         </div>
-                         <div className="flex justify-between items-center gap-2">
+                         <div className="flex justify-between items-center gap-4">
+                           <FormLabel className="whitespace-nowrap">Commission (%)</FormLabel>
                            <FormField control={form.control} name="commissionRate" render={({ field }) => (
-                                <FormItem className="flex items-center gap-2 w-full"><FormLabel className="whitespace-nowrap">Commission (%)</FormLabel><FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl></FormItem>
+                                <FormItem className="flex-grow">
+                                <FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl>
+                                </FormItem>
                            )}/>
                         </div>
                         <div className="flex justify-between items-center text-muted-foreground text-sm">
