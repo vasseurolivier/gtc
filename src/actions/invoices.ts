@@ -30,6 +30,7 @@ const invoiceSchema = z.object({
   totalAmount: z.coerce.number(),
   amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
   status: invoiceStatusSchema,
+  supplierCostTotal: z.coerce.number().nonnegative("Supplier cost cannot be negative.").optional().default(0),
   supplierCostPaid: z.coerce.number().nonnegative("Supplier amount paid cannot be negative.").optional().default(0),
 });
 
@@ -58,6 +59,8 @@ export interface Invoice {
 
 export async function addInvoiceFromOrder(order: Order) {
     try {
+        const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+
         const newInvoiceData = {
           invoiceNumber: `INV-${order.orderNumber.replace('O-', '')}`,
           orderId: order.id,
@@ -73,6 +76,7 @@ export async function addInvoiceFromOrder(order: Order) {
           totalAmount: order.totalAmount,
           status: 'unpaid' as const,
           amountPaid: 0,
+          supplierCostTotal: supplierCostTotal,
           supplierCostPaid: 0,
         };
         
@@ -141,6 +145,8 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
         const invoiceDoc = invoicesSnapshot.docs[0];
         const invoiceRef = doc(db, 'invoices', invoiceDoc.id);
 
+        const supplierCostTotal = quote.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+
         const updatedInvoiceData = {
             customerId: quote.customerId,
             customerName: quote.customerName,
@@ -149,6 +155,7 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
                 purchasePrice: item.purchasePrice || 0
             })),
             totalAmount: quote.totalAmount,
+            supplierCostTotal: supplierCostTotal,
             // We don't update status or amountPaid from here, as those are managed separately
         };
         
@@ -181,13 +188,7 @@ export async function getInvoices(): Promise<Invoice[]> {
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice;
         
-        // Fetch associated order to calculate supplier cost
-        if (invoice.orderId) {
-            const order = await getOrderById(invoice.orderId);
-            if (order) {
-                invoice.supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
-            }
-        }
+        // No longer auto-calculating supplierCostTotal here. It's now stored on the invoice.
         invoices.push(invoice);
     }
 
@@ -218,12 +219,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
             createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         } as Invoice;
         
-        if (invoice.orderId) {
-            const order = await getOrderById(invoice.orderId);
-            if (order) {
-                invoice.supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
-            }
-        }
+        // No longer auto-calculating supplierCostTotal here
         
         return invoice;
 
@@ -355,6 +351,23 @@ export async function updateInvoiceSupplierCostPaid(id: string, amount: number) 
 
     } catch (error: any) {
         console.error('Error updating supplier cost paid:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateInvoiceSupplierCostTotal(id: string, cost: number) {
+    try {
+        if (typeof cost !== 'number' || cost < 0) {
+            return { success: false, message: 'Invalid cost value.' };
+        }
+        
+        const invoiceRef = doc(db, 'invoices', id);
+        await updateDoc(invoiceRef, { supplierCostTotal: cost });
+
+        return { success: true, message: 'Supplier cost updated successfully.' };
+
+    } catch (error: any) {
+        console.error('Error updating supplier total cost:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

@@ -16,7 +16,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice } from '@/actions/invoices';
+import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice, updateInvoiceSupplierCostTotal } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getOrders, Order } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory } from 'lucide-react';
@@ -124,9 +124,11 @@ export default function InvoicesPage() {
 
   const [paymentInputs, setPaymentInputs] = useState<Record<string, { amount: string; currency: 'CNY' | 'EUR' }>>({});
   const [supplierPaymentInputs, setSupplierPaymentInputs] = useState<Record<string, { amount: string }>>({});
+  const [supplierCostInputs, setSupplierCostInputs] = useState<Record<string, string>>({});
 
   const [isUpdatingAmount, setIsUpdatingAmount] = useState<string | null>(null);
   const [isUpdatingSupplierAmount, setIsUpdatingSupplierAmount] = useState<string | null>(null);
+  const [isUpdatingSupplierCost, setIsUpdatingSupplierCost] = useState<string | null>(null);
 
 
   const handlePaymentInputChange = (invoiceId: string, field: 'amount' | 'currency', value: string) => {
@@ -147,7 +149,14 @@ export default function InvoicesPage() {
             amount: value
         }
     }));
-};
+  };
+  
+  const handleSupplierCostInputChange = (invoiceId: string, value: string) => {
+    setSupplierCostInputs(prev => ({
+        ...prev,
+        [invoiceId]: value,
+    }));
+  };
 
   const handleUpdateAmountPaid = async (invoiceId: string) => {
       const payment = paymentInputs[invoiceId];
@@ -203,16 +212,45 @@ export default function InvoicesPage() {
       }
   };
 
+  const handleUpdateSupplierCostTotal = async (invoiceId: string) => {
+    const cost = supplierCostInputs[invoiceId];
+    if (cost === undefined) return;
+    
+    const costValue = parseFloat(cost);
+    if (isNaN(costValue) || costValue < 0) {
+        toast({ variant: "destructive", title: "Invalid input", description: "Please enter a valid non-negative number."});
+        return;
+    }
+
+    setIsUpdatingSupplierCost(invoiceId);
+    const result = await updateInvoiceSupplierCostTotal(invoiceId, costValue);
+    setIsUpdatingSupplierCost(null);
+
+    if (result.success) {
+        toast({ title: "Success", description: result.message });
+        setInvoices(prev => prev.map(inv =>
+          inv.id === invoiceId
+          ? { ...inv, supplierCostTotal: costValue }
+          : inv
+        ));
+    } else {
+        toast({ variant: "destructive", title: "Error", description: result.message });
+    }
+  };
+
 
   useEffect(() => {
     const initialPayments: Record<string, { amount: string; currency: 'CNY' | 'EUR' }> = {};
     const initialSupplierPayments: Record<string, { amount: string }> = {};
+    const initialSupplierCosts: Record<string, string> = {};
     invoices.forEach(inv => {
         initialPayments[inv.id] = { amount: '', currency: currency.code as 'EUR' || 'CNY' };
         initialSupplierPayments[inv.id] = { amount: '' };
+        initialSupplierCosts[inv.id] = (inv.supplierCostTotal || 0).toString();
     });
     setPaymentInputs(initialPayments);
     setSupplierPaymentInputs(initialSupplierPayments);
+    setSupplierCostInputs(initialSupplierCosts);
   }, [invoices, currency.code]);
 
 
@@ -287,7 +325,7 @@ export default function InvoicesPage() {
                    disabled={isUpdatingAmount === invoice.id}
                  />
                  <Select 
-                    value={paymentInputs[invoice.id]?.currency}
+                    value={paymentInputs[invoice.id]?.currency || 'CNY'}
                     onValueChange={(value) => handlePaymentInputChange(invoice.id, 'currency', value)}
                  >
                      <SelectTrigger className="w-20 h-8">
@@ -314,7 +352,23 @@ export default function InvoicesPage() {
                 <div className={`text-xs ${remainingBalance > 0 ? 'text-destructive/80' : 'text-green-600/80'}`}>{currency.symbol}{(remainingBalance * exchangeRate).toFixed(2)}</div>
             </TableCell>
             <TableCell className="text-right bg-muted">
-                <div>¥{(invoice.supplierCostTotal || 0).toFixed(2)}</div>
+                 <div className="flex items-center justify-end gap-1">
+                     <Input
+                       type="number"
+                       step="0.01"
+                       className="w-24 h-8"
+                       value={supplierCostInputs[invoice.id] || ''}
+                       onChange={(e) => handleSupplierCostInputChange(invoice.id, e.target.value)}
+                       disabled={isUpdatingSupplierCost === invoice.id}
+                     />
+                      {isUpdatingSupplierCost === invoice.id ? (
+                       <Loader2 className="h-4 w-4 animate-spin" />
+                     ) : (
+                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateSupplierCostTotal(invoice.id)}>
+                        <Check className="h-4 w-4" />
+                       </Button>
+                     )}
+                </div>
             </TableCell>
             <TableCell className="text-right bg-muted">
                 <div className="flex items-center justify-end gap-1">
