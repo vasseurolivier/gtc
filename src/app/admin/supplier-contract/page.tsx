@@ -20,7 +20,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { PrintFooter } from '@/components/layout/print-footer';
 import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
@@ -276,7 +275,7 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
         </Card>
 
         <div className="lg:col-span-2 lg:block">
-            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm]">
               <div className="fixed-print-header">
                 <header className="flex justify-between items-start mb-4">
                   <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 object-contain" />}</div>
@@ -367,9 +366,6 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                       </div>
                     </section>
                   </>
-                </div>
-                <div className="fixed-print-footer">
-                  <PrintFooter />
                 </div>
             </div>
         </div>
@@ -551,3 +547,4 @@ export default function SupplierContractPage() {
         </Suspense>
     );
 }
+
