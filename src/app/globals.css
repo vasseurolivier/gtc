@@ -98,7 +98,7 @@ body {
 @media print {
   html, body {
     width: 210mm;
-    height: 297mm;
+    height: auto;
     margin: 0;
     padding: 0;
     -webkit-print-color-adjust: exact;
@@ -116,6 +116,33 @@ body {
   .pdf-page:last-child {
       break-after: auto;
   }
+  
+  #pdf-content {
+    min-height: 297mm;
+    position: relative;
+  }
+
+  .fixed-print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem; 
+  }
+  
+  .printable-content-area {
+    padding-top: 6rem; 
+    padding-bottom: 4rem; 
+  }
+
+  .fixed-print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+  }
+
 }
 
 /* Hide print-only content on screen */

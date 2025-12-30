@@ -276,8 +276,8 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
         </Card>
 
         <div className="lg:col-span-2 lg:block">
-            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-24">
-              <div className="flex-grow">
+            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+              <div className="fixed-print-header">
                 <header className="flex justify-between items-start mb-4">
                   <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 object-contain" />}</div>
                   <div className="text-right">
@@ -286,7 +286,9 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                     <p className="text-xs text-muted-foreground">签订日期 (Date): {format(watchedValues.date, 'yyyy-MM-dd')}</p>
                   </div>
                 </header>
-                
+              </div>
+
+              <div className="printable-content-area">
                 <section className="grid grid-cols-2 gap-8 mb-4 text-xs">
                   <div>
                     <h2 className="font-bold border-b mb-1 pb-1">买方 (The Buyer):</h2>
@@ -366,7 +368,9 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                     </section>
                   </>
                 </div>
-                <PrintFooter />
+                <div className="fixed-print-footer">
+                  <PrintFooter />
+                </div>
             </div>
         </div>
       </div>
