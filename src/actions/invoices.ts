@@ -154,16 +154,15 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
         const supplierCostTotal = quote.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
 
         const updatedInvoiceData = {
-            customerId: quote.customerId,
-            customerName: quote.customerName,
+            // We don't update customerId or customerName as they are tied to the invoice
             items: quote.items.map(item => ({
                 ...item,
                 purchasePrice: item.purchasePrice || 0
             })),
-            totalAmount: quote.totalAmount,
+            // Do not update totalAmount, status or amountPaid from here.
+            // These should be managed on the invoice page directly.
             supplierCostTotal: supplierCostTotal,
             transportCost: quote.transportCost || 0,
-            // We don't update status or amountPaid from here, as those are managed separately
         };
         
         await updateDoc(invoiceRef, updatedInvoiceData);
@@ -405,3 +404,5 @@ export async function updateInvoiceTransportCostPaid(id: string, amount: number)
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
+    
