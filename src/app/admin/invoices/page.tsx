@@ -16,10 +16,10 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice, updateInvoiceSupplierCostTotal } from '@/actions/invoices';
+import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice, updateInvoiceSupplierCostTotal, updateInvoiceTransportCostPaid } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getOrders, Order } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory, Truck } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -124,10 +124,12 @@ export default function InvoicesPage() {
 
   const [paymentInputs, setPaymentInputs] = useState<Record<string, { amount: string; currency: 'CNY' | 'EUR' }>>({});
   const [supplierPaymentInputs, setSupplierPaymentInputs] = useState<Record<string, { amount: string }>>({});
+  const [transportPaymentInputs, setTransportPaymentInputs] = useState<Record<string, { amount: string }>>({});
   const [supplierCostInputs, setSupplierCostInputs] = useState<Record<string, string>>({});
 
   const [isUpdatingAmount, setIsUpdatingAmount] = useState<string | null>(null);
   const [isUpdatingSupplierAmount, setIsUpdatingSupplierAmount] = useState<string | null>(null);
+  const [isUpdatingTransportAmount, setIsUpdatingTransportAmount] = useState<string | null>(null);
   const [isUpdatingSupplierCost, setIsUpdatingSupplierCost] = useState<string | null>(null);
 
 
@@ -143,6 +145,16 @@ export default function InvoicesPage() {
   
   const handleSupplierPaymentInputChange = (invoiceId: string, value: string) => {
     setSupplierPaymentInputs(prev => ({
+        ...prev,
+        [invoiceId]: {
+            ...prev[invoiceId],
+            amount: value
+        }
+    }));
+  };
+
+  const handleTransportPaymentInputChange = (invoiceId: string, value: string) => {
+    setTransportPaymentInputs(prev => ({
         ...prev,
         [invoiceId]: {
             ...prev[invoiceId],
@@ -211,6 +223,33 @@ export default function InvoicesPage() {
           toast({ variant: "destructive", title: "Error", description: result.message });
       }
   };
+  
+  const handleUpdateTransportCostPaid = async (invoiceId: string) => {
+      const payment = transportPaymentInputs[invoiceId];
+      if (!payment || payment.amount === undefined) return;
+      
+      const amount = parseFloat(payment.amount);
+      if (isNaN(amount)) {
+          toast({ variant: "destructive", title: "Invalid input", description: "Please enter a valid number."});
+          return;
+      }
+
+      setIsUpdatingTransportAmount(invoiceId);
+      const result = await updateInvoiceTransportCostPaid(invoiceId, amount);
+      setIsUpdatingTransportAmount(null);
+
+      if (result.success) {
+          toast({ title: "Success", description: result.message });
+          setInvoices(prev => prev.map(inv =>
+            inv.id === invoiceId
+            ? { ...inv, transportCostPaid: result.newTransportCostPaid }
+            : inv
+          ));
+          handleTransportPaymentInputChange(invoiceId, '');
+      } else {
+          toast({ variant: "destructive", title: "Error", description: result.message });
+      }
+  };
 
   const handleUpdateSupplierCostTotal = async (invoiceId: string) => {
     const cost = supplierCostInputs[invoiceId];
@@ -242,14 +281,17 @@ export default function InvoicesPage() {
   useEffect(() => {
     const initialPayments: Record<string, { amount: string; currency: 'CNY' | 'EUR' }> = {};
     const initialSupplierPayments: Record<string, { amount: string }> = {};
+    const initialTransportPayments: Record<string, { amount: string }> = {};
     const initialSupplierCosts: Record<string, string> = {};
     invoices.forEach(inv => {
         initialPayments[inv.id] = { amount: '', currency: currency.code as 'EUR' || 'CNY' };
         initialSupplierPayments[inv.id] = { amount: '' };
+        initialTransportPayments[inv.id] = { amount: '' };
         initialSupplierCosts[inv.id] = (inv.supplierCostTotal || 0).toString();
     });
     setPaymentInputs(initialPayments);
     setSupplierPaymentInputs(initialSupplierPayments);
+    setTransportPaymentInputs(initialTransportPayments);
     setSupplierCostInputs(initialSupplierCosts);
   }, [invoices, currency.code]);
 
@@ -294,6 +336,9 @@ export default function InvoicesPage() {
             <TableHead>Coût Usine</TableHead>
             <TableHead>Payé à l'Usine</TableHead>
             <TableHead>Solde Usine</TableHead>
+            <TableHead>Coût Transport</TableHead>
+            <TableHead>Payé au Transporteur</TableHead>
+            <TableHead>Solde Transport</TableHead>
             <TableHead>Bénéfice</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -304,7 +349,8 @@ export default function InvoicesPage() {
         {invoiceList.map((invoice) => {
           const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
           const supplierBalance = (invoice.supplierCostTotal || 0) - (invoice.supplierCostPaid || 0);
-          const profit = invoice.totalAmount - (invoice.supplierCostTotal || 0);
+          const transportBalance = (invoice.transportCost || 0) - (invoice.transportCostPaid || 0);
+          const profit = invoice.totalAmount - (invoice.supplierCostTotal || 0) - (invoice.transportCost || 0);
           return(
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
@@ -393,6 +439,33 @@ export default function InvoicesPage() {
             </TableCell>
             <TableCell className="text-right font-medium bg-muted">
                 <div className={supplierBalance > 0 ? 'text-destructive' : 'text-green-600'}>¥{supplierBalance.toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right bg-secondary">
+                <div>¥{(invoice.transportCost || 0).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right bg-secondary">
+                 <div className="flex items-center justify-end gap-1">
+                     <Input
+                       type="number"
+                       step="0.01"
+                       placeholder="Ajouter..."
+                       className="w-24 h-8"
+                       value={transportPaymentInputs[invoice.id]?.amount || ''}
+                       onChange={(e) => handleTransportPaymentInputChange(invoice.id, e.target.value)}
+                       disabled={isUpdatingTransportAmount === invoice.id}
+                     />
+                      {isUpdatingTransportAmount === invoice.id ? (
+                       <Loader2 className="h-4 w-4 animate-spin" />
+                     ) : (
+                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateTransportCostPaid(invoice.id)}>
+                        <Check className="h-4 w-4" />
+                       </Button>
+                     )}
+                </div>
+                <div>¥{(invoice.transportCostPaid || 0).toFixed(2)}</div>
+            </TableCell>
+            <TableCell className="text-right font-medium bg-secondary">
+                <div className={transportBalance > 0 ? 'text-destructive' : 'text-green-600'}>¥{transportBalance.toFixed(2)}</div>
             </TableCell>
             <TableCell className={`text-right font-bold ${profit >=0 ? 'text-green-600' : 'text-red-600'}`}>
                 ¥{profit.toFixed(2)}

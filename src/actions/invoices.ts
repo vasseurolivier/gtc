@@ -33,6 +33,7 @@ const invoiceSchema = z.object({
   supplierCostTotal: z.coerce.number().nonnegative("Supplier cost cannot be negative.").optional().default(0),
   supplierCostPaid: z.coerce.number().nonnegative("Supplier amount paid cannot be negative.").optional().default(0),
   transportCost: z.coerce.number().optional(),
+  transportCostPaid: z.coerce.number().nonnegative("Transport cost paid cannot be negative.").optional().default(0),
 });
 
 
@@ -57,6 +58,7 @@ export interface Invoice {
     supplierCostTotal?: number;
     supplierCostPaid?: number;
     transportCost?: number;
+    transportCostPaid?: number;
 }
 
 export async function addInvoiceFromOrder(order: Order) {
@@ -81,6 +83,7 @@ export async function addInvoiceFromOrder(order: Order) {
           supplierCostTotal: supplierCostTotal,
           supplierCostPaid: 0,
           transportCost: order.transportCost || 0,
+          transportCostPaid: 0,
         };
         
         const validatedData = invoiceSchema.parse(newInvoiceData);
@@ -372,6 +375,33 @@ export async function updateInvoiceSupplierCostTotal(id: string, cost: number) {
 
     } catch (error: any) {
         console.error('Error updating supplier total cost:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateInvoiceTransportCostPaid(id: string, amount: number) {
+    try {
+        if (typeof amount !== 'number') {
+            return { success: false, message: 'Invalid amount paid value.' };
+        }
+        
+        const invoiceRef = doc(db, 'invoices', id);
+        const invoiceSnap = await getDoc(invoiceRef);
+
+        if (!invoiceSnap.exists()) {
+            return { success: false, message: 'Invoice not found.' };
+        }
+        
+        const invoiceData = invoiceSnap.data();
+        const newTransportCostPaid = (invoiceData.transportCostPaid || 0) + amount;
+
+        await updateDoc(invoiceRef, { transportCostPaid: newTransportCostPaid });
+
+        const operation = amount >= 0 ? 'Payment' : 'Correction';
+        return { success: true, message: `${operation} of ¥${amount.toFixed(2)} to transporter recorded.`, newTransportCostPaid: newTransportCostPaid };
+
+    } catch (error: any) {
+        console.error('Error updating transport cost paid:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
