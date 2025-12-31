@@ -30,6 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { getProducts, Product } from '@/actions/products';
+import { addSupplier, Supplier } from '@/actions/suppliers';
 import { addSupplierContract, getSupplierContracts, updateSupplierContract, deleteSupplierContract, SupplierContract } from '@/actions/supplier-contracts';
 
 const contractItemSchema = z.object({
@@ -60,9 +61,10 @@ const formSchema = z.object({
 
 type ContractFormValues = z.infer<typeof formSchema>;
 
-function ContractGenerator({ editingContract, onFinished, products }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[] }) {
+function ContractGenerator({ editingContract, onFinished, products, suppliers, onSupplierCreated }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[], suppliers: Supplier[], onSupplierCreated: () => void }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingSupplier, setIsSavingSupplier] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const currencyContext = useContext(CurrencyContext);
   
@@ -120,7 +122,35 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
       form.setValue(`items.${index}.photo`, product.imageUrl || '');
     }
   };
+
+  const handleSupplierSelect = (supplierId: string) => {
+    const supplier = suppliers.find(s => s.id === supplierId);
+    if (supplier) {
+        form.setValue('supplierName', supplier.name);
+        form.setValue('supplierAddress', supplier.address || '');
+        form.setValue('supplierContact', supplier.contactName || '');
+    }
+  };
   
+  const handleSaveSupplier = async () => {
+    const supplierName = form.getValues('supplierName');
+    const supplierAddress = form.getValues('supplierAddress');
+    const supplierContact = form.getValues('supplierContact');
+    if (!supplierName) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Supplier name is required.' });
+        return;
+    }
+    setIsSavingSupplier(true);
+    const result = await addSupplier({ name: supplierName, address: supplierAddress, contactName: supplierContact });
+    if (result.success) {
+        toast({ title: 'Success', description: 'New supplier has been saved.' });
+        onSupplierCreated();
+    } else {
+        toast({ variant: 'destructive', title: 'Error', description: result.message || 'Could not save supplier.' });
+    }
+    setIsSavingSupplier(false);
+  }
+
   const handleDownloadPdf = async () => {
       const element = document.getElementById('pdf-content');
       if (!element) return;
@@ -194,6 +224,8 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
   const depositPercentage = Number(watchedValues.depositPercentage) || 0;
   const depositAmount = totalAmount * (depositPercentage / 100);
   const balanceAmount = totalAmount - depositAmount;
+  const isExistingSupplier = suppliers.some(s => s.name === watchedValues.supplierName);
+
 
   return (
     <>
@@ -222,7 +254,26 @@ function ContractGenerator({ editingContract, onFinished, products }: { editingC
                 <Separator />
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Supplier Information</h3>
-                    <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormLabel>Supplier Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormItem>
+                        <FormLabel>Supplier</FormLabel>
+                         <Select onValueChange={handleSupplierSelect}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select an existing supplier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                    <div className="relative">
+                        <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormLabel>Supplier Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        {!isExistingSupplier && watchedValues.supplierName && (
+                             <Button type="button" size="sm" className="absolute top-0 right-0 mt-6" onClick={handleSaveSupplier} disabled={isSavingSupplier}>
+                                {isSavingSupplier ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                                Save Supplier
+                            </Button>
+                        )}
+                    </div>
                     <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormLabel>Supplier Address</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={form.control} name="supplierContact" render={({ field }) => ( <FormItem><FormLabel>Contact Person</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
@@ -463,21 +514,33 @@ function SupplierContractPageContent() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [generatorKey, setGeneratorKey] = useState('new-0');
     const [products, setProducts] = useState<Product[]>([]);
-    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
 
     useEffect(() => {
-        async function fetchProducts() {
+        async function fetchData() {
             try {
-                const fetchedProducts = await getProducts();
+                const [fetchedProducts, fetchedSuppliers] = await Promise.all([
+                    getProducts(),
+                    getSuppliers()
+                ]);
                 setProducts(fetchedProducts);
+                setSuppliers(fetchedSuppliers);
             } catch (error) {
-                console.error("Failed to fetch products", error);
+                console.error("Failed to fetch initial data", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'Failed to load initial data.' });
             } finally {
-                setIsLoadingProducts(false);
+                setIsLoading(false);
             }
         }
-        fetchProducts();
-    }, []);
+        fetchData();
+    }, [toast]);
+    
+    const handleSupplierCreated = async () => {
+        const fetchedSuppliers = await getSuppliers();
+        setSuppliers(fetchedSuppliers);
+    };
 
     const handleEdit = (contract: SupplierContract) => {
         setEditingContract(contract);
@@ -498,7 +561,7 @@ function SupplierContractPageContent() {
         setActiveTab("generator");
     }
     
-    if (isLoadingProducts) {
+    if (isLoading) {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
     }
 
@@ -518,7 +581,14 @@ function SupplierContractPageContent() {
                     <TabsTrigger value="history">History</TabsTrigger>
                 </TabsList>
                 <TabsContent value="generator">
-                    <ContractGenerator key={generatorKey} editingContract={editingContract} onFinished={handleFinished} products={products} />
+                    <ContractGenerator 
+                        key={generatorKey} 
+                        editingContract={editingContract} 
+                        onFinished={handleFinished} 
+                        products={products}
+                        suppliers={suppliers}
+                        onSupplierCreated={handleSupplierCreated}
+                    />
                 </TabsContent>
                 <TabsContent value="history">
                     <ContractHistory onEdit={handleEdit} refreshKey={refreshKey} />
@@ -526,7 +596,7 @@ function SupplierContractPageContent() {
             </Tabs>
 
             <div className="hidden print-block">
-                <ContractGenerator key={generatorKey} editingContract={editingContract} onFinished={handleFinished} products={products} />
+                <ContractGenerator key={generatorKey} editingContract={editingContract} onFinished={handleFinished} products={products} suppliers={suppliers} onSupplierCreated={handleSupplierCreated} />
             </div>
         </div>
     );
@@ -547,4 +617,3 @@ export default function SupplierContractPage() {
         </Suspense>
     );
 }
-

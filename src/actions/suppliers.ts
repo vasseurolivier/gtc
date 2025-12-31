@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -65,7 +66,7 @@ export async function updateSupplier(id: string, values: SupplierFormValues) {
 
 export async function getSuppliers(): Promise<Supplier[]> {
   try {
-    const suppliersQuery = query(collection(db, "suppliers"), orderBy("createdAt", "desc"));
+    const suppliersQuery = query(collection(db, "suppliers"), orderBy("name", "asc"));
     const querySnapshot = await getDocs(suppliersQuery);
     
     const suppliers: Supplier[] = [];
