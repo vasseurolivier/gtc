@@ -272,6 +272,7 @@ function ProtectedAdminLayout({
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
     { href: '/admin/customers', icon: <Users />, label: 'Customers' },
+    { href: '/admin/suppliers', icon: <Factory />, label: 'Suppliers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
     { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
