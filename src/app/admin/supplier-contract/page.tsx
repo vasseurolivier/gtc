@@ -62,8 +62,8 @@ type ContractFormValues = z.infer<typeof formSchema>;
 
 function ContractGenerator({ editingContract, onFinished, products, suppliers, onSupplierCreated }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[], suppliers: Supplier[], onSupplierCreated: () => void }) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting = useState(false);
-  const [isSavingSupplier, setIsSavingSupplier = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingSupplier, setIsSavingSupplier] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const currencyContext = useContext(CurrencyContext);
   
@@ -425,8 +425,8 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
 }
 
 function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierContract) => void, refreshKey: number }) {
-    const [contracts, setContracts = useState<SupplierContract[]>([]);
-    const [isLoading, setIsLoading = useState(true);
+    const [contracts, setContracts] = useState<SupplierContract[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -508,13 +508,13 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierCo
 }
 
 function SupplierContractPageContent() {
-    const [activeTab, setActiveTab = useState("generator");
-    const [editingContract, setEditingContract = useState<SupplierContract | null>(null);
-    const [refreshKey, setRefreshKey = useState(0);
-    const [generatorKey, setGeneratorKey = useState('new-0');
-    const [products, setProducts = useState<Product[]>([]);
-    const [suppliers, setSuppliers = useState<Supplier[]>([]);
-    const [isLoading, setIsLoading = useState(true);
+    const [activeTab, setActiveTab] = useState("generator");
+    const [editingContract, setEditingContract] = useState<SupplierContract | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [generatorKey, setGeneratorKey] = useState('new-0');
+    const [products, setProducts] = useState<Product[]>([]);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -616,5 +616,3 @@ export default function SupplierContractPage() {
         </Suspense>
     );
 }
-
-    
