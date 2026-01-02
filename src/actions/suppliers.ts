@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 const supplierSchema = z.object({
   name: z.string().min(2, { message: "Supplier name must be at least 2 characters." }),
+  nickname: z.string().optional(),
   contactName: z.string().optional(),
   email: z.string().email({ message: "Please enter a valid email." }).or(z.literal("")).optional(),
   phone: z.string().optional(),
@@ -22,6 +23,7 @@ export type SupplierFormValues = z.infer<typeof supplierSchema>;
 export interface Supplier {
     id: string;
     name: string;
+    nickname?: string;
     contactName?: string;
     email?: string;
     phone?: string;
@@ -75,6 +77,7 @@ export async function getSuppliers(): Promise<Supplier[]> {
         suppliers.push({
           id: doc.id,
           name: data.name || '',
+          nickname: data.nickname || '',
           contactName: data.contactName || '',
           email: data.email || '',
           phone: data.phone || '',

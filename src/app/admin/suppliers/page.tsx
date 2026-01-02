@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ import Link from 'next/link';
 
 const supplierSchema = z.object({
   name: z.string().min(2, { message: "Supplier name must be at least 2 characters." }),
+  nickname: z.string().optional(),
   contactName: z.string().optional(),
   email: z.string().email({ message: "Please enter a valid email." }).or(z.literal("")).optional(),
   phone: z.string().optional(),
@@ -44,7 +46,8 @@ export default function SuppliersPage() {
   const form = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierSchema),
     defaultValues: { 
-        name: "", 
+        name: "",
+        nickname: "",
         contactName: "",
         email: "", 
         phone: "",
@@ -81,6 +84,7 @@ export default function SuppliersPage() {
     if (supplier) {
       form.reset({
         name: supplier.name,
+        nickname: supplier.nickname,
         contactName: supplier.contactName,
         email: supplier.email,
         phone: supplier.phone,
@@ -92,6 +96,7 @@ export default function SuppliersPage() {
     } else {
       form.reset({
         name: "", 
+        nickname: "",
         contactName: "",
         email: "", 
         phone: "",
@@ -166,6 +171,13 @@ export default function SuppliersPage() {
                           <FormMessage />
                       </FormItem>
                       )} />
+                      <FormField control={form.control} name="nickname" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Nickname</FormLabel>
+                          <FormControl><Input placeholder="e.g., T-shirt guy" {...field} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )} />
                       <FormField control={form.control} name="contactName" render={({ field }) => (
                       <FormItem>
                           <FormLabel>Contact Name</FormLabel>
@@ -188,7 +200,7 @@ export default function SuppliersPage() {
                       </FormItem>
                       )} />
                       <FormField control={form.control} name="website" render={({ field }) => (
-                      <FormItem className="md:col-span-2">
+                      <FormItem>
                           <FormLabel>Website</FormLabel>
                           <FormControl><Input placeholder="https://factory.com" {...field} /></FormControl>
                           <FormMessage />
@@ -267,6 +279,7 @@ export default function SuppliersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Supplier Name</TableHead>
+                  <TableHead>Nickname</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Main Products</TableHead>
                   <TableHead>Date Added</TableHead>
@@ -285,6 +298,7 @@ export default function SuppliersPage() {
                         supplier.name
                       )}
                     </TableCell>
+                    <TableCell>{supplier.nickname || 'N/A'}</TableCell>
                     <TableCell>
                         <div className="font-medium">{supplier.contactName}</div>
                         <div className="text-sm text-muted-foreground">{supplier.email}</div>
