@@ -49,6 +49,7 @@ import { getOrders } from '@/actions/orders';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
 import { uploadFile } from '@/actions/upload';
+import { cn } from '@/lib/utils';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
