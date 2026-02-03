@@ -2,7 +2,7 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Package, Receipt, ShoppingCart, Eye, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/actions/contact';
 import Link from 'next/link';
@@ -21,8 +21,10 @@ export default function ClientOrdersPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const [isOrdering, setIsOrdering] = useState<string | null>(null);
+  const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
+  const [isSourcedLoading, setIsSourcedLoading] = useState(false);
 
-  // Orders Query
+  // 1. Fetch Orders
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -30,8 +32,9 @@ export default function ClientOrdersPage() {
       where('customerId', '==', user.uid)
     );
   }, [db, user]);
+  const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
 
-  // Invoices Query
+  // 2. Fetch Invoices
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -39,28 +42,49 @@ export default function ClientOrdersPage() {
       where('customerId', '==', user.uid)
     );
   }, [db, user]);
+  const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  // Global Catalog Products
+  // 3. Fetch Global Catalog
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, 'products');
   }, [db]);
-
-  // Private Sourced Products (Published from requests)
-  // Use collectionGroup to find all products belonging to this client across all their lists
-  const privateProductsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    // We filter by status published
-    return query(
-      collectionGroup(db, 'products'),
-      where('status', '==', 'published')
-    );
-  }, [db, user]);
-
-  const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
-  const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
   const { data: catalogProducts, isLoading: isCatalogLoading } = useCollection(productsQuery);
-  const { data: sourcedProducts, isLoading: isSourcedLoading } = useCollection(privateProductsQuery);
+
+  // 4. Manual Aggregation of Private Sourced Products
+  // We avoid collectionGroup to prevent "failed-precondition" (missing index) errors
+  const listsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'clients', user.uid, 'productLists');
+  }, [db, user]);
+  const { data: clientLists } = useCollection(listsQuery);
+
+  useEffect(() => {
+    if (!db || !user || !clientLists || clientLists.length === 0) {
+      setSourcedProducts([]);
+      return;
+    }
+
+    async function fetchAllSourced() {
+      setIsSourcedLoading(true);
+      try {
+        const allProducts: any[] = [];
+        for (const list of clientLists!) {
+          const prodCol = collection(db!, 'clients', user!.uid, 'productLists', list.id, 'products');
+          const q = query(prodCol, where('status', '==', 'published'));
+          const snap = await getDocs(q);
+          snap.forEach(doc => allProducts.push({ ...doc.data(), id: doc.id }));
+        }
+        setSourcedProducts(allProducts);
+      } catch (e) {
+        console.error("Aggregation error:", e);
+      } finally {
+        setIsSourcedLoading(false);
+      }
+    }
+
+    fetchAllSourced();
+  }, [db, user, clientLists]);
 
   // Sorting logic
   const sortedOrders = useMemo(() => {
@@ -84,12 +108,7 @@ export default function ClientOrdersPage() {
   // Merge catalogs
   const fullCatalog = useMemo(() => {
     const global = (catalogProducts || []).map(p => ({ ...p, isPrivate: false }));
-    // Filter sourced products to only those belonging to this client (manually for now to avoid complex security rule issues in prototype)
-    // In a real app, security rules or a cleaner structure would handle this
-    const privateItems = (sourcedProducts || [])
-      .filter(p => p.productListId) // Basic check
-      .map(p => ({ ...p, isPrivate: true }));
-    
+    const privateItems = sourcedProducts.map(p => ({ ...p, isPrivate: true }));
     return [...privateItems, ...global];
   }, [catalogProducts, sourcedProducts]);
 
