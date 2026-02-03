@@ -3,7 +3,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, getDocs, doc, addDoc, serverTimestamp } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Package, Receipt, ShoppingCart, Eye, Star, MapPin, CheckCircle2, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { 
+  Loader2, 
+  Package, 
+  Receipt, 
+  ShoppingCart, 
+  Eye, 
+  Star, 
+  MapPin, 
+  CheckCircle2, 
+  ChevronLeft, 
+  ChevronRight, 
+  FileText,
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag
+} from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { useState, useMemo, useEffect } from 'react';
@@ -26,11 +42,15 @@ export default function ClientOrdersPage() {
   const { toast } = useToast();
   
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-  const [orderQuantity, setOrderQuantity] = useState(1);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isCartDialogOpen, setIsCartDialogOpen] = useState(false);
+  const [productQuantity, setProductQuantity] = useState(1);
   const [shippingAddress, setShippingAddress] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
+
+  // Cart State
+  const [cart, setCart] = useState<any[]>([]);
 
   const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
   const [isSourcedLoading, setIsSourcedLoading] = useState(false);
@@ -146,10 +166,53 @@ export default function ClientOrdersPage() {
 
   const handleOpenProduct = (product: any) => {
     setSelectedProduct(product);
-    setOrderQuantity(product.quantity || 1);
+    setProductQuantity(1);
     setCurrentImageIdx(0);
-    setIsOrderDialogOpen(true);
+    setIsProductDialogOpen(true);
   };
+
+  const handleAddToCart = () => {
+    if (!selectedProduct) return;
+    
+    const existingIdx = cart.findIndex(item => item.id === selectedProduct.id);
+    if (existingIdx > -1) {
+      const newCart = [...cart];
+      newCart[existingIdx].quantity += productQuantity;
+      newCart[existingIdx].total = newCart[existingIdx].quantity * newCart[existingIdx].unitPrice;
+      setCart(newCart);
+    } else {
+      setCart([...cart, {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        sku: selectedProduct.sku || '',
+        quantity: productQuantity,
+        unitPrice: Number(selectedProduct.price || 0),
+        total: productQuantity * Number(selectedProduct.price || 0),
+        photo: selectedProduct.images?.[0] || ''
+      }]);
+    }
+
+    toast({ title: "Produit ajouté", description: `${selectedProduct.name} est dans votre panier.` });
+    setIsProductDialogOpen(false);
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(cart.filter(item => item.id !== id));
+  };
+
+  const updateCartItemQuantity = (id: string, delta: number) => {
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty, total: newQty * item.unitPrice };
+      }
+      return item;
+    }));
+  };
+
+  const cartTotal = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.total, 0);
+  }, [cart]);
 
   const handleViewOrder = (order: any) => {
     setSelectedOrderPreview(order);
@@ -157,52 +220,63 @@ export default function ClientOrdersPage() {
   };
 
   const handleConfirmOrder = async () => {
-    if (!user || !selectedProduct || !db) return;
+    if (!user || cart.length === 0 || !db) return;
     setIsSubmittingOrder(true);
 
     try {
       const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
-      const totalAmount = Number(selectedProduct.price || 0) * orderQuantity;
 
       const orderData = {
         orderNumber,
         customerId: user.uid,
         customerName: `${profile?.firstName} ${profile?.lastName}`,
-        items: [{
-          description: selectedProduct.name,
-          sku: selectedProduct.sku || '',
-          quantity: orderQuantity,
-          unitPrice: Number(selectedProduct.price || 0),
-          total: totalAmount,
-          photo: selectedProduct.images?.[0] || ''
-        }],
-        totalAmount,
+        items: cart.map(item => ({
+          description: item.name,
+          sku: item.sku,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.total,
+          photo: item.photo
+        })),
+        totalAmount: cartTotal,
         status: 'processing',
         shippingAddress,
         orderDate: new Date().toISOString(),
         createdAt: serverTimestamp(),
-        quoteId: '', // Direct order from catalog
+        quoteId: '', 
       };
 
       await addDoc(collection(db, 'orders'), orderData);
 
       toast({ 
-        title: "Commande enregistrée !", 
-        description: `Votre commande ${orderNumber} a été transmise à notre équipe en Chine.` 
+        title: "Commande transmise !", 
+        description: `Votre commande ${orderNumber} a été envoyée avec succès.` 
       });
-      setIsOrderDialogOpen(false);
+      setCart([]);
+      setIsCartDialogOpen(false);
     } catch (e: any) {
-      toast({ variant: "destructive", title: "Erreur", description: "Impossible de finaliser la commande." });
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de valider la commande." });
     } finally {
       setIsSubmittingOrder(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold text-zinc-900">Commandes & Factures</h1>
-        <p className="text-zinc-500 mt-2">Suivez vos importations et gérez vos documents financiers.</p>
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold text-zinc-900">Commandes & Factures</h1>
+          <p className="text-zinc-500 mt-2">Suivez vos importations et gérez vos documents financiers.</p>
+        </div>
+        {cart.length > 0 && (
+          <Button 
+            className="h-12 px-6 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 animate-in fade-in zoom-in"
+            onClick={() => setIsCartDialogOpen(true)}
+          >
+            <ShoppingCart className="mr-2 h-5 w-5" />
+            Voir mon panier ({cart.length})
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="orders" className="w-full">
@@ -300,8 +374,8 @@ export default function ClientOrdersPage() {
 
         <TabsContent value="catalog" className="mt-6">
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-zinc-800">Vos produits sourcés</h3>
-            <p className="text-sm text-zinc-500">Cliquez sur un article pour voir les détails techniques et commander.</p>
+            <h3 className="text-lg font-bold text-zinc-800">Votre catalogue personnalisé</h3>
+            <p className="text-sm text-zinc-500">Ajoutez les produits validés à votre panier pour commander.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -331,7 +405,7 @@ export default function ClientOrdersPage() {
                   </CardHeader>
                   <div className="p-4 pt-0">
                     <Button className="w-full bg-zinc-100 text-zinc-900 hover:bg-primary hover:text-white font-bold transition-all border-none">
-                      Voir & Commander
+                      Voir & Ajouter
                     </Button>
                   </div>
                 </Card>
@@ -347,7 +421,120 @@ export default function ClientOrdersPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Order Preview Dialog */}
+      {/* Floating Cart Mobile Indicator */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-6 right-6 lg:hidden z-50">
+          <Button 
+            className="h-16 w-16 rounded-full bg-primary text-white shadow-2xl animate-bounce"
+            onClick={() => setIsCartDialogOpen(true)}
+          >
+            <ShoppingBag className="h-6 w-6" />
+            <Badge className="absolute -top-2 -right-2 bg-zinc-900 h-6 w-6 flex items-center justify-center p-0 rounded-full border-2 border-white">{cart.length}</Badge>
+          </Button>
+        </div>
+      )}
+
+      {/* Cart Review Dialog */}
+      <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <ShoppingCart className="h-6 w-6 text-primary" /> Mon Panier
+            </DialogTitle>
+            <DialogDescription>
+              Vérifiez vos articles avant de valider votre demande de commande.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-6">
+            <div className="border rounded-xl overflow-hidden bg-white">
+              <Table>
+                <TableHeader className="bg-zinc-50">
+                  <TableRow>
+                    <TableHead className="w-16"></TableHead>
+                    <TableHead>Produit</TableHead>
+                    <TableHead className="text-center">Quantité</TableHead>
+                    <TableHead className="text-right pr-4">Sous-total</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {cart.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="py-3">
+                        {item.photo && (
+                          <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden">
+                            <Image src={item.photo} alt={item.name} fill className="object-cover" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="font-bold text-sm">{item.name}</div>
+                        <div className="text-[10px] text-zinc-400">¥{item.unitPrice.toFixed(2)} / unité</div>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg" onClick={() => updateCartItemQuantity(item.id, -1)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-8 text-center font-black">{item.quantity}</span>
+                          <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg" onClick={() => updateCartItemQuantity(item.id, 1)}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3 text-right pr-4 font-black">
+                        ¥{item.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-300 hover:text-red-500" onClick={() => removeFromCart(item.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-grow space-y-2">
+                <Label htmlFor="checkout-address" className="font-bold text-zinc-700">Adresse de livraison</Label>
+                <Textarea 
+                  id="checkout-address" 
+                  placeholder="Précisez le port ou l'entrepôt de destination..."
+                  value={shippingAddress}
+                  onChange={(e) => setShippingAddress(e.target.value)}
+                  className="h-24 bg-zinc-50 border-zinc-200"
+                />
+              </div>
+              <Card className="w-full md:w-72 bg-zinc-950 text-white border-none shadow-xl">
+                <CardHeader className="pb-2">
+                  <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest">Total de la commande</span>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-primary">¥{cartTotal.toFixed(2)}</div>
+                  <p className="text-[10px] text-zinc-500 mt-4 leading-tight italic">
+                    Note : Les frais de transport et commissions seront détaillés dans la Proforma finale.
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full h-14 bg-primary hover:bg-primary/90 text-lg font-black"
+                    onClick={handleConfirmOrder}
+                    disabled={isSubmittingOrder || !shippingAddress || cart.length === 0}
+                  >
+                    {isSubmittingOrder ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <CheckCircle2 className="h-5 w-5 mr-2" />}
+                    COMMANDER
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order Preview Dialog (History) */}
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -422,10 +609,6 @@ export default function ClientOrdersPage() {
                   {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
                 </div>
               </div>
-
-              <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 text-xs text-primary/80 italic">
-                Note : Si cette commande nécessite une révision ou un transport spécial, notre équipe vous contactera sous peu pour vous transmettre la facture Proforma finale.
-              </div>
             </div>
           )}
           
@@ -435,12 +618,12 @@ export default function ClientOrdersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Product Detail & Order Dialog (Catalog) */}
-      <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+      {/* Product Detail Dialog (Catalog) */}
+      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-headline font-bold text-primary">Détails de l'article</DialogTitle>
-            <DialogDescription>Consultez les spécifications validées par votre agent et passez commande.</DialogDescription>
+            <DialogDescription>Consultez les spécifications validées par votre agent.</DialogDescription>
           </DialogHeader>
 
           {selectedProduct && (
@@ -456,7 +639,7 @@ export default function ClientOrdersPage() {
                       className="object-contain p-4" 
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center"><Package className="h-20 w-20 text-zinc-200" /></div>
+                    <div className="w-full h-full flex items-center justify-center text-zinc-200"><Package className="h-20 w-20 text-zinc-200" /></div>
                   )}
                   
                   {selectedProduct.images?.length > 1 && (
@@ -501,7 +684,7 @@ export default function ClientOrdersPage() {
                 </div>
               </div>
 
-              {/* Right: Info & Order Form */}
+              {/* Right: Info & Add to Cart */}
               <div className="space-y-6">
                 <div>
                   <Badge variant="outline" className="mb-2 text-primary border-primary/20 bg-primary/5">Réf: {selectedProduct.sku || 'TBC'}</Badge>
@@ -514,48 +697,38 @@ export default function ClientOrdersPage() {
                 </div>
 
                 <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="qty" className="font-bold text-zinc-700">Quantité souhaitée</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="qty" className="font-bold text-zinc-700">Quantité à ajouter</Label>
+                    <div className="flex items-center gap-4">
+                      <Button variant="outline" className="h-12 w-12 rounded-xl" onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}>
+                        <Minus className="h-4 w-4" />
+                      </Button>
                       <Input 
                         id="qty" 
                         type="number" 
                         min="1" 
-                        value={orderQuantity} 
-                        onChange={(e) => setOrderQuantity(Number(e.target.value))}
-                        className="bg-white border-zinc-200"
+                        value={productQuantity} 
+                        onChange={(e) => setProductQuantity(Number(e.target.value))}
+                        className="bg-white border-zinc-200 h-12 text-center font-black text-lg"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address" className="font-bold text-zinc-700">Adresse de livraison</Label>
-                      <Textarea 
-                        id="address" 
-                        placeholder="Précisez l'entrepôt ou le port de destination..."
-                        value={shippingAddress}
-                        onChange={(e) => setShippingAddress(e.target.value)}
-                        className="bg-white border-zinc-200 h-24"
-                      />
+                      <Button variant="outline" className="h-12 w-12 rounded-xl" onClick={() => setProductQuantity(productQuantity + 1)}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
 
                   <div className="pt-4 border-t flex items-center justify-between">
-                    <div className="text-sm font-medium text-zinc-500">Estimation du total :</div>
-                    <div className="text-2xl font-black text-zinc-900">¥{(Number(selectedProduct.price || 0) * orderQuantity).toFixed(2)}</div>
+                    <div className="text-sm font-medium text-zinc-500">Sous-total :</div>
+                    <div className="text-2xl font-black text-zinc-900">¥{(Number(selectedProduct.price || 0) * productQuantity).toFixed(2)}</div>
                   </div>
 
                   <Button 
-                    className="w-full h-14 bg-primary hover:bg-primary/90 text-lg font-black shadow-lg shadow-primary/20"
-                    onClick={handleConfirmOrder}
-                    disabled={isSubmittingOrder || !shippingAddress || orderQuantity < 1}
+                    className="w-full h-14 bg-zinc-950 text-white hover:bg-primary text-lg font-black transition-all"
+                    onClick={handleAddToCart}
                   >
-                    {isSubmittingOrder ? (
-                      <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    ) : (
-                      <CheckCircle2 className="h-5 w-5 mr-2" />
-                    )}
-                    PASSER LA COMMANDE
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    AJOUTER AU PANIER
                   </Button>
-                  <p className="text-[10px] text-center text-zinc-400 italic">Une proforma officielle sera générée par votre agent après vérification.</p>
                 </div>
               </div>
             </div>
