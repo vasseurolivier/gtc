@@ -23,7 +23,8 @@ import {
   Package, 
   Settings,
   HelpCircle,
-  Home
+  Home,
+  Receipt
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (!isUserLoading && !user && pathname !== '/client/login') {
@@ -67,6 +67,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/client', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Tableau de bord' },
     { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes listes de produits' },
+    { href: '/client/orders', icon: <Receipt className="h-5 w-5" />, label: 'Commandes & Factures' },
     { href: '/client/profile', icon: <User className="h-5 w-5" />, label: 'Mon Profil' },
   ];
 
