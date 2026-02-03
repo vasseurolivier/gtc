@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase'; // Use client-side db
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 export interface CompanyInfo {
   name: string;
@@ -35,8 +36,11 @@ const defaultCompanyInfo: CompanyInfo = {
 export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [companyInfo, setCompanyInfoState] = useState<CompanyInfo>(defaultCompanyInfo);
   const [isCompanyInfoLoaded, setIsCompanyInfoLoaded] = useState(false);
+  const db = useFirestore();
 
   useEffect(() => {
+    if (!db) return;
+
     const docRef = doc(db, 'companyInfo', 'main');
     
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
@@ -52,19 +56,18 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
       setIsCompanyInfoLoaded(true);
     }, (error) => {
         console.error("Failed to listen to company info from Firestore:", error);
-        // Fallback to default if there's an error
         setCompanyInfoState(defaultCompanyInfo);
         setIsCompanyInfoLoaded(true);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [db]);
 
   const handleSetCompanyInfo = async (newInfo: CompanyInfo) => {
+    if (!db) return;
     const docRef = doc(db, 'companyInfo', 'main');
     try {
         await setDoc(docRef, newInfo, { merge: true });
-        // The onSnapshot listener will update the local state automatically.
     } catch (error) {
         console.error('Failed to save company info to Firestore', error);
     }
