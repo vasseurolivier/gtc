@@ -109,15 +109,15 @@ export default function TradingLogisticsPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-24">
+        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-32">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}
               </Badge>
-              <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight">
+              <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
                   {dictionary.hero.title}
               </h1>
-              <p className="text-xl text-zinc-300 leading-relaxed max-w-2xl">
+              <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-2xl">
                   {dictionary.hero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -254,7 +254,7 @@ export default function TradingLogisticsPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
         <div className="container relative text-center text-white space-y-10">
           <Ship className="h-16 w-16 mx-auto animate-pulse" />
-          <h2 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
             Prêt à importer vos marchandises en toute sérénité ?
           </h2>
           <p className="text-2xl text-white/90 max-w-2xl mx-auto font-medium">

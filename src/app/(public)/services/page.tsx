@@ -94,7 +94,7 @@ export default function ServicesPage() {
 
   return (
     <>
-      <section className="relative w-full h-[84vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
+      <section className="relative w-full h-[95vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -105,13 +105,13 @@ export default function ServicesPage() {
             priority
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
-        <div className="relative h-full flex flex-col justify-end items-start text-left p-8 md:p-16">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+        <div className="relative h-full flex flex-col justify-end items-start text-left p-8 md:p-16 pb-32">
           <div className="max-w-4xl">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
+              <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
                   {servicesPageDict.hero.title}
               </h1>
-              <div className="mt-4 max-w-3xl text-lg md:text-xl text-neutral-200">
+              <div className="mt-6 max-w-3xl text-xl md:text-2xl text-neutral-200">
                   {servicesPageDict.hero.subtitle}
               </div>
           </div>

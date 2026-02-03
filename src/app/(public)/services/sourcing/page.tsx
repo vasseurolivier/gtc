@@ -12,8 +12,7 @@ import {
   Zap, 
   HelpCircle,
   Factory,
-  ClipboardCheck,
-  BarChart3
+  ClipboardCheck
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -108,15 +107,15 @@ export default function SourcingPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-24">
+        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-32">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}
               </Badge>
-              <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight">
+              <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
                   {dictionary.hero.title}
               </h1>
-              <p className="text-xl text-zinc-300 leading-relaxed max-w-2xl">
+              <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-2xl">
                   {dictionary.hero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
