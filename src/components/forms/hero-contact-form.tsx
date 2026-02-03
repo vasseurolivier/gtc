@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { submitContactForm } from "@/actions/contact";
 
 const formSchema = z.object({
@@ -30,6 +30,11 @@ const formSchema = z.object({
 export function HeroContactForm({ dictionary }: { dictionary: any }) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,6 +81,20 @@ export function HeroContactForm({ dictionary }: { dictionary: any }) {
     } finally {
         setIsLoading(false);
     }
+  }
+
+  if (!mounted) {
+    return (
+      <Card className="shadow-2xl bg-black/50 border-white/20 text-white backdrop-blur-sm">
+          <CardHeader>
+              <CardTitle>{dictionary.title}</CardTitle>
+              <CardDescription className="text-neutral-300">{dictionary.subtitle}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-white/20" />
+          </CardContent>
+      </Card>
+    );
   }
 
   return (
