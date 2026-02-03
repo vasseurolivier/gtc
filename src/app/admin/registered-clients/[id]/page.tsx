@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -37,7 +37,10 @@ import {
   Link as LinkIcon,
   Star,
   ChevronRight,
-  Trash2
+  Trash2,
+  Pencil,
+  Scale,
+  Maximize
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -45,7 +48,6 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { getProducts, Product } from '@/actions/products';
 import { getInvoices, Invoice } from '@/actions/invoices';
-import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -69,7 +71,7 @@ export default function ClientDetailPage() {
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
   const [isInvoiceLinkDialogOpen, setIsInvoiceLinkDialogOpen] = useState(false);
 
-  // Sourcing logic
+  // Sourcing & Validation logic
   const [selectedList, setSelectedList] = useState<any | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -165,88 +167,108 @@ export default function ClientDetailPage() {
     setIsSaving(false);
   };
 
+  // Open validation dialog for a product (could be sourcing or manual)
   const handleEditProduct = (product: any) => {
     setEditingProduct({
       ...product,
       sku: product.sku || '',
       price: product.price || product.unitPrice || 0,
       description: product.description || '',
+      weight: product.weight || 0,
+      width: product.width || 0,
+      height: product.height || 0,
+      length: product.length || 0,
+    });
+    setIsProductDialogOpen(true);
+  };
+
+  // Pre-fill from global catalog but DON'T publish yet - open validation dialog
+  const handleSelectFromGlobalCatalog = (prod: Product) => {
+    setEditingProduct({
+      id: `PROD-CAT-${Date.now()}`,
+      name: prod.name,
+      sku: prod.sku,
+      description: prod.description || '',
+      price: prod.price,
+      unitPrice: prod.price,
+      images: prod.imageUrl ? [prod.imageUrl] : [],
+      weight: prod.weight || 0,
+      width: prod.width || 0,
+      height: prod.height || 0,
+      length: prod.length || 0,
+      isNew: true // Flag to indicate we need to create the doc
+    });
+    setIsCatalogDialogOpen(false);
+    setIsProductDialogOpen(true);
+  };
+
+  // Prepare a blank manual product
+  const handleManualAdd = () => {
+    setEditingProduct({
+      id: `PROD-MAN-${Date.now()}`,
+      name: '',
+      sku: '',
+      description: '',
+      price: 0,
+      unitPrice: 0,
+      images: [],
+      weight: 0,
+      width: 0,
+      height: 0,
+      length: 0,
+      isNew: true
     });
     setIsProductDialogOpen(true);
   };
 
   const handleSaveProduct = async () => {
-    if (!editingProduct || !db) return;
-    // We need to know which list the product belongs to
-    const listId = editingProduct.productListId || (selectedList?.id);
-    if (!listId) return;
-
+    if (!editingProduct || !db || !client) return;
+    
     setIsSaving(true);
     try {
-      const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', editingProduct.id);
-      await updateDoc(productRef, {
-        sku: editingProduct.sku,
-        price: Number(editingProduct.price),
-        unitPrice: Number(editingProduct.price),
-        description: editingProduct.description,
-        status: 'published',
-        validatedAt: new Date().toISOString(),
-      });
-      toast({ title: "Produit validé", description: "Le produit est maintenant dans le catalogue du client." });
-      setIsProductDialogOpen(false);
+      // 1. Find or create "Catalogue Officiel" if it's a new manual/catalog product
+      let listId = editingProduct.productListId || (selectedList?.id);
       
-      // Refresh published products list
-      router.refresh();
-    } catch (e: any) {
-      toast({ variant: "destructive", title: "Erreur", description: e.message });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleAddFromGlobalCatalog = async (prod: Product) => {
-    if (!db || !client) return;
-    setIsSaving(true);
-    try {
-      // 1. Find or create "Catalogue Officiel" list
-      let officialListId = '';
-      const existingList = productLists?.find(l => l.name === "Catalogue Officiel");
-      
-      if (existingList) {
-        officialListId = existingList.id;
-      } else {
-        officialListId = `LST-CAT-${Date.now()}`;
-        await setDoc(doc(db, 'clients', clientId, 'productLists', officialListId), {
-          id: officialListId,
-          clientId: clientId,
-          name: "Catalogue Officiel",
-          description: "Produits ajoutés directement par l'administration.",
-          createdAt: new Date().toISOString(),
-        });
+      if (editingProduct.isNew && !listId) {
+        const existingList = productLists?.find(l => l.name === "Catalogue Officiel");
+        if (existingList) {
+          listId = existingList.id;
+        } else {
+          listId = `LST-CAT-${Date.now()}`;
+          await setDoc(doc(db, 'clients', clientId, 'productLists', listId), {
+            id: listId,
+            clientId: clientId,
+            name: "Catalogue Officiel",
+            description: "Produits ajoutés directement par l'administration.",
+            createdAt: new Date().toISOString(),
+          });
+        }
       }
 
-      // 2. Add product to it
-      const prodId = `PROD-CAT-${Date.now()}`;
-      const productRef = doc(db, 'clients', clientId, 'productLists', officialListId, 'products', prodId);
+      const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', editingProduct.id);
       
-      await setDoc(productRef, {
-        id: prodId,
-        productListId: officialListId,
-        clientId: clientId,
-        name: prod.name,
-        sku: prod.sku,
-        description: prod.description || '',
-        quantity: 1,
-        unitPrice: prod.price,
-        price: prod.price,
-        images: prod.imageUrl ? [prod.imageUrl] : [],
+      const payload = {
+        ...editingProduct,
+        price: Number(editingProduct.price),
+        unitPrice: Number(editingProduct.price),
+        weight: Number(editingProduct.weight),
+        width: Number(editingProduct.width),
+        height: Number(editingProduct.height),
+        length: Number(editingProduct.length),
         status: 'published',
-        createdAt: new Date().toISOString(),
         validatedAt: new Date().toISOString(),
-      });
+        clientId: clientId,
+        productListId: listId,
+      };
       
-      toast({ title: "Produit ajouté", description: `${prod.name} a été ajouté au catalogue privé du client.` });
-      setIsCatalogDialogOpen(false);
+      // Remove the UI helper flag
+      delete payload.isNew;
+
+      await setDoc(productRef, payload, { merge: true });
+      
+      toast({ title: "Produit validé", description: "L'article est maintenant disponible dans le catalogue du client." });
+      setIsProductDialogOpen(false);
+      router.refresh();
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -277,7 +299,6 @@ export default function ClientDetailPage() {
       
       toast({ title: "Facture liée", description: `La facture ${inv.invoiceNumber} est maintenant visible par le client.` });
       setIsInvoiceLinkDialogOpen(false);
-      // Refresh local list
       const updatedInvs = await getInvoices();
       setAllInvoices(updatedInvs);
     } catch (e: any) {
@@ -379,9 +400,14 @@ export default function ClientDetailPage() {
             <TabsContent value="catalogue">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-lg">Produits visibles par le client</h3>
-                <Button size="sm" onClick={() => setIsCatalogDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Ajouter un produit au catalogue
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={handleManualAdd}>
+                    <Plus className="h-4 w-4 mr-2" /> Ajout Manuel
+                  </Button>
+                  <Button size="sm" onClick={() => setIsCatalogDialogOpen(true)}>
+                    <Package className="h-4 w-4 mr-2" /> Depuis Catalogue Global
+                  </Button>
+                </div>
               </div>
               <Card className="border-none shadow-md overflow-hidden bg-white">
                 <Table>
@@ -461,12 +487,7 @@ export default function ClientDetailPage() {
                     <Button variant="link" onClick={() => setSelectedList(null)} className="p-0 text-zinc-500">
                       <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux listes
                     </Button>
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-bold text-lg">{selectedList.name}</h3>
-                      <Button size="sm" variant="outline" className="h-8" onClick={() => setIsCatalogDialogOpen(true)}>
-                        <Plus className="h-3 w-3 mr-1" /> Ajouter du catalogue global
-                      </Button>
-                    </div>
+                    <h3 className="font-bold text-lg">{selectedList.name}</h3>
                   </div>
                   
                   <Card className="border-none shadow-md overflow-hidden bg-white">
@@ -590,12 +611,12 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* Catalog Dialog */}
+      {/* Global Catalog Selection Dialog */}
       <Dialog open={isCatalogDialogOpen} onOpenChange={setIsCatalogDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Ajouter au catalogue privé</DialogTitle>
-            <DialogDescription>Sélectionnez un produit de votre inventaire global pour le rendre disponible à l'achat pour ce client.</DialogDescription>
+            <DialogTitle>Sélectionner un produit global</DialogTitle>
+            <DialogDescription>Choisissez un produit pour l'importer dans le catalogue privé du client.</DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>
@@ -619,8 +640,8 @@ export default function ClientDetailPage() {
                     <TableCell className="text-xs">{p.sku}</TableCell>
                     <TableCell className="text-xs">¥{p.price.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="secondary" onClick={() => handleAddFromGlobalCatalog(p)}>
-                        {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Sélectionner"}
+                      <Button size="sm" variant="secondary" onClick={() => handleSelectFromGlobalCatalog(p)}>
+                        Sélectionner
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -636,7 +657,7 @@ export default function ClientDetailPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Lier une facture existante</DialogTitle>
-            <DialogDescription>Sélectionnez une facture non attribuée ou d'un autre dossier pour la rendre visible à ce client.</DialogDescription>
+            <DialogDescription>Sélectionnez une facture pour l'attribuer à ce client.</DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>
@@ -655,7 +676,7 @@ export default function ClientDetailPage() {
                     <TableCell className="text-xs">{inv.customerName}</TableCell>
                     <TableCell className="text-xs font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" onClick={() => handleLinkInvoice(inv)}>Attribuer à {client.firstName}</Button>
+                      <Button size="sm" onClick={() => handleLinkInvoice(inv)}>Attribuer</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -665,75 +686,110 @@ export default function ClientDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Product Validation Dialog */}
+      {/* Product Edit / Validation Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Validation du Produit</DialogTitle>
+            <DialogTitle>Configuration et Validation du Produit</DialogTitle>
             <DialogDescription>
-              Entrez les informations finales pour publier cet article dans le catalogue client.
+              Vérifiez et complétez les informations techniques avant la publication.
             </DialogDescription>
           </DialogHeader>
           
           {editingProduct && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-20 h-20 rounded-lg border bg-zinc-100 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
+              {/* Basic Info */}
+              <div className="space-y-6">
+                <div className="flex items-start gap-4 p-4 bg-zinc-50 rounded-xl border">
+                  <div className="relative w-24 h-24 rounded-lg border bg-white overflow-hidden shrink-0">
                     {editingProduct.images?.[0] ? (
                       <Image src={editingProduct.images[0]} alt="Product" fill className="object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-300"><Package className="h-8 w-8" /></div>
+                      <div className="w-full h-full flex items-center justify-center text-zinc-300"><Package className="h-10 w-10" /></div>
                     )}
                   </div>
-                  <div>
-                    <h4 className="font-bold">{editingProduct.name}</h4>
-                    <p className="text-xs text-zinc-500">Origine: {editingProduct.listName || 'Sourcing'}</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-zinc-400">Référence SKU</label>
-                  <Input 
-                    value={editingProduct.sku} 
-                    onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
-                    placeholder="ex: YW-MUG-001"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-zinc-400">Prix Unitaire Final (CNY)</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">¥</span>
+                  <div className="space-y-2 flex-grow">
+                    <Label className="text-xs font-bold uppercase text-zinc-400">Nom Commercial</Label>
                     <Input 
-                      type="number"
-                      className="pl-8"
-                      value={editingProduct.price} 
-                      onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
+                      value={editingProduct.name} 
+                      onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                      className="font-bold h-9"
                     />
+                    <div className="flex gap-2">
+                      <div className="flex-grow space-y-1">
+                        <Label className="text-[10px] font-bold uppercase text-zinc-400">SKU / Réf</Label>
+                        <Input 
+                          value={editingProduct.sku} 
+                          onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
+                          placeholder="YW-REF-001"
+                          className="h-8 text-xs font-mono"
+                        />
+                      </div>
+                      <div className="w-1/2 space-y-1">
+                        <Label className="text-[10px] font-bold uppercase text-zinc-400">Prix Final (CNY)</Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 text-xs">¥</span>
+                          <Input 
+                            type="number"
+                            className="pl-6 h-8 text-xs font-bold"
+                            value={editingProduct.price} 
+                            onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Maximize className="h-3 w-3" /> Dimensions (cm)</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-zinc-500">Long.</Label>
+                      <Input type="number" className="h-8" value={editingProduct.length} onChange={(e) => setEditingProduct({...editingProduct, length: e.target.value})} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-zinc-500">Larg.</Label>
+                      <Input type="number" className="h-8" value={editingProduct.width} onChange={(e) => setEditingProduct({...editingProduct, width: e.target.value})} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-zinc-500">Haut.</Label>
+                      <Input type="number" className="h-8" value={editingProduct.height} onChange={(e) => setEditingProduct({...editingProduct, height: e.target.value})} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Scale className="h-3 w-3" /> Poids Brut (kg)</Label>
+                  <Input type="number" step="0.01" value={editingProduct.weight} onChange={(e) => setEditingProduct({...editingProduct, weight: e.target.value})} />
                 </div>
               </div>
               
+              {/* Technical Description */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-zinc-400">Spécifications Validées</label>
+                  <Label className="text-xs font-bold uppercase text-zinc-400">Description Technique / Notes Admin</Label>
                   <Textarea 
-                    rows={8}
+                    rows={12}
                     value={editingProduct.description}
                     onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
-                    placeholder="Détaillez les caractéristiques techniques..."
+                    placeholder="Détaillez ici les caractéristiques techniques qui seront visibles par le client (matériaux, certifications, emballage)..."
+                    className="text-sm leading-relaxed"
                   />
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg text-xs text-blue-700 space-y-1">
+                  <p className="font-bold">Information :</p>
+                  <p>Une fois validé, ce produit sera instantanément ajouté au catalogue privé du client. Il pourra alors l'ajouter à ses commandes.</p>
                 </div>
               </div>
             </div>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t">
             <Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Annuler</Button>
-            <Button onClick={handleSaveProduct} disabled={isSaving} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleSaveProduct} disabled={isSaving} className="bg-primary hover:bg-primary/90 min-w-[200px]">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-              Enregistrer et Publier
+              Publier au Catalogue
             </Button>
           </DialogFooter>
         </DialogContent>
