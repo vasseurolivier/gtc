@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -70,28 +69,53 @@ export default function ListDetailsPage() {
     if (!files || files.length === 0 || !user) return;
 
     setIsUploading(true);
-    const uploadedUrls: string[] = [];
+    toast({ title: "Upload en cours", description: "Veuillez patienter pendant l'envoi des photos..." });
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const storagePath = `clients/${user.uid}/lists/${listId}/${Date.now()}-${file.name}`;
-      const storageRef = ref(storage, storagePath);
-      
-      try {
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Validation basique de la taille (ex: 5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+          toast({ variant: 'destructive', title: "Fichier trop volumineux", description: `${file.name} dépasse 5Mo.` });
+          continue;
+        }
+
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const storagePath = `clients/${user.uid}/lists/${listId}/${fileName}`;
+        const storageRef = ref(storage, storagePath);
+        
+        console.log(`Tentative d'upload vers : ${storagePath}`);
+        
         const snapshot = await uploadBytes(storageRef, file);
         const url = await getDownloadURL(snapshot.ref);
-        uploadedUrls.push(url);
-      } catch (err: any) {
-        console.error("Upload error:", err);
-        toast({ variant: 'destructive', title: "Erreur d'upload", description: err.message || "Une erreur est survenue lors de l'envoi de l'image." });
+        
+        // Mise à jour progressive pour que l'utilisateur voit que ça avance
+        setNewProduct(prev => ({
+          ...prev,
+          images: [...prev.images, url]
+        }));
       }
+      
+      toast({ title: "Upload terminé", description: "Les images ont été ajoutées avec succès." });
+    } catch (err: any) {
+      console.error("Erreur complète Firebase Storage:", err);
+      let errorMsg = "Une erreur est survenue lors de l'envoi. Vérifiez votre connexion et les permissions de stockage.";
+      
+      if (err.code === 'storage/unauthorized') {
+        errorMsg = "Accès refusé. Veuillez vérifier les règles de sécurité Firebase Storage.";
+      } else if (err.code === 'storage/canceled') {
+        errorMsg = "L'upload a été annulé.";
+      } else if (err.code === 'storage/no-default-bucket') {
+        errorMsg = "Configuration Firebase incomplète : Storage Bucket non trouvé.";
+      }
+      
+      toast({ variant: 'destructive', title: "Échec de l'upload", description: errorMsg });
+    } finally {
+      setIsUploading(false);
+      // On vide l'input pour permettre de sélectionner les mêmes fichiers si besoin
+      e.target.value = '';
     }
-
-    setNewProduct(prev => ({
-      ...prev,
-      images: [...prev.images, ...uploadedUrls]
-    }));
-    setIsUploading(false);
   };
 
   const removeImage = (index: number) => {
