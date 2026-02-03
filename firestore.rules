@@ -4,7 +4,7 @@ service cloud.firestore {
 
     /**
      * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
-     * Version optimisée pour le prototype : accès élargi pour l'administration et le client hub.
+     * Version optimisée pour le prototype : accès élargi pour garantir le fonctionnement du dashboard client et admin.
      */
 
     // --- Fonctions Globales ---
@@ -12,35 +12,26 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // --- Collections Métier Globales ---
-    // On utilise {allPaths=**} pour garantir que les opérations de 'list' (quey) et 'get' fonctionnent partout.
+    // --- Accès aux Collections Métier ---
+    // L'utilisation de {allPaths=**} permet de matcher la collection elle-même (pour les listes/requêtes)
+    // ainsi que tous les documents et sous-collections de manière récursive.
     
+    match /clients/{allPaths=**} { allow read, write: if true; }
+    match /contactSubmissions/{allPaths=**} { allow read, write: if true; }
+    match /customers/{allPaths=**} { allow read, write: if true; }
     match /invoices/{allPaths=**} { allow read, write: if true; }
     match /orders/{allPaths=**} { allow read, write: if true; }
-    match /products/{allPaths=**} { allow read, write: if true; }
-    match /customers/{allPaths=**} { allow read, write: if true; }
-    match /contactSubmissions/{allPaths=**} { allow read, write: if true; }
     match /packingLists/{allPaths=**} { allow read, write: if true; }
+    match /products/{allPaths=**} { allow read, write: if true; }
     match /quotes/{allPaths=**} { allow read, write: if true; }
     match /suppliers/{allPaths=**} { allow read, write: if true; }
     match /supplierContracts/{allPaths=**} { allow read, write: if true; }
     match /companyInfo/{allPaths=**} { allow read, write: if true; }
     match /config/{allPaths=**} { allow read, write: if true; }
 
-    // --- RÈGLES SPÉCIFIQUES CLIENTS ---
-    // Permet à l'admin de lister tous les clients et aux clients de gérer leurs propres données.
-    match /clients/{clientId} {
-      allow read, write: if true; 
-      
-      match /productLists/{allPaths=**} {
-        // Le propriétaire peut gérer sa liste, l'admin peut aussi y accéder pour le sourcing.
-        allow read, write: if request.auth != null && (request.auth.uid == clientId || true);
-      }
-    }
-
-    // Règle par défaut pour les chemins non spécifiés
+    // Règle par défaut pour les chemins non spécifiés (sécurité minimale)
     match /{path=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn();
     }
   }
 }
