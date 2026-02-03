@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -17,8 +16,13 @@ interface UploadResult {
     url?: string;
 }
 
+/**
+ * Uploads an image to Firebase Storage via Server Action.
+ * This bypasses client-side CORS and Security Rules issues.
+ */
 export async function uploadImage(formData: FormData): Promise<UploadResult> {
     const file = formData.get('file') as File | null;
+    const folder = (formData.get('folder') as string) || 'uploads';
     
     if (!file) {
         return { success: false, message: 'No file provided.' };
@@ -37,7 +41,8 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
         });
 
         const storage = getStorage(firebaseApp);
-        const storageRef = ref(storage, `products/${Date.now()}-${validatedData.fileName}`);
+        // Use the provided folder or fallback to a default
+        const storageRef = ref(storage, `${folder}/${Date.now()}-${validatedData.fileName}`);
         
         const snapshot = await uploadBytes(storageRef, validatedData.fileBuffer, { contentType: validatedData.fileType });
         const downloadURL = await getDownloadURL(snapshot.ref);

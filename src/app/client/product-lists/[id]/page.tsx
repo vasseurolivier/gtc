@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, useFirebaseApp } from '@/firebase';
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,13 +24,13 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { uploadImage } from '@/actions/upload';
 
 export default function ListDetailsPage() {
   const params = useParams();
   const listId = params.id as string;
   const { user } = useUser();
   const db = useFirestore();
-  const app = useFirebaseApp();
   const { toast } = useToast();
 
   const [isAdding, setIsAdding] = useState(false);
@@ -65,31 +64,32 @@ export default function ListDetailsPage() {
     if (!files || files.length === 0 || !user) return;
 
     setIsUploading(true);
-    const storage = getStorage(app);
+    toast({ title: "Début de l'envoi", description: "Veuillez patienter..." });
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.size > 10 * 1024 * 1024) {
-          toast({ variant: 'destructive', title: "Fichier trop volumineux", description: `${file.name} dépasse 10Mo.` });
-          continue;
+        
+        // Use Server Action for more reliable upload
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', `clients/${user.uid}/lists/${listId}`);
+        
+        const result = await uploadImage(formData);
+        
+        if (result.success && result.url) {
+          setNewProduct(prev => ({
+            ...prev,
+            images: [...prev.images, result.url!]
+          }));
+        } else {
+          toast({ variant: 'destructive', title: "Erreur", description: result.message });
         }
-
-        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        const storageRef = ref(storage, `clients/${user.uid}/lists/${listId}/${fileName}`);
-        
-        const snapshot = await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(snapshot.ref);
-        
-        setNewProduct(prev => ({
-          ...prev,
-          images: [...prev.images, url]
-        }));
       }
-      toast({ title: "Photo(s) ajoutée(s)" });
+      toast({ title: "Traitement terminé", description: "Vos photos ont été ajoutées." });
     } catch (err: any) {
       console.error("Upload Error:", err);
-      toast({ variant: 'destructive', title: "Erreur d'upload", description: err.message });
+      toast({ variant: 'destructive', title: "Erreur système", description: "Le service d'upload est momentanément indisponible." });
     } finally {
       setIsUploading(false);
       e.target.value = '';
@@ -139,7 +139,7 @@ export default function ListDetailsPage() {
   };
 
   if (isListLoading) {
-    return <div className="flex h-64 items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary h-12 w-12" /></div>;
   }
 
   if (!list) {
