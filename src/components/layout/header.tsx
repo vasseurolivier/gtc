@@ -166,7 +166,7 @@ export function Header() {
         </div>
         
         <div className="flex items-center gap-4">
-            <Button variant="outline" className="hidden sm:flex border-white text-white hover:bg-white hover:text-black font-bold" asChild>
+            <Button variant="outline" className="hidden sm:flex border-white text-primary hover:bg-white hover:text-black font-bold" asChild>
               <Link href="/client/login">
                 <UserCircle className="mr-2 h-5 w-5" />
                 {user ? "Mon Espace" : dictionary.clientSpace}
