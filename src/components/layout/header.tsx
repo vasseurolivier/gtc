@@ -115,7 +115,7 @@ export function Header() {
       <div className="container flex h-16 items-center">
         <div className="flex flex-1 items-center gap-6">
             <Link href={'/'} className="flex items-center space-x-2">
-                {publicLogo ? (
+                {mounted && publicLogo ? (
                 <Image src={publicLogo} alt="Company Logo" width={45} height={45} className="object-contain invert brightness-0" />
                 ) : (
                 <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-white">G</div>
