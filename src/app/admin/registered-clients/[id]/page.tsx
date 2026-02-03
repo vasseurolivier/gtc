@@ -44,7 +44,8 @@ import {
   UploadCloud,
   X,
   PlayCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -53,6 +54,7 @@ import Image from 'next/image';
 import { getProducts, Product } from '@/actions/products';
 import { getInvoices, Invoice } from '@/actions/invoices';
 import { uploadFile } from '@/actions/upload';
+import { cn } from '@/lib/utils';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -349,6 +351,8 @@ export default function ClientDetailPage() {
     }
   };
 
+  const pendingOrdersCount = orders?.filter(o => o.status === 'processing').length || 0;
+
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
@@ -434,7 +438,14 @@ export default function ClientDetailPage() {
             <TabsList className="bg-white border shadow-sm p-1 h-12 rounded-xl mb-6">
               <TabsTrigger value="catalogue" className="rounded-lg h-full"><Star className="h-4 w-4 mr-2" /> Catalogue Privé</TabsTrigger>
               <TabsTrigger value="lists" className="rounded-lg h-full"><ClipboardList className="h-4 w-4 mr-2" /> Sourcing</TabsTrigger>
-              <TabsTrigger value="orders" className="rounded-lg h-full"><ShoppingCart className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
+              <TabsTrigger value="orders" className="rounded-lg h-full relative">
+                <ShoppingCart className="h-4 w-4 mr-2" /> Commandes
+                {pendingOrdersCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
+                    {pendingOrdersCount}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="invoices" className="rounded-lg h-full"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
             </TabsList>
 
@@ -590,22 +601,49 @@ export default function ClientDetailPage() {
                       <TableHead className="pl-6">N° Commande</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Statut</TableHead>
-                      <TableHead className="text-right pr-6">Total</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders && orders.length > 0 ? orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
-                        <TableCell>{format(new Date(order.orderDate), 'dd/MM/yyyy')}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="capitalize">{order.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-6 font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
-                      </TableRow>
-                    )) : (
+                    {orders && orders.length > 0 ? orders.map((order) => {
+                      const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000;
+                      const isClientInitiated = !order.quoteId;
+
+                      return (
+                        <TableRow key={order.id} className={cn(isVeryRecent && "bg-primary/5")}>
+                          <TableCell className="pl-6 font-bold">
+                            <div className="flex items-center gap-2">
+                              {order.orderNumber}
+                              {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell>{format(new Date(order.orderDate), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{order.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex justify-end gap-2">
+                              {isClientInitiated && order.status === 'processing' && (
+                                <Button variant="secondary" size="sm" asChild className="bg-primary hover:bg-primary/90 text-white font-bold h-8">
+                                  <Link href={`/admin/quotes?fromOrder=${order.id}`}>
+                                    <Sparkles className="mr-2 h-3 w-3" /> Générer Proforma
+                                  </Link>
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" asChild className="h-8">
+                                <Link href="/admin/orders">
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    }) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
+                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
                       </TableRow>
                     )}
                   </TableBody>

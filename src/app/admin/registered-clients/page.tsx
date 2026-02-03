@@ -153,12 +153,12 @@ export default function RegisteredClientsPage() {
                     <TableCell>{client.email}</TableCell>
                     <TableCell>
                       {pendingCount > 0 ? (
-                        <Badge className="bg-orange-500 animate-pulse flex gap-1">
+                        <Badge className="bg-red-600 animate-pulse flex gap-1 text-[10px]">
                           <ShoppingCart className="h-3 w-3" />
-                          {pendingCount} en attente
+                          {pendingCount} EN ATTENTE
                         </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Aucune active</span>
+                        <span className="text-xs text-muted-foreground italic">Aucune active</span>
                       )}
                     </TableCell>
                     <TableCell>
