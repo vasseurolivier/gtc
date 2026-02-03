@@ -10,6 +10,7 @@ export interface RegisteredClient {
     lastName: string;
     email: string;
     clientNumber?: string;
+    status?: 'pending' | 'validated';
     createdAt: string;
 }
 
@@ -40,6 +41,21 @@ export async function updateRegisteredClientNumber(id: string, clientNumber: str
         return { success: true, message: 'Numéro client mis à jour avec succès.' };
     } catch (e: any) {
         console.error("Error updating client number:", e);
+        return { success: false, message: e.message || 'Une erreur est survenue.' };
+    }
+}
+
+/**
+ * Update the validation status for a registered client.
+ */
+export async function updateRegisteredClientStatus(id: string, status: 'pending' | 'validated') {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        await updateDoc(clientRef, { status });
+        const msg = status === 'validated' ? 'Compte validé avec succès.' : 'Compte suspendu.';
+        return { success: true, message: msg };
+    } catch (e: any) {
+        console.error("Error updating client status:", e);
         return { success: false, message: e.message || 'Une erreur est survenue.' };
     }
 }

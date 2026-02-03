@@ -54,17 +54,18 @@ export default function ClientLoginPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      // Create client profile in Firestore
+      // Create client profile in Firestore with status 'pending'
       await setDoc(doc(db, 'clients', uid), {
         id: uid,
         firstName,
         lastName,
         email,
         clientNumber: '', // Will be assigned by admin
+        status: 'pending', // Account must be validated by admin
         createdAt: new Date().toISOString(),
       });
 
-      toast({ title: "Compte créé", description: "Votre profil a été configuré avec succès." });
+      toast({ title: "Compte créé", description: "Votre profil est en attente de validation par notre équipe." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur d'inscription", description: error.message });
     } finally {

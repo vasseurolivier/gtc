@@ -6,22 +6,25 @@ import { useRouter } from 'next/navigation';
 import { 
   getRegisteredClients, 
   updateRegisteredClientNumber, 
+  updateRegisteredClientStatus,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, UserCheck } from 'lucide-react';
+import { Loader2, Save, Search, UserCheck, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [validatingId, setValidatingId] = useState<string | null>(null);
   const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
   const router = useRouter();
   const { toast } = useToast();
@@ -38,7 +41,6 @@ export default function RegisteredClientsPage() {
       try {
         const data = await getRegisteredClients();
         setClients(data);
-        // Initialize temp numbers
         const numbers: Record<string, string> = {};
         data.forEach(c => {
           numbers[c.id] = c.clientNumber || '';
@@ -66,6 +68,19 @@ export default function RegisteredClientsPage() {
     setSavingId(null);
   };
 
+  const handleToggleStatus = async (id: string, currentStatus: string | undefined) => {
+    const newStatus = currentStatus === 'validated' ? 'pending' : 'validated';
+    setValidatingId(id);
+    const result = await updateRegisteredClientStatus(id, newStatus);
+    if (result.success) {
+      toast({ title: "Succès", description: result.message });
+      setClients(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+    setValidatingId(null);
+  };
+
   const filteredClients = clients.filter(c => 
     `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -85,7 +100,7 @@ export default function RegisteredClientsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Comptes Clients</h1>
-          <p className="text-muted-foreground">Gérez les utilisateurs inscrits et attribuez-leur des numéros client.</p>
+          <p className="text-muted-foreground">Validez les comptes et attribuez des numéros client.</p>
         </div>
       </div>
 
@@ -106,8 +121,8 @@ export default function RegisteredClientsPage() {
               <TableRow>
                 <TableHead className="w-[200px]">Nom / Prénom</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Date d'inscription</TableHead>
-                <TableHead className="w-[250px]">Numéro Client</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="w-[200px]">Numéro Client</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -116,28 +131,52 @@ export default function RegisteredClientsPage() {
                 <TableRow key={client.id} className="hover:bg-muted/30">
                   <TableCell className="font-semibold">
                     {client.firstName} {client.lastName}
+                    <div className="text-[10px] text-muted-foreground font-normal">
+                      Inscrit le {client.createdAt ? format(new Date(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
+                    </div>
                   </TableCell>
                   <TableCell>{client.email}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {client.createdAt ? format(new Date(client.createdAt), 'dd MMMM yyyy', { locale: fr }) : 'N/A'}
+                  <TableCell>
+                    {client.status === 'validated' ? (
+                      <Badge className="bg-green-500 hover:bg-green-600">Validé</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50">En attente</Badge>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Input 
-                      placeholder="ex: CL-001" 
-                      value={tempNumbers[client.id] || ''} 
-                      onChange={(e) => setTempNumbers(prev => ({ ...prev, [client.id]: e.target.value }))}
-                      className="h-9"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        placeholder="ex: CL-001" 
+                        value={tempNumbers[client.id] || ''} 
+                        onChange={(e) => setTempNumbers(prev => ({ ...prev, [client.id]: e.target.value }))}
+                        className="h-8 text-xs"
+                      />
+                      <Button 
+                        size="icon" 
+                        variant="ghost"
+                        className="h-8 w-8"
+                        disabled={savingId === client.id || client.clientNumber === tempNumbers[client.id]}
+                        onClick={() => handleUpdateNumber(client.id)}
+                      >
+                        {savingId === client.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button 
                       size="sm" 
-                      variant={client.clientNumber === tempNumbers[client.id] ? "ghost" : "default"}
-                      disabled={savingId === client.id || client.clientNumber === tempNumbers[client.id]}
-                      onClick={() => handleUpdateNumber(client.id)}
+                      variant={client.status === 'validated' ? "outline" : "default"}
+                      disabled={validatingId === client.id}
+                      onClick={() => handleToggleStatus(client.id, client.status)}
+                      className="min-w-[120px]"
                     >
-                      {savingId === client.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                      Enregistrer
+                      {validatingId === client.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : client.status === 'validated' ? (
+                        <>Suspendre</>
+                      ) : (
+                        <><ShieldCheck className="h-4 w-4 mr-2" /> Valider</>
+                      )}
                     </Button>
                   </TableCell>
                 </TableRow>
