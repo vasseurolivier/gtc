@@ -7,12 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Receipt, ShoppingCart, Info } from 'lucide-react';
+import { Loader2, Package, Receipt, ShoppingCart, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/actions/contact';
+import Link from 'next/link';
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
@@ -106,7 +107,7 @@ export default function ClientOrdersPage() {
         <TabsContent value="orders" className="mt-6">
           <Card className="border-none shadow-md overflow-hidden bg-white">
             <CardHeader className="border-b border-zinc-50">
-              <CardTitle>Historique</CardTitle>
+              <CardTitle>Historique des commandes</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {isOrdersLoading ? (
@@ -154,7 +155,8 @@ export default function ClientOrdersPage() {
                       <TableHead className="pl-6">N° Facture</TableHead>
                       <TableHead>Échéance</TableHead>
                       <TableHead>Statut</TableHead>
-                      <TableHead className="text-right pr-6">Total</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -163,7 +165,14 @@ export default function ClientOrdersPage() {
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell>{inv.dueDate ? format(new Date(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>{getInvoiceStatusBadge(inv.status)}</TableCell>
-                        <TableCell className="text-right pr-6 font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin/invoices/${inv.id}`}>
+                              <Eye className="h-4 w-4 mr-2" /> Voir
+                            </Link>
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -181,7 +190,7 @@ export default function ClientOrdersPage() {
               [1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-zinc-200 animate-pulse rounded-2xl" />)
             ) : catalogProducts && catalogProducts.length > 0 ? (
               catalogProducts.map((product) => (
-                <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden group flex flex-col">
+                <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden group flex flex-col hover:ring-2 hover:ring-primary/50 transition-all">
                   <div className="relative aspect-square bg-zinc-100">
                     {product.imageUrl ? (
                       <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4" />
@@ -200,7 +209,7 @@ export default function ClientOrdersPage() {
                       onClick={() => handleQuickOrder(product.name)}
                       disabled={isOrdering === product.name}
                     >
-                      {isOrdering === product.name ? <Loader2 className="h-4 w-4 animate-spin" /> : "Commander"}
+                      {isOrdering === product.name ? <Loader2 className="h-4 w-4 animate-spin" /> : "Demander un devis"}
                     </Button>
                   </div>
                 </Card>

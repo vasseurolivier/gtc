@@ -17,8 +17,6 @@ import {
   Loader2, 
   Package, 
   AlertCircle,
-  HelpCircle,
-  ExternalLink,
   X,
   UploadCloud
 } from 'lucide-react';
@@ -34,7 +32,6 @@ export default function ListDetailsPage() {
   const { user } = useUser();
   const db = useFirestore();
   const app = useFirebaseApp();
-  const storage = getStorage(app);
   const { toast } = useToast();
 
   const [isAdding, setIsAdding] = useState(false);
@@ -68,36 +65,31 @@ export default function ListDetailsPage() {
     if (!files || files.length === 0 || !user) return;
 
     setIsUploading(true);
-    toast({ title: "Upload en cours", description: "Veuillez patienter..." });
+    const storage = getStorage(app);
 
     try {
-      const uploadedUrls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.size > 5 * 1024 * 1024) {
-          toast({ variant: 'destructive', title: "Fichier trop volumineux", description: `${file.name} dépasse 5Mo.` });
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ variant: 'destructive', title: "Fichier trop volumineux", description: `${file.name} dépasse 10Mo.` });
           continue;
         }
 
         const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        const storagePath = `clients/${user.uid}/lists/${listId}/${fileName}`;
-        const storageRef = ref(storage, storagePath);
+        const storageRef = ref(storage, `clients/${user.uid}/lists/${listId}/${fileName}`);
         
         const snapshot = await uploadBytes(storageRef, file);
         const url = await getDownloadURL(snapshot.ref);
         
-        uploadedUrls.push(url);
-        // Mise à jour progressive
         setNewProduct(prev => ({
           ...prev,
           images: [...prev.images, url]
         }));
       }
-      
-      toast({ title: "Images ajoutées" });
+      toast({ title: "Photo(s) ajoutée(s)" });
     } catch (err: any) {
-      console.error("Storage Error:", err);
-      toast({ variant: 'destructive', title: "Échec de l'upload", description: "Vérifiez vos permissions Storage dans la console Firebase." });
+      console.error("Upload Error:", err);
+      toast({ variant: 'destructive', title: "Erreur d'upload", description: err.message });
     } finally {
       setIsUploading(false);
       e.target.value = '';
@@ -140,7 +132,7 @@ export default function ListDetailsPage() {
   };
 
   const handleDeleteProduct = (productId: string) => {
-    if (!user) return;
+    if (!user || !db) return;
     const docRef = doc(db, 'clients', user.uid, 'productLists', listId, 'products', productId);
     deleteDocumentNonBlocking(docRef);
     toast({ title: "Produit supprimé" });
@@ -253,14 +245,14 @@ export default function ListDetailsPage() {
                     {newProduct.images.map((url, idx) => (
                       <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden border group">
                         <Image src={url} alt="Preview" fill className="object-cover" />
-                        <button type="button" onClick={() => removeImage(idx)} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-md"><X className="h-3 w-3" /></button>
+                        <button type="button" onClick={() => removeImage(idx)} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-md hover:bg-red-600 transition-colors"><X className="h-3 w-3" /></button>
                       </div>
                     ))}
                     {isUploading && <div className="w-16 h-16 rounded-md flex items-center justify-center bg-zinc-100 border border-dashed border-zinc-300"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
                   </div>
                   <div className="relative">
                     <Input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" id="file-upload" disabled={isUploading} />
-                    <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 border-zinc-200">
+                    <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 border-zinc-200 transition-colors">
                       <UploadCloud className="h-8 w-8 text-zinc-400" />
                       <span className="text-xs text-zinc-500 mt-2">Cliquez pour ajouter des photos</span>
                     </label>
@@ -268,8 +260,14 @@ export default function ListDetailsPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input type="number" placeholder="Quantité" value={newProduct.quantity} onChange={(e) => setNewProduct({...newProduct, quantity: Number(e.target.value)})} />
-                  <Input type="number" step="0.01" placeholder="Prix cible (¥)" value={newProduct.unitPrice} onChange={(e) => setNewProduct({...newProduct, unitPrice: Number(e.target.value)})} />
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-400 uppercase font-bold px-1">Quantité</span>
+                    <Input type="number" placeholder="Quantité" value={newProduct.quantity} onChange={(e) => setNewProduct({...newProduct, quantity: Number(e.target.value)})} />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-400 uppercase font-bold px-1">Prix cible (¥)</span>
+                    <Input type="number" step="0.01" placeholder="Prix cible" value={newProduct.unitPrice} onChange={(e) => setNewProduct({...newProduct, unitPrice: Number(e.target.value)})} />
+                  </div>
                 </div>
                 <Button type="submit" className="w-full h-12 font-bold" disabled={isAdding || isUploading}>
                   {isAdding ? <Loader2 className="animate-spin h-4 w-4" /> : "Ajouter à la liste"}

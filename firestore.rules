@@ -4,34 +4,12 @@ service cloud.firestore {
 
     /**
      * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
-     * Version optimisée pour le prototype : accès élargi pour garantir le fonctionnement du dashboard client et admin.
+     * Version de déblocage total pour prototype
      */
 
-    // --- Fonctions Globales ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // --- Accès aux Collections Métier ---
-    // L'utilisation de {allPaths=**} permet de matcher la collection elle-même (pour les listes/requêtes)
-    // ainsi que tous les documents et sous-collections de manière récursive.
-    
-    match /clients/{allPaths=**} { allow read, write: if true; }
-    match /contactSubmissions/{allPaths=**} { allow read, write: if true; }
-    match /customers/{allPaths=**} { allow read, write: if true; }
-    match /invoices/{allPaths=**} { allow read, write: if true; }
-    match /orders/{allPaths=**} { allow read, write: if true; }
-    match /packingLists/{allPaths=**} { allow read, write: if true; }
-    match /products/{allPaths=**} { allow read, write: if true; }
-    match /quotes/{allPaths=**} { allow read, write: if true; }
-    match /suppliers/{allPaths=**} { allow read, write: if true; }
-    match /supplierContracts/{allPaths=**} { allow read, write: if true; }
-    match /companyInfo/{allPaths=**} { allow read, write: if true; }
-    match /config/{allPaths=**} { allow read, write: if true; }
-
-    // Règle par défaut pour les chemins non spécifiés (sécurité minimale)
-    match /{path=**} {
-      allow read, write: if isSignedIn();
+    // Autorisation globale pour assurer le bon fonctionnement de toutes les pages (Admin et Client)
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
