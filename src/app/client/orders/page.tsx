@@ -1,27 +1,51 @@
+
 'use client';
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, where, getDocs, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Receipt, ShoppingCart, Eye, Star } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Package, Receipt, ShoppingCart, Eye, Star, MapPin, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { submitContactForm } from '@/actions/contact';
 import Link from 'next/link';
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
-  const [isOrdering, setIsOrdering] = useState<string | null>(null);
+  
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [orderQuantity, setOrderQuantity] = useState(1);
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
+
   const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
   const [isSourcedLoading, setIsSourcedLoading] = useState(false);
+
+  // Fetch client profile for pre-filling address
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'clients', user.uid);
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
+  useEffect(() => {
+    if (profile?.address && !shippingAddress) {
+      setShippingAddress(profile.address);
+    }
+  }, [profile, shippingAddress]);
 
   // 1. Fetch Orders
   const ordersQuery = useMemoFirebase(() => {
@@ -43,7 +67,7 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  // 3. Manual Aggregation of Private Sourced Products (This IS the catalog now)
+  // 3. Sourced Products Aggregation
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'clients', user.uid, 'productLists');
@@ -77,7 +101,6 @@ export default function ClientOrdersPage() {
     fetchAllSourced();
   }, [db, user, clientLists]);
 
-  // Sorting logic
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -116,24 +139,52 @@ export default function ClientOrdersPage() {
     }
   };
 
-  const handleQuickOrder = async (product: any) => {
-    if (!user) return;
-    setIsOrdering(product.id);
+  const handleOpenProduct = (product: any) => {
+    setSelectedProduct(product);
+    setOrderQuantity(product.quantity || 1);
+    setCurrentImageIdx(0);
+    setIsOrderDialogOpen(true);
+  };
+
+  const handleConfirmOrder = async () => {
+    if (!user || !selectedProduct || !db) return;
+    setIsSubmittingOrder(true);
+
     try {
-      await submitContactForm({
-        name: user.email || 'Client',
-        email: user.email || '',
-        phone: 'Espace Client',
-        subject: `Demande de commande : ${product.name}`,
-        message: `Bonjour, je souhaite commander : ${product.name} (Réf: ${product.sku || 'N/A'}).
-Prix affiché : ¥${Number(product.price || 0).toFixed(2)}.
-Merci de me contacter pour finaliser la proforma.`
+      const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+      const totalAmount = Number(selectedProduct.price || 0) * orderQuantity;
+
+      const orderData = {
+        orderNumber,
+        customerId: user.uid,
+        customerName: `${profile?.firstName} ${profile?.lastName}`,
+        items: [{
+          description: selectedProduct.name,
+          sku: selectedProduct.sku || '',
+          quantity: orderQuantity,
+          unitPrice: Number(selectedProduct.price || 0),
+          total: totalAmount,
+          photo: selectedProduct.images?.[0] || ''
+        }],
+        totalAmount,
+        status: 'processing',
+        shippingAddress,
+        orderDate: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        quoteId: '', // Direct order from catalog
+      };
+
+      await addDoc(collection(db, 'orders'), orderData);
+
+      toast({ 
+        title: "Commande enregistrée !", 
+        description: `Votre commande ${orderNumber} a été transmise à notre équipe en Chine.` 
       });
-      toast({ title: "Demande envoyée", description: "Un agent va préparer votre proforma." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erreur", description: "Impossible d'envoyer la demande." });
+      setIsOrderDialogOpen(false);
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de finaliser la commande." });
     } finally {
-      setIsOrdering(null);
+      setIsSubmittingOrder(false);
     }
   };
 
@@ -234,7 +285,7 @@ Merci de me contacter pour finaliser la proforma.`
         <TabsContent value="catalog" className="mt-6">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-zinc-800">Vos produits sourcés</h3>
-            <p className="text-sm text-zinc-500">Retrouvez ici uniquement les produits que nous avons validés pour votre compte.</p>
+            <p className="text-sm text-zinc-500">Cliquez sur un article pour voir les détails techniques et commander.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -242,11 +293,15 @@ Merci de me contacter pour finaliser la proforma.`
               [1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-zinc-200 animate-pulse rounded-2xl" />)
             ) : sourcedProducts.length > 0 ? (
               sourcedProducts.map((product) => (
-                <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden group flex flex-col hover:ring-2 hover:ring-primary/50 transition-all relative">
-                  <Badge className="absolute top-3 right-3 z-10 bg-primary font-bold text-[10px] uppercase">
-                    <Star className="h-3 w-3 mr-1 fill-white" /> Disponible
-                  </Badge>
+                <Card 
+                  key={product.id} 
+                  className="border-none shadow-md bg-white overflow-hidden group flex flex-col hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
+                  onClick={() => handleOpenProduct(product)}
+                >
                   <div className="relative aspect-square bg-zinc-100">
+                    <Badge className="absolute top-3 right-3 z-10 bg-primary font-bold text-[10px] uppercase">
+                      <Star className="h-3 w-3 mr-1 fill-white" /> Validé
+                    </Badge>
                     {product.images && product.images[0] ? (
                       <Image src={product.images[0]} alt={product.name} fill className="object-contain p-4" />
                     ) : (
@@ -255,17 +310,12 @@ Merci de me contacter pour finaliser la proforma.`
                   </div>
                   <CardHeader className="p-4 flex-grow">
                     <div className="text-[10px] text-zinc-400 font-bold uppercase mb-1">{product.sku || 'REF-TBC'}</div>
-                    <CardTitle className="text-lg leading-tight">{product.name}</CardTitle>
-                    <CardDescription className="line-clamp-2 text-xs mt-2">{product.description}</CardDescription>
+                    <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">{product.name}</CardTitle>
+                    <div className="text-xl font-black text-zinc-900 mt-2">¥{Number(product.price || 0).toFixed(2)}</div>
                   </CardHeader>
                   <div className="p-4 pt-0">
-                    <div className="text-xl font-black text-zinc-900 mb-4">¥{Number(product.price || 0).toFixed(2)}</div>
-                    <Button 
-                      className="w-full bg-primary hover:bg-primary/90 font-bold"
-                      onClick={() => handleQuickOrder(product)}
-                      disabled={isOrdering === product.id}
-                    >
-                      {isOrdering === product.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Commander ce produit"}
+                    <Button className="w-full bg-zinc-100 text-zinc-900 hover:bg-primary hover:text-white font-bold transition-all border-none">
+                      Voir & Commander
                     </Button>
                   </div>
                 </Card>
@@ -280,6 +330,134 @@ Merci de me contacter pour finaliser la proforma.`
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Product Detail & Order Dialog */}
+      <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold text-primary">Détails de l'article</DialogTitle>
+            <DialogDescription>Consultez les spécifications validées par votre agent et passez commande.</DialogDescription>
+          </DialogHeader>
+
+          {selectedProduct && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6">
+              {/* Left: Media Gallery */}
+              <div className="space-y-4">
+                <div className="relative aspect-square rounded-2xl border bg-zinc-50 overflow-hidden shadow-inner">
+                  {selectedProduct.images?.[currentImageIdx] ? (
+                    <Image 
+                      src={selectedProduct.images[currentImageIdx]} 
+                      alt={selectedProduct.name} 
+                      fill 
+                      className="object-contain p-4" 
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center"><Package className="h-20 w-20 text-zinc-200" /></div>
+                  )}
+                  
+                  {selectedProduct.images?.length > 1 && (
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2">
+                      <Button size="icon" variant="secondary" className="rounded-full h-8 w-8 opacity-70" onClick={() => setCurrentImageIdx(prev => (prev > 0 ? prev - 1 : selectedProduct.images.length - 1))}>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="secondary" className="rounded-full h-8 w-8 opacity-70" onClick={() => setCurrentImageIdx(prev => (prev < selectedProduct.images.length - 1 ? prev + 1 : 0))}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {selectedProduct.images?.map((url: string, idx: number) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => setCurrentImageIdx(idx)}
+                      className={cn(
+                        "relative w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 transition-all",
+                        currentImageIdx === idx ? "border-primary" : "border-transparent opacity-60"
+                      )}
+                    >
+                      <Image src={url} alt="thumbnail" fill className="object-cover" />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 space-y-3">
+                  <h4 className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Spécifications Techniques</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-zinc-500 block text-[10px] uppercase">Poids</span>
+                      <span className="font-bold">{selectedProduct.weight || '-'} kg</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 block text-[10px] uppercase">Dimensions (L*W*H)</span>
+                      <span className="font-bold">{selectedProduct.length || '0'}x{selectedProduct.width || '0'}x{selectedProduct.height || '0'} cm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Info & Order Form */}
+              <div className="space-y-6">
+                <div>
+                  <Badge variant="outline" className="mb-2 text-primary border-primary/20 bg-primary/5">Réf: {selectedProduct.sku || 'TBC'}</Badge>
+                  <h3 className="text-2xl font-bold text-zinc-900 leading-tight">{selectedProduct.name}</h3>
+                  <div className="text-3xl font-black text-primary mt-2">¥{Number(selectedProduct.price || 0).toFixed(2)} <span className="text-xs font-normal text-zinc-400 uppercase">/ Unité</span></div>
+                </div>
+
+                <div className="prose prose-sm text-zinc-600 max-h-40 overflow-y-auto border-y py-4">
+                  <p className="whitespace-pre-wrap">{selectedProduct.description || "Aucune description technique fournie."}</p>
+                </div>
+
+                <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="qty" className="font-bold text-zinc-700">Quantité souhaitée</Label>
+                      <Input 
+                        id="qty" 
+                        type="number" 
+                        min="1" 
+                        value={orderQuantity} 
+                        onChange={(e) => setOrderQuantity(Number(e.target.value))}
+                        className="bg-white border-zinc-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className="font-bold text-zinc-700">Adresse de livraison</Label>
+                      <Textarea 
+                        id="address" 
+                        placeholder="Précisez l'entrepôt ou le port de destination..."
+                        value={shippingAddress}
+                        onChange={(e) => setShippingAddress(e.target.value)}
+                        className="bg-white border-zinc-200 h-24"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t flex items-center justify-between">
+                    <div className="text-sm font-medium text-zinc-500">Estimation du total :</div>
+                    <div className="text-2xl font-black text-zinc-900">¥{(Number(selectedProduct.price || 0) * orderQuantity).toFixed(2)}</div>
+                  </div>
+
+                  <Button 
+                    className="w-full h-14 bg-primary hover:bg-primary/90 text-lg font-black shadow-lg shadow-primary/20"
+                    onClick={handleConfirmOrder}
+                    disabled={isSubmittingOrder || !shippingAddress || orderQuantity < 1}
+                  >
+                    {isSubmittingOrder ? (
+                      <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                    ) : (
+                      <CheckCircle2 className="h-5 w-5 mr-2" />
+                    )}
+                    PASSER LA COMMANDE
+                  </Button>
+                  <p className="text-[10px] text-center text-zinc-400 italic">Une proforma officielle sera générée par votre agent après vérification.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
