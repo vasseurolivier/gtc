@@ -42,12 +42,14 @@ export function Header() {
   const pathname = usePathname();
   const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useUser();
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -169,7 +171,7 @@ export function Header() {
             <Button variant="outline" className="hidden sm:flex border-white text-primary hover:bg-white hover:text-black font-bold" asChild>
               <Link href="/client/login">
                 <UserCircle className="mr-2 h-5 w-5" />
-                {user ? "Mon Espace" : dictionary.clientSpace}
+                {mounted ? (user ? "Mon Espace" : dictionary.clientSpace) : dictionary.clientSpace}
               </Link>
             </Button>
 
@@ -264,7 +266,7 @@ export function Header() {
                         className="flex items-center gap-2 text-lg font-bold text-primary py-2"
                         >
                         <UserCircle className="h-6 w-6" />
-                        {user ? "Mon Espace Client" : "Connexion Client"}
+                        {mounted && user ? "Mon Espace Client" : "Connexion Client"}
                         </Link>
                     </nav>
                 </SheetContent>
