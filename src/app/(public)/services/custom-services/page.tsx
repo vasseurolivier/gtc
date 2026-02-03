@@ -109,7 +109,7 @@ export default function CustomServicesPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-32">
+        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-12">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}

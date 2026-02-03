@@ -106,7 +106,7 @@ export default function ServicesPage() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
-        <div className="relative h-full flex flex-col justify-end items-start text-left p-8 md:p-16 pb-32">
+        <div className="relative h-full flex flex-col justify-end items-start text-left p-8 md:p-16 pb-12">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight text-shadow-lg text-white">
                   {servicesPageDict.hero.title}
