@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Menu, Globe, ChevronDown, UserCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -182,6 +182,10 @@ export function Header() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
+                    <SheetHeader className="sr-only">
+                      <SheetTitle>Menu de navigation</SheetTitle>
+                      <SheetDescription>Accédez aux différentes pages du site Global Trading China.</SheetDescription>
+                    </SheetHeader>
                     <Link href={'/'} className="mb-8 flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
                      {publicLogo ? (
                         <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
