@@ -101,6 +101,13 @@
         "unitPrice": {
           "type": "number",
           "description": "Unit price of the product."
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "URLs of the product images stored in Firebase Storage."
         }
       },
       "required": [

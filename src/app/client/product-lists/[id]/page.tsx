@@ -18,11 +18,15 @@ import {
   Save, 
   AlertCircle,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  X,
+  UploadCloud
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import Image from 'next/image';
+import { uploadImage } from '@/actions/upload';
 
 export default function ListDetailsPage() {
   const params = useParams();
@@ -33,11 +37,13 @@ export default function ListDetailsPage() {
   const router = useRouter();
 
   const [isAdding, setIsAdding] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
     quantity: 1,
     unitPrice: 0,
+    images: [] as string[],
   });
 
   // Fetch list info
@@ -56,6 +62,43 @@ export default function ListDetailsPage() {
 
   const { data: products, isLoading: isProductsLoading } = useCollection(productsQuery);
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const formData = new FormData();
+      formData.append('file', files[i]);
+      try {
+        const result = await uploadImage(formData);
+        if (result.success && result.url) {
+          uploadedUrls.push(result.url);
+        } else {
+          toast({ variant: 'destructive', title: "Erreur d'upload", description: result.message });
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        toast({ variant: 'destructive', title: "Erreur", description: "Une erreur est survenue lors de l'upload." });
+      }
+    }
+
+    setNewProduct(prev => ({
+      ...prev,
+      images: [...prev.images, ...uploadedUrls]
+    }));
+    setIsUploading(false);
+  };
+
+  const removeImage = (index: number) => {
+    setNewProduct(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.name) return;
@@ -70,10 +113,11 @@ export default function ListDetailsPage() {
         description: newProduct.description,
         quantity: Number(newProduct.quantity),
         unitPrice: Number(newProduct.unitPrice),
+        images: newProduct.images,
         createdAt: new Date().toISOString(),
       });
       
-      setNewProduct({ name: '', description: '', quantity: 1, unitPrice: 0 });
+      setNewProduct({ name: '', description: '', quantity: 1, unitPrice: 0, images: [] });
       toast({ title: "Produit ajouté", description: "L'article a été ajouté à votre liste." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });
@@ -157,8 +201,17 @@ export default function ListDetailsPage() {
                   {products.map((product) => (
                     <TableRow key={product.id} className="hover:bg-zinc-50/50">
                       <TableCell className="pl-6 font-medium py-4">
-                        <div>{product.name}</div>
-                        <div className="text-xs text-zinc-400 font-normal mt-1">{product.description || "-"}</div>
+                        <div className="flex items-center gap-3">
+                          {product.images && product.images.length > 0 && (
+                            <div className="relative w-12 h-12 rounded overflow-hidden flex-shrink-0 border border-zinc-100 bg-zinc-50">
+                              <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                            </div>
+                          )}
+                          <div>
+                            <div>{product.name}</div>
+                            <div className="text-xs text-zinc-400 font-normal mt-1 line-clamp-1">{product.description || "-"}</div>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>{product.quantity}</TableCell>
                       <TableCell>¥{Number(product.unitPrice || 0).toFixed(2)}</TableCell>
@@ -213,6 +266,44 @@ export default function ListDetailsPage() {
                     rows={3}
                   />
                 </div>
+                
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase text-zinc-400">Photos du produit</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {newProduct.images.map((url, idx) => (
+                      <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden border border-zinc-200 group">
+                        <Image src={url} alt="Preview" fill className="object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {isUploading && (
+                      <div className="w-16 h-16 rounded-md flex items-center justify-center bg-zinc-100 border border-dashed border-zinc-300">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      </div>
+                    )}
+                    {newProduct.images.length === 0 && !isUploading && (
+                      <div className="w-16 h-16 rounded-md flex flex-col items-center justify-center bg-zinc-50 border border-dashed border-zinc-200 text-zinc-300">
+                        <UploadCloud className="h-6 w-6" />
+                      </div>
+                    )}
+                  </div>
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple 
+                    onChange={handleFileChange}
+                    className="cursor-pointer text-xs"
+                    disabled={isUploading}
+                  />
+                  <p className="text-[10px] text-zinc-400">Sélectionnez une ou plusieurs photos réelles ou de référence.</p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase text-zinc-400">Quantité</label>
@@ -233,7 +324,7 @@ export default function ListDetailsPage() {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full h-12 font-bold" disabled={isAdding}>
+                <Button type="submit" className="w-full h-12 font-bold" disabled={isAdding || isUploading}>
                   {isAdding ? <Loader2 className="animate-spin h-4 w-4" /> : "Ajouter à la liste"}
                 </Button>
               </form>
