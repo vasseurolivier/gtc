@@ -28,6 +28,7 @@ import {
   FileSignature,
   ClipboardList,
   Factory,
+  UserCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -271,7 +272,8 @@ function ProtectedAdminLayout({
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
-    { href: '/admin/customers', icon: <Users />, label: 'Customers' },
+    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients' },
+    { href: '/admin/customers', icon: <Users />, label: 'Leads CRM' },
     { href: '/admin/suppliers', icon: <Factory />, label: 'Suppliers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },

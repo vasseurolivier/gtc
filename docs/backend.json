@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Client": {
@@ -8,7 +9,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the client."
+          "description": "Unique identifier for the client (Firebase UID)."
         },
         "firstName": {
           "type": "string",
@@ -23,6 +24,10 @@
           "description": "Email address of the client.",
           "format": "email"
         },
+        "clientNumber": {
+          "type": "string",
+          "description": "Unique client number assigned by admin."
+        },
         "phone": {
           "type": "string",
           "description": "Phone number of the client."
@@ -34,6 +39,10 @@
         "address": {
           "type": "string",
           "description": "Address of the client."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "required": [
