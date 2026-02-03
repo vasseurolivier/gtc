@@ -1,13 +1,14 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, collectionGroup } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Receipt, ShoppingCart, Eye } from 'lucide-react';
+import { Loader2, Package, Receipt, ShoppingCart, Eye, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
@@ -21,7 +22,7 @@ export default function ClientOrdersPage() {
   const { toast } = useToast();
   const [isOrdering, setIsOrdering] = useState<string | null>(null);
 
-  // Requête simplifiée pour éviter le besoin d'index composites pendant le prototype
+  // Orders Query
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -30,6 +31,7 @@ export default function ClientOrdersPage() {
     );
   }, [db, user]);
 
+  // Invoices Query
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -38,16 +40,29 @@ export default function ClientOrdersPage() {
     );
   }, [db, user]);
 
+  // Global Catalog Products
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, 'products');
   }, [db]);
 
+  // Private Sourced Products (Published from requests)
+  // Use collectionGroup to find all products belonging to this client across all their lists
+  const privateProductsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    // We filter by status published
+    return query(
+      collectionGroup(db, 'products'),
+      where('status', '==', 'published')
+    );
+  }, [db, user]);
+
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
   const { data: catalogProducts, isLoading: isCatalogLoading } = useCollection(productsQuery);
+  const { data: sourcedProducts, isLoading: isSourcedLoading } = useCollection(privateProductsQuery);
 
-  // Tri côté client
+  // Sorting logic
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -65,6 +80,18 @@ export default function ClientOrdersPage() {
       return dateB - dateA;
     });
   }, [invoices]);
+
+  // Merge catalogs
+  const fullCatalog = useMemo(() => {
+    const global = (catalogProducts || []).map(p => ({ ...p, isPrivate: false }));
+    // Filter sourced products to only those belonging to this client (manually for now to avoid complex security rule issues in prototype)
+    // In a real app, security rules or a cleaner structure would handle this
+    const privateItems = (sourcedProducts || [])
+      .filter(p => p.productListId) // Basic check
+      .map(p => ({ ...p, isPrivate: true }));
+    
+    return [...privateItems, ...global];
+  }, [catalogProducts, sourcedProducts]);
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -86,16 +113,18 @@ export default function ClientOrdersPage() {
     }
   };
 
-  const handleQuickOrder = async (productName: string) => {
+  const handleQuickOrder = async (product: any) => {
     if (!user) return;
-    setIsOrdering(productName);
+    setIsOrdering(product.id);
     try {
       await submitContactForm({
         name: user.email || 'Client',
         email: user.email || '',
         phone: 'Espace Client',
-        subject: `Demande de commande : ${productName}`,
-        message: `Bonjour, je souhaite commander : ${productName}. Merci de me contacter pour finaliser la proforma.`
+        subject: `Demande de commande : ${product.name}`,
+        message: `Bonjour, je souhaite commander : ${product.name} (Réf: ${product.sku || 'N/A'}).
+Prix affiché : ¥${Number(product.price || 0).toFixed(2)}.
+Merci de me contacter pour finaliser la proforma.`
       });
       toast({ title: "Demande envoyée", description: "Un agent va préparer votre proforma." });
     } catch (e) {
@@ -201,19 +230,25 @@ export default function ClientOrdersPage() {
 
         <TabsContent value="catalog" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {isCatalogLoading ? (
+            {isCatalogLoading || isSourcedLoading ? (
               [1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-zinc-200 animate-pulse rounded-2xl" />)
-            ) : catalogProducts && catalogProducts.length > 0 ? (
-              catalogProducts.map((product) => (
-                <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden group flex flex-col hover:ring-2 hover:ring-primary/50 transition-all">
+            ) : fullCatalog.length > 0 ? (
+              fullCatalog.map((product) => (
+                <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden group flex flex-col hover:ring-2 hover:ring-primary/50 transition-all relative">
+                  {product.isPrivate && (
+                    <Badge className="absolute top-3 right-3 z-10 bg-primary font-bold text-[10px] uppercase">
+                      <Star className="h-3 w-3 mr-1 fill-white" /> Sourcé pour vous
+                    </Badge>
+                  )}
                   <div className="relative aspect-square bg-zinc-100">
-                    {product.imageUrl ? (
-                      <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4" />
+                    {product.imageUrl || (product.images && product.images[0]) ? (
+                      <Image src={product.imageUrl || product.images[0]} alt={product.name} fill className="object-contain p-4" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-300"><Package className="h-12 w-12" /></div>
                     )}
                   </div>
                   <CardHeader className="p-4 flex-grow">
+                    <div className="text-[10px] text-zinc-400 font-bold uppercase mb-1">{product.sku || 'REF-TBC'}</div>
                     <CardTitle className="text-lg leading-tight">{product.name}</CardTitle>
                     <CardDescription className="line-clamp-2 text-xs mt-2">{product.description}</CardDescription>
                   </CardHeader>
@@ -221,10 +256,10 @@ export default function ClientOrdersPage() {
                     <div className="text-xl font-black text-zinc-900 mb-4">¥{Number(product.price || 0).toFixed(2)}</div>
                     <Button 
                       className="w-full bg-primary hover:bg-primary/90 font-bold"
-                      onClick={() => handleQuickOrder(product.name)}
-                      disabled={isOrdering === product.name}
+                      onClick={() => handleQuickOrder(product)}
+                      disabled={isOrdering === product.id}
                     >
-                      {isOrdering === product.name ? <Loader2 className="h-4 w-4 animate-spin" /> : "Demander un devis"}
+                      {isOrdering === product.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Commander ce produit"}
                     </Button>
                   </div>
                 </Card>

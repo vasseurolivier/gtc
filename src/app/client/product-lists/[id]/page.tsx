@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -17,7 +18,9 @@ import {
   Package, 
   AlertCircle,
   X,
-  UploadCloud
+  UploadCloud,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -114,11 +117,13 @@ export default function ListDetailsPage() {
       addDocumentNonBlocking(colRef, {
         id: prodId,
         productListId: listId,
+        clientId: user.uid, // Store client ID for collectionGroup filtering
         name: newProduct.name,
         description: newProduct.description,
         quantity: Number(newProduct.quantity),
         unitPrice: Number(newProduct.unitPrice),
         images: newProduct.images,
+        status: 'pending', // Default status for new requests
         createdAt: new Date().toISOString(),
       });
       
@@ -167,7 +172,7 @@ export default function ListDetailsPage() {
         <Card className="xl:col-span-2 border-none shadow-md bg-white">
           <CardHeader>
             <CardTitle>Articles demandés</CardTitle>
-            <CardDescription>Visualisez les spécifications de vos articles.</CardDescription>
+            <CardDescription>Visualisez les spécifications de vos articles et leur statut de sourcing.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {isProductsLoading ? (
@@ -178,7 +183,8 @@ export default function ListDetailsPage() {
                   <TableRow className="bg-zinc-50/50">
                     <TableHead className="pl-6">Produit</TableHead>
                     <TableHead>Quantité</TableHead>
-                    <TableHead>Prix Cible</TableHead>
+                    <TableHead>Prix (CNY)</TableHead>
+                    <TableHead>Statut</TableHead>
                     <TableHead className="text-right pr-6">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -194,12 +200,22 @@ export default function ListDetailsPage() {
                           )}
                           <div>
                             <div className="font-bold">{product.name}</div>
-                            <div className="text-xs text-zinc-400 line-clamp-1">{product.description}</div>
+                            <div className="text-[10px] text-zinc-400 font-mono">{product.sku || 'REF-ATTENTE'}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>{product.quantity}</TableCell>
-                      <TableCell>¥{Number(product.unitPrice || 0).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <div className="font-semibold">¥{Number(product.unitPrice || 0).toFixed(2)}</div>
+                        <div className="text-[10px] text-zinc-400 italic">Validé par Admin</div>
+                      </TableCell>
+                      <TableCell>
+                        {product.status === 'published' ? (
+                          <Badge className="bg-green-500 gap-1"><CheckCircle2 className="h-3 w-3" /> Validé</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-zinc-400 border-zinc-200 gap-1"><Clock className="h-3 w-3" /> En cours</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right pr-6">
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)} className="text-red-500">
                           <Trash2 className="h-4 w-4" />
