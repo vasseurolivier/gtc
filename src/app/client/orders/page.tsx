@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -44,15 +43,7 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  // 3. Fetch Global Catalog
-  const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, 'products');
-  }, [db]);
-  const { data: catalogProducts, isLoading: isCatalogLoading } = useCollection(productsQuery);
-
-  // 4. Manual Aggregation of Private Sourced Products
-  // We avoid collectionGroup to prevent "failed-precondition" (missing index) errors
+  // 3. Manual Aggregation of Private Sourced Products (This IS the catalog now)
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'clients', user.uid, 'productLists');
@@ -104,13 +95,6 @@ export default function ClientOrdersPage() {
       return dateB - dateA;
     });
   }, [invoices]);
-
-  // Merge catalogs
-  const fullCatalog = useMemo(() => {
-    const global = (catalogProducts || []).map(p => ({ ...p, isPrivate: false }));
-    const privateItems = sourcedProducts.map(p => ({ ...p, isPrivate: true }));
-    return [...privateItems, ...global];
-  }, [catalogProducts, sourcedProducts]);
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -164,7 +148,7 @@ Merci de me contacter pour finaliser la proforma.`
         <TabsList className="grid w-full grid-cols-3 max-w-2xl bg-white shadow-sm border p-1 rounded-xl">
           <TabsTrigger value="orders"><Package className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
           <TabsTrigger value="invoices"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
-          <TabsTrigger value="catalog"><ShoppingCart className="h-4 w-4 mr-2" /> Catalogue</TabsTrigger>
+          <TabsTrigger value="catalog"><Star className="h-4 w-4 mr-2" /> Mon Catalogue</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="mt-6">
@@ -248,20 +232,23 @@ Merci de me contacter pour finaliser la proforma.`
         </TabsContent>
 
         <TabsContent value="catalog" className="mt-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-zinc-800">Vos produits sourcés</h3>
+            <p className="text-sm text-zinc-500">Retrouvez ici uniquement les produits que nous avons validés pour votre compte.</p>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {isCatalogLoading || isSourcedLoading ? (
+            {isSourcedLoading ? (
               [1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-zinc-200 animate-pulse rounded-2xl" />)
-            ) : fullCatalog.length > 0 ? (
-              fullCatalog.map((product) => (
+            ) : sourcedProducts.length > 0 ? (
+              sourcedProducts.map((product) => (
                 <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden group flex flex-col hover:ring-2 hover:ring-primary/50 transition-all relative">
-                  {product.isPrivate && (
-                    <Badge className="absolute top-3 right-3 z-10 bg-primary font-bold text-[10px] uppercase">
-                      <Star className="h-3 w-3 mr-1 fill-white" /> Sourcé pour vous
-                    </Badge>
-                  )}
+                  <Badge className="absolute top-3 right-3 z-10 bg-primary font-bold text-[10px] uppercase">
+                    <Star className="h-3 w-3 mr-1 fill-white" /> Disponible
+                  </Badge>
                   <div className="relative aspect-square bg-zinc-100">
-                    {product.imageUrl || (product.images && product.images[0]) ? (
-                      <Image src={product.imageUrl || product.images[0]} alt={product.name} fill className="object-contain p-4" />
+                    {product.images && product.images[0] ? (
+                      <Image src={product.images[0]} alt={product.name} fill className="object-contain p-4" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-300"><Package className="h-12 w-12" /></div>
                     )}
@@ -284,7 +271,11 @@ Merci de me contacter pour finaliser la proforma.`
                 </Card>
               ))
             ) : (
-              <div className="col-span-full p-20 text-center bg-white rounded-2xl border-2 border-dashed text-zinc-400">Catalogue indisponible.</div>
+              <div className="col-span-full p-20 text-center bg-white rounded-2xl border-2 border-dashed text-zinc-400">
+                <Package className="h-16 w-16 mx-auto mb-4 opacity-10" />
+                <p>Votre catalogue personnalisé est vide.</p>
+                <p className="text-sm mt-2">Dès que nous validerons vos demandes de sourcing, les produits apparaîtront ici.</p>
+              </div>
             )}
           </div>
         </TabsContent>
