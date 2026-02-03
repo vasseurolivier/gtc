@@ -4,32 +4,27 @@ service cloud.firestore {
 
     /**
      * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
-     * Version consolidée pour corriger les erreurs de permissions (list/get)
+     * Version simplifiée pour garantir le fonctionnement de l'admin et du Hub Client.
      */
 
-    // --- Fonctions d'aide ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // --- RÈGLE GLOBALE DE DÉBOGAGE / PROTOTYPE ---
-    // On autorise la lecture et l'écriture sur toutes les collections racine
-    // pour éviter les blocages de l'admin et du catalogue client.
+    // --- RÈGLES DE DÉBOGAGE / PROTOTYPE ---
+    // On autorise la lecture et l'écriture sur toutes les collections métiers
+    // pour que l'admin et le hub client puissent communiquer sans blocage.
     
-    match /invoices/{id} { allow read, write: if true; }
-    match /orders/{id} { allow read, write: if true; }
-    match /products/{id} { allow read, write: if true; }
-    match /customers/{id} { allow read, write: if true; }
-    match /contactSubmissions/{id} { allow read, write: if true; }
-    match /packingLists/{id} { allow read, write: if true; }
-    match /quotes/{id} { allow read, write: if true; }
-    match /suppliers/{id} { allow read, write: if true; }
-    match /supplierContracts/{id} { allow read, write: if true; }
-    match /companyInfo/{id} { allow read, write: if true; }
-    match /config/{id} { allow read, write: if true; }
+    match /invoices/{allPaths=**} { allow read, write: if true; }
+    match /orders/{allPaths=**} { allow read, write: if true; }
+    match /products/{allPaths=**} { allow read, write: if true; }
+    match /customers/{allPaths=**} { allow read, write: if true; }
+    match /contactSubmissions/{allPaths=**} { allow read, write: if true; }
+    match /packingLists/{allPaths=**} { allow read, write: if true; }
+    match /quotes/{allPaths=**} { allow read, write: if true; }
+    match /suppliers/{allPaths=**} { allow read, write: if true; }
+    match /supplierContracts/{allPaths=**} { allow read, write: if true; }
+    match /companyInfo/{allPaths=**} { allow read, write: if true; }
+    match /config/{allPaths=**} { allow read, write: if true; }
 
     // --- Espace Client (Subcollections) ---
-    // On s'assure que les données nichées sous /clients sont aussi accessibles
+    // On s'assure que les données nichées sous /clients sont accessibles
     match /clients/{clientId} {
       allow read, write: if true; 
       
@@ -38,9 +33,9 @@ service cloud.firestore {
       }
     }
 
-    // Règle par défaut pour toute autre donnée (ex: logs, etc.)
+    // Règle par défaut pour toute autre donnée non listée
     match /{path=**} {
-      allow read, write: if isSignedIn();
+      allow read, write: if request.auth != null;
     }
   }
 }
