@@ -40,7 +40,7 @@ export function HeroSection() {
   const brochureUrl = companyInfoContext?.companyInfo.brochureUrl;
 
   return (
-    <section className="relative w-full h-[95vh] text-white overflow-hidden pt-16 md:pt-0 md:-mt-16">
+    <section className="relative w-full h-screen text-white overflow-hidden pt-16 md:pt-0 md:-mt-16">
       {heroImage && (
         <Image
             src={heroImage.imageUrl}
@@ -55,11 +55,11 @@ export function HeroSection() {
       
       <div className="relative h-full flex flex-col justify-end container px-8 md:px-16 pb-12">
         <div className="flex flex-col md:flex-row items-end gap-12">
-            <div className="w-full md:w-2/3 space-y-6">
+            <div className="w-full lg:w-2/3 space-y-6">
                 <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider animate-in fade-in slide-in-from-left-4 duration-1000">
                   {dictionary.heroSection.tag}
                 </Badge>
-                <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight text-white leading-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-headline font-extrabold tracking-tight text-white leading-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                     {dictionary.heroSection.title}
                 </h1>
                 <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
@@ -81,7 +81,7 @@ export function HeroSection() {
                 </div>
             </div>
             
-            <div className="hidden lg:block w-full md:w-1/3 max-w-md animate-in fade-in zoom-in-95 duration-1000 delay-700">
+            <div className="hidden lg:block w-full lg:w-1/3 max-w-md animate-in fade-in zoom-in-95 duration-1000 delay-700">
               <HeroContactForm dictionary={dictionary.contactSection} />
             </div>
         </div>
