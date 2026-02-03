@@ -1,72 +1,87 @@
 
 "use client";
-import { Contact, FileText, PackageCheck, Ship, Target } from 'lucide-react';
+import { Contact, FileText, PackageCheck, Ship, Target, ArrowRight } from 'lucide-react';
 
 export function ProcessSection() {
     const dictionary = {
-        title: "Notre Processus en 5 Étapes",
-        subtitle: "De la prise de contact à la livraison finale, nous assurons un suivi transparent et rigoureux de votre projet.",
-        step1: {
-            title: "Prise de Contact",
-            description: "Vous nous soumettez votre cahier des charges. Nous analysons votre besoin et vous conseillons."
-        },
-        step2: {
-            title: "Sourcing & Devis",
-            description: "Nous identifions et auditons les fournisseurs. Vous recevez une proforma détaillée."
-        },
-        step3: {
-            title: "Production & Suivi",
-            description: "Nous validons les échantillons, lançons la production et effectuons des contrôles qualité (AQL)."
-        },
-        step4: {
-            title: "Logistique",
-            description: "Nous gérons l'emballage, le dédouanement et le transport (maritime, aérien, ferroviaire)."
-        },
-        step5: {
-            title: "Livraison",
-            description: "Vous recevez votre marchandise. Nous assurons le suivi post-livraison."
-        }
+        title: "Un Processus Rigoureux",
+        subtitle: "De la prise de contact à la réception de votre marchandise, nous assurons un suivi sans faille.",
+        steps: [
+          { 
+            number: "01",
+            icon: <Contact className="h-8 w-8" />, 
+            title: "Prise de Contact", 
+            description: "Analyse de votre cahier des charges et conseil stratégique sur la faisabilité." 
+          },
+          { 
+            number: "02",
+            icon: <FileText className="h-8 w-8" />, 
+            title: "Sourcing & Devis", 
+            description: "Identification et audit des meilleures usines. Envoi d'une proforma détaillée." 
+          },
+          { 
+            number: "03",
+            icon: <Target className="h-8 w-8" />, 
+            title: "Production & Suivi", 
+            description: "Validation des échantillons et contrôles qualité AQL sur ligne de production." 
+          },
+          { 
+            number: "04",
+            icon: <Ship className="h-8 w-8" />, 
+            title: "Logistique", 
+            description: "Gestion de l'emballage, du dédouanement et du transport multimodal." 
+          },
+          { 
+            number: "05",
+            icon: <PackageCheck className="h-8 w-8" />, 
+            title: "Livraison", 
+            description: "Réception de vos produits et suivi post-livraison pour assurer votre satisfaction." 
+          }
+        ]
     };
-  const processSteps = [
-    { icon: <Contact className="h-8 w-8 text-accent-foreground" />, title: dictionary.step1.title, description: dictionary.step1.description },
-    { icon: <FileText className="h-8 w-8 text-accent-foreground" />, title: dictionary.step2.title, description: dictionary.step2.description },
-    { icon: <Target className="h-8 w-8 text-accent-foreground" />, title: dictionary.step3.title, description: dictionary.step3.description },
-    { icon: <Ship className="h-8 w-8 text-accent-foreground" />, title: dictionary.step4.title, description: dictionary.step4.description },
-    { icon: <PackageCheck className="h-8 w-8 text-accent-foreground" />, title: dictionary.step5.title, description: dictionary.step5.description }
-  ];
 
   return (
-    <section id="process" className="py-16 md:py-24">
+    <section id="process" className="py-24 bg-white relative overflow-hidden">
       <div className="container">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-headline font-bold">
+        <div className="text-center mb-20">
+          <h2 className="text-3xl md:text-5xl font-headline font-bold text-zinc-900 mb-6">
             {dictionary.title}
           </h2>
-          <div className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <div className="w-24 h-1.5 bg-primary mx-auto mb-8 rounded-full"></div>
+          <p className="text-xl text-zinc-600 max-w-2xl mx-auto">
             {dictionary.subtitle}
-          </div>
+          </p>
         </div>
-        <div className="relative">
-          <div className="hidden md:block absolute top-10 left-0 w-full h-0.5 bg-border -translate-y-1/2"></div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-y-12 md:gap-x-8">
-            {processSteps.map((step, index) => (
-              <div key={index} className="flex md:flex-col items-start md:items-center text-left md:text-center relative">
-                <div className="flex-shrink-0">
-                  <div className="bg-accent p-5 rounded-full relative z-10 border-4 border-background shadow-md">
-                    {step.icon}
-                  </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-12 relative">
+          {/* Connector Line (Desktop) */}
+          <div className="hidden md:block absolute top-16 left-0 w-full h-0.5 bg-zinc-100 z-0"></div>
+          
+          {dictionary.steps.map((step, index) => (
+            <div key={index} className="relative z-10 flex flex-col items-center text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-white border-2 border-zinc-100 rounded-2xl flex items-center justify-center text-primary shadow-sm group-hover:border-primary group-hover:shadow-xl transition-all duration-500 group-hover:-rotate-6">
+                  {step.icon}
                 </div>
-                <div className="ml-6 md:ml-0 md:mt-6">
-                  <h3 className="font-headline font-semibold text-lg">
-                    {step.title}
-                  </h3>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    {step.description}
-                  </div>
+                <div className="absolute -top-3 -right-3 w-8 h-8 bg-primary text-white text-xs font-black rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                  {step.number}
                 </div>
               </div>
-            ))}
-          </div>
+              <h3 className="font-headline font-bold text-lg text-zinc-900 mb-3 group-hover:text-primary transition-colors">
+                {step.title}
+              </h3>
+              <p className="text-sm text-zinc-500 leading-relaxed">
+                {step.description}
+              </p>
+              
+              {/* Desktop Arrow */}
+              {index < dictionary.steps.length - 1 && (
+                <div className="hidden md:block absolute top-16 -right-6 text-zinc-200">
+                  <ArrowRight className="h-6 w-6" />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>
