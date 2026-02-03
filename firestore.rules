@@ -12,11 +12,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // --- Client & Admin Rules ---
-    // On autorise l'accès aux collections principales pour le bon fonctionnement 
-    // du dashboard admin et de l'espace client.
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- Client Hub Rules ---
+    // Règles pour les données spécifiques aux clients inscrits
 
     match /clients/{clientId} {
+      // Autorise la lecture/écriture pour le fonctionnement du profil et de l'admin
       allow read, write: if true; 
 
       match /productLists/{productListId} {
@@ -28,7 +32,9 @@ service cloud.firestore {
       }
     }
 
-    // Collections racines
+    // --- Root Collections (Admin & Shared) ---
+    // On autorise l'accès aux collections principales pour le dashboard et l'espace client.
+    
     match /orders/{id} { allow read, write: if true; }
     match /invoices/{id} { allow read, write: if true; }
     match /products/{id} { allow read, write: if true; }
@@ -41,9 +47,9 @@ service cloud.firestore {
     match /companyInfo/{id} { allow read, write: if true; }
     match /config/{id} { allow read, write: if true; }
 
-    // Règle par défaut
+    // Règle par défaut pour toute autre donnée
     match /{path=**} {
-      allow read, write: if false;
+      allow read, write: if isSignedIn();
     }
   }
 }
