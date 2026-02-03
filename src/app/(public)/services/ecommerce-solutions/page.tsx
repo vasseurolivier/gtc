@@ -92,8 +92,8 @@ export default function EcommerceSolutionsPage() {
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="relative w-full h-[85vh] text-white overflow-hidden pt-16 md:pt-0 md:-mt-16">
+      {/* Hero Section - Tall and lowered text */}
+      <section className="relative w-full h-[95vh] text-white overflow-hidden pt-16 md:pt-0 md:-mt-16">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -105,7 +105,7 @@ export default function EcommerceSolutionsPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-center items-start container px-8 md:px-16">
+        <div className="relative h-full flex flex-col justify-end items-start container px-8 md:px-16 pb-24">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}
