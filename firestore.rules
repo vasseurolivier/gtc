@@ -4,8 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FIRESTORE SECURITY RULES - PROTOTYPING MODE
-     * Enforces strict user-ownership for client portal and allows access for admin collections.
+     * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
      */
 
     // --- Global Helper Functions ---
@@ -18,66 +17,47 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
-    // --- Client Collection Rules ---
+    // --- Client Hub Rules ---
+    // Strict ownership for client-specific data
 
     match /clients/{clientId} {
-      allow get, list: if isOwner(clientId);
-      allow create: if isOwner(clientId) && request.resource.data.id == clientId;
-      allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(clientId);
+      allow read, write: if isOwner(clientId);
 
       match /productLists/{productListId} {
-        allow get, list: if isOwner(clientId);
-        allow create: if isOwner(clientId) && request.resource.data.clientId == clientId;
-        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId;
-        allow delete: if isExistingOwner(clientId);
+        allow read, write: if isOwner(clientId);
 
         match /products/{productId} {
-          allow get, list: if isOwner(clientId);
-          allow create: if isOwner(clientId) && request.resource.data.productListId == productListId;
-          allow update: if isExistingOwner(clientId) && request.resource.data.productListId == resource.data.productListId;
-          allow delete: if isExistingOwner(clientId);
+          allow read, write: if isOwner(clientId);
         }
       }
     }
 
     // --- Admin & Global Collections ---
     // For the prototype, these collections are accessible. 
-    // Ideally, restriction should be based on an admin role or UID.
+    // Access is required for the admin dashboard and public forms.
 
     match /contactSubmissions/{id} {
-      allow read, write: if true;
+      allow create: if true; // Public can submit
+      allow read, update, delete: if true; // Admin management
     }
-    match /customers/{id} {
-      allow read, write: if true;
+    
+    match /customers/{id} { allow read, write: if true; }
+    match /invoices/{id} { allow read, write: if true; }
+    match /orders/{id} { allow read, write: if true; }
+    match /packingLists/{id} { allow read, write: if true; }
+    match /products/{id} { allow read, write: if true; }
+    match /quotes/{id} { allow read, write: if true; }
+    match /suppliers/{id} { allow read, write: if true; }
+    match /supplierContracts/{id} { allow read, write: if true; }
+    
+    match /companyInfo/{id} { 
+      allow read: if true; 
+      allow write: if true; 
     }
-    match /invoices/{id} {
-      allow read, write: if true;
-    }
-    match /orders/{id} {
-      allow read, write: if true;
-    }
-    match /packingLists/{id} {
-      allow read, write: if true;
-    }
-    match /products/{id} {
-      allow read, write: if true;
-    }
-    match /quotes/{id} {
-      allow read, write: if true;
-    }
-    match /suppliers/{id} {
-      allow read, write: if true;
-    }
-    match /supplierContracts/{id} {
-      allow read, write: if true;
-    }
-    match /companyInfo/{id} {
-      allow read, write: if true;
+    
+    match /config/{id} {
+      allow read: if true;
+      allow write: if true;
     }
 
     // Default deny for any paths not explicitly matched
