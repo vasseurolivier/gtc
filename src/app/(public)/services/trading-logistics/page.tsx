@@ -109,12 +109,12 @@ export default function TradingLogisticsPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-start md:justify-end items-start container px-8 md:px-16 pt-[2cm] md:pt-0 pb-12">
+        <div className="relative h-full flex flex-col justify-start md:justify-end items-start container px-8 md:px-16 pt-[0.5cm] md:pt-0 pb-12">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}
               </Badge>
-              <h1 className="text-2xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
+              <h1 className="text-xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
                   {dictionary.hero.title}
               </h1>
               <p className="text-sm md:text-2xl text-zinc-300 leading-tight max-w-2xl">
@@ -157,7 +157,7 @@ export default function TradingLogisticsPage() {
                 {dictionary.pillars.items.map((pillar, index) => (
                     <Card key={index} className="group hover:shadow-2xl transition-all duration-500 border-none bg-zinc-50 overflow-hidden">
                         <CardHeader className="flex flex-row items-center gap-6 p-8">
-                            <div className="p-4 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform duration-500">
+                            <div className="p-4 bg-white rounded-2xl w-fit shadow-sm group-hover:scale-110 transition-transform duration-500">
                               {pillar.icon}
                             </div>
                             <div>

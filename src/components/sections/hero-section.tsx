@@ -53,7 +53,7 @@ export function HeroSection() {
       )}
       <div className="absolute inset-0 bg-zinc-950/60 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent" />
       
-      <div className="relative h-full flex flex-col justify-start md:justify-end container px-8 md:px-16 pb-12 pt-[2cm] md:pt-0">
+      <div className="relative h-full flex flex-col justify-start md:justify-end container px-8 md:px-16 pb-12 pt-[0.5cm] md:pt-0">
         <div className="flex flex-col md:flex-row items-end gap-12">
             <div className="w-full lg:w-2/3 space-y-6">
                 <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-[10px] md:text-sm font-semibold uppercase tracking-wider animate-in fade-in slide-in-from-left-4 duration-1000">
