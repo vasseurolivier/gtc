@@ -3,11 +3,11 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, Globe, ChevronDown, UserCircle } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Menu, ChevronDown, UserCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +40,6 @@ export function Header() {
   };
 
   const pathname = usePathname();
-  const [activePath, setActivePath] = useState(pathname);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
@@ -55,15 +54,10 @@ export function Header() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check on initial render
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    setActivePath(pathname);
-  }, [pathname]);
-
-  
   const navItems = [
     { href: '/', label: dictionary.home },
     { href: '/about', label: dictionary.about },
@@ -90,11 +84,11 @@ export function Header() {
   const linkClasses = (href: string, isServices = false) => {
     let isActive = false;
     if (isServices) {
-        isActive = activePath.startsWith('/services');
+        isActive = pathname.startsWith('/services');
     } else if (href === '/') {
-        isActive = activePath === `/`;
+        isActive = pathname === `/`;
     } else {
-        isActive = activePath.startsWith(href);
+        isActive = pathname.startsWith(href);
     }
 
     return cn(
@@ -107,12 +101,11 @@ export function Header() {
   const dropdownTriggerClasses = cn(
     "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
-    activePath.startsWith('/services')
+    pathname.startsWith('/services')
       ? "text-red-500 after:w-full"
       : "hover:text-white/90"
   );
 
-  // Hide main header in admin and client space if they have their own navigation
   if (pathname.startsWith('/admin') || (pathname.startsWith('/client') && pathname !== '/client/login')) {
     return null;
   }
@@ -125,7 +118,7 @@ export function Header() {
                 {publicLogo ? (
                 <Image src={publicLogo} alt="Company Logo" width={45} height={45} className="object-contain invert brightness-0" />
                 ) : (
-                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold">G</div>
+                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-white">G</div>
                 )}
             </Link>
              <nav className="hidden lg:flex items-center space-x-6">
@@ -171,31 +164,26 @@ export function Header() {
             <Button variant="outline" className="hidden sm:flex border-white text-primary hover:bg-white hover:text-black font-bold" asChild>
               <Link href="/client/login">
                 <UserCircle className="mr-2 h-5 w-5" />
-                {mounted ? (user ? "Mon Espace" : dictionary.clientSpace) : dictionary.clientSpace}
+                <span>
+                  {mounted && user ? "Mon Espace" : dictionary.clientSpace}
+                </span>
               </Link>
             </Button>
 
             <div className="lg:hidden">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
+                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Toggle Menu</span>
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs">
-                    <SheetHeader className="sr-only">
-                      <SheetTitle>Menu de navigation</SheetTitle>
-                      <SheetDescription>Accédez aux différentes pages du site Global Trading China.</SheetDescription>
+                    <SheetHeader>
+                      <SheetTitle>Menu</SheetTitle>
+                      <SheetDescription>Navigation principale</SheetDescription>
                     </SheetHeader>
-                    <Link href={'/'} className="mb-8 flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
-                     {publicLogo ? (
-                        <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
-                     ) : (
-                        <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-white">G</div>
-                     )}
-                    </Link>
-                    <nav className="flex flex-col space-y-2">
+                    <div className="mt-8 flex flex-col space-y-2">
                     {navItems.map((item) => (
                         <Link
                         key={item.href}
@@ -203,7 +191,7 @@ export function Header() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            (activePath === item.href) ? "text-primary font-bold" : "text-foreground"
+                            pathname === item.href ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {item.label}
@@ -214,7 +202,7 @@ export function Header() {
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
                             "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                            activePath.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
+                            pathname.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
                             )}>
                             {dictionary.services}
                             </AccordionTrigger>
@@ -227,7 +215,7 @@ export function Header() {
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={cn(
                                     "text-base font-medium transition-colors hover:text-primary py-2",
-                                    activePath === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                                    pathname === item.href ? "text-primary font-bold" : "text-muted-foreground"
                                     )}
                                 >
                                     {item.label}
@@ -243,7 +231,7 @@ export function Header() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            activePath.startsWith(citiesItem.href) ? "text-primary font-bold" : "text-foreground"
+                            pathname.startsWith(citiesItem.href) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {citiesItem.label}
@@ -254,7 +242,7 @@ export function Header() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "text-lg font-medium transition-colors hover:text-primary py-2",
-                            activePath.startsWith(contactItem.href) ? "text-primary font-bold" : "text-foreground"
+                            pathname.startsWith(contactItem.href) ? "text-primary font-bold" : "text-foreground"
                         )}
                         >
                         {contactItem.label}
@@ -268,7 +256,7 @@ export function Header() {
                         <UserCircle className="h-6 w-6" />
                         {mounted && user ? "Mon Espace Client" : "Connexion Client"}
                         </Link>
-                    </nav>
+                    </div>
                 </SheetContent>
                 </Sheet>
             </div>
