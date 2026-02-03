@@ -88,7 +88,7 @@ export default function EcommerceSolutionsPage() {
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'ecommerce-hero');
   const winnerImage = PlaceHolderImages.find(p => p.id === 'ecommerce-winner');
-  const fbaImage = PlaceHolderImages.find(p => p.id === 'ecommerce-fba');
+  const logisticsImage = PlaceHolderImages.find(p => p.id === 'ecommerce-fba');
 
   return (
     <>
@@ -247,9 +247,9 @@ export default function EcommerceSolutionsPage() {
                 </Button>
             </div>
             <div className="relative">
-                {fbaImage && 
+                {logisticsImage && 
                     <div className="relative h-[550px] w-full rounded-2xl overflow-hidden border-8 border-zinc-800 shadow-2xl">
-                        <Image src={fbaImage.imageUrl} alt="Logistic service" data-ai-hint={fbaImage.imageHint} fill className="object-cover opacity-80"/>
+                        <Image src={logisticsImage.imageUrl} alt="Logistic service" data-ai-hint={logisticsImage.imageHint} fill className="object-cover opacity-80"/>
                         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent"></div>
                         <div className="absolute bottom-10 left-10 p-6 bg-primary rounded-xl shadow-xl max-w-xs">
                           <p className="text-white font-bold text-lg italic">"La rigueur logistique est la clé de la rentabilité."</p>

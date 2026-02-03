@@ -32,9 +32,9 @@
     },
     {
       "id": "ecommerce-hero",
-      "description": "Person packing boxes for an online order.",
-      "imageUrl": "https://images.unsplash.com/photo-1685119166946-d4050647b0e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlY29tbWVyY2UlMjBwYWNraW5nfGVufDB8fHx8MTc1ODYyNjgwOHww&ixlib.rb-4.1.0&q=80&w=1080",
-      "imageHint": "ecommerce packing"
+      "description": "Large modern distribution center with high-end organization.",
+      "imageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3YXJlaG91c2V8ZW58MHx8fHwxNzU4NTI1NTEyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "logistics center"
     },
     {
       "id": "custom-services-hero",
@@ -69,7 +69,7 @@
     {
       "id": "custom-services-feature-2",
       "description": "Busy trade show floor with many people and booths.",
-      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGluZXxlbnwwfHx8fDE3NTgzOTM1NDV8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaGFuZ2hhaXxlbnwwfHx8fDE3NTg1MjU4MDd8MA&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "trade show"
     },
     {
@@ -164,15 +164,15 @@
     },
     {
       "id": "ecommerce-winner",
-      "description": "Trending electronic gadgets on a stylish presentation.",
+      "description": "A curated selection of sleek electronic gadgets and modern tech products.",
       "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx3aW5uaW5nJTIwcHJvZHVjdHxlbnwwfHx8fDE3NTg4Nzk4NjZ8MA&ixlib.rb-4.1.0&q=80&w=1080",
-      "imageHint": "trending products"
+      "imageHint": "tech gadgets"
     },
     {
       "id": "ecommerce-fba",
-      "description": "Amazon shipping boxes with labels being processed.",
+      "description": "High-tech shipping boxes and logistics workflow in a professional warehouse.",
       "imageUrl": "https://images.unsplash.com/photo-1566576721346-d4a3b4eaad5b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhbWF6b24lMjBwYWNrYWdlfGVufDB8fHx8MTc1ODg3OTg2Nnww&ixlib.rb-4.1.0&q=80&w=1080",
-      "imageHint": "Amazon FBA"
+      "imageHint": "logistics warehouse"
     }
   ]
 }
