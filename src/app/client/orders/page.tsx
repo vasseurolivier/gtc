@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Package, Receipt, ShoppingCart, Eye, Star, MapPin, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Package, Receipt, ShoppingCart, Eye, Star, MapPin, CheckCircle2, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { useState, useMemo, useEffect } from 'react';
@@ -34,6 +34,10 @@ export default function ClientOrdersPage() {
 
   const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
   const [isSourcedLoading, setIsSourcedLoading] = useState(false);
+
+  // Order Preview State
+  const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
+  const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
   // Fetch client profile for pre-filling address
   const profileRef = useMemoFirebase(() => {
@@ -147,6 +151,11 @@ export default function ClientOrdersPage() {
     setIsOrderDialogOpen(true);
   };
 
+  const handleViewOrder = (order: any) => {
+    setSelectedOrderPreview(order);
+    setIsOrderPreviewOpen(true);
+  };
+
   const handleConfirmOrder = async () => {
     if (!user || !selectedProduct || !db) return;
     setIsSubmittingOrder(true);
@@ -218,7 +227,8 @@ export default function ClientOrdersPage() {
                       <TableHead className="pl-6">N° Commande</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Statut</TableHead>
-                      <TableHead className="text-right pr-6">Total (CNY)</TableHead>
+                      <TableHead className="text-right">Total (CNY)</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -227,7 +237,12 @@ export default function ClientOrdersPage() {
                         <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
                         <TableCell>{order.orderDate ? format(new Date(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
-                        <TableCell className="text-right pr-6 font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                            <Eye className="h-4 w-4 mr-2" /> Voir
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -332,7 +347,95 @@ export default function ClientOrdersPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Product Detail & Order Dialog */}
+      {/* Order Preview Dialog */}
+      <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" /> 
+              Détails de la commande {selectedOrderPreview?.orderNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Passée le {selectedOrderPreview?.orderDate && format(new Date(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrderPreview && (
+            <div className="space-y-8 py-4">
+              <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Statut Actuel</span>
+                  <div className="flex items-center gap-2">
+                    {getOrderStatusBadge(selectedOrderPreview.status)}
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Montant Total</span>
+                  <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                  <Package className="h-4 w-4 text-zinc-400" /> Articles commandés
+                </h4>
+                <div className="border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead className="w-16"></TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right">Unit.</TableHead>
+                        <TableHead className="text-right pr-4">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell className="py-2">
+                            {item.photo && (
+                              <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
+                                <Image src={item.photo} alt={item.description} fill className="object-cover" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="font-medium text-sm">{item.description}</div>
+                            <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
+                          </TableCell>
+                          <TableCell className="py-2 text-center text-sm font-bold">{item.quantity}</TableCell>
+                          <TableCell className="py-2 text-right text-xs text-zinc-500">¥{Number(item.unitPrice || 0).toFixed(2)}</TableCell>
+                          <TableCell className="py-2 text-right pr-4 font-bold text-sm">¥{Number(item.total || 0).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-zinc-400" /> Destination de livraison
+                </h4>
+                <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                  {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
+                </div>
+              </div>
+
+              <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 text-xs text-primary/80 italic">
+                Note : Si cette commande nécessite une révision ou un transport spécial, notre équipe vous contactera sous peu pour vous transmettre la facture Proforma finale.
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" className="w-full h-12 font-bold" onClick={() => setIsOrderPreviewOpen(false)}>Fermer l'aperçu</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Detail & Order Dialog (Catalog) */}
       <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
