@@ -40,7 +40,11 @@ import {
   Trash2,
   Pencil,
   Scale,
-  Maximize
+  Maximize,
+  UploadCloud,
+  X,
+  PlayCircle,
+  Image as ImageIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -48,6 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { getProducts, Product } from '@/actions/products';
 import { getInvoices, Invoice } from '@/actions/invoices';
+import { uploadFile } from '@/actions/upload';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -75,6 +80,7 @@ export default function ClientDetailPage() {
   const [selectedList, setSelectedList] = useState<any | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isMediaUploading, setIsMediaUploading] = useState(false);
 
   // Fetch client and auxiliary data
   useEffect(() => {
@@ -167,6 +173,42 @@ export default function ClientDetailPage() {
     setIsSaving(false);
   };
 
+  // Media Management
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsMediaUploading(true);
+    const newImages = [...(editingProduct?.images || [])];
+
+    for (let i = 0; i < files.length; i++) {
+      const formData = new FormData();
+      formData.append('file', files[i]);
+      formData.append('folder', `clients/${clientId}/catalog`);
+      
+      try {
+        const result = await uploadFile(formData);
+        if (result.success && result.url) {
+          newImages.push(result.url);
+        } else {
+          toast({ variant: 'destructive', title: 'Erreur upload', description: result.message });
+        }
+      } catch (err) {
+        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible d'uploader le fichier." });
+      }
+    }
+
+    setEditingProduct({ ...editingProduct, images: newImages });
+    setIsMediaUploading(false);
+    e.target.value = '';
+  };
+
+  const removeMedia = (index: number) => {
+    const newImages = [...(editingProduct?.images || [])];
+    newImages.splice(index, 1);
+    setEditingProduct({ ...editingProduct, images: newImages });
+  };
+
   // Open validation dialog for a product (could be sourcing or manual)
   const handleEditProduct = (product: any) => {
     setEditingProduct({
@@ -174,6 +216,7 @@ export default function ClientDetailPage() {
       sku: product.sku || '',
       price: product.price || product.unitPrice || 0,
       description: product.description || '',
+      images: product.images || [],
       weight: product.weight || 0,
       width: product.width || 0,
       height: product.height || 0,
@@ -226,7 +269,6 @@ export default function ClientDetailPage() {
     
     setIsSaving(true);
     try {
-      // 1. Find or create "Catalogue Officiel" if it's a new manual/catalog product
       let listId = editingProduct.productListId || (selectedList?.id);
       
       if (editingProduct.isNew && !listId) {
@@ -261,7 +303,6 @@ export default function ClientDetailPage() {
         productListId: listId,
       };
       
-      // Remove the UI helper flag
       delete payload.isNew;
 
       await setDoc(productRef, payload, { merge: true });
@@ -507,7 +548,7 @@ export default function ClientDetailPage() {
                             <TableCell className="pl-6 py-4">
                               <div className="flex items-center gap-3">
                                 {product.images?.[0] && (
-                                  <div className="relative w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
+                                  <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
                                     <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                                   </div>
                                 )}
@@ -688,108 +729,140 @@ export default function ClientDetailPage() {
 
       {/* Product Edit / Validation Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Configuration et Validation du Produit</DialogTitle>
             <DialogDescription>
-              Vérifiez et complétez les informations techniques avant la publication.
+              Vérifiez les informations techniques et ajoutez des photos ou vidéos avant la publication.
             </DialogDescription>
           </DialogHeader>
           
           {editingProduct && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
-              {/* Basic Info */}
+              {/* Left Column: Media & Basic Info */}
               <div className="space-y-6">
-                <div className="flex items-start gap-4 p-4 bg-zinc-50 rounded-xl border">
-                  <div className="relative w-24 h-24 rounded-lg border bg-white overflow-hidden shrink-0">
-                    {editingProduct.images?.[0] ? (
-                      <Image src={editingProduct.images[0]} alt="Product" fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-300"><Package className="h-10 w-10" /></div>
-                    )}
+                <div className="space-y-4">
+                  <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2">
+                    <ImageIcon className="h-3 w-3" /> Photos & Vidéos (Catalogue)
+                  </Label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {editingProduct.images?.map((url: string, idx: number) => {
+                      const isVideo = url.includes('.mp4') || url.includes('video');
+                      return (
+                        <div key={idx} className="relative aspect-square rounded-xl border bg-zinc-50 overflow-hidden group shadow-sm">
+                          {isVideo ? (
+                            <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                              <PlayCircle className="h-8 w-8 text-white opacity-50" />
+                            </div>
+                          ) : (
+                            <Image src={url} alt="Media" fill className="object-cover" />
+                          )}
+                          <button 
+                            onClick={() => removeMedia(idx)}
+                            className="absolute top-1 right-1 bg-white/90 p-1 rounded-full text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                    <label className="aspect-square rounded-xl border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 hover:border-primary/50 transition-all bg-white">
+                      {isMediaUploading ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      ) : (
+                        <>
+                          <UploadCloud className="h-6 w-6 text-zinc-400" />
+                          <span className="text-[10px] font-bold text-zinc-500 mt-2">AJOUTER</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*,video/*" 
+                        className="hidden" 
+                        onChange={handleMediaUpload}
+                        disabled={isMediaUploading}
+                      />
+                    </label>
                   </div>
-                  <div className="space-y-2 flex-grow">
+                </div>
+
+                <div className="p-4 bg-zinc-50 rounded-xl border space-y-4">
+                  <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-zinc-400">Nom Commercial</Label>
                     <Input 
                       value={editingProduct.name} 
                       onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
-                      className="font-bold h-9"
+                      className="font-bold h-10 text-lg"
                     />
-                    <div className="flex gap-2">
-                      <div className="flex-grow space-y-1">
-                        <Label className="text-[10px] font-bold uppercase text-zinc-400">SKU / Réf</Label>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold uppercase text-zinc-400">SKU / Réf</Label>
+                      <Input 
+                        value={editingProduct.sku} 
+                        onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
+                        placeholder="YW-REF-001"
+                        className="h-9 text-sm font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold uppercase text-zinc-400">Prix Final (CNY)</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">¥</span>
                         <Input 
-                          value={editingProduct.sku} 
-                          onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
-                          placeholder="YW-REF-001"
-                          className="h-8 text-xs font-mono"
+                          type="number"
+                          className="pl-7 h-9 text-sm font-black text-primary"
+                          value={editingProduct.price} 
+                          onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
                         />
                       </div>
-                      <div className="w-1/2 space-y-1">
-                        <Label className="text-[10px] font-bold uppercase text-zinc-400">Prix Final (CNY)</Label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 text-xs">¥</span>
-                          <Input 
-                            type="number"
-                            className="pl-6 h-8 text-xs font-bold"
-                            value={editingProduct.price} 
-                            onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
-                          />
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Maximize className="h-3 w-3" /> Dimensions (cm)</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-zinc-500">Long.</Label>
-                      <Input type="number" className="h-8" value={editingProduct.length} onChange={(e) => setEditingProduct({...editingProduct, length: e.target.value})} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-zinc-500">Larg.</Label>
-                      <Input type="number" className="h-8" value={editingProduct.width} onChange={(e) => setEditingProduct({...editingProduct, width: e.target.value})} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-zinc-500">Haut.</Label>
-                      <Input type="number" className="h-8" value={editingProduct.height} onChange={(e) => setEditingProduct({...editingProduct, height: e.target.value})} />
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Maximize className="h-3 w-3" /> Dimensions (cm)</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Input type="number" className="h-9 px-2 text-xs" placeholder="L" value={editingProduct.length} onChange={(e) => setEditingProduct({...editingProduct, length: e.target.value})} />
+                      <Input type="number" className="h-9 px-2 text-xs" placeholder="W" value={editingProduct.width} onChange={(e) => setEditingProduct({...editingProduct, width: e.target.value})} />
+                      <Input type="number" className="h-9 px-2 text-xs" placeholder="H" value={editingProduct.height} onChange={(e) => setEditingProduct({...editingProduct, height: e.target.value})} />
                     </div>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Scale className="h-3 w-3" /> Poids Brut (kg)</Label>
-                  <Input type="number" step="0.01" value={editingProduct.weight} onChange={(e) => setEditingProduct({...editingProduct, weight: e.target.value})} />
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Scale className="h-3 w-3" /> Poids (kg)</Label>
+                    <Input type="number" step="0.01" className="h-9" value={editingProduct.weight} onChange={(e) => setEditingProduct({...editingProduct, weight: e.target.value})} />
+                  </div>
                 </div>
               </div>
               
-              {/* Technical Description */}
-              <div className="space-y-4">
+              {/* Right Column: Technical Details */}
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-zinc-400">Description Technique / Notes Admin</Label>
+                  <Label className="text-xs font-bold uppercase text-zinc-400">Description Technique & Spécifications</Label>
                   <Textarea 
-                    rows={12}
+                    rows={15}
                     value={editingProduct.description}
                     onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
                     placeholder="Détaillez ici les caractéristiques techniques qui seront visibles par le client (matériaux, certifications, emballage)..."
-                    className="text-sm leading-relaxed"
+                    className="text-sm leading-relaxed border-zinc-200 focus:ring-primary shadow-inner"
                   />
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg text-xs text-blue-700 space-y-1">
-                  <p className="font-bold">Information :</p>
-                  <p>Une fois validé, ce produit sera instantanément ajouté au catalogue privé du client. Il pourra alors l'ajouter à ses commandes.</p>
+                <div className="p-4 bg-primary/5 rounded-xl text-xs text-primary/80 border border-primary/10">
+                  <p className="font-black mb-1 flex items-center gap-2"><CheckCircle2 className="h-3 w-3" /> NOTE DE PUBLICATION</p>
+                  <p>Une fois publié, ce produit apparaîtra instantanément dans l'onglet <strong>"Mon Catalogue"</strong> du client avec les prix et médias configurés ci-contre.</p>
                 </div>
               </div>
             </div>
           )}
           
-          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t">
+          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t rounded-b-xl">
             <Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Annuler</Button>
-            <Button onClick={handleSaveProduct} disabled={isSaving} className="bg-primary hover:bg-primary/90 min-w-[200px]">
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-              Publier au Catalogue
+            <Button onClick={handleSaveProduct} disabled={isSaving || isMediaUploading} className="bg-primary hover:bg-primary/90 min-w-[220px] h-12 text-lg font-bold shadow-lg shadow-primary/20">
+              {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle2 className="h-5 w-5 mr-2" />}
+              PUBLIER AU CATALOGUE
             </Button>
           </DialogFooter>
         </DialogContent>
