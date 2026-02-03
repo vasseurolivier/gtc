@@ -32,7 +32,7 @@ export default function ContactPage() {
   
   return (
     <>
-      <section className="relative w-full h-[84vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
+      <section className="relative w-full h-[95vh] text-primary-foreground pt-16 md:pt-0 md:-mt-16">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -44,7 +44,7 @@ export default function ContactPage() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
-        <div className="relative h-full flex flex-col justify-end items-start text-left p-8 md:p-16">
+        <div className="relative h-full flex flex-col justify-start md:justify-end items-start text-left p-8 md:p-16 pt-[7cm] md:pt-0">
           <div className="max-w-4xl">
               <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   {dictionary.contactSection.title}
