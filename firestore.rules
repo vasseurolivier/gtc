@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * FIRESTORE SECURITY RULES - PROTOTYPING MODE
+     *
+     * Core Philosophy:
+     * This ruleset enforces a strict user-ownership model designed for a secure, multi-tenant 
+     * client portal. It focuses on isolating client data and preventing unauthorized access 
+     * between different client accounts and the administrative space.
+     *
+     * Data Structure:
+     * The database follows a hierarchical, nested structure:
+     * /clients/{clientId}
+     *   /productLists/{productListId}
+     *     /products/{productId}
+     *
+     * Key Security Decisions:
+     * 1. Path-Based Ownership: Authorization is primarily derived from the {clientId} 
+     *    present in the document path. This allows for fast, efficient rules without 
+     *    expensive cross-document lookups.
+     * 2. Identity Source of Truth: All decisions rely strictly on the Firebase Auth UID.
+     * 3. Relational Integrity: On creation, we enforce that internal foreign keys (like clientId) 
+     *    match the authenticated user and the document path to prevent data spoofing.
+     * 4. Flexible Schema: While authorization is strict, we do not enforce data types 
+     *    for content fields (e.g., names, descriptions) to allow for rapid UI/UX iteration.
+     * 5. No Public Access: By default, all data is private to the specific authenticated client.
+     */
+
+    // --- Global Helper Functions ---
+
+    /** Checks if the user is authenticated. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** Checks if the user owns the existing resource before update/delete. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the Client profile document. Only the client themselves can access or create their profile.
+     * @path /clients/{clientId}
+     * @allow auth.uid == '123' (get, create) on /clients/123
+     * @deny auth.uid == '123' (get) on /clients/456
+     * @principle Restricts root-level access to the account owner and enforces ID consistency.
+     */
+    match /clients/{clientId} {
+      allow get, list: if isOwner(clientId);
+      allow create: if isOwner(clientId) && request.resource.data.id == clientId;
+      allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(clientId);
+
+      /**
+       * @description Rules for Product Lists. Nested under the client to simplify ownership checks.
+       * @path /clients/{clientId}/productLists/{productListId}
+       * @allow auth.uid == '123' (create) on /clients/123/productLists/listA
+       * @deny auth.uid == '456' (list) on /clients/123/productLists
+       * @principle Uses path-based authorization to secure subcollections without extra database reads.
+       */
+      match /productLists/{productListId} {
+        allow get, list: if isOwner(clientId);
+        allow create: if isOwner(clientId) && request.resource.data.clientId == clientId;
+        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId;
+        allow delete: if isExistingOwner(clientId);
+
+        /**
+         * @description Rules for Products within a list. Inherits security context from the parent client path.
+         * @path /clients/{clientId}/productLists/{productListId}/products/{productId}
+         * @allow auth.uid == '123' (create) on /clients/123/productLists/listA/products/prod1
+         * @deny auth.uid == '789' (get) on /clients/123/productLists/listA/products/prod1
+         * @principle Ensures relational integrity by locking the product to its parent list ID.
+         */
+        match /products/{productId} {
+          allow get, list: if isOwner(clientId);
+          allow create: if isOwner(clientId) && request.resource.data.productListId == productListId;
+          allow update: if isExistingOwner(clientId) && request.resource.data.productListId == resource.data.productListId;
+          allow delete: if isExistingOwner(clientId);
+        }
+      }
+    }
+
+    // Default deny for any paths not explicitly matched
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "entities": {
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client of TradeBridge Global.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the client."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the client."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the client."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the client.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the client."
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Company name of the client."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the client."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email"
+      ]
+    },
+    "ProductList": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductList",
+      "type": "object",
+      "description": "Represents a list of products created by a client.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product list."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Reference to the Client who created this list. (Relationship: Client 1:N ProductList)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product list."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the product list."
+        }
+      },
+      "required": [
+        "id",
+        "clientId",
+        "name"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a product within a product list.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product."
+        },
+        "productListId": {
+          "type": "string",
+          "description": "Reference to the ProductList this product belongs to. (Relationship: ProductList 1:N Product)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the product."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "Unit price of the product."
+        }
+      },
+      "required": [
+        "id",
+        "productListId",
+        "name"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/clients/{clientId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": {
+            "$ref": "#/backend/entities/Client"
+          },
+          "description": "Stores client profile data. Each client has a unique document ID.  Path-based ownership enables secure access rules.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "The unique identifier for the client."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clients/{clientId}/productLists/{productListId}",
+        "definition": {
+          "entityName": "ProductList",
+          "schema": {
+            "$ref": "#/backend/entities/ProductList"
+          },
+          "description": "Stores product lists created by a client. The 'clientId' field is denormalized to ensure authorization independence.  Path-based ownership enables secure access rules.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "The unique identifier for the client."
+            },
+            {
+              "name": "productListId",
+              "description": "The unique identifier for the product list."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clients/{clientId}/productLists/{productListId}/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores individual products within a product list. The 'clientId' and 'productListId' are implied by the document path, enabling secure access rules based on client ownership.  Path-based ownership enables secure access rules.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "The unique identifier for the client."
+            },
+            {
+              "name": "productListId",
+              "description": "The unique identifier for the product list."
+            },
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to maintain a clear separation between client and admin spaces, ensuring distinct access control. Client data is organized under the `/clients/{clientId}` path, and their associated product lists are stored within subcollections. This structure enforces authorization independence by relying on path-based ownership. Each product list resides under a specific client's document and products are in turn nested under their parent product list. This approach allows direct ownership validation in security rules without needing to `get()` data from parent documents. The design supports QAPs by isolating client data and enabling secure `list` operations based on the client ID."
+  }
+}
