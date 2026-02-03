@@ -1,29 +1,36 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, PlusCircle, Package, ArrowRight, TrendingUp, Clock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useMemo } from 'react';
 
 export default function ClientDashboard() {
   const { user } = useUser();
   const db = useFirestore();
 
-  // Query for recent product lists
+  // Query pour les listes de produits (sans tri pour éviter le besoin d'index composite immédiat)
   const productListsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(
-      collection(db, 'clients', user.uid, 'productLists'),
-      orderBy('id', 'desc'), // Assuming we use IDs that are chronological or similar
-      limit(3)
-    );
+    return collection(db, 'clients', user.uid, 'productLists');
   }, [db, user]);
 
-  const { data: recentLists, isLoading } = useCollection(productListsQuery);
+  const { data: lists, isLoading } = useCollection(productListsQuery);
+
+  // Tri manuel et limite à 3
+  const recentLists = useMemo(() => {
+    if (!lists) return [];
+    return [...lists]
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, 3);
+  }, [lists]);
 
   return (
     <div className="space-y-8">
@@ -39,7 +46,7 @@ export default function ClientDashboard() {
             <ClipboardList className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{recentLists?.length || 0}</div>
+            <div className="text-3xl font-bold">{lists?.length || 0}</div>
             <p className="text-xs text-zinc-400 mt-1">Dernière mise à jour aujourd'hui</p>
           </CardContent>
         </Card>

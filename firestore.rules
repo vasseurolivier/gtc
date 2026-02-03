@@ -7,7 +7,6 @@ service cloud.firestore {
      * Version de déblocage total pour prototype
      */
 
-    // Autorisation globale pour assurer le bon fonctionnement de toutes les pages (Admin et Client)
     match /{document=**} {
       allow read, write: if true;
     }

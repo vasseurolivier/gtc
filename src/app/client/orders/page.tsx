@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Package, Receipt, ShoppingCart, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/actions/contact';
 import Link from 'next/link';
@@ -21,35 +21,50 @@ export default function ClientOrdersPage() {
   const { toast } = useToast();
   const [isOrdering, setIsOrdering] = useState<string | null>(null);
 
-  // Requête pour les commandes du client
+  // Requête simplifiée pour éviter le besoin d'index composites pendant le prototype
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
       collection(db, 'orders'),
-      where('customerId', '==', user.uid),
-      orderBy('orderDate', 'desc')
+      where('customerId', '==', user.uid)
     );
   }, [db, user]);
 
-  // Requête pour les factures du client
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
       collection(db, 'invoices'),
-      where('customerId', '==', user.uid),
-      orderBy('issueDate', 'desc')
+      where('customerId', '==', user.uid)
     );
   }, [db, user]);
 
-  // Requête pour le catalogue (produits globaux)
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), orderBy('name', 'asc'));
+    return collection(db, 'products');
   }, [db]);
 
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
   const { data: catalogProducts, isLoading: isCatalogLoading } = useCollection(productsQuery);
+
+  // Tri côté client
+  const sortedOrders = useMemo(() => {
+    if (!orders) return [];
+    return [...orders].sort((a, b) => {
+      const dateA = a.orderDate ? new Date(a.orderDate).getTime() : 0;
+      const dateB = b.orderDate ? new Date(b.orderDate).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [orders]);
+
+  const sortedInvoices = useMemo(() => {
+    if (!invoices) return [];
+    return [...invoices].sort((a, b) => {
+      const dateA = a.issueDate ? new Date(a.issueDate).getTime() : 0;
+      const dateB = b.issueDate ? new Date(b.issueDate).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [invoices]);
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -112,7 +127,7 @@ export default function ClientOrdersPage() {
             <CardContent className="p-0">
               {isOrdersLoading ? (
                 <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
-              ) : orders && orders.length > 0 ? (
+              ) : sortedOrders.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
@@ -123,7 +138,7 @@ export default function ClientOrdersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
+                    {sortedOrders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
                         <TableCell>{order.orderDate ? format(new Date(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
@@ -148,7 +163,7 @@ export default function ClientOrdersPage() {
             <CardContent className="p-0">
               {isInvoicesLoading ? (
                 <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
-              ) : invoices && invoices.length > 0 ? (
+              ) : sortedInvoices.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
@@ -160,7 +175,7 @@ export default function ClientOrdersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoices.map((inv) => (
+                    {sortedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell>{inv.dueDate ? format(new Date(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>

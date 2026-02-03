@@ -1,9 +1,8 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,16 +30,38 @@ export default function ProductListsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newList, setNewList] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(
-      collection(db, 'clients', user.uid, 'productLists'),
-      orderBy('id', 'desc')
-    );
+    return collection(db, 'clients', user.uid, 'productLists');
   }, [db, user]);
 
   const { data: lists, isLoading } = useCollection(listsQuery);
+
+  // Tri et filtrage côté client pour éviter le besoin d'index Firestore pendant le prototype
+  const filteredAndSortedLists = useMemo(() => {
+    if (!lists) return [];
+    
+    let result = [...lists];
+    
+    // Filtrage
+    if (searchTerm) {
+      result = result.filter(list => 
+        list.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        list.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Tri par date de création décroissante
+    result.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+    
+    return result;
+  }, [lists, searchTerm]);
 
   const handleCreateList = async () => {
     if (!newList.name || !user) return;
@@ -116,7 +137,12 @@ export default function ProductListsPage() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-        <Input className="pl-10 bg-white border-zinc-200" placeholder="Rechercher un projet..." />
+        <Input 
+          className="pl-10 bg-white border-zinc-200" 
+          placeholder="Rechercher un projet..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       {isLoading ? (
@@ -125,9 +151,9 @@ export default function ProductListsPage() {
             <div key={i} className="h-48 bg-zinc-200 animate-pulse rounded-xl" />
           ))}
         </div>
-      ) : lists && lists.length > 0 ? (
+      ) : filteredAndSortedLists.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {lists.map((list) => (
+          {filteredAndSortedLists.map((list) => (
             <Card key={list.id} className="border-none shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col h-full group">
               <CardHeader>
                 <div className="flex justify-between items-start">
