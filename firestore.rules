@@ -4,7 +4,7 @@ service cloud.firestore {
 
     /**
      * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
-     * Version de déblocage total pour prototype
+     * Prototype mode: Full access allowed
      */
 
     match /{document=**} {
