@@ -96,6 +96,8 @@ function AdminSettings() {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        console.log(`[AdminSettings] Début de l'upload pour: ${type}`);
+
         if (type === 'logo') setIsUploadingLogo(true);
         if (type === 'publicLogo') setIsUploadingPublicLogo(true);
         if (type === 'brochure') setIsUploadingBrochure(true);
@@ -112,14 +114,18 @@ function AdminSettings() {
                 if (type === 'brochure') setBrochureUrl(result.url);
                 toast({ title: 'Fichier téléchargé avec succès' });
             } else {
+                console.error(`[AdminSettings] Erreur upload ${type}:`, result.message);
                 toast({ variant: 'destructive', title: 'Erreur', description: result.message });
             }
         } catch (err) {
+            console.error(`[AdminSettings] Exception upload ${type}:`, err);
             toast({ variant: 'destructive', title: 'Erreur système', description: "Le service d'upload est indisponible." });
         } finally {
             if (type === 'logo') setIsUploadingLogo(false);
             if (type === 'publicLogo') setIsUploadingPublicLogo(false);
             if (type === 'brochure') setIsUploadingBrochure(false);
+            // Reset input value to allow re-uploading same file
+            e.target.value = '';
         }
     };
 
@@ -192,7 +198,7 @@ function AdminSettings() {
                                                 )}
                                             </div>
                                             <div className="flex-grow space-y-1">
-                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} className="h-8 text-xs" />
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} className="h-8 text-xs cursor-pointer" />
                                                 <Input placeholder="URL directe..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="h-8 text-xs" />
                                             </div>
                                         </div>
@@ -211,7 +217,7 @@ function AdminSettings() {
                                                 )}
                                             </div>
                                             <div className="flex-grow space-y-1">
-                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'publicLogo')} className="h-8 text-xs" />
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'publicLogo')} className="h-8 text-xs cursor-pointer" />
                                                 <Input placeholder="URL directe..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="h-8 text-xs" />
                                             </div>
                                         </div>
@@ -226,7 +232,7 @@ function AdminSettings() {
                                                 {isUploadingBrochure ? <Loader2 className="h-4 w-4 animate-spin" /> : brochureUrl ? <FileDown className="h-6 w-6 text-primary" /> : <FileDown className="h-6 w-6 text-muted-foreground" />}
                                             </div>
                                             <div className="flex-grow space-y-1">
-                                                <Input type="file" accept=".pdf" onChange={(e) => handleFileUpload(e, 'brochure')} className="h-8 text-xs" />
+                                                <Input type="file" accept=".pdf" onChange={(e) => handleFileUpload(e, 'brochure')} className="h-8 text-xs cursor-pointer" />
                                                 <Input placeholder="URL brochure..." value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)} className="h-8 text-xs" />
                                             </div>
                                         </div>
