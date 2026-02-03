@@ -23,6 +23,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a proforma invoice."),
