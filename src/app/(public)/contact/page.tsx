@@ -44,12 +44,12 @@ export default function ContactPage() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
-        <div className="relative h-full flex flex-col justify-start md:justify-end items-start text-left p-8 md:p-16 pt-[4cm] md:pt-0">
+        <div className="relative h-full flex flex-col justify-start md:justify-end items-start text-left p-8 md:p-16 pt-[2cm] md:pt-0">
           <div className="max-w-4xl">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
+              <h1 className="text-2xl md:text-5xl font-headline font-bold tracking-tight text-shadow-lg">
                   {dictionary.contactSection.title}
               </h1>
-              <div className="mt-4 max-w-3xl text-lg md:text-xl text-neutral-200">
+              <div className="mt-4 max-w-3xl text-sm md:text-xl text-neutral-200 leading-tight">
                   {dictionary.contactSection.subtitle}
               </div>
           </div>

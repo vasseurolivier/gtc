@@ -53,26 +53,26 @@ export function HeroSection() {
       )}
       <div className="absolute inset-0 bg-zinc-950/60 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent" />
       
-      <div className="relative h-full flex flex-col justify-start md:justify-end container px-8 md:px-16 pb-12 pt-[4cm] md:pt-0">
+      <div className="relative h-full flex flex-col justify-start md:justify-end container px-8 md:px-16 pb-12 pt-[2cm] md:pt-0">
         <div className="flex flex-col md:flex-row items-end gap-12">
             <div className="w-full lg:w-2/3 space-y-6">
-                <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider animate-in fade-in slide-in-from-left-4 duration-1000">
+                <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-[10px] md:text-sm font-semibold uppercase tracking-wider animate-in fade-in slide-in-from-left-4 duration-1000">
                   {dictionary.heroSection.tag}
                 </Badge>
-                <h1 className="text-2xl md:text-6xl lg:text-7xl font-headline font-extrabold tracking-tight text-white leading-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                <h1 className="text-xl md:text-6xl lg:text-7xl font-headline font-extrabold tracking-tight text-white leading-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                     {dictionary.heroSection.title}
                 </h1>
-                <p className="text-base md:text-2xl text-zinc-300 leading-tight md:leading-relaxed max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+                <p className="text-sm md:text-2xl text-zinc-300 leading-tight md:leading-relaxed max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                     {dictionary.heroSection.subtitle}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold h-14 px-8 text-lg" asChild>
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold h-12 md:h-14 px-6 md:px-8 text-base md:text-lg" asChild>
                       <Link href="/contact">
                           {dictionary.heroSection.ctaButton} <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                   </Button>
                   {brochureUrl && (
-                    <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 h-14 px-8 text-lg font-bold" asChild>
+                    <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 h-12 md:h-14 px-6 md:px-8 text-base md:text-lg font-bold" asChild>
                         <a href={brochureUrl} target="_blank" rel="noopener noreferrer">
                             {dictionary.heroSection.brochureButton}
                         </a>

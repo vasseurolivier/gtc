@@ -107,19 +107,19 @@ export default function SourcingPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-start md:justify-end items-start container px-8 md:px-16 pt-[4cm] md:pt-0 pb-12">
+        <div className="relative h-full flex flex-col justify-start md:justify-end items-start container px-8 md:px-16 pt-[2cm] md:pt-0 pb-12">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}
               </Badge>
-              <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
+              <h1 className="text-2xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
                   {dictionary.hero.title}
               </h1>
-              <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-2xl">
+              <p className="text-sm md:text-2xl text-zinc-300 leading-tight max-w-2xl">
                   {dictionary.hero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold h-14 px-8 text-lg" asChild>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold h-12 md:h-14 px-6 md:px-8 text-base md:text-lg" asChild>
                   <Link href="/contact">Trouver mes fournisseurs <ArrowRight className="ml-2 h-5 w-5"/></Link>
                 </Button>
               </div>

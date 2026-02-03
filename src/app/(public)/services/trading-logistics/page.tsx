@@ -85,7 +85,7 @@ export default function TradingLogisticsPage() {
       items: [
         { q: "Qu'est-ce que l'AQL ?", a: "L'AQL (Acceptable Quality Level) est une norme internationale utilisée pour définir le niveau de qualité acceptable d'un lot de production sans avoir à inspecter chaque unité une par une." },
         { q: "Proposez-vous du transport DDP ?", a: "Oui, c'est l'une de nos solutions les plus populaires. En DDP (Delivery Duty Paid), nous nous occupons de tout : fret, dédouanement et taxes. Vous recevez la marchandise à votre porte sans frais cachés." },
-        { q: "Puis-je regrouper des commandes de plusieurs fournisseurs ?", a: "Absolument. C'est la 'Consolidation'. Nous réceptionnons vos marchandises de différentes usines dans notre entrepôt de Yiwu ou Ningbo et les regroupons dans un seul container pour réduire vos coûts." },
+        { q: "Puis-je commander de petites quantités ?", a: "Absolument. C'est la 'Consolidation'. Nous réceptionnons vos marchandises de différentes usines dans notre entrepôt de Yiwu ou Ningbo et les regroupons dans un seul container pour réduire vos coûts." },
         { q: "Gérez-vous les litiges avec les usines ?", a: "Oui. En cas de défaut détecté lors de l'inspection, nous bloquons le paiement final à l'usine et exigeons la remise en conformité ou le remplacement avant expédition." }
       ]
     }
@@ -109,19 +109,19 @@ export default function TradingLogisticsPage() {
           />
         )}
         <div className="absolute inset-0 bg-zinc-950/70" />
-        <div className="relative h-full flex flex-col justify-start md:justify-end items-start container px-8 md:px-16 pt-[4cm] md:pt-0 pb-12">
+        <div className="relative h-full flex flex-col justify-start md:justify-end items-start container px-8 md:px-16 pt-[2cm] md:pt-0 pb-12">
           <div className="max-w-3xl space-y-6">
               <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-sm font-semibold uppercase tracking-wider">
                 {dictionary.hero.tag}
               </Badge>
-              <h1 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
+              <h1 className="text-2xl md:text-6xl font-headline font-extrabold tracking-tight text-white">
                   {dictionary.hero.title}
               </h1>
-              <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-2xl">
+              <p className="text-sm md:text-2xl text-zinc-300 leading-tight max-w-2xl">
                   {dictionary.hero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold h-14 px-8 text-lg" asChild>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold h-12 md:h-14 px-6 md:px-8 text-base md:text-lg" asChild>
                   <Link href="/contact">Optimiser ma logistique <ArrowRight className="ml-2 h-5 w-5"/></Link>
                 </Button>
               </div>
@@ -168,7 +168,7 @@ export default function TradingLogisticsPage() {
                             <p className="text-zinc-600 text-lg mb-6">{pillar.description}</p>
                             <ul className="grid grid-cols-1 gap-3">
                               {pillar.details.map((detail, dIdx) => (
-                                <li key={dIdx} className="flex items-center text-zinc-700 font-medium">
+                                <li key={detail} className="flex items-center text-zinc-700 font-medium">
                                   <Zap className="h-4 w-4 mr-3 text-primary fill-primary"/> {detail}
                                 </li>
                               ))}
