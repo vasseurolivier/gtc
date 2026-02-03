@@ -10,7 +10,7 @@ import {
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,14 +33,17 @@ import {
   Save,
   CheckCircle2,
   Package,
-  ExternalLink,
+  Plus,
+  Link as LinkIcon,
+  Search,
   ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { getProducts, Product } from '@/actions/products';
+import { getInvoices, Invoice } from '@/actions/invoices';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -54,20 +57,35 @@ export default function ClientDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [clientNumber, setClientNumber] = useState('');
   
+  // Catalog logic
+  const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
+  const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
+  
+  // Invoice linking logic
+  const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
+  const [isInvoiceLinkDialogOpen, setIsInvoiceLinkDialogOpen] = useState(false);
+
   // Sourcing logic
   const [selectedList, setSelectedList] = useState<any | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
 
-  // Fetch client and their data
+  // Fetch client and auxiliary data
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
-      const data = await getRegisteredClientById(clientId);
-      if (data) {
-        setClient(data);
-        setClientNumber(data.clientNumber || '');
+      const [clientData, prods, invs] = await Promise.all([
+        getRegisteredClientById(clientId),
+        getProducts(),
+        getInvoices()
+      ]);
+      
+      if (clientData) {
+        setClient(clientData);
+        setClientNumber(clientData.clientNumber || '');
       }
+      setGlobalProducts(prods);
+      setAllInvoices(invs);
       setIsLoading(false);
     }
     fetchData();
@@ -87,7 +105,7 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
-  // Invoices Query
+  // Invoices Query (Linked to this client)
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'invoices'), where('customerId', '==', clientId));
@@ -138,13 +156,67 @@ export default function ClientDetailPage() {
       await updateDoc(productRef, {
         sku: editingProduct.sku,
         price: Number(editingProduct.price),
-        unitPrice: Number(editingProduct.price), // Sync for list view
+        unitPrice: Number(editingProduct.price),
         description: editingProduct.description,
-        status: 'published', // Published means it's now in the client catalog
+        status: 'published',
         validatedAt: new Date().toISOString(),
       });
       toast({ title: "Produit validé", description: "Le produit est maintenant dans le catalogue du client." });
       setIsProductDialogOpen(false);
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddFromGlobalCatalog = async (prod: Product) => {
+    if (!selectedList || !db || !client) return;
+    setIsSaving(true);
+    try {
+      const prodId = `PROD-CAT-${Date.now()}`;
+      const productRef = doc(db, 'clients', clientId, 'productLists', selectedList.id, 'products', prodId);
+      
+      await setDoc(productRef, {
+        id: prodId,
+        productListId: selectedList.id,
+        clientId: clientId,
+        name: prod.name,
+        sku: prod.sku,
+        description: prod.description || '',
+        quantity: 1,
+        unitPrice: prod.price,
+        price: prod.price,
+        images: prod.imageUrl ? [prod.imageUrl] : [],
+        status: 'published',
+        createdAt: new Date().toISOString(),
+        validatedAt: new Date().toISOString(),
+      });
+      
+      toast({ title: "Produit ajouté", description: `${prod.name} a été ajouté au catalogue privé du client.` });
+      setIsCatalogDialogOpen(false);
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLinkInvoice = async (inv: Invoice) => {
+    if (!db || !client) return;
+    setIsSaving(true);
+    try {
+      const invoiceRef = doc(db, 'invoices', inv.id);
+      await updateDoc(invoiceRef, {
+        customerId: clientId,
+        customerName: `${client.firstName} ${client.lastName}`
+      });
+      
+      toast({ title: "Facture liée", description: `La facture ${inv.invoiceNumber} est maintenant visible par le client.` });
+      setIsInvoiceLinkDialogOpen(false);
+      // Refresh local list
+      const updatedInvs = await getInvoices();
+      setAllInvoices(updatedInvs);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -186,7 +258,6 @@ export default function ClientDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Client Info */}
         <div className="space-y-6">
           <Card className="border-none shadow-md">
             <CardHeader className="bg-muted/30 pb-4">
@@ -231,25 +302,8 @@ export default function ClientDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-none shadow-md bg-zinc-900 text-white">
-            <CardHeader>
-              <CardTitle className="text-sm uppercase tracking-wider text-zinc-400">Suivi Activité</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <div className="bg-white/5 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold">{productLists?.length || 0}</div>
-                <div className="text-[10px] text-zinc-400">Listes Sourcing</div>
-              </div>
-              <div className="bg-white/5 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold">{orders?.length || 0}</div>
-                <div className="text-[10px] text-zinc-400">Commandes</div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Right: Tabs for Details */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="lists" className="w-full">
             <TabsList className="bg-white border shadow-sm p-1 h-12 rounded-xl mb-6">
@@ -286,7 +340,12 @@ export default function ClientDetailPage() {
                     <Button variant="link" onClick={() => setSelectedList(null)} className="p-0 text-zinc-500">
                       <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux listes
                     </Button>
-                    <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                      <Button size="sm" variant="outline" className="h-8" onClick={() => setIsCatalogDialogOpen(true)}>
+                        <Plus className="h-3 w-3 mr-1" /> Ajouter du catalogue global
+                      </Button>
+                    </div>
                   </div>
                   
                   <Card className="border-none shadow-md overflow-hidden bg-white">
@@ -295,7 +354,7 @@ export default function ClientDetailPage() {
                         <TableRow>
                           <TableHead className="pl-6">Produit</TableHead>
                           <TableHead>Qté</TableHead>
-                          <TableHead>Prix Cible</TableHead>
+                          <TableHead>Prix Final</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead className="text-right pr-6">Actions</TableHead>
                         </TableRow>
@@ -314,7 +373,7 @@ export default function ClientDetailPage() {
                               </div>
                             </TableCell>
                             <TableCell>{product.quantity}</TableCell>
-                            <TableCell>¥{Number(product.unitPrice || 0).toFixed(2)}</TableCell>
+                            <TableCell>¥{Number(product.price || 0).toFixed(2)}</TableCell>
                             <TableCell>
                               {product.status === 'published' ? (
                                 <Badge className="bg-green-500 text-[10px] px-2 py-0">Publié</Badge>
@@ -372,6 +431,11 @@ export default function ClientDetailPage() {
             </TabsContent>
 
             <TabsContent value="invoices">
+              <div className="mb-4 flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => setIsInvoiceLinkDialogOpen(true)}>
+                  <LinkIcon className="h-4 w-4 mr-2" /> Lier une facture existante
+                </Button>
+              </div>
               <Card className="border-none shadow-md overflow-hidden bg-white">
                 <Table>
                   <TableHeader className="bg-zinc-50">
@@ -404,6 +468,79 @@ export default function ClientDetailPage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Catalog Dialog */}
+      <Dialog open={isCatalogDialogOpen} onOpenChange={setIsCatalogDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Ajouter depuis le catalogue global</DialogTitle>
+            <DialogDescription>Sélectionnez un produit standard pour l'ajouter aux options d'achat de ce client.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produit</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Prix Standard</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {globalProducts.map(p => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><Image src={p.imageUrl} alt={p.name} fill className="object-cover" /></div>}
+                        <span className="text-xs font-bold">{p.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs">{p.sku}</TableCell>
+                    <TableCell className="text-xs">¥{p.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button size="xs" variant="secondary" onClick={() => handleAddFromGlobalCatalog(p)}>Ajouter</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Link Dialog */}
+      <Dialog open={isInvoiceLinkDialogOpen} onOpenChange={setIsInvoiceLinkDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Lier une facture existante</DialogTitle>
+            <DialogDescription>Sélectionnez une facture non attribuée ou d'un autre dossier pour la rendre visible à ce client.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>N° Facture</TableHead>
+                  <TableHead>Client Actuel</TableHead>
+                  <TableHead>Montant</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allInvoices.filter(i => i.customerId !== clientId).map(inv => (
+                  <TableRow key={inv.id}>
+                    <TableCell className="text-xs font-bold">{inv.invoiceNumber}</TableCell>
+                    <TableCell className="text-xs">{inv.customerName}</TableCell>
+                    <TableCell className="text-xs font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button size="xs" onClick={() => handleLinkInvoice(inv)}>Attribuer à {client.firstName}</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Product Validation Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
