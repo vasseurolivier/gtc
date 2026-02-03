@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where } from 'firebase/firestore';
 
 export interface RegisteredClient {
     id: string;
@@ -12,6 +12,9 @@ export interface RegisteredClient {
     clientNumber?: string;
     status?: 'pending' | 'validated';
     createdAt: string;
+    phone?: string;
+    companyName?: string;
+    address?: string;
 }
 
 /**
@@ -28,6 +31,21 @@ export async function getRegisteredClients(): Promise<RegisteredClient[]> {
     } catch (e) {
         console.error("Error fetching registered clients:", e);
         return [];
+    }
+}
+
+/**
+ * Fetch a single registered client by ID.
+ */
+export async function getRegisteredClientById(id: string): Promise<RegisteredClient | null> {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        const snap = await getDoc(clientRef);
+        if (!snap.exists()) return null;
+        return { id: snap.id, ...snap.data() } as RegisteredClient;
+    } catch (e) {
+        console.error("Error fetching client by id:", e);
+        return null;
     }
 }
 

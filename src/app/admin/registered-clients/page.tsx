@@ -13,11 +13,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, UserCheck, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Loader2, Save, Search, UserCheck, ShieldCheck, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
@@ -100,37 +101,39 @@ export default function RegisteredClientsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Comptes Clients</h1>
-          <p className="text-muted-foreground">Validez les comptes et attribuez des numéros client.</p>
+          <p className="text-muted-foreground">Validez les comptes et gérez les dossiers clients.</p>
         </div>
       </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          className="pl-10 max-w-md" 
+          className="pl-10 max-w-md bg-white" 
           placeholder="Rechercher par nom, email ou numéro..." 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      <Card className="border-none shadow-md overflow-hidden">
+      <Card className="border-none shadow-md overflow-hidden bg-white">
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead className="w-[200px]">Nom / Prénom</TableHead>
+                <TableHead className="w-[200px] pl-6">Nom / Prénom</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="w-[200px]">Numéro Client</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead className="text-right pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClients.length > 0 ? filteredClients.map((client) => (
                 <TableRow key={client.id} className="hover:bg-muted/30">
-                  <TableCell className="font-semibold">
-                    {client.firstName} {client.lastName}
+                  <TableCell className="font-semibold pl-6">
+                    <Link href={`/admin/registered-clients/${client.id}`} className="hover:text-primary transition-colors">
+                      {client.firstName} {client.lastName}
+                    </Link>
                     <div className="text-[10px] text-muted-foreground font-normal">
                       Inscrit le {client.createdAt ? format(new Date(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
                     </div>
@@ -162,20 +165,25 @@ export default function RegisteredClientsPage() {
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right pr-6 space-x-2">
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/admin/registered-clients/${client.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
                     <Button 
                       size="sm" 
                       variant={client.status === 'validated' ? "outline" : "default"}
                       disabled={validatingId === client.id}
                       onClick={() => handleToggleStatus(client.id, client.status)}
-                      className="min-w-[120px]"
+                      className="min-w-[100px]"
                     >
                       {validatingId === client.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : client.status === 'validated' ? (
                         <>Suspendre</>
                       ) : (
-                        <><ShieldCheck className="h-4 w-4 mr-2" /> Valider</>
+                        <>Valider</>
                       )}
                     </Button>
                   </TableCell>
