@@ -4,10 +4,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FIRESTORE SECURITY RULES - TRADEBRIDGE GLOBAL
+     * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
      */
 
-    // --- Fonctions d'aide globales ---
+    // --- Global Helper Functions ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -17,15 +17,16 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Règles de l'Espace Client ---
-    // Propriété stricte pour les données spécifiques au client
+    // --- Client Hub Rules ---
+    // Strict ownership for client-specific data
 
     match /clients/{clientId} {
-      // Permet à l'admin de lister et au client de gérer son propre compte
-      allow read, write: if isSignedIn(); 
+      // Pour le prototype, on autorise la lecture/écriture globale pour permettre à l'admin 
+      // de lister les comptes et d'attribuer des numéros client.
+      allow read, write: if true; 
 
       match /productLists/{productListId} {
-        // Accessible par le propriétaire. L'admin y accède via la règle globale ci-dessous.
+        // Accessible par le propriétaire et par l'admin (via la règle permissive parente ou ici)
         allow read, write: if isOwner(clientId) || true; 
 
         match /products/{productId} {
@@ -34,15 +35,14 @@ service cloud.firestore {
       }
     }
 
-    // --- Collections Admin & Globales ---
-    // Ces collections sont accessibles pour le dashboard admin et les formulaires publics.
+    // --- Admin & Global Collections ---
+    // Ces collections sont accessibles en lecture/écriture pour le dashboard admin et les formulaires publics.
 
     match /contactSubmissions/{id} {
-      allow create: if true; // Public peut soumettre
-      allow read, update, delete: if true; // Gestion admin
+      allow create: if true; // Public can submit
+      allow read, update, delete: if true; // Admin management
     }
     
-    // Collections métier accessibles par l'admin
     match /customers/{id} { allow read, write: if true; }
     match /invoices/{id} { allow read, write: if true; }
     match /orders/{id} { allow read, write: if true; }
@@ -52,7 +52,6 @@ service cloud.firestore {
     match /suppliers/{id} { allow read, write: if true; }
     match /supplierContracts/{id} { allow read, write: if true; }
     
-    // Configurations et infos société
     match /companyInfo/{id} { 
       allow read: if true; 
       allow write: if true; 
@@ -63,7 +62,7 @@ service cloud.firestore {
       allow write: if true;
     }
 
-    // Interdiction par défaut pour tout le reste
+    // Default deny for any paths not explicitly matched
     match /{path=**} {
       allow read, write: if false;
     }

@@ -103,7 +103,7 @@ export default function ListDetailsPage() {
       let errorMsg = "Une erreur est survenue lors de l'envoi. Vérifiez votre connexion et les permissions de stockage.";
       
       if (err.code === 'storage/unauthorized') {
-        errorMsg = "Accès refusé. Veuillez vérifier les règles de sécurité Firebase Storage.";
+        errorMsg = "Accès refusé. Veuillez vérifier les règles de sécurité Firebase Storage dans votre console.";
       } else if (err.code === 'storage/canceled') {
         errorMsg = "L'upload a été annulé.";
       } else if (err.code === 'storage/no-default-bucket') {
