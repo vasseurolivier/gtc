@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,11 +8,12 @@ import {
   updateRegisteredClientStatus,
   RegisteredClient 
 } from '@/actions/registered-clients';
+import { getOrders, Order } from '@/actions/orders';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, UserCheck, ShieldCheck, Eye } from 'lucide-react';
+import { Loader2, Save, Search, UserCheck, ShieldCheck, Eye, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,6 +22,7 @@ import Link from 'next/link';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -40,8 +41,12 @@ export default function RegisteredClientsPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const data = await getRegisteredClients();
+        const [data, ords] = await Promise.all([
+          getRegisteredClients(),
+          getOrders()
+        ]);
         setClients(data);
+        setOrders(ords);
         const numbers: Record<string, string> = {};
         data.forEach(c => {
           numbers[c.id] = c.clientNumber || '';
@@ -80,6 +85,10 @@ export default function RegisteredClientsPage() {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
     setValidatingId(null);
+  };
+
+  const getPendingOrdersCount = (clientId: string) => {
+    return orders.filter(o => o.customerId === clientId && o.status === 'processing').length;
   };
 
   const filteredClients = clients.filter(c => 
@@ -122,75 +131,89 @@ export default function RegisteredClientsPage() {
               <TableRow>
                 <TableHead className="w-[200px] pl-6">Nom / Prénom</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Commandes</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="w-[200px]">Numéro Client</TableHead>
                 <TableHead className="text-right pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.length > 0 ? filteredClients.map((client) => (
-                <TableRow key={client.id} className="hover:bg-muted/30">
-                  <TableCell className="font-semibold pl-6">
-                    <Link href={`/admin/registered-clients/${client.id}`} className="hover:text-primary transition-colors">
-                      {client.firstName} {client.lastName}
-                    </Link>
-                    <div className="text-[10px] text-muted-foreground font-normal">
-                      Inscrit le {client.createdAt ? format(new Date(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
-                    </div>
-                  </TableCell>
-                  <TableCell>{client.email}</TableCell>
-                  <TableCell>
-                    {client.status === 'validated' ? (
-                      <Badge className="bg-green-500 hover:bg-green-600">Validé</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50">En attente</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        placeholder="ex: CL-001" 
-                        value={tempNumbers[client.id] || ''} 
-                        onChange={(e) => setTempNumbers(prev => ({ ...prev, [client.id]: e.target.value }))}
-                        className="h-8 text-xs"
-                      />
-                      <Button 
-                        size="icon" 
-                        variant="ghost"
-                        className="h-8 w-8"
-                        disabled={savingId === client.id || client.clientNumber === tempNumbers[client.id]}
-                        onClick={() => handleUpdateNumber(client.id)}
-                      >
-                        {savingId === client.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right pr-6 space-x-2">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/registered-clients/${client.id}`}>
-                        <Eye className="h-4 w-4" />
+              {filteredClients.length > 0 ? filteredClients.map((client) => {
+                const pendingCount = getPendingOrdersCount(client.id);
+                return (
+                  <TableRow key={client.id} className="hover:bg-muted/30">
+                    <TableCell className="font-semibold pl-6">
+                      <Link href={`/admin/registered-clients/${client.id}`} className="hover:text-primary transition-colors flex flex-col">
+                        <span>{client.firstName} {client.lastName}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          Inscrit le {client.createdAt ? format(new Date(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
+                        </span>
                       </Link>
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={client.status === 'validated' ? "outline" : "default"}
-                      disabled={validatingId === client.id}
-                      onClick={() => handleToggleStatus(client.id, client.status)}
-                      className="min-w-[100px]"
-                    >
-                      {validatingId === client.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : client.status === 'validated' ? (
-                        <>Suspendre</>
+                    </TableCell>
+                    <TableCell>{client.email}</TableCell>
+                    <TableCell>
+                      {pendingCount > 0 ? (
+                        <Badge className="bg-orange-500 animate-pulse flex gap-1">
+                          <ShoppingCart className="h-3 w-3" />
+                          {pendingCount} en attente
+                        </Badge>
                       ) : (
-                        <>Valider</>
+                        <span className="text-xs text-muted-foreground">Aucune active</span>
                       )}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )) : (
+                    </TableCell>
+                    <TableCell>
+                      {client.status === 'validated' ? (
+                        <Badge className="bg-green-500 hover:bg-green-600">Validé</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50">En attente</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          placeholder="ex: CL-001" 
+                          value={tempNumbers[client.id] || ''} 
+                          onChange={(e) => setTempNumbers(prev => ({ ...prev, [client.id]: e.target.value }))}
+                          className="h-8 text-xs"
+                        />
+                        <Button 
+                          size="icon" 
+                          variant="ghost"
+                          className="h-8 w-8"
+                          disabled={savingId === client.id || client.clientNumber === tempNumbers[client.id]}
+                          onClick={() => handleUpdateNumber(client.id)}
+                        >
+                          {savingId === client.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right pr-6 space-x-2">
+                      <Button variant="ghost" size="icon" asChild title="Voir dossier">
+                        <Link href={`/admin/registered-clients/${client.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant={client.status === 'validated' ? "outline" : "default"}
+                        disabled={validatingId === client.id}
+                        onClick={() => handleToggleStatus(client.id, client.status)}
+                        className="min-w-[100px]"
+                      >
+                        {validatingId === client.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : client.status === 'validated' ? (
+                          <>Suspendre</>
+                        ) : (
+                          <>Valider</>
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              }) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                     Aucun compte client trouvé.
                   </TableCell>
                 </TableRow>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -17,12 +16,13 @@ import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, Order } from '@/actions/orders';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, FileText, Sparkles } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import Link from 'next/link';
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a proforma invoice."),
@@ -152,51 +152,74 @@ export default function OrdersPage() {
             <TableHead>Order #</TableHead>
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Statut</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
       )}
       <TableBody>
-        {orderList.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell className="font-medium">{order.orderNumber}</TableCell>
-            <TableCell>{order.customerName}</TableCell>
-            <TableCell>{formatInTimeZone(new Date(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
-            <TableCell>
-              <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
-                <SelectTrigger className="w-36">
-                  <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
-            <TableCell className="text-right">
-                <div>¥{order.totalAmount.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</div>
-            </TableCell>
-            <TableCell className="text-right">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete this order.
-                        </AlertDialogDescription></AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </TableCell>
-          </TableRow>
-        ))}
+        {orderList.map((order) => {
+          const isClientInitiated = !order.quoteId;
+          const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000; // less than 1 hour
+
+          return (
+            <TableRow key={order.id} className={cn(isVeryRecent && !isArchived && "bg-primary/5")}>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  {order.orderNumber}
+                  {isVeryRecent && !isArchived && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Link href={`/admin/registered-clients/${order.customerId}`} className="hover:underline font-semibold">
+                  {order.customerName}
+                </Link>
+              </TableCell>
+              <TableCell>{formatInTimeZone(new Date(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
+              <TableCell>
+                <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
+                  <SelectTrigger className="w-36">
+                    <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+              <TableCell className="text-right">
+                  <div>¥{order.totalAmount.toFixed(2)}</div>
+                  <div className="text-xs text-muted-foreground">{currency.symbol}{(order.totalAmount * exchangeRate).toFixed(2)}</div>
+              </TableCell>
+              <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {isClientInitiated && order.status === 'processing' && (
+                      <Button variant="secondary" size="sm" asChild className="bg-primary hover:bg-primary/90 text-white font-bold">
+                        <Link href={`/admin/quotes?fromOrder=${order.id}`}>
+                          <Sparkles className="mr-2 h-4 w-4" /> Générer Proforma
+                        </Link>
+                      </Button>
+                    )}
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete this order.
+                            </AlertDialogDescription></AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

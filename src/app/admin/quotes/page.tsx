@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -24,6 +22,7 @@ import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote
 import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
+import { getOrderById } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -193,6 +192,7 @@ function QuotesPageContent() {
     }
     
     const packingListId = searchParams.get('fromPackingList');
+    const orderId = searchParams.get('fromOrder');
 
     async function fetchData() {
       setIsLoading(true);
@@ -226,14 +226,43 @@ function QuotesPageContent() {
                     status: "draft",
                     depositRequired: true,
                     depositPercentage: 30,
-                    // Reset other fields
                 });
                 setIsDialogOpen(true);
-                 // Clean up URL
                 router.replace('/admin/quotes');
-            } else {
-                toast({ variant: 'destructive', title: 'Error', description: 'Packing List not found.' });
             }
+        }
+
+        if (orderId) {
+          const order = await getOrderById(orderId);
+          if (order) {
+            const newItems = order.items.map(item => ({
+              sku: item.sku || "",
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              purchasePrice: item.purchasePrice || 0,
+              total: item.total,
+              photo: (item as any).photo || "",
+            }));
+            form.reset({
+              quoteNumber: `PI-${order.orderNumber.replace('ORD-', '')}`,
+              customerId: order.customerId,
+              customerName: order.customerName,
+              issueDate: new Date(),
+              validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
+              items: newItems,
+              subTotal: order.totalAmount,
+              transportCost: order.transportCost || 0,
+              commissionRate: order.commissionRate || 0,
+              totalAmount: order.totalAmount,
+              status: "draft",
+              shippingAddress: order.shippingAddress || "",
+              depositRequired: true,
+              depositPercentage: 30,
+            });
+            setIsDialogOpen(true);
+            router.replace('/admin/quotes');
+          }
         }
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
@@ -471,7 +500,7 @@ function QuotesPageContent() {
                 </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <FormField control={form.control} name="quoteNumber" render={({ field }) => (
                     <FormItem><FormLabel>Proforma #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -757,5 +786,3 @@ export default function QuotesPage() {
         </Suspense>
     );
 }
-
-    

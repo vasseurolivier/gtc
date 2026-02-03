@@ -44,7 +44,8 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getSubmissions, Submission } from '@/actions/submissions';
+import { getSubmissions } from '@/actions/submissions';
+import { getOrders } from '@/actions/orders';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
 import { uploadFile } from '@/actions/upload';
@@ -272,6 +273,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
@@ -287,14 +289,18 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated !== true) return;
-    async function fetchUnreadCount() {
+    async function fetchCounts() {
         try {
-            const submissions = await getSubmissions();
-            setUnreadMessages(submissions.filter(s => !s.read).length);
+            const [subs, ords] = await Promise.all([
+              getSubmissions(),
+              getOrders()
+            ]);
+            setUnreadMessages(subs.filter(s => !s.read).length);
+            setPendingOrders(ords.filter(o => o.status === 'processing').length);
         } catch (error) {}
     }
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 10000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 10000);
     return () => clearInterval(interval);
   }, [pathname, isAuthenticated]);
 
@@ -307,12 +313,12 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
-    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients' },
+    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: pendingOrders > 0 ? pendingOrders : 0 },
     { href: '/admin/customers', icon: <Users />, label: 'Leads CRM' },
     { href: '/admin/suppliers', icon: <Factory />, label: 'Suppliers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
     { href: '/admin/quotes', icon: <FileText />, label: 'Proforma Invoices' },
-    { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
+    { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders', badge: pendingOrders },
     { href: '/admin/invoices', icon: <Receipt />, label: 'Invoices' },
     { href: '/admin/products', icon: <Package />, label: 'Products' },
     { href: '/admin/supplier-contract', icon: <FileSignature />, label: 'Supplier Contract' },
@@ -341,7 +347,14 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
                     <span>
                       {item.icon}
                       <span>{item.label}</span>
-                      {item.badge && item.badge > 0 && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <SidebarMenuBadge className={cn(
+                          "bg-primary text-white",
+                          item.href === '/admin/orders' && "bg-red-600 animate-pulse"
+                        )}>
+                          {item.badge}
+                        </SidebarMenuBadge>
+                      )}
                     </span>
                   </SidebarMenuButton>
                 </Link>
