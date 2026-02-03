@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,56 +12,36 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // --- Client Hub Rules ---
-    // Strict ownership for client-specific data
+    // --- Client & Admin Rules ---
+    // On autorise l'accès aux collections principales pour le bon fonctionnement 
+    // du dashboard admin et de l'espace client.
 
     match /clients/{clientId} {
-      // Pour le prototype, on autorise la lecture/écriture globale pour permettre à l'admin 
-      // de lister les comptes et d'attribuer des numéros client.
       allow read, write: if true; 
 
       match /productLists/{productListId} {
-        // Accessible par le propriétaire et par l'admin (via la règle permissive parente ou ici)
-        allow read, write: if isOwner(clientId) || true; 
+        allow read, write: if true; 
 
         match /products/{productId} {
-          allow read, write: if isOwner(clientId) || true;
+          allow read, write: if true;
         }
       }
     }
 
-    // --- Admin & Global Collections ---
-    // Ces collections sont accessibles en lecture/écriture pour le dashboard admin et les formulaires publics.
-
-    match /contactSubmissions/{id} {
-      allow create: if true; // Public can submit
-      allow read, update, delete: if true; // Admin management
-    }
-    
-    match /customers/{id} { allow read, write: if true; }
-    match /invoices/{id} { allow read, write: if true; }
+    // Collections racines
     match /orders/{id} { allow read, write: if true; }
-    match /packingLists/{id} { allow read, write: if true; }
+    match /invoices/{id} { allow read, write: if true; }
     match /products/{id} { allow read, write: if true; }
+    match /customers/{id} { allow read, write: if true; }
+    match /contactSubmissions/{id} { allow read, write: if true; }
+    match /packingLists/{id} { allow read, write: if true; }
     match /quotes/{id} { allow read, write: if true; }
     match /suppliers/{id} { allow read, write: if true; }
     match /supplierContracts/{id} { allow read, write: if true; }
-    
-    match /companyInfo/{id} { 
-      allow read: if true; 
-      allow write: if true; 
-    }
-    
-    match /config/{id} {
-      allow read: if true;
-      allow write: if true;
-    }
+    match /companyInfo/{id} { allow read, write: if true; }
+    match /config/{id} { allow read, write: if true; }
 
-    // Default deny for any paths not explicitly matched
+    // Règle par défaut
     match /{path=**} {
       allow read, write: if false;
     }
