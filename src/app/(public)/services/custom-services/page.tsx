@@ -37,7 +37,7 @@ export default function CustomServicesPage() {
     },
     stats: [
       { label: "Nouveaux Produits / An", value: "50+" },
-      { label: "Accompagnements Salons", value: "200+" },
+      { label: "Accompagnements Salons", value: "50" },
       { label: "Success Rate R&D", value: "95%" },
       { label: "Experts Dédiés", value: "3" }
     ],
