@@ -2,7 +2,7 @@
 
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, ReactNode } from 'react';
+import { useEffect, ReactNode, useState } from 'react';
 import { doc } from 'firebase/firestore';
 import { 
   SidebarProvider, 
@@ -38,6 +38,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const db = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch client profile to check status
   const profileRef = useMemoFirebase(() => {
@@ -48,17 +53,17 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
   useEffect(() => {
-    if (!isUserLoading && !user && pathname !== '/client/login') {
+    if (mounted && !isUserLoading && !user && pathname !== '/client/login') {
       router.push('/client/login');
     }
-  }, [user, isUserLoading, router, pathname]);
+  }, [user, isUserLoading, router, pathname, mounted]);
 
   const handleLogout = async () => {
     await signOut(auth);
     router.push('/client/login');
   };
 
-  if (isUserLoading || (user && isProfileLoading)) {
+  if (!mounted || isUserLoading || (user && isProfileLoading)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -74,7 +79,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  // --- Account Validation Screen ---
+  // --- Account Validation Screen (Strict Security) ---
   if (profile && profile.status !== 'validated') {
     return (
       <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
@@ -86,12 +91,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             <div className="space-y-2">
               <h1 className="text-2xl font-headline font-bold text-zinc-900">Compte en attente</h1>
               <p className="text-zinc-500">
-                Bonjour <strong>{profile.firstName}</strong>, votre compte a bien été créé mais il doit être validé par un administrateur avant de pouvoir accéder à l'espace sécurisé.
+                Bonjour <strong>{profile.firstName}</strong>, votre compte doit être validé par un administrateur avant de pouvoir accéder à votre catalogue et vos commandes.
               </p>
             </div>
             <div className="p-4 bg-zinc-50 rounded-lg text-sm text-zinc-600 flex items-start gap-3 text-left">
               <ShieldAlert className="h-5 w-5 text-orange-500 shrink-0" />
-              <p>Cette mesure de sécurité garantit l'intégrité de notre plateforme et la confidentialité des données de nos clients.</p>
+              <p>Cette mesure de sécurité protège la confidentialité de vos transactions et de vos tarifs négociés.</p>
             </div>
             <div className="flex flex-col gap-3">
               <Button variant="outline" className="w-full h-12 font-bold" onClick={handleLogout}>
@@ -153,8 +158,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       <SidebarInset className="bg-zinc-50">
         <header className="h-16 border-b bg-white flex items-center justify-between px-8 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Validé</Badge>
-            <h2 className="font-bold text-zinc-800">Espace Client Sécurisé</h2>
+            <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Accès Sécurisé</Badge>
+            <h2 className="font-bold text-zinc-800">Espace Client</h2>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-zinc-500 hidden md:inline">{user?.email}</span>

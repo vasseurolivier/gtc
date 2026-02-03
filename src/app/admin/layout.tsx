@@ -96,8 +96,6 @@ function AdminSettings() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        console.log(`[AdminSettings] Début de l'upload pour: ${type}`);
-
         if (type === 'logo') setIsUploadingLogo(true);
         if (type === 'publicLogo') setIsUploadingPublicLogo(true);
         if (type === 'brochure') setIsUploadingBrochure(true);
@@ -114,24 +112,19 @@ function AdminSettings() {
                 if (type === 'brochure') setBrochureUrl(result.url);
                 toast({ title: 'Fichier téléchargé avec succès' });
             } else {
-                console.error(`[AdminSettings] Erreur upload ${type}:`, result.message);
                 toast({ variant: 'destructive', title: 'Erreur', description: result.message });
             }
         } catch (err) {
-            console.error(`[AdminSettings] Exception upload ${type}:`, err);
             toast({ variant: 'destructive', title: 'Erreur système', description: "Le service d'upload est indisponible." });
         } finally {
             if (type === 'logo') setIsUploadingLogo(false);
             if (type === 'publicLogo') setIsUploadingPublicLogo(false);
             if (type === 'brochure') setIsUploadingBrochure(false);
-            // Reset input value to allow re-uploading same file
             e.target.value = '';
         }
     };
 
-    if (!currencyContext || !companyInfoContext) {
-        return null;
-    }
+    if (!currencyContext || !companyInfoContext) return null;
 
     const { setCurrency, setExchangeRate } = currencyContext;
     const { setCompanyInfo } = companyInfoContext;
@@ -143,14 +136,10 @@ function AdminSettings() {
             return;
         }
 
-        if (selectedCurrency === 'EUR') {
-            setCurrency({ symbol: '€', code: 'EUR' });
-        } else if (selectedCurrency === 'USD') {
-            setCurrency({ symbol: '$', code: 'USD' });
-        }
+        if (selectedCurrency === 'EUR') setCurrency({ symbol: '€', code: 'EUR' });
+        else if (selectedCurrency === 'USD') setCurrency({ symbol: '$', code: 'USD' });
         
         setExchangeRate(newRate);
-        
         setCompanyInfo({
             name: companyName,
             address: companyAddress,
@@ -161,15 +150,14 @@ function AdminSettings() {
             brochureUrl: brochureUrl,
         });
 
-        toast({ title: 'Configuration mise à jour', description: 'Les changements sont enregistrés dans la base de données.'});
+        toast({ title: 'Configuration mise à jour' });
         setIsDialogOpen(false);
     };
     
     return (
         <>
             <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
-                <Cog className="mr-2 h-4 w-4" />
-                Paramètres
+                <Cog className="mr-2 h-4 w-4" /> Paramètres
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-2xl">
@@ -185,7 +173,6 @@ function AdminSettings() {
                                     <Label htmlFor="company-name" className="text-right">Raison Sociale</Label>
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
-                                
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2">Logo Admin</Label>
                                     <div className="col-span-3 space-y-2">
@@ -204,7 +191,6 @@ function AdminSettings() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2">Logo Public</Label>
                                     <div className="col-span-3 space-y-2">
@@ -223,7 +209,6 @@ function AdminSettings() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2">Brochure PDF</Label>
                                     <div className="col-span-3 space-y-2">
@@ -238,7 +223,6 @@ function AdminSettings() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label htmlFor="company-address" className="text-right pt-2">Adresse</Label>
                                     <Textarea id="company-address" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} className="col-span-3" rows={3} />
@@ -258,11 +242,9 @@ function AdminSettings() {
                             <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Paramètres Financiers</h3>
                             <div className="grid gap-4">
                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="currency-select" className="text-right">Devise d'affichage</Label>
+                                    <Label htmlFor="currency-select" className="text-right">Devise</Label>
                                     <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                                        <SelectTrigger className="col-span-3" id="currency-select">
-                                            <SelectValue placeholder="Select a currency" />
-                                        </SelectTrigger>
+                                        <SelectTrigger className="col-span-3" id="currency-select"><SelectValue placeholder="Select a currency" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="EUR">Euro (€)</SelectItem>
                                             <SelectItem value="USD">US Dollar ($)</SelectItem>
@@ -278,9 +260,7 @@ function AdminSettings() {
                     </div>
                     <DialogFooter>
                         <DialogClose asChild><Button type="button" variant="outline">Annuler</Button></DialogClose>
-                        <Button onClick={handleSave}>
-                            Enregistrer tout
-                        </Button>
+                        <Button onClick={handleSave}>Enregistrer tout</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -288,44 +268,33 @@ function AdminSettings() {
     );
 }
 
-function ProtectedAdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
-
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
       router.push('/admin/login');
+      setIsAuthenticated(false);
     } else {
       setIsAuthenticated(true);
     }
   }, [router, pathname]);
 
-
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (isAuthenticated !== true) return;
     async function fetchUnreadCount() {
         try {
             const submissions = await getSubmissions();
-            const unread = submissions.filter(s => !s.read).length;
-            setUnreadMessages(unread);
-        } catch (error) {
-            console.error("Failed to fetch submissions for count:", error);
-        }
+            setUnreadMessages(submissions.filter(s => !s.read).length);
+        } catch (error) {}
     }
-    // Fetch count on initial load
     fetchUnreadCount();
-
-    // Also fetch when path changes to /admin/submissions to update the badge
-    const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5s
+    const interval = setInterval(fetchUnreadCount, 10000);
     return () => clearInterval(interval);
   }, [pathname, isAuthenticated]);
 
@@ -349,15 +318,11 @@ function ProtectedAdminLayout({
     { href: '/admin/supplier-contract', icon: <FileSignature />, label: 'Supplier Contract' },
   ];
   
-  const activePath = pathname;
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
+  if (isAuthenticated === null) {
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
+
+  if (!isAuthenticated) return null;
 
   return (
     <SidebarProvider>
@@ -372,13 +337,11 @@ function ProtectedAdminLayout({
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
-                  <SidebarMenuButton asChild isActive={activePath === item.href || activePath.startsWith(`${item.href}/`)}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}>
                     <span>
                       {item.icon}
                       <span>{item.label}</span>
-                        {item.badge && item.badge > 0 && (
-                        <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                      )}
+                      {item.badge && item.badge > 0 && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
                     </span>
                   </SidebarMenuButton>
                 </Link>
@@ -388,29 +351,30 @@ function ProtectedAdminLayout({
           <SidebarFooter>
             <AdminSettings />
             <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              <LogOut className="mr-2 h-4 w-4" /> Logout
             </Button>
           </SidebarFooter>
         </SidebarContent>
       </Sidebar>
-      <SidebarInset>
-        {children}
-      </SidebarInset>
+      <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>
   );
 }
 
-
-export default function AdminRootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   if (pathname.endsWith('/admin/login')) {
     return <AppProviders>{children}</AppProviders>;
   }
+
   return (
     <AppProviders>
       <CompanyInfoProvider>
