@@ -39,7 +39,7 @@ export default function CustomServicesPage() {
       { label: "Nouveaux Produits / An", value: "50+" },
       { label: "Accompagnements Salons", value: "200+" },
       { label: "Success Rate R&D", value: "95%" },
-      { label: "Experts Dédiés", value: "15" }
+      { label: "Experts Dédiés", value: "3" }
     ],
     pillars: {
       title: "L'Accompagnement Premium",
