@@ -1,4 +1,6 @@
 
+'use client';
+
 import Image from 'next/image';
 import { 
   Check, 
@@ -32,7 +34,7 @@ export default function EcommerceSolutionsPage() {
     hero: {
       tag: "Partenaire Croissance",
       title: "Dominez votre Marché E-commerce avec le Sourcing Chinois",
-      subtitle: "Nous sécurisons vos marges et votre réputation. De l'identification du 'Winner' à la livraison FBA, nous gérons toute la complexité opérationnelle pour vous."
+      subtitle: "Nous sécurisons vos marges et votre réputation. De l'identification du 'Winner' à la livraison finale, nous gérons toute la complexité opérationnelle pour vous."
     },
     pillars: {
       title: "Nos 4 Piliers pour votre E-commerce",
@@ -57,19 +59,19 @@ export default function EcommerceSolutionsPage() {
         },
         {
           icon: <Truck className="h-8 w-8 text-primary" />,
-          title: "Logistique Amazon FBA & 3PL",
-          description: "Zéro stress logistique. Nous préparons vos envois selon les standards Amazon : étiquetage FNSKU, carton master conforme, dédouanement.",
-          details: ["Étiquetage FNSKU", "Envois maritimes/aériens", "Gestion du dédouanement"]
+          title: "Service Logistique & 3PL",
+          description: "Zéro stress logistique. Nous préparons vos envois selon vos standards : étiquetage personnalisé, carton master conforme, dédouanement.",
+          details: ["Étiquetage individuel", "Envois maritimes/aériens", "Gestion du dédouanement"]
         }
       ]
     },
     fbaSection: {
-      title: "Spécialistes Amazon FBA",
-      subtitle: "La logistique Amazon ne pardonne pas l'erreur. Nous sommes vos yeux et vos mains en Chine.",
+      title: "Service Logistique",
+      subtitle: "La logistique ne pardonne pas l'erreur. Nous sommes vos yeux et vos mains en Chine pour sécuriser vos flux.",
       points: [
-        "Étiquetage individuel des unités (FNSKU)",
+        "Étiquetage individuel des unités",
         "Inserts promotionnels et cartes de remerciement",
-        "Palettisation aux normes Amazon",
+        "Palettisation aux normes internationales",
         "DDP (Delivery Duty Paid) : aucun frais de douane surprise"
       ]
     },
@@ -78,7 +80,7 @@ export default function EcommerceSolutionsPage() {
       items: [
         { q: "Quels sont vos MOQ (Minimum Order Quantity) ?", a: "Ils dépendent de l'usine, mais en tant qu'agent local, nous négocions souvent des MOQ plus bas pour nos clients e-commerce (parfois dès 50 ou 100 unités)." },
         { q: "Comment gérez-vous les retours ?", a: "Le contrôle qualité en Chine est notre priorité pour que les retours n'arrivent jamais. Si un défaut est détecté à l'inspection, l'usine remplace gratuitement avant l'envoi." },
-        { q: "Pouvez-vous expédier directement en entrepôt Amazon ?", a: "Oui, c'est notre spécialité. Nous expédions directement de Chine vers les entrepôts FBA en Europe, USA ou Moyen-Orient." },
+        { q: "Pouvez-vous expédier directement en entrepôt ?", a: "Oui, c'est notre spécialité. Nous expédions directement de Chine vers vos entrepôts de stockage en Europe, USA ou Moyen-Orient." },
         { q: "Comment se déroule le paiement ?", a: "Nous sécurisons vos fonds. Nous ne payons le solde à l'usine qu'après validation de l'inspection qualité par notre équipe." }
       ]
     }
@@ -135,7 +137,7 @@ export default function EcommerceSolutionsPage() {
           </div>
           <div>
             <div className="text-3xl font-bold text-primary">100%</div>
-            <div className="text-sm text-zinc-400">Conformité FBA garantie</div>
+            <div className="text-sm text-zinc-400">Conformité logistique garantie</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-primary">500+</div>
@@ -219,7 +221,7 @@ export default function EcommerceSolutionsPage() {
         </div>
       </section>
 
-      {/* Amazon FBA Expertise */}
+      {/* Logistic Service Section */}
       <section className="py-20 md:py-32 bg-zinc-900 text-white">
         <div className="container grid md:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
@@ -241,16 +243,16 @@ export default function EcommerceSolutionsPage() {
                   ))}
                 </div>
                 <Button size="lg" className="bg-white text-zinc-900 hover:bg-zinc-200 h-14 px-8 text-lg font-bold" asChild>
-                  <Link href="/contact">Démarrer mon projet FBA</Link>
+                  <Link href="/contact">Démarrer mon projet logistique</Link>
                 </Button>
             </div>
             <div className="relative">
                 {fbaImage && 
                     <div className="relative h-[550px] w-full rounded-2xl overflow-hidden border-8 border-zinc-800 shadow-2xl">
-                        <Image src={fbaImage.imageUrl} alt="Amazon FBA boxes" data-ai-hint={fbaImage.imageHint} fill className="object-cover opacity-80"/>
+                        <Image src={fbaImage.imageUrl} alt="Logistic service" data-ai-hint={fbaImage.imageHint} fill className="object-cover opacity-80"/>
                         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent"></div>
                         <div className="absolute bottom-10 left-10 p-6 bg-primary rounded-xl shadow-xl max-w-xs">
-                          <p className="text-white font-bold text-lg italic">"La rigueur logistique est la clé de la rentabilité sur Amazon."</p>
+                          <p className="text-white font-bold text-lg italic">"La rigueur logistique est la clé de la rentabilité."</p>
                         </div>
                     </div>
                 }
