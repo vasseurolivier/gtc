@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, addDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function ProductListsPage() {
   const { user } = useUser();
@@ -42,15 +43,15 @@ export default function ProductListsPage() {
   const { data: lists, isLoading } = useCollection(listsQuery);
 
   const handleCreateList = async () => {
-    if (!newList.name) return;
+    if (!newList.name || !user) return;
     setIsSubmitting(true);
     try {
-      const colRef = collection(db, 'clients', user!.uid, 'productLists');
-      // Firebase Studio tool logic for ID generation (simplified for client code)
+      const colRef = collection(db, 'clients', user.uid, 'productLists');
       const listId = `LST-${Date.now()}`;
-      await addDoc(colRef, {
+      
+      addDocumentNonBlocking(colRef, {
         id: listId,
-        clientId: user!.uid,
+        clientId: user.uid,
         name: newList.name,
         description: newList.description,
         createdAt: new Date().toISOString(),

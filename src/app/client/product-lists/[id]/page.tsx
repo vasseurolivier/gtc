@@ -1,10 +1,11 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, useFirebaseApp } from '@/firebase';
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,6 @@ import {
   Trash2, 
   Loader2, 
   Package, 
-  Save, 
   AlertCircle,
   HelpCircle,
   ExternalLink,
@@ -27,13 +27,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
-import { uploadImage } from '@/actions/upload';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function ListDetailsPage() {
   const params = useParams();
   const listId = params.id as string;
   const { user } = useUser();
   const db = useFirestore();
+  const app = useFirebaseApp();
+  const storage = getStorage(app);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -65,24 +67,23 @@ export default function ListDetailsPage() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || !user) return;
 
     setIsUploading(true);
     const uploadedUrls: string[] = [];
 
     for (let i = 0; i < files.length; i++) {
-      const formData = new FormData();
-      formData.append('file', files[i]);
+      const file = files[i];
+      const storagePath = `clients/${user.uid}/lists/${listId}/${Date.now()}-${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      
       try {
-        const result = await uploadImage(formData);
-        if (result.success && result.url) {
-          uploadedUrls.push(result.url);
-        } else {
-          toast({ variant: 'destructive', title: "Erreur d'upload", description: result.message });
-        }
-      } catch (err) {
+        const snapshot = await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+        uploadedUrls.push(url);
+      } catch (err: any) {
         console.error("Upload error:", err);
-        toast({ variant: 'destructive', title: "Erreur", description: "Une erreur est survenue lors de l'upload." });
+        toast({ variant: 'destructive', title: "Erreur d'upload", description: err.message || "Une erreur est survenue lors de l'envoi de l'image." });
       }
     }
 
@@ -102,12 +103,13 @@ export default function ListDetailsPage() {
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProduct.name) return;
+    if (!newProduct.name || !user) return;
     setIsAdding(true);
     try {
-      const colRef = collection(db, 'clients', user!.uid, 'productLists', listId, 'products');
+      const colRef = collection(db, 'clients', user.uid, 'productLists', listId, 'products');
       const prodId = `PROD-${Date.now()}`;
-      await addDoc(colRef, {
+      
+      addDocumentNonBlocking(colRef, {
         id: prodId,
         productListId: listId,
         name: newProduct.name,
@@ -127,14 +129,11 @@ export default function ListDetailsPage() {
     }
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      const docRef = doc(db, 'clients', user!.uid, 'productLists', listId, 'products', productId);
-      await deleteDoc(docRef);
-      toast({ title: "Produit supprimé" });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Erreur", description: error.message });
-    }
+  const handleDeleteProduct = (productId: string) => {
+    if (!user) return;
+    const docRef = doc(db, 'clients', user.uid, 'productLists', listId, 'products', productId);
+    deleteDocumentNonBlocking(docRef);
+    toast({ title: "Produit supprimé" });
   };
 
   if (isListLoading) {
