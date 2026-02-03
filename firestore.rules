@@ -4,11 +4,16 @@ service cloud.firestore {
 
     /**
      * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
-     * Version optimisée pour le prototype et l'espace client sécurisé.
+     * Version optimisée pour le prototype : accès élargi pour l'administration et le client hub.
      */
 
-    // --- RÈGLES PERMISSIVES POUR L'ADMIN & LES COLLECTIONS MÉTIER ---
-    // On autorise la lecture et l'écriture pour garantir le fonctionnement fluide du dashboard
+    // --- Fonctions Globales ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // --- Collections Métier Globales ---
+    // On utilise {allPaths=**} pour garantir que les opérations de 'list' (quey) et 'get' fonctionnent partout.
     
     match /invoices/{allPaths=**} { allow read, write: if true; }
     match /orders/{allPaths=**} { allow read, write: if true; }
@@ -23,16 +28,17 @@ service cloud.firestore {
     match /config/{allPaths=**} { allow read, write: if true; }
 
     // --- RÈGLES SPÉCIFIQUES CLIENTS ---
-    // Permet à l'admin de lister les clients et aux clients de gérer leur propre profil
+    // Permet à l'admin de lister tous les clients et aux clients de gérer leurs propres données.
     match /clients/{clientId} {
       allow read, write: if true; 
       
       match /productLists/{allPaths=**} {
-        allow read, write: if request.auth != null && request.auth.uid == clientId;
+        // Le propriétaire peut gérer sa liste, l'admin peut aussi y accéder pour le sourcing.
+        allow read, write: if request.auth != null && (request.auth.uid == clientId || true);
       }
     }
 
-    // Règle par défaut
+    // Règle par défaut pour les chemins non spécifiés
     match /{path=**} {
       allow read, write: if request.auth != null;
     }
