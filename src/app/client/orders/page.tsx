@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
