@@ -35,8 +35,9 @@ import {
   Package,
   Plus,
   Link as LinkIcon,
-  Search,
-  ChevronRight
+  Star,
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -44,6 +45,7 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { getProducts, Product } from '@/actions/products';
 import { getInvoices, Invoice } from '@/actions/invoices';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -60,6 +62,8 @@ export default function ClientDetailPage() {
   // Catalog logic
   const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
   const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
+  const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
+  const [isPublishedLoading, setIsPublishedLoading] = useState(false);
   
   // Invoice linking logic
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
@@ -119,6 +123,29 @@ export default function ClientDetailPage() {
   }, [db, clientId, selectedList]);
   const { data: listProducts } = useCollection(listProductsQuery);
 
+  // Aggregation of all published products for the "Catalogue" tab
+  useEffect(() => {
+    if (!db || !clientId || !productLists) return;
+    async function fetchPublished() {
+      setIsPublishedLoading(true);
+      try {
+        const allPublished: any[] = [];
+        for (const list of productLists!) {
+          const prodCol = collection(db!, 'clients', clientId, 'productLists', list.id, 'products');
+          const q = query(prodCol, where('status', '==', 'published'));
+          const snap = await getDocs(q);
+          snap.forEach(doc => allPublished.push({ ...doc.data(), id: doc.id, listName: list.name, listId: list.id }));
+        }
+        setPublishedProducts(allPublished);
+      } catch (e) {
+        console.error("Aggregation error:", e);
+      } finally {
+        setIsPublishedLoading(false);
+      }
+    }
+    fetchPublished();
+  }, [db, clientId, productLists]);
+
   const handleToggleStatus = async () => {
     if (!client) return;
     const newStatus = client.status === 'validated' ? 'pending' : 'validated';
@@ -149,10 +176,14 @@ export default function ClientDetailPage() {
   };
 
   const handleSaveProduct = async () => {
-    if (!editingProduct || !selectedList || !db) return;
+    if (!editingProduct || !db) return;
+    // We need to know which list the product belongs to
+    const listId = editingProduct.productListId || (selectedList?.id);
+    if (!listId) return;
+
     setIsSaving(true);
     try {
-      const productRef = doc(db, 'clients', clientId, 'productLists', selectedList.id, 'products', editingProduct.id);
+      const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', editingProduct.id);
       await updateDoc(productRef, {
         sku: editingProduct.sku,
         price: Number(editingProduct.price),
@@ -163,6 +194,9 @@ export default function ClientDetailPage() {
       });
       toast({ title: "Produit validé", description: "Le produit est maintenant dans le catalogue du client." });
       setIsProductDialogOpen(false);
+      
+      // Refresh published products list
+      router.refresh();
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -171,15 +205,33 @@ export default function ClientDetailPage() {
   };
 
   const handleAddFromGlobalCatalog = async (prod: Product) => {
-    if (!selectedList || !db || !client) return;
+    if (!db || !client) return;
     setIsSaving(true);
     try {
+      // 1. Find or create "Catalogue Officiel" list
+      let officialListId = '';
+      const existingList = productLists?.find(l => l.name === "Catalogue Officiel");
+      
+      if (existingList) {
+        officialListId = existingList.id;
+      } else {
+        officialListId = `LST-CAT-${Date.now()}`;
+        await setDoc(doc(db, 'clients', clientId, 'productLists', officialListId), {
+          id: officialListId,
+          clientId: clientId,
+          name: "Catalogue Officiel",
+          description: "Produits ajoutés directement par l'administration.",
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      // 2. Add product to it
       const prodId = `PROD-CAT-${Date.now()}`;
-      const productRef = doc(db, 'clients', clientId, 'productLists', selectedList.id, 'products', prodId);
+      const productRef = doc(db, 'clients', clientId, 'productLists', officialListId, 'products', prodId);
       
       await setDoc(productRef, {
         id: prodId,
-        productListId: selectedList.id,
+        productListId: officialListId,
         clientId: clientId,
         name: prod.name,
         sku: prod.sku,
@@ -199,6 +251,17 @@ export default function ClientDetailPage() {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUnpublishProduct = async (product: any) => {
+    if (!db || !clientId) return;
+    try {
+      const productRef = doc(db, 'clients', clientId, 'productLists', product.productListId, 'products', product.id);
+      await updateDoc(productRef, { status: 'pending' });
+      toast({ title: "Produit retiré", description: "L'article n'est plus visible dans le catalogue client." });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message });
     }
   };
 
@@ -305,12 +368,70 @@ export default function ClientDetailPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="lists" className="w-full">
+          <Tabs defaultValue="catalogue" className="w-full">
             <TabsList className="bg-white border shadow-sm p-1 h-12 rounded-xl mb-6">
-              <TabsTrigger value="lists" className="rounded-lg h-full"><ClipboardList className="h-4 w-4 mr-2" /> Demandes Sourcing</TabsTrigger>
+              <TabsTrigger value="catalogue" className="rounded-lg h-full"><Star className="h-4 w-4 mr-2" /> Catalogue Privé</TabsTrigger>
+              <TabsTrigger value="lists" className="rounded-lg h-full"><ClipboardList className="h-4 w-4 mr-2" /> Sourcing</TabsTrigger>
               <TabsTrigger value="orders" className="rounded-lg h-full"><ShoppingCart className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
               <TabsTrigger value="invoices" className="rounded-lg h-full"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="catalogue">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg">Produits visibles par le client</h3>
+                <Button size="sm" onClick={() => setIsCatalogDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Ajouter un produit au catalogue
+                </Button>
+              </div>
+              <Card className="border-none shadow-md overflow-hidden bg-white">
+                <Table>
+                  <TableHeader className="bg-zinc-50">
+                    <TableRow>
+                      <TableHead className="pl-6">Produit</TableHead>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Prix Final</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isPublishedLoading ? (
+                      <TableRow><TableCell colSpan={5} className="h-32 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
+                    ) : publishedProducts.length > 0 ? publishedProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="pl-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {product.images?.[0] && (
+                              <div className="relative w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
+                                <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                              </div>
+                            )}
+                            <div className="font-medium text-sm">{product.name}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono">{product.sku}</TableCell>
+                        <TableCell className="font-bold">¥{Number(product.price || 0).toFixed(2)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{product.listName}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <div className="flex justify-end gap-2">
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEditProduct(product)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500" onClick={() => handleUnpublishProduct(product)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucun produit publié pour ce client.</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="lists">
               {!selectedList ? (
@@ -325,7 +446,7 @@ export default function ClientDetailPage() {
                         <CardDescription className="text-xs line-clamp-1">{list.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <span className="text-[10px] text-muted-foreground italic">Créé le {format(new Date(list.createdAt), 'dd/MM/yy')}</span>
+                        <span className="text-[10px] text-muted-foreground italic">Créé le {format(new Date(list.createdAt), 'dd/MM/yyyy')}</span>
                       </CardContent>
                     </Card>
                   )) : (
@@ -473,8 +594,8 @@ export default function ClientDetailPage() {
       <Dialog open={isCatalogDialogOpen} onOpenChange={setIsCatalogDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Ajouter depuis le catalogue global</DialogTitle>
-            <DialogDescription>Sélectionnez un produit standard pour l'ajouter aux options d'achat de ce client.</DialogDescription>
+            <DialogTitle>Ajouter au catalogue privé</DialogTitle>
+            <DialogDescription>Sélectionnez un produit de votre inventaire global pour le rendre disponible à l'achat pour ce client.</DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>
@@ -498,7 +619,9 @@ export default function ClientDetailPage() {
                     <TableCell className="text-xs">{p.sku}</TableCell>
                     <TableCell className="text-xs">¥{p.price.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="xs" variant="secondary" onClick={() => handleAddFromGlobalCatalog(p)}>Ajouter</Button>
+                      <Button size="sm" variant="secondary" onClick={() => handleAddFromGlobalCatalog(p)}>
+                        {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Sélectionner"}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -532,7 +655,7 @@ export default function ClientDetailPage() {
                     <TableCell className="text-xs">{inv.customerName}</TableCell>
                     <TableCell className="text-xs font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="xs" onClick={() => handleLinkInvoice(inv)}>Attribuer à {client.firstName}</Button>
+                      <Button size="sm" onClick={() => handleLinkInvoice(inv)}>Attribuer à {client.firstName}</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -546,9 +669,9 @@ export default function ClientDetailPage() {
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Validation du Produit Sourcé</DialogTitle>
+            <DialogTitle>Validation du Produit</DialogTitle>
             <DialogDescription>
-              Entrez les informations finales obtenues auprès du fournisseur pour publier cet article dans le catalogue client.
+              Entrez les informations finales pour publier cet article dans le catalogue client.
             </DialogDescription>
           </DialogHeader>
           
@@ -565,12 +688,12 @@ export default function ClientDetailPage() {
                   </div>
                   <div>
                     <h4 className="font-bold">{editingProduct.name}</h4>
-                    <p className="text-xs text-zinc-500">Demande : {editingProduct.quantity} unités</p>
+                    <p className="text-xs text-zinc-500">Origine: {editingProduct.listName || 'Sourcing'}</p>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-zinc-400">Référence SKU (Chine)</label>
+                  <label className="text-xs font-bold uppercase text-zinc-400">Référence SKU</label>
                   <Input 
                     value={editingProduct.sku} 
                     onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
@@ -589,7 +712,6 @@ export default function ClientDetailPage() {
                       onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
                     />
                   </div>
-                  <p className="text-[10px] text-zinc-400 italic">Prix cible client : ¥{Number(editingProduct.unitPrice || 0).toFixed(2)}</p>
                 </div>
               </div>
               
@@ -600,7 +722,7 @@ export default function ClientDetailPage() {
                     rows={8}
                     value={editingProduct.description}
                     onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
-                    placeholder="Détaillez les caractéristiques techniques retenues..."
+                    placeholder="Détaillez les caractéristiques techniques..."
                   />
                 </div>
               </div>
@@ -611,7 +733,7 @@ export default function ClientDetailPage() {
             <Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Annuler</Button>
             <Button onClick={handleSaveProduct} disabled={isSaving} className="bg-primary hover:bg-primary/90">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-              Valider et Publier au Catalogue
+              Enregistrer et Publier
             </Button>
           </DialogFooter>
         </DialogContent>
