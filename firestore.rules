@@ -4,39 +4,20 @@ service cloud.firestore {
 
     /**
      * FIRESTORE SECURITY RULES - GLOBAL TRADING CHINA
+     * Version consolidée pour corriger les erreurs de permissions (list/get)
      */
 
-    // --- Global Helper Functions ---
-
+    // --- Fonctions d'aide ---
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // --- Client Hub Rules ---
-    // Règles pour les données spécifiques aux clients inscrits
-
-    match /clients/{clientId} {
-      // Autorise la lecture/écriture pour le fonctionnement du profil et de l'admin
-      allow read, write: if true; 
-
-      match /productLists/{productListId} {
-        allow read, write: if true; 
-
-        match /products/{productId} {
-          allow read, write: if true;
-        }
-      }
-    }
-
-    // --- Root Collections (Admin & Shared) ---
-    // On autorise l'accès aux collections principales pour le dashboard et l'espace client.
+    // --- RÈGLE GLOBALE DE DÉBOGAGE / PROTOTYPE ---
+    // On autorise la lecture et l'écriture sur toutes les collections racine
+    // pour éviter les blocages de l'admin et du catalogue client.
     
-    match /orders/{id} { allow read, write: if true; }
     match /invoices/{id} { allow read, write: if true; }
+    match /orders/{id} { allow read, write: if true; }
     match /products/{id} { allow read, write: if true; }
     match /customers/{id} { allow read, write: if true; }
     match /contactSubmissions/{id} { allow read, write: if true; }
@@ -47,7 +28,17 @@ service cloud.firestore {
     match /companyInfo/{id} { allow read, write: if true; }
     match /config/{id} { allow read, write: if true; }
 
-    // Règle par défaut pour toute autre donnée
+    // --- Espace Client (Subcollections) ---
+    // On s'assure que les données nichées sous /clients sont aussi accessibles
+    match /clients/{clientId} {
+      allow read, write: if true; 
+      
+      match /{allPaths=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // Règle par défaut pour toute autre donnée (ex: logs, etc.)
     match /{path=**} {
       allow read, write: if isSignedIn();
     }
