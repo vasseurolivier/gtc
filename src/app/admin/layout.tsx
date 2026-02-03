@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -29,6 +28,7 @@ import {
   ClipboardList,
   Factory,
   UserCheck,
+  FileDown,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -47,6 +47,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions, Submission } from '@/actions/submissions';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
+import { uploadFile } from '@/actions/upload';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -68,6 +69,10 @@ function AdminSettings() {
     const [publicLogo, setPublicLogo] = useState('');
     const [brochureUrl, setBrochureUrl] = useState('');
     
+    // Upload state
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+    const [isUploadingPublicLogo, setIsUploadingPublicLogo] = useState(false);
+    const [isUploadingBrochure, setIsUploadingBrochure] = useState(false);
 
     useEffect(() => {
         if (isDialogOpen) {
@@ -87,12 +92,43 @@ function AdminSettings() {
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'publicLogo' | 'brochure') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (type === 'logo') setIsUploadingLogo(true);
+        if (type === 'publicLogo') setIsUploadingPublicLogo(true);
+        if (type === 'brochure') setIsUploadingBrochure(true);
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'branding');
+
+        try {
+            const result = await uploadFile(formData);
+            if (result.success && result.url) {
+                if (type === 'logo') setCompanyLogo(result.url);
+                if (type === 'publicLogo') setPublicLogo(result.url);
+                if (type === 'brochure') setBrochureUrl(result.url);
+                toast({ title: 'Fichier téléchargé avec succès' });
+            } else {
+                toast({ variant: 'destructive', title: 'Erreur', description: result.message });
+            }
+        } catch (err) {
+            toast({ variant: 'destructive', title: 'Erreur système', description: "Le service d'upload est indisponible." });
+        } finally {
+            if (type === 'logo') setIsUploadingLogo(false);
+            if (type === 'publicLogo') setIsUploadingPublicLogo(false);
+            if (type === 'brochure') setIsUploadingBrochure(false);
+        }
+    };
+
     if (!currencyContext || !companyInfoContext) {
         return null;
     }
 
     const { setCurrency, setExchangeRate } = currencyContext;
-    const { companyInfo, setCompanyInfo } = companyInfoContext;
+    const { setCompanyInfo } = companyInfoContext;
     
     const handleSave = () => {
         const newRate = parseFloat(localRate);
@@ -119,7 +155,7 @@ function AdminSettings() {
             brochureUrl: brochureUrl,
         });
 
-        toast({ title: 'Success', description: 'Settings updated.'});
+        toast({ title: 'Configuration mise à jour', description: 'Les changements sont enregistrés dans la base de données.'});
         setIsDialogOpen(false);
     };
     
@@ -127,72 +163,96 @@ function AdminSettings() {
         <>
             <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
                 <Cog className="mr-2 h-4 w-4" />
-                Settings
+                Paramètres
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Admin Settings</DialogTitle>
-                        <DialogDescription>Manage global settings for the admin dashboard and public site.</DialogDescription>
+                        <DialogTitle>Paramètres Globaux</DialogTitle>
+                        <DialogDescription>Gérez les informations de l'entreprise et les documents officiels.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto px-1">
                         <div>
-                            <h3 className="text-lg font-medium mb-4">Company Information</h3>
+                            <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Informations Entreprise</h3>
                             <div className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="company-name" className="text-right">Company Name</Label>
+                                    <Label htmlFor="company-name" className="text-right">Raison Sociale</Label>
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
+                                
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="logo-url" className="text-right pt-2">Admin Logo URL</Label>
-                                    <div className="col-span-3 flex items-center gap-4">
-                                        <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                            {companyLogo ? (
-                                                <img src={companyLogo} alt="Company Logo" className="object-contain rounded-md h-full w-full" />
-                                            ) : (
-                                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                            )}
+                                    <Label className="text-right pt-2">Logo Admin</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                {isUploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : companyLogo ? (
+                                                    <img src={companyLogo} alt="Logo" className="object-contain h-full w-full" />
+                                                ) : (
+                                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                                                )}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} className="h-8 text-xs" />
+                                                <Input placeholder="URL directe..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="h-8 text-xs" />
+                                            </div>
                                         </div>
-                                        <Input id="logo-url" placeholder="https://..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} />
                                     </div>
                                 </div>
-                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="public-logo-url" className="text-right pt-2">Public Site Logo URL</Label>
-                                    <div className="col-span-3 flex items-center gap-4">
-                                        <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                            {publicLogo ? (
-                                                <img src={publicLogo} alt="Public Site Logo" className="object-contain rounded-md h-full w-full" />
-                                            ) : (
-                                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                            )}
+
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right pt-2">Logo Public</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                {isUploadingPublicLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : publicLogo ? (
+                                                    <img src={publicLogo} alt="Public Logo" className="object-contain h-full w-full" />
+                                                ) : (
+                                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                                                )}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'publicLogo')} className="h-8 text-xs" />
+                                                <Input placeholder="URL directe..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="h-8 text-xs" />
+                                            </div>
                                         </div>
-                                        <Input id="public-logo-url" placeholder="https://..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} />
                                     </div>
                                 </div>
+
                                 <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="company-address" className="text-right pt-2">Address</Label>
+                                    <Label className="text-right pt-2">Brochure PDF</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted">
+                                                {isUploadingBrochure ? <Loader2 className="h-4 w-4 animate-spin" /> : brochureUrl ? <FileDown className="h-6 w-6 text-primary" /> : <FileDown className="h-6 w-6 text-muted-foreground" />}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept=".pdf" onChange={(e) => handleFileUpload(e, 'brochure')} className="h-8 text-xs" />
+                                                <Input placeholder="URL brochure..." value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)} className="h-8 text-xs" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="company-address" className="text-right pt-2">Adresse</Label>
                                     <Textarea id="company-address" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} className="col-span-3" rows={3} />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="company-email" className="text-right">Email</Label>
+                                    <Label htmlFor="company-email" className="text-right">Email Contact</Label>
                                     <Input id="company-email" type="email" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="company-phone" className="text-right">Phone</Label>
+                                    <Label htmlFor="company-phone" className="text-right">Téléphone</Label>
                                     <Input id="company-phone" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="brochure-url" className="text-right">Brochure URL</Label>
-                                    <Input id="brochure-url" placeholder="https://.../brochure.pdf" value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>
                         </div>
                         <Separator />
                         <div>
-                            <h3 className="text-lg font-medium mb-4">Currency Settings</h3>
+                            <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Paramètres Financiers</h3>
                             <div className="grid gap-4">
                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="currency-select" className="text-right">Display Currency</Label>
+                                    <Label htmlFor="currency-select" className="text-right">Devise d'affichage</Label>
                                     <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
                                         <SelectTrigger className="col-span-3" id="currency-select">
                                             <SelectValue placeholder="Select a currency" />
@@ -204,16 +264,16 @@ function AdminSettings() {
                                     </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="exchange-rate" className="text-right">Rate (vs CNY)</Label>
+                                    <Label htmlFor="exchange-rate" className="text-right">Taux (vs CNY)</Label>
                                     <Input id="exchange-rate" type="number" value={localRate} onChange={(e) => setLocalRate(e.target.value)} className="col-span-3" />
                                 </div>
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
-                        <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+                        <DialogClose asChild><Button type="button" variant="outline">Annuler</Button></DialogClose>
                         <Button onClick={handleSave}>
-                            Save changes
+                            Enregistrer tout
                         </Button>
                     </DialogFooter>
                 </DialogContent>
