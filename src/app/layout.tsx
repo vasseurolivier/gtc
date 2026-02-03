@@ -5,6 +5,7 @@ import { AppProviders } from '@/components/app-providers';
 import Script from 'next/script';
 import { CompanyInfoProvider } from '@/context/company-info-context';
 import { ReactNode } from 'react';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'Global Trading China',
@@ -36,11 +37,13 @@ export default function RootLayout({
           </Script>
       </head>
       <body className="font-body bg-background text-foreground antialiased">
-        <AppProviders>
-          <CompanyInfoProvider>
-            {children}
-          </CompanyInfoProvider>
-        </AppProviders>
+        <FirebaseClientProvider>
+          <AppProviders>
+            <CompanyInfoProvider>
+              {children}
+            </CompanyInfoProvider>
+          </AppProviders>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

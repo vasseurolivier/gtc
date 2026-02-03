@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { Menu, Globe, ChevronDown } from 'lucide-react';
+import { Menu, Globe, ChevronDown, UserCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState, useEffect, useContext, useRef } from 'react';
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/accordion"
 import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
+import { useUser } from '@/firebase';
 
 export function Header() {
   const dictionary = {
@@ -35,6 +36,7 @@ export function Header() {
     customServices: 'Services sur Mesure',
     tradeHubs: 'Pôles Commerciaux',
     contact: 'Contact',
+    clientSpace: 'Espace Client',
   };
 
   const pathname = usePathname();
@@ -43,6 +45,7 @@ export function Header() {
   const companyInfoContext = useContext(CompanyInfoContext);
   const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,7 +80,7 @@ export function Header() {
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-300",
-    isScrolled
+    isScrolled || pathname.startsWith('/client') || pathname.startsWith('/admin')
       ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
       : "bg-transparent border-transparent"
   );
@@ -93,20 +96,24 @@ export function Header() {
     }
 
     return cn(
-      "relative transition-colors font-semibold text-xl text-white",
+      "relative transition-colors font-semibold text-lg text-white",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
       isActive ? "text-red-500 after:w-full" : "hover:text-white/90"
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-xl text-white",
+    "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
     activePath.startsWith('/services')
       ? "text-red-500 after:w-full"
       : "hover:text-white/90"
   );
 
+  // Hide main header in admin and client space if they have their own navigation
+  if (pathname.startsWith('/admin') || (pathname.startsWith('/client') && pathname !== '/client/login')) {
+    return null;
+  }
 
   return (
     <header className={headerClasses}>
@@ -114,12 +121,12 @@ export function Header() {
         <div className="flex flex-1 items-center gap-6">
             <Link href={'/'} className="flex items-center space-x-2">
                 {publicLogo ? (
-                <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
+                <Image src={publicLogo} alt="Company Logo" width={45} height={45} className="object-contain invert brightness-0" />
                 ) : (
-                <div style={{width: '50px', height: '12px'}} />
+                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold">G</div>
                 )}
             </Link>
-             <nav className="hidden md:flex items-center space-x-6">
+             <nav className="hidden lg:flex items-center space-x-6">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
@@ -158,8 +165,15 @@ export function Header() {
             </nav>
         </div>
         
-        <div className="flex items-center gap-2">
-            <div className="md:hidden">
+        <div className="flex items-center gap-4">
+            <Button variant="outline" className="hidden sm:flex border-white text-white hover:bg-white hover:text-black font-bold" asChild>
+              <Link href="/client/login">
+                <UserCircle className="mr-2 h-5 w-5" />
+                {user ? "Mon Espace" : dictionary.clientSpace}
+              </Link>
+            </Button>
+
+            <div className="lg:hidden">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className={cn("text-white hover:text-white hover:bg-white/10")}>
@@ -172,7 +186,7 @@ export function Header() {
                      {publicLogo ? (
                         <Image src={publicLogo} alt="Company Logo" width={50} height={12} className="object-contain" />
                      ) : (
-                        <div style={{width: '50px', height: '12px'}} />
+                        <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-white">G</div>
                      )}
                     </Link>
                     <nav className="flex flex-col space-y-2">
@@ -238,6 +252,15 @@ export function Header() {
                         )}
                         >
                         {contactItem.label}
+                        </Link>
+                        <hr className="my-4" />
+                        <Link
+                        href="/client/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 text-lg font-bold text-primary py-2"
+                        >
+                        <UserCircle className="h-6 w-6" />
+                        {user ? "Mon Espace Client" : "Connexion Client"}
                         </Link>
                     </nav>
                 </SheetContent>
