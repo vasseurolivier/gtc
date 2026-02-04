@@ -46,34 +46,34 @@ import {
   Building, 
   ClipboardList, 
   Receipt, 
-  ShoppingCart,
-  Eye,
-  Save,
-  CheckCircle2,
-  Package,
-  Plus,
-  Link as LinkIcon,
-  Star,
-  ChevronRight,
-  Trash2,
-  Pencil,
-  Scale,
-  Maximize,
-  UploadCloud,
-  X,
-  PlayCircle,
-  ImageIcon,
-  Sparkles,
-  MapPin,
-  FileText,
-  History,
-  Clock,
-  AlertCircle,
-  Truck,
-  Check,
-  Tag,
-  Ruler,
-  Coins
+  ShoppingCart, 
+  Eye, 
+  Save, 
+  CheckCircle2, 
+  Package, 
+  Plus, 
+  Link as LinkIcon, 
+  Star, 
+  ChevronRight, 
+  Trash2, 
+  Pencil, 
+  Scale, 
+  Maximize, 
+  UploadCloud, 
+  X, 
+  PlayCircle, 
+  ImageIcon, 
+  Sparkles, 
+  MapPin, 
+  FileText, 
+  History, 
+  Clock, 
+  AlertCircle, 
+  Truck, 
+  Check, 
+  Tag, 
+  Ruler, 
+  Coins 
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -101,7 +101,6 @@ export default function ClientDetailPage() {
   const [orderPrefix, setOrderPrefix] = useState('');
   const [currencyPreference, setCurrencyPreference] = useState<'EUR' | 'CNY' | 'BOTH'>('EUR');
   
-  // Helper to parse dates from Firestore (which can be Timestamps or strings)
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -110,32 +109,27 @@ export default function ClientDetailPage() {
     return isNaN(d.getTime()) ? new Date() : d;
   };
 
-  // Catalog & Sourcing logic
   const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
   const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
   const [pendingSourcingProducts, setPendingSourcingProducts] = useState<any[]>([]);
   const [isAggregationLoading, setIsAggregationLoading] = useState(false);
   
-  // Linking logic
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
   const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
   const [isInvoiceLinkDialogOpen, setIsInvoiceLinkDialogOpen] = useState(false);
   const [isQuoteLinkDialogOpen, setIsQuoteLinkDialogOpen] = useState(false);
 
-  // Edit logic
   const [selectedList, setSelectedList] = useState<any | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isMediaUploading, setIsMediaUploading] = useState(false);
 
-  // Order Preview logic
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
   const [orderTransportInput, setOrderTransportInput] = useState('');
   const [isUpdatingOrderTransport, setIsUpdatingOrderTransport] = useState(false);
 
-  // Fetch client and auxiliary data
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
@@ -160,36 +154,30 @@ export default function ClientDetailPage() {
     fetchData();
   }, [clientId]);
 
-  // Sourcing Lists Query
   const listsQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return collection(db, 'clients', clientId, 'productLists');
   }, [db, clientId]);
   const { data: productLists } = useCollection(listsQuery);
 
-  // Orders Query
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'orders'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
-  // Quotes Query (Linked to this client)
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: linkedQuotes } = useCollection(quotesQuery);
 
-  // Invoices Query (Linked to this client)
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
-    // Note: for admin we show all invoices linked to this client, not just paid ones
     return query(collection(db, 'invoices'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: linkedInvoices } = useCollection(invoicesQuery);
 
-  // Split orders into active and archived
   const { activeOrders, archivedOrders, pendingOrdersCount } = useMemo(() => {
     if (!orders) return { activeOrders: [], archivedOrders: [], pendingOrdersCount: 0 };
     const active = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
@@ -209,7 +197,6 @@ export default function ClientDetailPage() {
     };
   }, [orders]);
 
-  // Aggregation of all products for the "Catalogue" and "Sourcing" badges
   useEffect(() => {
     if (!db || !clientId || !productLists) return;
     async function aggregate() {
@@ -484,17 +471,6 @@ export default function ClientDetailPage() {
     }
   };
 
-  const handleUnpublishProduct = async (product: any) => {
-    if (!db || !clientId) return;
-    try {
-      const productRef = doc(db, 'clients', clientId, 'productLists', product.productListId, 'products', product.id);
-      await updateDoc(productRef, { status: 'pending' });
-      toast({ title: "Produit retiré", description: "L'article n'est plus visible dans le catalogue client." });
-    } catch (e: any) {
-      toast({ variant: "destructive", title: "Erreur", description: e.message });
-    }
-  };
-
   const handleDeleteProductActual = async (product: any) => {
     const result = await deleteClientProduct(clientId, product.productListId, product.id);
     if (result.success) {
@@ -616,9 +592,9 @@ export default function ClientDetailPage() {
       </TableHeader>
       <TableBody>
         {orderList.length > 0 ? orderList.map((order) => {
-          const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000;
+          const orderCreatedDate = parseSafeDate(order.createdAt);
+          const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && order.status === 'processing';
-          const isClientInitiated = !order.quoteId;
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -663,7 +639,7 @@ export default function ClientDetailPage() {
               <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
               <TableCell className="text-right pr-6">
                 <div className="flex justify-end gap-2">
-                  {isClientInitiated && order.status === 'processing' && (
+                  {order.status !== 'cancelled' && (
                     <Button 
                       variant="secondary" 
                       size="sm" 
@@ -671,11 +647,7 @@ export default function ClientDetailPage() {
                       disabled={isGeneratingQuote === order.id}
                       onClick={() => handleGenerateQuote(order.id)}
                     >
-                      {isGeneratingQuote === order.id ? (
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                      ) : (
-                        <Sparkles className="mr-2 h-3 w-3" />
-                      )}
+                      {isGeneratingQuote === order.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
                       Générer PI
                     </Button>
                   )}
@@ -1170,7 +1142,7 @@ export default function ClientDetailPage() {
                         <TableCell className="pl-6 font-bold">{quote.quoteNumber}</TableCell>
                         <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
-                          <Badge variant={quote.status === 'accepted' ? 'default' : 'secondary'}>{quote.status}</Badge>
+                          <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : 'secondary'}>{quote.status}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-semibold">¥{quote.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
@@ -1473,7 +1445,7 @@ export default function ClientDetailPage() {
                   <h4 className="font-bold text-zinc-900 flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
                   </h4>
-                  <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                  <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap min-h-[80px]">
                     {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
                   </div>
                 </div>
@@ -1487,17 +1459,13 @@ export default function ClientDetailPage() {
           
           <DialogFooter className="gap-2">
             <Button variant="outline" className="flex-1 font-bold" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button>
-            {selectedOrderPreview?.status === 'processing' && (
+            {selectedOrderPreview?.status !== 'cancelled' && (
               <Button 
                 className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold"
                 disabled={isGeneratingQuote === selectedOrderPreview.id}
                 onClick={() => handleGenerateQuote(selectedOrderPreview.id)}
               >
-                {isGeneratingQuote === selectedOrderPreview.id ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
+                {isGeneratingQuote === selectedOrderPreview.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 Générer Proforma
               </Button>
             )}

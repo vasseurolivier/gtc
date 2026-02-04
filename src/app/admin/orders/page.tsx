@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -80,11 +81,10 @@ export default function OrdersPage() {
             getCustomers()
         ]);
         setOrders(fetchedOrders);
-        const acceptedQuotes = fetchedQuotes.filter(q => q.status === 'accepted');
+        const acceptedQuotes = fetchedQuotes.filter(q => q.status === 'accepted' || q.status === 'paid');
         setQuotes(acceptedQuotes);
         setCustomers(fetchedCustomers);
         
-        // Init transport inputs
         const inputs: Record<string, string> = {};
         fetchedOrders.forEach(o => {
           inputs[o.id] = (o.transportCost || 0).toString();
@@ -231,7 +231,6 @@ export default function OrdersPage() {
       )}
       <TableBody>
         {orderList.map((order) => {
-          const isClientInitiated = !order.quoteId;
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
@@ -252,15 +251,15 @@ export default function OrdersPage() {
               <TableCell>{formatInTimeZone(parseSafeDate(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
               <TableCell>
                 <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
-                  <SelectTrigger className="w-36">
-                    <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    {getStatusBadgeVariant(order.status) === 'default' ? <Badge>{order.status}</Badge> : <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>}
                   </SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="validated">Validated</SelectItem>
-                      <SelectItem value="shipped">Shipped</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="processing">En cours</SelectItem>
+                      <SelectItem value="validated">Validé</SelectItem>
+                      <SelectItem value="shipped">Expédié</SelectItem>
+                      <SelectItem value="delivered">Livré</SelectItem>
+                      <SelectItem value="cancelled">Annulé</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
@@ -305,7 +304,7 @@ export default function OrdersPage() {
               </TableCell>
               <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    {isClientInitiated && order.status === 'processing' && (
+                    {order.status !== 'cancelled' && (
                       <Button 
                         variant="secondary" 
                         size="sm" 
@@ -313,23 +312,19 @@ export default function OrdersPage() {
                         disabled={isGeneratingQuote === order.id}
                         onClick={() => handleGenerateQuote(order.id)}
                       >
-                        {isGeneratingQuote === order.id ? (
-                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        ) : (
-                          <Sparkles className="mr-2 h-4 w-4" />
-                        )}
+                        {isGeneratingQuote === order.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
                         Générer Proforma
                       </Button>
                     )}
                     <AlertDialog>
                         <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                         <AlertDialogContent>
-                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete this order.
+                            <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
+                                Cette action est irréversible et supprimera la commande définitivement.
                             </AlertDialogDescription></AlertDialogHeader>
                             <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Delete</AlertDialogAction>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Supprimer</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>

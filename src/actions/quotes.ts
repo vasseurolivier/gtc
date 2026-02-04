@@ -27,7 +27,7 @@ export interface Quote {
     transportCost?: number;
     commissionRate?: number;
     totalAmount: number;
-    status: "draft" | "sent" | "accepted" | "rejected";
+    status: "draft" | "sent" | "accepted" | "rejected" | "paid";
     shippingAddress?: string;
     notes?: string;
     issueDate: string;
@@ -63,7 +63,6 @@ async function getGlobalExchangeRate(): Promise<number> {
 
 /**
  * Adds a new Proforma to the global /quotes collection.
- * It's immediately visible to both Admin (global list) and Client (filtered by ID).
  */
 export async function addQuote(values: any) {
     try {
@@ -85,7 +84,7 @@ export async function updateQuote(id: string, values: any) {
         await updateDoc(quoteRef, values);
 
         const updatedQuote = await getQuoteById(id);
-        if (updatedQuote && updatedQuote.status === 'accepted') {
+        if (updatedQuote && (updatedQuote.status === 'accepted' || updatedQuote.status === 'paid')) {
             const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
             if (orderUpdateResult.success && orderUpdateResult.orderId) {
                 await updateInvoiceFromQuote(updatedQuote, orderUpdateResult.orderId);
@@ -204,27 +203,25 @@ export async function updateQuoteStatus(id: string, status: string) {
 
         await updateDoc(quoteRef, { status });
         
-        if (status === 'accepted' && previousStatus !== 'accepted') {
+        const isPositiveStatus = status === 'accepted' || status === 'paid';
+        const wasPositiveStatus = previousStatus === 'accepted' || previousStatus === 'paid';
+
+        if (isPositiveStatus && !wasPositiveStatus) {
             const fullQuote = await getQuoteById(id);
             if(fullQuote) {
-                // If this quote is already linked to an existing order (from client sourcing request)
                 if (fullQuote.orderId) {
-                    // Update the existing order with quote details and set status to validated
                     await updateOrderFromQuote(fullQuote);
                     await updateOrderStatus(fullQuote.orderId, 'validated');
                     
-                    // Also check if an invoice needs to be created or updated for this order
                     const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", fullQuote.orderId));
                     const invoicesSnap = await getDocs(invoicesQuery);
                     if (invoicesSnap.empty) {
                         const orderData = await getOrderById(fullQuote.orderId);
                         if (orderData) await addInvoiceFromOrder(orderData);
                     } else {
-                        // Update existing invoice with new quote items/prices
                         await updateInvoiceFromQuote(fullQuote, fullQuote.orderId);
                     }
                 } else {
-                    // No order exists yet (manual quote created by admin), so create a new one
                     const orderResult = await addOrder(fullQuote);
                     if (orderResult.success && orderResult.id) {
                          const orderDataForInvoice = await getOrderById(orderResult.id);

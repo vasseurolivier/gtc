@@ -44,7 +44,7 @@ const quoteItemSchema = z.object({
   photo: z.string().optional(),
 });
 
-const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
+const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected", "paid"]);
 
 const formSchema = z.object({
   quoteNumber: z.string().min(1, "Proforma number is required."),
@@ -361,8 +361,9 @@ function QuotesPageContent() {
     setIsDialogOpen(true);
   };
 
-  const getStatusBadgeVariant = (status: "draft" | "sent" | "accepted" | "rejected") => {
+  const getStatusBadgeVariant = (status: Quote['status']) => {
     switch (status) {
+        case 'paid': return 'default';
         case 'accepted': return 'default';
         case 'sent': return 'secondary';
         case 'rejected': return 'destructive';
@@ -375,7 +376,7 @@ function QuotesPageContent() {
   const totalAmountValue = form.getValues('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
-  const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected');
+  const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected' || q.status === 'paid');
   
   const archivedQuotesByCustomer = archivedQuotes.reduce((acc, quote) => {
     const customerId = quote.customerId;
@@ -418,6 +419,7 @@ function QuotesPageContent() {
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="sent">Sent</SelectItem>
                     <SelectItem value="accepted">Accepted</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
@@ -622,6 +624,8 @@ function QuotesPageContent() {
                                 <SelectContent>
                                     <SelectItem value="draft">Draft</SelectItem>
                                     <SelectItem value="sent">Sent</SelectItem>
+                                    <SelectItem value="accepted">Accepted</SelectItem>
+                                    <SelectItem value="paid">Paid</SelectItem>
                                 </SelectContent>
                             </Select>
                         )} />
