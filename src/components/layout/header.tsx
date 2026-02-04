@@ -75,9 +75,9 @@ export function Header() {
   const contactItem = { href: '/contact', label: dictionary.contact };
 
   const headerClasses = cn(
-    "fixed top-0 z-50 w-full transition-all duration-300",
+    "fixed top-0 z-50 w-full transition-all duration-500",
     isScrolled || pathname.startsWith('/client') || pathname.startsWith('/admin')
-      ? "border-b bg-zinc-950/90 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80"
+      ? "border-b bg-zinc-950/95 backdrop-blur-md shadow-lg"
       : "bg-transparent border-transparent"
   );
   
@@ -92,18 +92,18 @@ export function Header() {
     }
 
     return cn(
-      "relative transition-colors font-semibold text-lg text-white",
-      "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
-      isActive ? "text-red-500 after:w-full" : "hover:text-white/90"
+      "relative transition-all duration-300 font-headline font-bold text-xs uppercase tracking-[0.2em] text-white/80 hover:text-white",
+      "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
+      isActive ? "text-primary after:w-full" : ""
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-colors focus:outline-none font-semibold text-lg text-white",
-     "after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:w-0 after:bg-red-500 after:transition-all after:duration-300 hover:after:w-full",
+    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-xs uppercase tracking-[0.2em] text-white/80 hover:text-white",
+     "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     pathname.startsWith('/services')
-      ? "text-red-500 after:w-full"
-      : "hover:text-white/90"
+      ? "text-primary after:w-full"
+      : ""
   );
 
   if (pathname.startsWith('/admin') || (pathname.startsWith('/client') && pathname !== '/client/login')) {
@@ -112,16 +112,16 @@ export function Header() {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-16 items-center">
-        <div className="flex flex-1 items-center gap-6">
-            <Link href={'/'} className="flex items-center space-x-2">
+      <div className="container flex h-20 items-center">
+        <div className="flex flex-1 items-center gap-10">
+            <Link href={'/'} className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
                 {mounted && publicLogo ? (
-                <Image src={publicLogo} alt="Company Logo" width={45} height={45} className="object-contain invert brightness-0" />
+                <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
                 ) : (
-                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-white">G</div>
+                <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}
             </Link>
-             <nav className="hidden lg:flex items-center space-x-6">
+             <nav className="hidden lg:flex items-center space-x-8">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
@@ -133,11 +133,11 @@ export function Header() {
                 ))}
                 <DropdownMenu>
                 <DropdownMenuTrigger className={dropdownTriggerClasses}>
-                    {dictionary.services} <ChevronDown className="h-4 w-4" />
+                    {dictionary.services} <ChevronDown className="h-3 w-3 ml-1" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[220px]">
                     {servicesItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
+                    <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-[10px] uppercase tracking-wider py-3">
                         <Link href={item.href}>{item.label}</Link>
                     </DropdownMenuItem>
                     ))}
@@ -161,9 +161,9 @@ export function Header() {
         </div>
         
         <div className="flex items-center gap-4">
-            <Button variant="outline" className="hidden sm:flex border-white text-primary hover:bg-white hover:text-black font-bold" asChild>
+            <Button variant="outline" className="hidden sm:flex border-white/20 text-white hover:bg-white hover:text-black font-headline text-[10px] uppercase tracking-widest font-bold h-10" asChild>
               <Link href="/client/login">
-                <UserCircle className="mr-2 h-5 w-5" />
+                <UserCircle className="mr-2 h-4 w-4" />
                 <span>
                   {mounted && user ? "Mon Espace" : dictionary.clientSpace}
                 </span>
@@ -178,20 +178,20 @@ export function Header() {
                     <span className="sr-only">Toggle Menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full max-w-xs">
+                <SheetContent side="left" className="w-full max-w-xs bg-zinc-950 border-zinc-800 text-white">
                     <SheetHeader>
-                      <SheetTitle>Menu</SheetTitle>
-                      <SheetDescription>Navigation principale</SheetDescription>
+                      <SheetTitle className="text-white font-headline tracking-widest uppercase text-sm">Navigation</SheetTitle>
+                      <SheetDescription className="text-zinc-500">Menu principal Global Trading China</SheetDescription>
                     </SheetHeader>
-                    <div className="mt-8 flex flex-col space-y-2">
+                    <div className="mt-12 flex flex-col space-y-4">
                     {navItems.map((item) => (
                         <Link
                         key={item.href}
                         href={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                            "text-lg font-medium transition-colors hover:text-primary py-2",
-                            pathname === item.href ? "text-primary font-bold" : "text-foreground"
+                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
+                            pathname === item.href ? "text-primary" : "text-white/80"
                         )}
                         >
                         {item.label}
@@ -201,21 +201,21 @@ export function Header() {
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
-                            "text-lg font-medium transition-colors hover:text-primary hover:no-underline py-2",
-                            pathname.startsWith('/services') ? "text-primary font-bold" : "text-foreground"
+                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary hover:no-underline py-2",
+                            pathname.startsWith('/services') ? "text-primary" : "text-white/80"
                             )}>
                             {dictionary.services}
                             </AccordionTrigger>
                             <AccordionContent className="pb-0 pl-4">
-                            <nav className="flex flex-col space-y-2">
+                            <nav className="flex flex-col space-y-3 pt-2">
                                 {servicesItems.map((item) => (
                                 <Link
                                     key={item.href}
                                     href={item.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={cn(
-                                    "text-base font-medium transition-colors hover:text-primary py-2",
-                                    pathname === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                                    "text-[10px] font-headline font-medium uppercase tracking-widest transition-colors hover:text-primary py-1",
+                                    pathname === item.href ? "text-primary" : "text-zinc-400"
                                     )}
                                 >
                                     {item.label}
@@ -230,8 +230,8 @@ export function Header() {
                         href={citiesItem.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                            "text-lg font-medium transition-colors hover:text-primary py-2",
-                            pathname.startsWith(citiesItem.href) ? "text-primary font-bold" : "text-foreground"
+                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
+                            pathname.startsWith(citiesItem.href) ? "text-primary" : "text-white/80"
                         )}
                         >
                         {citiesItem.label}
@@ -241,20 +241,20 @@ export function Header() {
                         href={contactItem.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                            "text-lg font-medium transition-colors hover:text-primary py-2",
-                            pathname.startsWith(contactItem.href) ? "text-primary font-bold" : "text-foreground"
+                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
+                            pathname.startsWith(contactItem.href) ? "text-primary" : "text-white/80"
                         )}
                         >
                         {contactItem.label}
                         </Link>
-                        <hr className="my-4" />
+                        <hr className="my-6 border-zinc-800" />
                         <Link
                         href="/client/login"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-2 text-lg font-bold text-primary py-2"
+                        className="flex items-center gap-3 text-sm font-headline font-black uppercase tracking-[0.2em] text-primary py-2"
                         >
                         <UserCircle className="h-6 w-6" />
-                        {mounted && user ? "Mon Espace Client" : "Connexion Client"}
+                        {mounted && user ? "Mon Espace" : "Connexion"}
                         </Link>
                     </div>
                 </SheetContent>
