@@ -38,6 +38,7 @@ export interface Invoice {
     transportCost?: number;
     transportCostPaid?: number;
     exchangeRate: number; // Stored at creation to freeze EUR price
+    shippingAddress?: string;
 }
 
 const parseDate = (val: any) => {
@@ -88,6 +89,7 @@ export async function addInvoiceFromOrder(order: Order) {
           transportCost: order.transportCost || 0,
           transportCostPaid: 0,
           exchangeRate: currentRate,
+          shippingAddress: order.shippingAddress || "",
           createdAt: serverTimestamp(),
         };
         
@@ -127,6 +129,7 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
             totalAmount: quote.totalAmount,
             supplierCostTotal: supplierCostTotal,
             transportCost: quote.transportCost || 0,
+            shippingAddress: quote.shippingAddress || "",
         };
 
         await updateDoc(invoiceRef, updatedInvoiceData);
