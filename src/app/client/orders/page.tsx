@@ -31,7 +31,8 @@ import {
   Sparkles,
   CreditCard,
   AlertCircle,
-  Euro
+  Euro,
+  Download
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -294,13 +295,27 @@ export default function ClientOrdersPage() {
             <CardContent className="p-0">
               {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div> : quotes && quotes.length > 0 ? (
                 <Table>
-                  <TableHeader><TableRow className="bg-zinc-50/50"><TableHead className="pl-6">N° Proforma</TableHead><TableHead>Statut</TableHead><TableHead className="text-right pr-6">Total (€)</TableHead></TableRow></TableHeader>
+                  <TableHeader>
+                    <TableRow className="bg-zinc-50/50">
+                      <TableHead className="pl-6">N° Proforma</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Total (€)</TableHead>
+                      <TableHead className="text-right pr-6">Documents</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {quotes.map((q) => (
                       <TableRow key={q.id}>
                         <TableCell className="pl-6 font-bold">{q.quoteNumber}</TableCell>
                         <TableCell><Badge variant={q.status === 'accepted' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right pr-6 font-black text-primary">€{(q.totalAmount * (q.exchangeRate || rate)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-black text-primary">€{(q.totalAmount * (q.exchangeRate || rate)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/client/quotes/${q.id}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -315,13 +330,27 @@ export default function ClientOrdersPage() {
             <CardContent className="p-0">
               {isInvoicesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div> : invoices && invoices.length > 0 ? (
                 <Table>
-                  <TableHeader><TableRow className="bg-zinc-50/50"><TableHead className="pl-6">N° Facture</TableHead><TableHead>Statut</TableHead><TableHead className="text-right pr-6">Total (€)</TableHead></TableRow></TableHeader>
+                  <TableHeader>
+                    <TableRow className="bg-zinc-50/50">
+                      <TableHead className="pl-6">N° Facture</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Total (€)</TableHead>
+                      <TableHead className="text-right pr-6">Documents</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {invoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell><Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status}</Badge></TableCell>
-                        <TableCell className="text-right pr-6 font-black text-primary">€{(inv.totalAmount * (inv.exchangeRate || rate)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-black text-primary">€{(inv.totalAmount * (inv.exchangeRate || rate)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/client/invoices/${inv.id}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
