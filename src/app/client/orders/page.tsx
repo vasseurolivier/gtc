@@ -39,7 +39,8 @@ import {
   Plus,
   Minus,
   ShoppingBag,
-  Sparkles
+  Sparkles,
+  CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -62,7 +63,6 @@ export default function ClientOrdersPage() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
-  // Helper to parse dates from Firestore (which can be Timestamps or strings)
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -71,17 +71,12 @@ export default function ClientOrdersPage() {
     return isNaN(d.getTime()) ? new Date() : d;
   };
 
-  // Cart State
   const [cart, setCart] = useState<any[]>([]);
-
   const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
   const [isSourcedLoading, setIsSourcedLoading] = useState(false);
-
-  // Order Preview State
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
-  // Fetch client profile for pre-filling address
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'clients', user.uid);
@@ -94,7 +89,6 @@ export default function ClientOrdersPage() {
     }
   }, [profile, shippingAddress]);
 
-  // 1. Fetch Orders
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -104,7 +98,6 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
 
-  // 2. Fetch Invoices
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -114,7 +107,6 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  // 3. Fetch Proformas (Quotes)
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -124,7 +116,6 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: quotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
 
-  // 4. Sourced Products Aggregation
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'clients', user.uid, 'productLists');
@@ -295,6 +286,7 @@ export default function ClientOrdersPage() {
         orderDate: new Date().toISOString(),
         createdAt: serverTimestamp(),
         quoteId: '', 
+        isPaid: false,
       };
 
       await addDoc(collection(db, 'orders'), orderData);
@@ -351,8 +343,8 @@ export default function ClientOrdersPage() {
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Commande</TableHead>
-                      <TableHead>Date</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead className="text-center">Paiement</TableHead>
                       <TableHead className="text-right">Total (CNY)</TableHead>
                       <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
@@ -360,9 +352,24 @@ export default function ClientOrdersPage() {
                   <TableBody>
                     {sortedOrders.map((order) => (
                       <TableRow key={order.id}>
-                        <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
-                        <TableCell>{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell className="pl-6 font-bold">
+                          <div className="flex flex-col">
+                            <span>{order.orderNumber}</span>
+                            <span className="text-[10px] text-zinc-400 font-normal">{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                        <TableCell className="text-center">
+                          {order.isPaid ? (
+                            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100 flex items-center gap-1 mx-auto w-fit">
+                              <CheckCircle2 className="h-3 w-3" /> PAYÉ
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-red-500 border-red-100 bg-red-50 hover:bg-red-50 flex items-center gap-1 mx-auto w-fit">
+                              <AlertCircle className="h-3 w-3" /> ATTENTE
+                            </Badge>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
@@ -545,7 +552,6 @@ export default function ClientOrdersPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Floating Cart Mobile Indicator */}
       {cart.length > 0 && (
         <div className="fixed bottom-6 right-6 lg:hidden z-50">
           <Button 
@@ -558,7 +564,6 @@ export default function ClientOrdersPage() {
         </div>
       )}
 
-      {/* Cart Review Dialog */}
       <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -658,7 +663,6 @@ export default function ClientOrdersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Order Preview Dialog (History) */}
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -680,9 +684,14 @@ export default function ClientOrdersPage() {
                     {getOrderStatusBadge(selectedOrderPreview.status)}
                   </div>
                 </div>
-                <div className="text-right space-y-1">
+                <div className="flex flex-col items-end gap-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Montant Total</span>
                   <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div>
+                  {selectedOrderPreview.isPaid ? (
+                    <Badge className="bg-green-500 text-white font-black"><CreditCard className="h-3 w-3 mr-1" /> PAYÉ</Badge>
+                  ) : (
+                    <Badge variant="destructive" className="font-black">ATTENTE PAIEMENT</Badge>
+                  )}
                 </div>
               </div>
 
@@ -742,7 +751,6 @@ export default function ClientOrdersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Product Detail Dialog (Catalog) */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -752,7 +760,6 @@ export default function ClientOrdersPage() {
 
           {selectedProduct && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6">
-              {/* Left: Media Gallery */}
               <div className="space-y-4">
                 <div className="relative aspect-square rounded-2xl border bg-zinc-50 overflow-hidden shadow-inner">
                   {selectedProduct.images?.[currentImageIdx] ? (
@@ -808,7 +815,6 @@ export default function ClientOrdersPage() {
                 </div>
               </div>
 
-              {/* Right: Info & Add to Cart */}
               <div className="space-y-6">
                 <div>
                   <Badge variant="outline" className="mb-2 text-primary border-primary/20 bg-primary/5">Réf: {selectedProduct.sku || 'TBC'}</Badge>

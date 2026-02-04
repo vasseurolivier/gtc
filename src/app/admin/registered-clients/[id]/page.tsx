@@ -9,7 +9,7 @@ import {
   updateRegisteredClientNumber,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { updateOrderStatus } from '@/actions/orders';
+import { updateOrderStatus, updateOrderPaymentStatus } from '@/actions/orders';
 import { createQuoteFromOrder, getQuotes, Quote } from '@/actions/quotes';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Select, 
   SelectContent, 
@@ -240,6 +241,15 @@ export default function ClientDetailPage() {
     const result = await updateOrderStatus(orderId, newStatus);
     if (result.success) {
       toast({ title: "Statut mis à jour", description: "La commande a été actualisée." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handlePaymentToggle = async (orderId: string, currentStatus: boolean) => {
+    const result = await updateOrderPaymentStatus(orderId, !currentStatus);
+    if (result.success) {
+      toast({ title: "Paiement mis à jour", description: "Le statut a été enregistré." });
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
@@ -478,8 +488,8 @@ export default function ClientDetailPage() {
       <TableHeader className="bg-zinc-50">
         <TableRow>
           <TableHead className="pl-6">N° Commande</TableHead>
-          <TableHead>Date</TableHead>
           <TableHead>Statut</TableHead>
+          <TableHead className="text-center">Payé ?</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead className="text-right pr-6">Action</TableHead>
         </TableRow>
@@ -492,18 +502,22 @@ export default function ClientDetailPage() {
           return (
             <TableRow key={order.id} className={cn(isVeryRecent && "bg-primary/5")}>
               <TableCell className="pl-6 font-bold">
-                <div className="flex items-center gap-2">
-                  {order.orderNumber}
-                  {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    {order.orderNumber}
+                    {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                  </div>
+                  <span className="text-[10px] text-zinc-400 font-normal">
+                    {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
+                  </span>
                 </div>
               </TableCell>
-              <TableCell>{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
               <TableCell>
                 <Select 
                   defaultValue={order.status} 
                   onValueChange={(value) => handleStatusChange(order.id, value)}
                 >
-                  <SelectTrigger className="w-36 h-9">
+                  <SelectTrigger className="w-32 h-8 text-xs">
                     {getOrderStatusBadge(order.status)}
                   </SelectTrigger>
                   <SelectContent>
@@ -514,6 +528,13 @@ export default function ClientDetailPage() {
                     <SelectItem value="cancelled">Annulé</SelectItem>
                   </SelectContent>
                 </Select>
+              </TableCell>
+              <TableCell className="text-center">
+                <Checkbox 
+                  checked={order.isPaid} 
+                  onCheckedChange={() => handlePaymentToggle(order.id, !!order.isPaid)}
+                  className="mx-auto"
+                />
               </TableCell>
               <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
               <TableCell className="text-right pr-6">
@@ -531,11 +552,11 @@ export default function ClientDetailPage() {
                       ) : (
                         <Sparkles className="mr-2 h-3 w-3" />
                       )}
-                      Générer Proforma
+                      Générer PI
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm" className="h-8" onClick={() => handleOpenOrderPreview(order)}>
-                    <Eye className="h-4 w-4 mr-2" /> Voir
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenOrderPreview(order)}>
+                    <Eye className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -543,7 +564,7 @@ export default function ClientDetailPage() {
           )
         }) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune commande dans cette section.</TableCell>
+            <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
           </TableRow>
         )}
       </TableBody>
@@ -552,8 +573,6 @@ export default function ClientDetailPage() {
 
   const listProducts = useMemo(() => {
     if (!selectedList || !db || !clientId) return [];
-    // Note: Use direct getDocs or useCollection for reactivity.
-    // For now, return publishedProducts filtered by listId if reactive enough.
     return publishedProducts.filter(p => p.listId === selectedList.id).concat(pendingSourcingProducts.filter(p => p.listId === selectedList.id));
   }, [selectedList, publishedProducts, pendingSourcingProducts, db, clientId]);
 
@@ -727,7 +746,6 @@ export default function ClientDetailPage() {
             </TabsContent>
 
             <TabsContent value="lists" className="space-y-8">
-              {/* Urgent Pending Sourcing Section */}
               {pendingSourcingProducts.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-red-600">
@@ -775,7 +793,6 @@ export default function ClientDetailPage() {
                 </div>
               )}
 
-              {/* Lists Browser */}
               <div className="space-y-4">
                 <h3 className="font-bold text-lg text-zinc-800">Parcourir les listes de projets</h3>
                 {!selectedList ? (
@@ -982,7 +999,6 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* Global Catalog Selection Dialog */}
       <Dialog open={isCatalogDialogOpen} onOpenChange={setIsCatalogDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
@@ -1023,7 +1039,6 @@ export default function ClientDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Invoice Link Dialog */}
       <Dialog open={isInvoiceLinkDialogOpen} onOpenChange={setIsInvoiceLinkDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -1057,7 +1072,6 @@ export default function ClientDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Quote Link Dialog */}
       <Dialog open={isQuoteLinkDialogOpen} onOpenChange={setIsQuoteLinkDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -1091,7 +1105,6 @@ export default function ClientDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Order Preview Dialog */}
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1188,7 +1201,6 @@ export default function ClientDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Product Edit / Validation Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>

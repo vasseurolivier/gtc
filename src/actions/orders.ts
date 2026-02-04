@@ -29,6 +29,7 @@ const orderSchema = z.object({
   orderDate: z.any(), // Flexible for server action
   transportCost: z.coerce.number().optional(),
   commissionRate: z.coerce.number().optional(),
+  isPaid: z.boolean().optional().default(false),
 });
 
 export type OrderItem = z.infer<typeof orderItemSchema>;
@@ -47,6 +48,7 @@ export interface Order {
     createdAt: string;
     transportCost?: number;
     commissionRate?: number;
+    isPaid?: boolean;
 }
 
 const parseDate = (val: any) => {
@@ -77,6 +79,7 @@ export async function addOrder(quote: Quote) {
           createdAt: serverTimestamp(),
           transportCost: quote.transportCost || 0,
           commissionRate: quote.commissionRate || 0,
+          isPaid: false,
         };
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
@@ -135,6 +138,7 @@ export async function getOrders(): Promise<Order[]> {
           ...data,
           orderDate: parseDate(data.orderDate),
           createdAt: parseDate(data.createdAt),
+          isPaid: data.isPaid || false,
         } as Order);
     });
 
@@ -161,6 +165,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
             ...data,
             orderDate: parseDate(data.orderDate),
             createdAt: parseDate(data.createdAt),
+            isPaid: data.isPaid || false,
         } as Order;
 
     } catch (error) {
@@ -187,6 +192,17 @@ export async function updateOrderStatus(id: string, status: z.infer<typeof order
         return { success: true, message: 'Order status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating order status:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateOrderPaymentStatus(id: string, isPaid: boolean) {
+    try {
+        const orderRef = doc(db, 'orders', id);
+        await updateDoc(orderRef, { isPaid });
+        return { success: true, message: 'Payment status updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating payment status:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

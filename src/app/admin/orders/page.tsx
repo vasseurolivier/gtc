@@ -10,14 +10,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addOrder, getOrders, deleteOrder, updateOrderStatus, Order } from '@/actions/orders';
+import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, Order } from '@/actions/orders';
 import { getQuotes, Quote, createQuoteFromOrder } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, FileText, Sparkles } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, FileText, Sparkles, CreditCard } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -47,7 +48,6 @@ export default function OrdersPage() {
   }
   const { currency, exchangeRate } = currencyContext;
 
-  // Helper to parse dates from Firestore (which can be Timestamps or strings)
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -133,6 +133,20 @@ export default function OrdersPage() {
     }
   }
 
+  const handlePaymentToggle = async (orderId: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    const originalOrders = [...orders];
+    setOrders(orders.map(o => o.id === orderId ? {...o, isPaid: newStatus} : o));
+
+    const result = await updateOrderPaymentStatus(orderId, newStatus);
+    if (!result.success) {
+        setOrders(originalOrders);
+        toast({ variant: 'destructive', title: 'Error', description: result.message });
+    } else {
+        toast({ title: 'Success', description: `Commande marquée comme ${newStatus ? 'payée' : 'non payée'}.` });
+    }
+  };
+
   const handleGenerateQuote = async (orderId: string) => {
     setIsGeneratingQuote(orderId);
     try {
@@ -183,6 +197,7 @@ export default function OrdersPage() {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Statut</TableHead>
+            <TableHead className="text-center">Paiement</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -192,7 +207,7 @@ export default function OrdersPage() {
         {orderList.map((order) => {
           const isClientInitiated = !order.quoteId;
           const orderCreatedDate = parseSafeDate(order.createdAt);
-          const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000; // less than 1 hour
+          const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
 
           return (
             <TableRow key={order.id} className={cn(isVeryRecent && !isArchived && "bg-primary/5")}>
@@ -221,6 +236,18 @@ export default function OrdersPage() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+              </TableCell>
+              <TableCell className="text-center">
+                <div className="flex flex-col items-center gap-1">
+                  <Checkbox 
+                    checked={order.isPaid} 
+                    onCheckedChange={() => handlePaymentToggle(order.id, !!order.isPaid)}
+                    className="h-5 w-5 border-zinc-300"
+                  />
+                  <span className={cn("text-[9px] font-bold uppercase", order.isPaid ? "text-green-600" : "text-zinc-400")}>
+                    {order.isPaid ? 'Payé' : 'Attente'}
+                  </span>
+                </div>
               </TableCell>
               <TableCell className="text-right">
                   <div>¥{order.totalAmount.toFixed(2)}</div>
