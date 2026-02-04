@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -27,7 +28,7 @@ const quoteSchema = z.object({
   items: z.array(quoteItemSchema).min(1, "At least one item is required."),
   subTotal: z.coerce.number(),
   transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
-  commissionRate: z.coerce.number().min(0, "Commission can't be negative.").max(100, "Commission can't be over 100%.").optional().default(0),
+  commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
   totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
   status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
@@ -64,6 +65,55 @@ export interface Quote {
     createdAt: string;
     depositRequired?: boolean;
     depositPercentage?: number;
+}
+
+/**
+ * Génère automatiquement une Proforma à partir d'une commande existante.
+ */
+export async function createQuoteFromOrder(orderId: string) {
+    try {
+        const order = await getOrderById(orderId);
+        if (!order) return { success: false, message: "Commande introuvable." };
+
+        const newQuoteData = {
+            quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
+            customerId: order.customerId,
+            customerName: order.customerName,
+            orderId: order.id,
+            issueDate: new Date(),
+            validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
+            items: order.items.map(item => ({
+                sku: item.sku || "",
+                description: item.description,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                purchasePrice: (item as any).purchasePrice || 0,
+                total: item.total,
+            })),
+            subTotal: order.totalAmount,
+            transportCost: order.transportCost || 0,
+            commissionRate: order.commissionRate || 0,
+            totalAmount: order.totalAmount,
+            status: "draft" as const,
+            shippingAddress: order.shippingAddress || "",
+            notes: "Généré automatiquement depuis la commande " + order.orderNumber,
+            depositRequired: true,
+            depositPercentage: 30,
+        };
+
+        // Validation via le schéma existant
+        const validatedData = quoteSchema.parse(newQuoteData);
+
+        const docRef = await addDoc(collection(db, 'quotes'), {
+            ...validatedData,
+            createdAt: serverTimestamp(),
+        });
+
+        return { success: true, message: 'Proforma générée automatiquement !', id: docRef.id };
+    } catch (error: any) {
+        console.error('Error creating quote from order:', error);
+        return { success: false, message: 'Échec de la génération automatique.' };
+    }
 }
 
 export async function addQuote(values: z.infer<typeof quoteSchema>) {

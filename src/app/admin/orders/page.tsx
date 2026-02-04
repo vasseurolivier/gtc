@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -14,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, Order } from '@/actions/orders';
-import { getQuotes, Quote } from '@/actions/quotes';
+import { getQuotes, Quote, createQuoteFromOrder } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { Loader2, PlusCircle, Trash2, FileText, Sparkles } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -38,6 +39,7 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddOrderOpen, setAddOrderOpen] = useState(false);
+  const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   
   const currencyContext = useContext(CurrencyContext);
   if (!currencyContext) {
@@ -122,6 +124,23 @@ export default function OrdersPage() {
     }
   }
 
+  const handleGenerateQuote = async (orderId: string) => {
+    setIsGeneratingQuote(orderId);
+    try {
+      const result = await createQuoteFromOrder(orderId);
+      if (result.success) {
+        toast({ title: "Succès", description: result.message });
+        router.push('/admin/quotes');
+      } else {
+        toast({ variant: "destructive", title: "Erreur", description: result.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erreur", description: "Une erreur est survenue." });
+    } finally {
+      setIsGeneratingQuote(null);
+    }
+  };
+
   const getStatusBadgeVariant = (status: Order['status']) => {
     switch (status) {
         case 'delivered': return 'default';
@@ -198,10 +217,19 @@ export default function OrdersPage() {
               <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {isClientInitiated && order.status === 'processing' && (
-                      <Button variant="secondary" size="sm" asChild className="bg-primary hover:bg-primary/90 text-white font-bold">
-                        <Link href={`/admin/quotes?fromOrder=${order.id}`}>
-                          <Sparkles className="mr-2 h-4 w-4" /> Générer Proforma
-                        </Link>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
+                        disabled={isGeneratingQuote === order.id}
+                        onClick={() => handleGenerateQuote(order.id)}
+                      >
+                        {isGeneratingQuote === order.id ? (
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="mr-2 h-4 w-4" />
+                        )}
+                        Générer Proforma
                       </Button>
                     )}
                     <AlertDialog>

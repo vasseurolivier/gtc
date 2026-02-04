@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -9,6 +10,7 @@ import {
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { updateOrderStatus } from '@/actions/orders';
+import { createQuoteFromOrder } from '@/actions/quotes';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -78,6 +80,7 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
   
   // Catalog logic
@@ -215,6 +218,23 @@ export default function ClientDetailPage() {
       toast({ title: "Statut mis à jour", description: "La commande a été actualisée." });
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handleGenerateQuote = async (orderId: string) => {
+    setIsGeneratingQuote(orderId);
+    try {
+      const result = await createQuoteFromOrder(orderId);
+      if (result.success) {
+        toast({ title: "Succès", description: result.message });
+        router.push('/admin/quotes');
+      } else {
+        toast({ variant: "destructive", title: "Erreur", description: result.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erreur", description: "Une erreur est survenue." });
+    } finally {
+      setIsGeneratingQuote(null);
     }
   };
 
@@ -452,10 +472,19 @@ export default function ClientDetailPage() {
               <TableCell className="text-right pr-6">
                 <div className="flex justify-end gap-2">
                   {isClientInitiated && order.status === 'processing' && (
-                    <Button variant="secondary" size="sm" asChild className="bg-primary hover:bg-primary/90 text-white font-bold h-8">
-                      <Link href={`/admin/quotes?fromOrder=${order.id}`}>
-                        <Sparkles className="mr-2 h-3 w-3" /> Générer Proforma
-                      </Link>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
+                      disabled={isGeneratingQuote === order.id}
+                      onClick={() => handleGenerateQuote(order.id)}
+                    >
+                      {isGeneratingQuote === order.id ? (
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="mr-2 h-3 w-3" />
+                      )}
+                      Générer Proforma
                     </Button>
                   )}
                   <Button variant="ghost" size="sm" className="h-8" onClick={() => handleOpenOrderPreview(order)}>
@@ -932,10 +961,17 @@ export default function ClientDetailPage() {
           <DialogFooter className="gap-2">
             <Button variant="outline" className="flex-1 font-bold" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button>
             {selectedOrderPreview?.status === 'processing' && (
-              <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold">
-                <Link href={`/admin/quotes?fromOrder=${selectedOrderPreview.id}`}>
-                  <Sparkles className="mr-2 h-4 w-4" /> Générer Proforma
-                </Link>
+              <Button 
+                className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold"
+                disabled={isGeneratingQuote === selectedOrderPreview.id}
+                onClick={() => handleGenerateQuote(selectedOrderPreview.id)}
+              >
+                {isGeneratingQuote === selectedOrderPreview.id ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                Générer Proforma
               </Button>
             )}
           </DialogFooter>
