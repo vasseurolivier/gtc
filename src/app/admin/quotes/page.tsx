@@ -23,7 +23,7 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -31,9 +31,6 @@ import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
-import { app as firebaseApp } from '@/lib/firebase';
-import Image from 'next/image';
 import { Switch } from '@/components/ui/switch';
 
 const quoteItemSchema = z.object({
@@ -43,7 +40,7 @@ const quoteItemSchema = z.object({
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
   purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
-  photo: z.string().optional(), // For URL
+  photo: z.string().optional(),
 });
 
 const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
@@ -52,6 +49,7 @@ const formSchema = z.object({
   quoteNumber: z.string().min(1, "Proforma number is required."),
   customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
+  orderId: z.string().optional(),
   issueDate: z.date({ required_error: "Issue date is required."}),
   validUntil: z.date({ required_error: "Validity date is required."}),
   items: z.array(quoteItemSchema).min(1, "Please add at least one item."),
@@ -103,7 +101,7 @@ function QuotesPageContent() {
     },
   });
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "items"
   });
@@ -117,50 +115,33 @@ function QuotesPageContent() {
   
   const handleSaveAsProduct = async (index: number) => {
     const item = form.getValues(`items.${index}`);
-
-    if (!item.description) {
-        toast({ variant: 'destructive', title: 'Missing Information', description: 'Product description is required to save.' });
-        return;
-    }
+    if (!item.description) return;
     
     setIsSavingProduct(index);
-
     try {
-        const newProductData = {
+        const result = await addProduct({
             name: item.description,
             sku: item.sku || `SKU-${Date.now().toString().slice(-8)}`,
             price: item.unitPrice,
             purchasePrice: item.purchasePrice || 0,
             imageUrl: item.photo || '',
             stock: 0,
-            weight: 0,
-            width: 0,
-            height: 0,
-            length: 0,
-        };
-
-        const result = await addProduct(newProductData);
+        });
 
         if (result.success) {
-            toast({ title: 'Product Saved', description: `${item.description} has been added to your product list.` });
+            toast({ title: 'Produit Sauvegardé', description: `${item.description} a été ajouté au catalogue global.` });
             const fetchedProducts = await getProducts();
             setProducts(fetchedProducts);
-        } else {
-            toast({ variant: 'destructive', title: 'Error Saving Product', description: result.message || 'An unknown error occurred.' });
         }
-    } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Save Failed', description: error.message || 'Could not save product.' });
     } finally {
         setIsSavingProduct(null);
     }
-};
-
+  };
 
   useEffect(() => {
-    const subscription = form.watch((values, { name, type }) => {
+    const subscription = form.watch((values, { name }) => {
         if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
             const items = values.items || [];
-            
             items.forEach((item, index) => {
                 if (!item) return;
                 const quantity = Number(item.quantity) || 0;
@@ -182,7 +163,7 @@ function QuotesPageContent() {
         }
     });
     return () => subscription.unsubscribe();
-}, [form]);
+  }, [form]);
   
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -214,7 +195,7 @@ function QuotesPageContent() {
                     description: item.description,
                     quantity: item.quantity,
                     unitPrice: item.unitPriceCny,
-                    purchasePrice: item.unitPriceCny, // Assuming purchase price is same as unit price from packing list
+                    purchasePrice: item.unitPriceCny,
                     total: item.quantity * item.unitPriceCny,
                     photo: item.photo || "",
                 }));
@@ -248,6 +229,7 @@ function QuotesPageContent() {
               quoteNumber: `PI-${order.orderNumber.replace('ORD-', '')}`,
               customerId: order.customerId,
               customerName: order.customerName,
+              orderId: order.id,
               issueDate: new Date(),
               validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
               items: newItems,
@@ -277,8 +259,8 @@ function QuotesPageContent() {
             ...quote,
             issueDate: new Date(quote.issueDate),
             validUntil: new Date(quote.validUntil),
-            items: quote.items.map(item => ({...item, photo: ''})), // photos are not persisted on quote
-            depositRequired: quote.depositRequired !== false, // default to true if undefined
+            items: quote.items.map(item => ({...item, photo: ''})),
+            depositRequired: quote.depositRequired !== false,
             depositPercentage: quote.depositPercentage || 30,
         });
     } else {
@@ -294,8 +276,6 @@ function QuotesPageContent() {
             status: "draft",
             shippingAddress: "",
             notes: "",
-            customerId: undefined,
-            customerName: undefined,
             depositRequired: true,
             depositPercentage: 30,
         });
@@ -324,22 +304,16 @@ function QuotesPageContent() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    // Sanitize items: keep photo URL for saving
-    const valuesToSave = {
-        ...values,
-        items: values.items.map(({ ...item }) => item)
-    };
-    
     const result = editingQuote
-      ? await updateQuote(editingQuote.id, valuesToSave)
-      : await addQuote(valuesToSave);
+      ? await updateQuote(editingQuote.id, values)
+      : await addQuote(values);
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       const newQuotes = await getQuotes();
       setQuotes(newQuotes);
       setIsDialogOpen(false);
-      router.refresh(); // Refresh server components
+      router.refresh();
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -351,8 +325,6 @@ function QuotesPageContent() {
     if (result.success) {
         toast({ title: 'Success', description: result.message });
         setQuotes(quotes.filter(q => q.id !== id));
-    } else {
-        toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
   };
 
@@ -367,9 +339,9 @@ function QuotesPageContent() {
         toast({ variant: 'destructive', title: 'Error', description: result.message });
     } else {
         toast({ title: 'Success', description: 'Proforma status updated.' });
-        router.refresh(); // Refresh server components to reflect changes in orders/invoices
+        router.refresh();
     }
-  }
+  };
   
   const handleDuplicateQuote = (quoteToDuplicate: Quote) => {
     form.reset({
@@ -380,7 +352,7 @@ function QuotesPageContent() {
       status: "draft",
       items: quoteToDuplicate.items.map(item => ({...item, photo: ''}))
     });
-    setEditingQuote(null); // Ensure it's a new quote
+    setEditingQuote(null);
     setIsDialogOpen(true);
   };
 
@@ -393,18 +365,16 @@ function QuotesPageContent() {
     }
   }
 
-  const subTotal = form.getValues('subTotal') || 0;
-  const commissionAmount = subTotal * ((form.getValues('commissionRate') || 0) / 100);
-  const totalAmount = form.getValues('totalAmount') || 0;
+  const subTotalValue = form.getValues('subTotal') || 0;
+  const commissionAmount = subTotalValue * ((form.getValues('commissionRate') || 0) / 100);
+  const totalAmountValue = form.getValues('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
   const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected');
   
   const archivedQuotesByCustomer = archivedQuotes.reduce((acc, quote) => {
     const customerId = quote.customerId;
-    if (!acc[customerId]) {
-      acc[customerId] = [];
-    }
+    if (!acc[customerId]) acc[customerId] = [];
     acc[customerId].push(quote);
     return acc;
   }, {} as Record<string, Quote[]>);
@@ -426,7 +396,12 @@ function QuotesPageContent() {
       <TableBody>
         {quoteList.map((quote) => (
           <TableRow key={quote.id}>
-            <TableCell className="font-medium">{quote.quoteNumber}</TableCell>
+            <TableCell className="font-medium">
+              <div className="flex items-center gap-2">
+                {quote.quoteNumber}
+                {quote.orderId && <LinkIcon className="h-3 w-3 text-primary" title="Lié à une commande client" />}
+              </div>
+            </TableCell>
             <TableCell>{quote.customerName}</TableCell>
             <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
             <TableCell>
@@ -447,26 +422,26 @@ function QuotesPageContent() {
                 <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
             </TableCell>
             <TableCell className="text-right">
-                <Button variant="ghost" size="icon" asChild>
+                <Button variant="ghost" size="icon" asChild title="Voir PDF">
                     <Link href={`/admin/quotes/${quote.id}`}>
                         <Eye className="h-4 w-4" />
                     </Link>
                 </Button>
-                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
+                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Modifier">
                     <Pencil className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)}>
+                <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Dupliquer">
                     <Copy className="h-4 w-4" />
                 </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                     <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete this document.
+                        <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
+                            Cette action supprimera définitivement cette Proforma.
                         </AlertDialogDescription></AlertDialogHeader>
                         <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Delete</AlertDialogAction>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
@@ -489,14 +464,15 @@ function QuotesPageContent() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Proforma Invoices</h1>
-        <Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Create Proforma Invoice</Button>
+        <Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Créer manuellement</Button>
       </div>
+      
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle>{editingQuote ? 'Edit Proforma Invoice' : 'Create a New Proforma Invoice'}</DialogTitle>
+                <DialogTitle>{editingQuote ? 'Modifier Proforma' : 'Nouvelle Proforma'}</DialogTitle>
                 <DialogDescription>
-                    Fill in the details to create or update a proforma invoice. Totals will be recalculated automatically.
+                    {form.getValues('orderId') ? "Génération à partir d'une commande client." : "Remplissez les détails ci-dessous."}
                 </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -507,218 +483,148 @@ function QuotesPageContent() {
                   )} />
                   <FormField control={form.control} name="customerId" render={({ field }) => (
                       <FormItem className="lg:col-span-3">
-                      <FormLabel>Customer</FormLabel>
+                      <FormLabel>Client</FormLabel>
                       <Select onValueChange={handleCustomerChange} value={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger></FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger></FormControl>
                           <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}</SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="issueDate" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Issue Date</FormLabel><Popover><PopoverTrigger asChild>
+                    <FormItem className="flex flex-col"><FormLabel>Date d'émission</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? format(field.value, "PPP") : <span>Choisir une date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="validUntil" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Valid Until</FormLabel><Popover><PopoverTrigger asChild>
+                    <FormItem className="flex flex-col"><FormLabel>Valide jusqu'au</FormLabel><Popover><PopoverTrigger asChild>
                     <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
+                      {field.value ? format(field.value, "PPP") : <span>Choisir une date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
                     </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
                   )} />
                 </div>
 
                  <FormField control={form.control} name="shippingAddress" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Shipping Address</FormLabel>
-                        <FormControl><Textarea placeholder="Enter the full shipping address..." {...field} rows={3} /></FormControl>
+                        <FormLabel>Adresse de livraison</FormLabel>
+                        <FormControl><Textarea placeholder="Adresse complète..." {...field} rows={3} /></FormControl>
                         <FormMessage />
                     </FormItem>
                   )} />
                 
-                <Card className="p-4">
-                  <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Items</h4></CardHeader>
-                  <CardContent className="p-0">
-                    <div className="space-y-4">
+                <Card className="p-4 border-primary/20 bg-primary/5">
+                  <CardHeader className="p-2 mb-2"><h4 className="font-bold flex items-center gap-2"><Package className="h-4 w-4"/> Articles</h4></CardHeader>
+                  <CardContent className="p-0 space-y-4">
                       {fields.map((field, index) => (
-                        <div key={field.id} className="p-3 border rounded-md">
+                        <div key={field.id} className="p-3 border rounded-md bg-white shadow-sm">
                           <div className="flex justify-end">
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
                           </div>
-                          <div className="space-y-2">
-                                <FormField
-                                  control={form.control}
-                                  name={`items.${index}.description`}
-                                  render={({ field: f }) => (
-                                      <FormItem>
-                                          <FormLabel>Product</FormLabel>
-                                           <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a product or type manually" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {products.map(p => (
-                                                        <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                      </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name={`items.${index}.description`}
-                                    render={({ field: f }) => (
-                                        <FormItem>
-                                            <FormLabel>Description</FormLabel>
-                                            <FormControl>
-                                                <Textarea placeholder="Detailed product description..." {...f} rows={2} />
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                />
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-start">
-                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel>Qty</FormLabel><FormControl><Input type="number" placeholder="Qty" {...f} /></FormControl><FormMessage/></FormItem>)}/>
-                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl><FormMessage/></FormItem>)}/>
-                                    <div className="text-right">
-                                        <FormLabel>Total</FormLabel>
-                                        <div className="font-medium pt-2">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
+                          <div className="space-y-4">
+                                <Select onValueChange={(value) => handleProductSelect(value, index)}>
+                                    <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue placeholder="Lier un produit du catalogue global" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}
+                                    </SelectContent>
+                                </Select>
+                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
+                                    <FormItem><FormLabel className="text-xs">Description</FormLabel><FormControl><Textarea placeholder="Spécifications..." {...f} rows={2} /></FormControl><FormMessage/></FormItem>
+                                )} />
+                                <div className="grid grid-cols-3 gap-4">
+                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Qté</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
+                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Prix Unit. (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
+                                    <div className="text-right space-y-1">
+                                        <span className="text-[10px] text-zinc-400 uppercase font-bold">Total</span>
+                                        <div className="font-black text-sm">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
                                     </div>
                                 </div>
-                          </div>
-                           <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
-                             <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                               {watchItems[index]?.photo && (
-                                   <img src={watchItems[index].photo!} alt="Product" className="object-contain w-full h-full" />
-                               )}
-                               {!watchItems[index]?.photo && <UploadCloud className="h-6 w-6 text-muted-foreground" />}
-                             </div>
-                            <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                                <FormItem>
-                                    <FormLabel className="sr-only">Photo URL</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="http://..." {...photoField} />
-                                    </FormControl>
-                                </FormItem>
-                            )}/>
-                            {watchItems[index]?.description && !products.some(p => p.sku === watchItems[index].sku) && (
-                                <Button type="button" variant="secondary" size="sm" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
-                                {isSavingProduct === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
-                                Save as Product
-                                </Button>
-                            )}
+                                <div className="flex items-center gap-4 pt-2">
+                                    <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
+                                        {watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain" /> : <UploadCloud className="h-4 w-4 text-zinc-300" />}
+                                    </div>
+                                    <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
+                                        <FormItem className="flex-grow"><FormControl><Input placeholder="URL photo..." {...photoField} className="h-8 text-xs" /></FormControl></FormItem>
+                                    )}/>
+                                    {watchItems[index]?.description && !products.some(p => p.sku === watchItems[index].sku) && (
+                                        <Button type="button" variant="outline" size="sm" className="h-8 text-[10px]" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
+                                            <Save className="h-3 w-3 mr-1" /> SAUVER AU CATALOGUE
+                                        </Button>
+                                    )}
+                                </div>
                           </div>
                         </div>
                       ))}
-                    </div>
-                    <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" })}>
-                        <PlusCircle className="mr-2 h-4 w-4"/> Add Item
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" })}>
+                        <PlusCircle className="mr-2 h-4 w-4"/> Ajouter une ligne
                     </Button>
-                    <Separator className="my-4" />
-                    <div className="flex justify-end">
-                      <div className="w-full md:w-1/2 space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span>Subtotal</span>
-                          <span>¥{subTotal.toFixed(2)}</span>
-                        </div>
-                         <div className="flex justify-between items-center gap-4">
-                           <FormLabel className="whitespace-nowrap">Transport Cost (CNY)</FormLabel>
-                            <FormField control={form.control} name="transportCost" render={({ field }) => (
-                                <FormItem className="flex-grow">
-                                <FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl>
-                                </FormItem>
-                           )}/>
-                        </div>
-                         <div className="flex justify-between items-center gap-4">
-                           <FormLabel className="whitespace-nowrap">Commission (%)</FormLabel>
-                           <FormField control={form.control} name="commissionRate" render={({ field }) => (
-                                <FormItem className="flex-grow">
-                                <FormControl><Input type="number" step="0.01" className="text-right" {...field} /></FormControl>
-                                </FormItem>
-                           )}/>
-                        </div>
-                        <div className="flex justify-between items-center text-muted-foreground text-sm">
-                          <span>Commission Amount</span>
-                          <span>¥{commissionAmount.toFixed(2)}</span>
-                        </div>
-                        <Separator />
-                        <div className="flex justify-between items-center text-lg font-semibold">
-                          <span>Total (CNY)</span>
-                          <span>¥{totalAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-lg font-semibold text-primary">
-                          <span>Total ({currency.code})</span>
-                          <span>{currency.symbol}{(totalAmount * exchangeRate).toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
 
-                 <FormField control={form.control} name="notes" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Additional Information / Notes</FormLabel>
-                        <FormControl><Textarea placeholder="Any specific instructions, terms, or notes..." {...field} rows={3} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                  )} />
-                  
-                 <Card className="p-4">
-                    <CardHeader className="p-2 mb-2"><h4 className="font-semibold">Payment Terms</h4></CardHeader>
-                    <CardContent className="p-0">
-                         <div className="space-y-4">
-                             <FormField
-                                control={form.control}
-                                name="depositRequired"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                    <div className="space-y-0.5">
-                                        <FormLabel>Deposit Required?</FormLabel>
-                                        <FormMessage />
-                                    </div>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">
+                    <div className="space-y-4">
+                        <FormField control={form.control} name="notes" render={({ field }) => (
+                            <FormItem><FormLabel>Notes internes / Conditions</FormLabel><FormControl><Textarea placeholder="Détails bancaires, délais..." {...field} rows={4} /></FormControl></FormItem>
+                        )} />
+                        <Card className="p-4 bg-zinc-50 border-none">
+                            <FormField control={form.control} name="depositRequired" render={({ field }) => (
+                                <FormItem className="flex items-center justify-between">
+                                    <FormLabel className="m-0">Acompte requis ?</FormLabel>
+                                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl>
+                                </FormItem>
+                            )}/>
                             {watchDepositRequired && (
-                                <FormField
-                                    control={form.control}
-                                    name="depositPercentage"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Deposit Percentage (%)</FormLabel>
-                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                <FormField control={form.control} name="depositPercentage" render={({ field }) => (
+                                    <FormItem className="mt-4"><FormLabel className="text-xs">Pourcentage d'acompte (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
+                                )}/>
                             )}
-                         </div>
-                    </CardContent>
-                 </Card>
-                
-                 <FormField control={form.control} name="status" render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="sent">Sent</SelectItem>
-                            <SelectItem value="accepted">Accepted</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                    </Select><FormMessage /></FormItem>
-                )} />
+                        </Card>
+                    </div>
+                    <div className="bg-zinc-950 text-white p-6 rounded-2xl space-y-3">
+                        <div className="flex justify-between items-center text-zinc-400 text-sm">
+                            <span>Sous-total</span>
+                            <span>¥{subTotalValue.toFixed(2)}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 items-center">
+                            <span className="text-zinc-400 text-sm">Frais de port (CNY)</span>
+                            <FormField control={form.control} name="transportCost" render={({ field }) => (
+                                <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 border-white/20 text-right h-8" {...field} /></FormControl></FormItem>
+                            )}/>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 items-center">
+                            <span className="text-zinc-400 text-sm">Commission (%)</span>
+                            <FormField control={form.control} name="commissionRate" render={({ field }) => (
+                                <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 border-white/20 text-right h-8" {...field} /></FormControl></FormItem>
+                            )}/>
+                        </div>
+                        <Separator className="bg-white/10" />
+                        <div className="flex justify-between items-center pt-2">
+                            <span className="text-primary font-bold">TOTAL FINAL</span>
+                            <div className="text-right">
+                                <div className="text-2xl font-black">¥{totalAmountValue.toFixed(2)}</div>
+                                <div className="text-sm text-zinc-400">{currency.symbol}{(totalAmountValue * exchangeRate).toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <DialogFooter>
-                    <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                    <Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingQuote ? 'Save Changes' : 'Create Proforma'}</Button>
+                <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-6">
+                    <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                    <div className="flex gap-2">
+                        <FormField control={form.control} name="status" render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl><SelectTrigger className="w-32"><SelectValue/></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="draft">Draft</SelectItem>
+                                    <SelectItem value="sent">Sent</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )} />
+                        <Button type="submit" disabled={isSubmitting} className="font-bold bg-primary hover:bg-primary/90">
+                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            Enregistrer Proforma
+                        </Button>
+                    </div>
                 </DialogFooter>
               </form>
             </Form>
@@ -733,23 +639,13 @@ function QuotesPageContent() {
         <Card>
             <CardContent className="p-0">
             <TabsContent value="ongoing">
-                {isLoading ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-                ) : ongoingQuotes.length === 0 ? (
-                    <div className="text-center p-16 text-muted-foreground">
-                        <p>Aucune proforma en cours.</p>
-                    </div>
-                ) : (
-                    renderTable(ongoingQuotes)
-                )}
+                {ongoingQuotes.length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground"><p>Aucune proforma en cours.</p></div>
+                ) : renderTable(ongoingQuotes)}
             </TabsContent>
             <TabsContent value="archived">
-                {isLoading ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
-                ) : Object.keys(archivedQuotesByCustomer).length === 0 ? (
-                    <div className="text-center p-16 text-muted-foreground">
-                        <p>Aucune proforma archivée.</p>
-                    </div>
+                {Object.keys(archivedQuotesByCustomer).length === 0 ? (
+                    <div className="text-center p-16 text-muted-foreground"><p>Aucun historique archivé.</p></div>
                 ) : (
                     <Accordion type="multiple" className="w-full">
                       {Object.entries(archivedQuotesByCustomer).map(([customerId, customerQuotes]) => {
@@ -757,14 +653,12 @@ function QuotesPageContent() {
                         return (
                           <AccordionItem value={customerId} key={customerId}>
                             <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                              <div className='flex justify-between w-full pr-4'>
-                                <span>{customer?.name || 'Unknown Customer'}</span>
-                                <span className='text-muted-foreground'>{customerQuotes.length} document(s)</span>
+                              <div className='flex justify-between w-full pr-4 font-bold'>
+                                <span>{customer?.name || 'Client inconnu'}</span>
+                                <Badge variant="outline">{customerQuotes.length} document(s)</Badge>
                               </div>
                             </AccordionTrigger>
-                            <AccordionContent>
-                              {renderTable(customerQuotes, true)}
-                            </AccordionContent>
+                            <AccordionContent>{renderTable(customerQuotes, true)}</AccordionContent>
                           </AccordionItem>
                         );
                       })}

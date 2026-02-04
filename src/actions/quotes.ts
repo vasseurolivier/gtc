@@ -1,5 +1,3 @@
-
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -23,6 +21,7 @@ const quoteSchema = z.object({
   quoteNumber: z.string().min(1, "Proforma number is required."),
   customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
+  orderId: z.string().optional(),
   issueDate: z.date(),
   validUntil: z.date(),
   items: z.array(quoteItemSchema).min(1, "At least one item is required."),
@@ -51,6 +50,7 @@ export interface Quote {
     quoteNumber: string;
     customerId: string;
     customerName: string;
+    orderId?: string;
     items: QuoteItem[];
     subTotal: number;
     transportCost?: number;
