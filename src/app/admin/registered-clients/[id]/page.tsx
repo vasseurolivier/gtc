@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -169,10 +169,11 @@ export default function ClientDetailPage() {
   const { data: linkedInvoices } = useCollection(invoicesQuery);
 
   // Split orders into active and archived
-  const { activeOrders, archivedOrders } = useMemo(() => {
-    if (!orders) return { activeOrders: [], archivedOrders: [] };
+  const { activeOrders, archivedOrders, pendingOrdersCount } = useMemo(() => {
+    if (!orders) return { activeOrders: [], archivedOrders: [], pendingOrdersCount: 0 };
     const active = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
     const archived = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
+    const pending = orders.filter(o => o.status === 'processing').length;
     
     const sortByDate = (a: any, b: any) => {
       const dateA = a.orderDate ? parseSafeDate(a.orderDate).getTime() : 0;
@@ -182,7 +183,8 @@ export default function ClientDetailPage() {
 
     return { 
       activeOrders: [...active].sort(sortByDate), 
-      archivedOrders: [...archived].sort(sortByDate) 
+      archivedOrders: [...archived].sort(sortByDate),
+      pendingOrdersCount: pending
     };
   }, [orders]);
 
@@ -497,15 +499,16 @@ export default function ClientDetailPage() {
       <TableBody>
         {orderList.length > 0 ? orderList.map((order) => {
           const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000;
+          const isNewNotification = isVeryRecent && order.status === 'processing';
           const isClientInitiated = !order.quoteId;
 
           return (
-            <TableRow key={order.id} className={cn(isVeryRecent && "bg-primary/5")}>
+            <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
               <TableCell className="pl-6 font-bold">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     {order.orderNumber}
-                    {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                    {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
                   </div>
                   <span className="text-[10px] text-zinc-400 font-normal">
                     {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
@@ -673,9 +676,9 @@ export default function ClientDetailPage() {
               </TabsTrigger>
               <TabsTrigger value="orders" className="rounded-lg h-full px-4 relative">
                 <ShoppingCart className="h-4 w-4 mr-2" /> Commandes
-                {activeOrders.length > 0 && (
+                {pendingOrdersCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
-                    {activeOrders.length}
+                    {pendingOrdersCount}
                   </span>
                 )}
               </TabsTrigger>

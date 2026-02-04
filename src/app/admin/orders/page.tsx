@@ -22,7 +22,7 @@ import { Loader2, PlusCircle, Trash2, FileText, Sparkles, CreditCard } from 'luc
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -208,13 +208,14 @@ export default function OrdersPage() {
           const isClientInitiated = !order.quoteId;
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
+          const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
 
           return (
-            <TableRow key={order.id} className={cn(isVeryRecent && !isArchived && "bg-primary/5")}>
+            <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   {order.orderNumber}
-                  {isVeryRecent && !isArchived && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                  {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
                 </div>
               </TableCell>
               <TableCell>
