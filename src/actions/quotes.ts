@@ -7,36 +7,6 @@ import { z } from 'zod';
 import { addOrder, updateOrderFromQuote, Order, getOrderById } from './orders';
 import { addInvoiceFromOrder, updateInvoiceFromQuote } from './invoices';
 
-const quoteItemSchema = z.object({
-  sku: z.string().optional(),
-  description: z.string().min(1, "Description cannot be empty."),
-  quantity: z.coerce.number().positive("Quantity must be positive."),
-  unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
-  purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
-  total: z.coerce.number().nonnegative("Total cannot be negative."),
-});
-
-const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected"]);
-
-const quoteSchema = z.object({
-  quoteNumber: z.string().min(1, "Proforma number is required."),
-  customerId: z.string({ required_error: "Please select a customer." }),
-  customerName: z.string(),
-  orderId: z.string().optional(),
-  issueDate: z.any(),
-  validUntil: z.any(),
-  items: z.array(quoteItemSchema).min(1, "At least one item is required."),
-  subTotal: z.coerce.number(),
-  transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
-  commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
-  totalAmount: z.coerce.number().nonnegative({ message: "Total amount cannot be negative." }),
-  status: quoteStatusSchema,
-  shippingAddress: z.string().optional(),
-  notes: z.string().optional(),
-  depositRequired: z.boolean().default(true),
-  depositPercentage: z.coerce.number().min(0).max(100).optional().default(30),
-});
-
 export interface QuoteItem {
   sku?: string;
   description: string;
@@ -65,6 +35,7 @@ export interface Quote {
     createdAt: string;
     depositRequired?: boolean;
     depositPercentage?: number;
+    exchangeRate: number; // Freeze EUR price
 }
 
 const parseDate = (val: any) => {
@@ -77,18 +48,65 @@ const parseDate = (val: any) => {
     return new Date().toISOString();
 };
 
+async function getGlobalExchangeRate(): Promise<number> {
+    try {
+        const configRef = doc(db, 'config', 'finance');
+        const snap = await getDoc(configRef);
+        if (snap.exists()) {
+            return snap.data().exchangeRate || 0.13;
+        }
+        return 0.13;
+    } catch (e) {
+        return 0.13;
+    }
+}
+
+export async function addQuote(values: any) {
+    try {
+        const currentRate = await getGlobalExchangeRate();
+        const docRef = await addDoc(collection(db, 'quotes'), {
+            ...values,
+            exchangeRate: currentRate,
+            createdAt: serverTimestamp(),
+        });
+        return { success: true, message: 'Proforma Invoice added successfully!', id: docRef.id };
+    } catch (error: any) {
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateQuote(id: string, values: any) {
+    try {
+        const quoteRef = doc(db, 'quotes', id);
+        await updateDoc(quoteRef, values);
+
+        const updatedQuote = await getQuoteById(id);
+        if (updatedQuote && updatedQuote.status === 'accepted') {
+            const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
+            if (orderUpdateResult.success && orderUpdateResult.orderId) {
+                await updateInvoiceFromQuote(updatedQuote, orderUpdateResult.orderId);
+            }
+        }
+
+        return { success: true, message: 'Proforma Invoice updated successfully!' };
+    } catch (error: any) {
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
 export async function createQuoteFromOrder(orderId: string) {
     try {
         const order = await getOrderById(orderId);
         if (!order) return { success: false, message: "Commande introuvable." };
+        const currentRate = await getGlobalExchangeRate();
 
         const newQuoteData = {
             quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
             customerId: order.customerId,
             customerName: order.customerName,
             orderId: order.id,
-            issueDate: new Date(),
-            validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
+            issueDate: new Date().toISOString(),
+            validUntil: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString(),
             items: order.items.map(item => ({
                 sku: item.sku || "",
                 description: item.description,
@@ -106,50 +124,14 @@ export async function createQuoteFromOrder(orderId: string) {
             notes: "Généré automatiquement depuis la commande " + order.orderNumber,
             depositRequired: true,
             depositPercentage: 30,
+            exchangeRate: currentRate,
+            createdAt: serverTimestamp(),
         };
 
-        const docRef = await addDoc(collection(db, 'quotes'), {
-            ...newQuoteData,
-            createdAt: serverTimestamp(),
-        });
-
+        const docRef = await addDoc(collection(db, 'quotes'), newQuoteData);
         return { success: true, message: 'Proforma générée automatiquement !', id: docRef.id };
     } catch (error: any) {
-        console.error('Error creating quote from order:', error);
         return { success: false, message: 'Échec de la génération automatique.' };
-    }
-}
-
-export async function addQuote(values: z.infer<typeof quoteSchema>) {
-    try {
-        const docRef = await addDoc(collection(db, 'quotes'), {
-            ...values,
-            createdAt: serverTimestamp(),
-        });
-        return { success: true, message: 'Proforma Invoice added successfully!', id: docRef.id };
-    } catch (error: any) {
-        console.error('Error adding quote:', error);
-        return { success: false, message: 'An unexpected error occurred.' };
-    }
-}
-
-export async function updateQuote(id: string, values: z.infer<typeof quoteSchema>) {
-    try {
-        const quoteRef = doc(db, 'quotes', id);
-        await updateDoc(quoteRef, values);
-
-        const updatedQuote = await getQuoteById(id);
-        if (updatedQuote && updatedQuote.status === 'accepted') {
-            const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
-            if (orderUpdateResult.success && orderUpdateResult.orderId) {
-                await updateInvoiceFromQuote(updatedQuote, orderUpdateResult.orderId);
-            }
-        }
-
-        return { success: true, message: 'Proforma Invoice updated successfully!' };
-    } catch (error: any) {
-        console.error('Error updating quote:', error);
-        return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
@@ -167,12 +149,12 @@ export async function getQuotes(): Promise<Quote[]> {
           issueDate: parseDate(data.issueDate),
           validUntil: parseDate(data.validUntil),
           createdAt: parseDate(data.createdAt),
+          exchangeRate: data.exchangeRate || 0.13,
         } as Quote);
     });
 
     return quotes;
   } catch (error) {
-    console.error("Error fetching quotes:", error);
     return [];
   }
 }
@@ -182,22 +164,18 @@ export async function getQuoteById(id: string): Promise<Quote | null> {
         const quoteRef = doc(db, 'quotes', id);
         const quoteSnap = await getDoc(quoteRef);
 
-        if (!quoteSnap.exists()) {
-            return null;
-        }
+        if (!quoteSnap.exists()) return null;
 
         const data = quoteSnap.data();
-
         return {
             id: quoteSnap.id,
             ...data,
             issueDate: parseDate(data.issueDate),
             validUntil: parseDate(data.validUntil),
             createdAt: parseDate(data.createdAt),
+            exchangeRate: data.exchangeRate || 0.13,
         } as Quote;
-
     } catch (error) {
-        console.error("Error fetching quote details:", error);
         return null;
     }
 }
@@ -207,18 +185,16 @@ export async function deleteQuote(id: string) {
         await deleteDoc(doc(db, 'quotes', id));
         return { success: true, message: 'Proforma Invoice deleted successfully!' };
     } catch (error: any) {
-        console.error('Error deleting quote:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
-export async function updateQuoteStatus(id: string, status: z.infer<typeof quoteStatusSchema>) {
+export async function updateQuoteStatus(id: string, status: string) {
     try {
         const quoteRef = doc(db, 'quotes', id);
         const quoteSnap = await getDoc(quoteRef);
-        if (!quoteSnap.exists()) {
-            return { success: false, message: 'Proforma not found.' };
-        }
+        if (!quoteSnap.exists()) return { success: false, message: 'Proforma not found.' };
+        
         const quoteData = quoteSnap.data();
         const previousStatus = quoteData.status;
 
@@ -239,7 +215,6 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         
         return { success: true, message: 'Proforma status updated successfully!' };
     } catch (error: any) {
-        console.error('Error updating proforma status:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

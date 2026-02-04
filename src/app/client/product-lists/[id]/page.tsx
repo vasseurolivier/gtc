@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
@@ -28,6 +28,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { uploadImage } from '@/actions/upload';
+import { CurrencyContext } from '@/context/currency-context';
 
 export default function ListDetailsPage() {
   const params = useParams();
@@ -35,6 +36,8 @@ export default function ListDetailsPage() {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const currencyContext = useContext(CurrencyContext);
+  const rate = currencyContext?.exchangeRate || 0.13;
 
   const [isAdding, setIsAdding] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -46,7 +49,6 @@ export default function ListDetailsPage() {
     images: [] as string[],
   });
 
-  // Fetch list info
   const listRef = useMemoFirebase(() => {
     if (!db || !user || !listId) return null;
     return doc(db, 'clients', user.uid, 'productLists', listId);
@@ -54,7 +56,6 @@ export default function ListDetailsPage() {
   
   const { data: list, isLoading: isListLoading } = useDoc(listRef);
 
-  // Fetch products in this list
   const productsQuery = useMemoFirebase(() => {
     if (!db || !user || !listId) return null;
     return collection(db, 'clients', user.uid, 'productLists', listId, 'products');
@@ -65,45 +66,20 @@ export default function ListDetailsPage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !user) return;
-
     setIsUploading(true);
-    toast({ title: "Début de l'envoi", description: "Veuillez patienter..." });
-
     try {
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        // Use Server Action for more reliable upload
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', files[i]);
         formData.append('folder', `clients/${user.uid}/lists/${listId}`);
-        
         const result = await uploadImage(formData);
-        
         if (result.success && result.url) {
-          setNewProduct(prev => ({
-            ...prev,
-            images: [...prev.images, result.url!]
-          }));
-        } else {
-          toast({ variant: 'destructive', title: "Erreur", description: result.message });
+          setNewProduct(prev => ({ ...prev, images: [...prev.images, result.url!] }));
         }
       }
-      toast({ title: "Traitement terminé", description: "Vos photos ont été ajoutées." });
-    } catch (err: any) {
-      console.error("Upload Error:", err);
-      toast({ variant: 'destructive', title: "Erreur système", description: "Le service d'upload est momentanément indisponible." });
     } finally {
       setIsUploading(false);
-      e.target.value = '';
     }
-  };
-
-  const removeImage = (index: number) => {
-    setNewProduct(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -111,187 +87,84 @@ export default function ListDetailsPage() {
     if (!newProduct.name || !user) return;
     setIsAdding(true);
     try {
-      const colRef = collection(db, 'clients', user.uid, 'productLists', listId, 'products');
+      const colRef = collection(db!, 'clients', user.uid, 'productLists', listId, 'products');
       const prodId = `PROD-${Date.now()}`;
-      
       addDocumentNonBlocking(colRef, {
         id: prodId,
         productListId: listId,
-        clientId: user.uid, // Store client ID for collectionGroup filtering
+        clientId: user.uid,
         name: newProduct.name,
         description: newProduct.description,
         quantity: Number(newProduct.quantity),
         unitPrice: Number(newProduct.unitPrice),
         images: newProduct.images,
-        status: 'pending', // Default status for new requests
+        status: 'pending',
         createdAt: new Date().toISOString(),
       });
-      
       setNewProduct({ name: '', description: '', quantity: 1, unitPrice: 0, images: [] });
-      toast({ title: "Produit ajouté à la liste" });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Erreur", description: error.message });
+      toast({ title: "Demande de sourcing ajoutée" });
     } finally {
       setIsAdding(false);
     }
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    if (!user || !db) return;
-    const docRef = doc(db, 'clients', user.uid, 'productLists', listId, 'products', productId);
-    deleteDocumentNonBlocking(docRef);
-    toast({ title: "Produit supprimé" });
-  };
-
-  if (isListLoading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary h-12 w-12" /></div>;
-  }
-
-  if (!list) {
-    return (
-      <div className="text-center py-20">
-        <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold">Liste introuvable</h2>
-        <Button className="mt-4" asChild><Link href="/client/product-lists">Retour à mes projets</Link></Button>
-      </div>
-    );
-  }
+  if (isListLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
-          <Link href="/client/product-lists">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Retour
-          </Link>
-        </Button>
-        <Badge variant="outline" className="bg-white">LISTE: {list.name}</Badge>
+        <Button variant="ghost" asChild><Link href="/client/product-lists"><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Link></Button>
+        <Badge variant="outline" className="bg-white">PROJET: {list?.name}</Badge>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <Card className="xl:col-span-2 border-none shadow-md bg-white">
-          <CardHeader>
-            <CardTitle>Articles demandés</CardTitle>
-            <CardDescription>Visualisez les spécifications de vos articles et leur statut de sourcing.</CardDescription>
-          </CardHeader>
+          <CardHeader><CardTitle>Produits demandés (€)</CardTitle></CardHeader>
           <CardContent className="p-0">
-            {isProductsLoading ? (
-              <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>
-            ) : products && products.length > 0 ? (
+            {isProductsLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div> : products && products.length > 0 ? (
               <Table>
-                <TableHeader>
-                  <TableRow className="bg-zinc-50/50">
-                    <TableHead className="pl-6">Produit</TableHead>
-                    <TableHead>Quantité</TableHead>
-                    <TableHead>Prix (CNY)</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead className="text-right pr-6">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow className="bg-zinc-50/50"><TableHead className="pl-6">Produit</TableHead><TableHead>Qté</TableHead><TableHead>Prix Unit. (€)</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
+                  {products.map((p) => (
+                    <TableRow key={p.id}>
                       <TableCell className="pl-6 py-4">
                         <div className="flex items-center gap-3">
-                          {product.images?.[0] && (
-                            <div className="relative w-12 h-12 rounded overflow-hidden flex-shrink-0 border bg-zinc-50">
-                              <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-bold">{product.name}</div>
-                            <div className="text-[10px] text-zinc-400 font-mono">{product.sku || 'REF-ATTENTE'}</div>
-                          </div>
+                          {p.images?.[0] && <div className="relative w-10 h-10 rounded overflow-hidden border"><Image src={p.images[0]} alt="p" fill className="object-cover" /></div>}
+                          <div className="font-bold">{p.name}</div>
                         </div>
                       </TableCell>
-                      <TableCell>{product.quantity}</TableCell>
-                      <TableCell>
-                        <div className="font-semibold">¥{Number(product.unitPrice || 0).toFixed(2)}</div>
-                        <div className="text-[10px] text-zinc-400 italic">Validé par Admin</div>
-                      </TableCell>
-                      <TableCell>
-                        {product.status === 'published' ? (
-                          <Badge className="bg-green-500 gap-1"><CheckCircle2 className="h-3 w-3" /> Validé</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-zinc-400 border-zinc-200 gap-1"><Clock className="h-3 w-3" /> En cours</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)} className="text-red-500">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+                      <TableCell>{p.quantity}</TableCell>
+                      <TableCell className="font-black text-primary">€{(Number(p.unitPrice || 0) * rate).toFixed(2)}</TableCell>
+                      <TableCell>{p.status === 'published' ? <Badge className="bg-green-500">Validé</Badge> : <Badge variant="outline">Analyse en cours</Badge>}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            ) : (
-              <div className="p-20 text-center text-zinc-400">
-                <Package className="h-16 w-16 mx-auto mb-4 opacity-10" />
-                <p>Aucun produit dans cette liste.</p>
-              </div>
-            )}
+            ) : <div className="p-20 text-center text-zinc-400">Aucun article.</div>}
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card className="border-none shadow-md bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Plus className="h-5 w-5 text-primary" /> Nouveau produit
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddProduct} className="space-y-4">
-                <Input 
-                  placeholder="Désignation" 
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                  required
-                />
-                <Textarea 
-                  placeholder="Spécifications (couleurs, matériaux...)" 
-                  value={newProduct.description}
-                  onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                  rows={3}
-                />
-                
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {newProduct.images.map((url, idx) => (
-                      <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden border group">
-                        <Image src={url} alt="Preview" fill className="object-cover" />
-                        <button type="button" onClick={() => removeImage(idx)} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-md hover:bg-red-600 transition-colors"><X className="h-3 w-3" /></button>
-                      </div>
-                    ))}
-                    {isUploading && <div className="w-16 h-16 rounded-md flex items-center justify-center bg-zinc-100 border border-dashed border-zinc-300"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
-                  </div>
-                  <div className="relative">
-                    <Input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" id="file-upload" disabled={isUploading} />
-                    <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 border-zinc-200 transition-colors">
-                      <UploadCloud className="h-8 w-8 text-zinc-400" />
-                      <span className="text-xs text-zinc-500 mt-2">Cliquez pour ajouter des photos</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold px-1">Quantité</span>
-                    <Input type="number" placeholder="Quantité" value={newProduct.quantity} onChange={(e) => setNewProduct({...newProduct, quantity: Number(e.target.value)})} />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold px-1">Prix cible (¥)</span>
-                    <Input type="number" step="0.01" placeholder="Prix cible" value={newProduct.unitPrice} onChange={(e) => setNewProduct({...newProduct, unitPrice: Number(e.target.value)})} />
-                  </div>
-                </div>
-                <Button type="submit" className="w-full h-12 font-bold" disabled={isAdding || isUploading}>
-                  {isAdding ? <Loader2 className="animate-spin h-4 w-4" /> : "Ajouter à la liste"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="border-none shadow-md bg-white h-fit">
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Plus className="h-5 w-5 text-primary" /> Ajouter un produit</CardTitle></CardHeader>
+          <CardContent>
+            <form onSubmit={handleAddProduct} className="space-y-4">
+              <Input placeholder="Nom de l'article" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} required />
+              <Textarea placeholder="Détails techniques..." value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} />
+              <div className="grid grid-cols-2 gap-4">
+                <Input type="number" placeholder="Qté" value={newProduct.quantity} onChange={e => setNewProduct({...newProduct, quantity: Number(e.target.value)})} />
+                <Input type="number" step="0.01" placeholder="Prix cible (¥)" value={newProduct.unitPrice} onChange={e => setNewProduct({...newProduct, unitPrice: Number(e.target.value)})} />
+              </div>
+              <div className="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer hover:bg-zinc-50 transition-colors relative">
+                <Input type="file" multiple accept="image/*" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                <UploadCloud className="h-8 w-8 mx-auto text-zinc-400 mb-2" />
+                <span className="text-xs font-bold text-zinc-500">{isUploading ? "Envoi..." : "Ajouter des photos"}</span>
+              </div>
+              <Button type="submit" className="w-full font-bold h-12" disabled={isAdding || isUploading}>
+                {isAdding ? <Loader2 className="animate-spin" /> : "Envoyer ma demande"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

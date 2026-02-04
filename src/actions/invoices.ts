@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, findDocs, where } from 'firebase/firestore';
 import { z } from 'zod';
 import { getOrderById, type Order, type OrderItem } from './orders';
 import type { Quote } from './quotes';
@@ -18,26 +18,6 @@ const invoiceItemSchema = z.object({
 
 const invoiceStatusSchema = z.enum(["unpaid", "paid", "overdue", "cancelled", "partially_paid"]);
 
-const invoiceSchema = z.object({
-  invoiceNumber: z.string().min(1, "Invoice number is required."),
-  orderId: z.string().optional(),
-  orderNumber: z.string().optional(),
-  customerId: z.string({ required_error: "Please select a customer." }),
-  customerName: z.string(),
-  issueDate: z.any(),
-  dueDate: z.any(),
-  items: z.array(invoiceItemSchema).min(1, "Please add at least one item."),
-  totalAmount: z.coerce.number(),
-  amountPaid: z.coerce.number().nonnegative("Amount paid cannot be negative.").optional().default(0),
-  status: invoiceStatusSchema,
-  supplierCostTotal: z.coerce.number().nonnegative("Supplier cost cannot be negative.").optional().default(0),
-  supplierCostPaid: z.coerce.number().nonnegative("Supplier amount paid cannot be negative.").optional().default(0),
-  transportCost: z.coerce.number().optional(),
-  transportCostPaid: z.coerce.number().nonnegative("Transport cost paid cannot be negative.").optional().default(0),
-});
-
-export type InvoiceItem = z.infer<typeof invoiceItemSchema>;
-
 export interface Invoice {
     id: string;
     invoiceNumber: string;
@@ -45,10 +25,9 @@ export interface Invoice {
     orderNumber?: string;
     customerId: string;
     customerName: string;
-    items: InvoiceItem[];
+    items: any[];
     totalAmount: number;
     amountPaid?: number;
-    amountPaidCurrency?: 'CNY' | 'EUR' | 'USD';
     status: "unpaid" | "paid" | "overdue" | "cancelled" | "partially_paid";
     issueDate: string;
     dueDate: string;
@@ -58,6 +37,7 @@ export interface Invoice {
     supplierCostPaid?: number;
     transportCost?: number;
     transportCostPaid?: number;
+    exchangeRate: number; // Stored at creation to freeze EUR price
 }
 
 const parseDate = (val: any) => {
@@ -70,8 +50,22 @@ const parseDate = (val: any) => {
     return new Date().toISOString();
 };
 
+async function getGlobalExchangeRate(): Promise<number> {
+    try {
+        const configRef = doc(db, 'config', 'finance');
+        const snap = await getDoc(configRef);
+        if (snap.exists()) {
+            return snap.data().exchangeRate || 0.13;
+        }
+        return 0.13;
+    } catch (e) {
+        return 0.13;
+    }
+}
+
 export async function addInvoiceFromOrder(order: Order) {
     try {
+        const currentRate = await getGlobalExchangeRate();
         const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
 
         const newInvoiceData = {
@@ -80,8 +74,8 @@ export async function addInvoiceFromOrder(order: Order) {
           orderNumber: order.orderNumber,
           customerId: order.customerId,
           customerName: order.customerName,
-          issueDate: new Date(),
-          dueDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+          issueDate: new Date().toISOString(),
+          dueDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           items: order.items.map(item => ({
             ...item,
             purchasePrice: item.purchasePrice || 0
@@ -93,12 +87,11 @@ export async function addInvoiceFromOrder(order: Order) {
           supplierCostPaid: 0,
           transportCost: order.transportCost || 0,
           transportCostPaid: 0,
+          exchangeRate: currentRate,
+          createdAt: serverTimestamp(),
         };
         
-        const docRef = await addDoc(collection(db, 'invoices'), {
-            ...newInvoiceData,
-            createdAt: serverTimestamp(),
-        });
+        const docRef = await addDoc(collection(db, 'invoices'), newInvoiceData);
         return { success: true, message: 'Invoice created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding invoice:', error);
@@ -106,16 +99,12 @@ export async function addInvoiceFromOrder(order: Order) {
     }
 }
 
-/**
- * Updates an existing invoice based on changes in an accepted Quote (Proforma).
- */
 export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
     try {
         const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", orderId));
         const invoicesSnapshot = await getDocs(invoicesQuery);
 
         if (invoicesSnapshot.empty) {
-            // If no invoice exists yet, it's not an error, we just don't update anything
             return { success: true, message: "No matching invoice found to update." };
         }
 
@@ -141,9 +130,7 @@ export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
         };
 
         await updateDoc(invoiceRef, updatedInvoiceData);
-        
         return { success: true, message: 'Invoice updated successfully from proforma!' };
-
     } catch (error: any) {
         console.error('Error updating invoice from quote:', error);
         return { success: false, message: 'An unexpected error occurred while updating the invoice.' };
@@ -165,6 +152,7 @@ export async function getInvoices(): Promise<Invoice[]> {
           dueDate: parseDate(data.dueDate),
           paymentDate: data.paymentDate ? parseDate(data.paymentDate) : undefined,
           createdAt: parseDate(data.createdAt),
+          exchangeRate: data.exchangeRate || 0.13,
         } as Invoice);
     });
 
@@ -193,6 +181,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
             dueDate: parseDate(data.dueDate),
             paymentDate: data.paymentDate ? parseDate(data.paymentDate) : undefined,
             createdAt: parseDate(data.createdAt),
+            exchangeRate: data.exchangeRate || 0.13,
         } as Invoice;
 
     } catch (error) {
@@ -211,28 +200,16 @@ export async function deleteInvoice(id: string) {
     }
 }
 
-export async function updateInvoiceStatus(id: string, status: z.infer<typeof invoiceStatusSchema>) {
+export async function updateInvoiceStatus(id: string, status: string) {
     try {
         const invoiceRef = doc(db, 'invoices', id);
-        const invoiceSnap = await getDoc(invoiceRef);
-
-        if (!invoiceSnap.exists()) {
-            return { success: false, message: "Invoice not found." };
-        }
-        const invoiceData = invoiceSnap.data();
-
-        const updateData: { status: string, paymentDate?: any } = { status };
+        const updateData: any = { status };
         if (status === 'paid') {
             updateData.paymentDate = serverTimestamp();
-        } else if (invoiceData.status === 'paid') {
-            updateData.paymentDate = null;
         }
-
         await updateDoc(invoiceRef, updateData);
-        
         return { success: true, message: 'Invoice status updated successfully!' };
     } catch (error: any) {
-        console.error('Error updating invoice status:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -242,9 +219,7 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
         const invoiceRef = doc(db, 'invoices', id);
         const invoiceSnap = await getDoc(invoiceRef);
 
-        if (!invoiceSnap.exists()) {
-            return { success: false, message: 'Invoice not found.' };
-        }
+        if (!invoiceSnap.exists()) return { success: false, message: 'Invoice not found.' };
 
         const invoiceData = invoiceSnap.data();
         const totalAmount = invoiceData.totalAmount;
@@ -262,10 +237,8 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
             updateData.paymentDate = serverTimestamp();
         } else if (newTotalAmountPaidInCny > 0) {
             newStatus = 'partially_paid';
-            updateData.paymentDate = null;
         } else {
              newStatus = 'unpaid';
-             updateData.paymentDate = null;
         }
 
         updateData.status = newStatus;
@@ -273,7 +246,6 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
 
         return { success: true, message: `Paiement enregistré.`, newStatus: newStatus, newAmountPaid: newTotalAmountPaidInCny };
     } catch (error: any) {
-        console.error('Error updating amount paid:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -289,7 +261,6 @@ export async function updateInvoiceSupplierCostPaid(id: string, amount: number) 
         await updateDoc(invoiceRef, { supplierCostPaid: newSupplierCostPaid });
         return { success: true, message: `Paiement fournisseur enregistré.`, newSupplierCostPaid: newSupplierCostPaid };
     } catch (error: any) {
-        console.error('Error updating supplier cost paid:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -300,7 +271,6 @@ export async function updateInvoiceSupplierCostTotal(id: string, cost: number) {
         await updateDoc(invoiceRef, { supplierCostTotal: cost });
         return { success: true, message: 'Coût usine mis à jour.' };
     } catch (error: any) {
-        console.error('Error updating supplier total cost:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -316,7 +286,6 @@ export async function updateInvoiceTransportCostPaid(id: string, amount: number)
         await updateDoc(invoiceRef, { transportCostPaid: newTransportCostPaid });
         return { success: true, message: `Paiement transporteur enregistré.`, newTransportCostPaid: newTransportCostPaid };
     } catch (error: any) {
-        console.error('Error updating transport cost paid:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

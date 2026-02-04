@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   getRegisteredClients, 
@@ -12,17 +12,18 @@ import {
 import { getOrders, Order } from '@/actions/orders';
 import { useFirestore } from '@/firebase';
 import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList } from 'lucide-react';
+import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList, TrendingUp, Euro } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { CurrencyContext } from '@/context/currency-context';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
@@ -37,7 +38,15 @@ export default function RegisteredClientsPage() {
   const { toast } = useToast();
   const db = useFirestore();
 
-  // Helper to parse dates from Firestore (which can be Timestamps or strings)
+  const currencyContext = useContext(CurrencyContext);
+  const [localRate, setLocalRate] = useState('');
+
+  useEffect(() => {
+    if (currencyContext) {
+      setLocalRate(currencyContext.exchangeRate.toString());
+    }
+  }, [currencyContext]);
+
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -63,7 +72,7 @@ export default function RegisteredClientsPage() {
         
         const sourcingIds = new Set<string>();
         try {
-          const q = query(collectionGroup(db, 'products'), where('status', '==', 'pending'));
+          const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
           const snap = await getDocs(q);
           snap.forEach(doc => {
             const data = doc.data();
@@ -117,6 +126,16 @@ export default function RegisteredClientsPage() {
     setValidatingId(null);
   };
 
+  const handleSaveGlobalRate = () => {
+    const rate = parseFloat(localRate);
+    if (isNaN(rate) || rate <= 0) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Taux invalide.' });
+      return;
+    }
+    currencyContext?.setExchangeRate(rate);
+    toast({ title: 'Taux mis à jour', description: `1 EUR = ${(1/rate).toFixed(4)} CNY` });
+  };
+
   const getPendingOrdersCount = (clientId: string) => {
     return orders.filter(o => o.customerId === clientId && o.status === 'processing').length;
   };
@@ -148,14 +167,51 @@ export default function RegisteredClientsPage() {
         </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input 
-          className="pl-10 max-w-md bg-white" 
-          placeholder="Rechercher par nom, email ou numéro..." 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-1 border-primary/20 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Euro className="h-4 w-4 text-primary" /> TAUX DE CHANGE (1 CNY vers EUR)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <div className="relative flex-grow">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-xs">€</span>
+                <Input 
+                  type="number" 
+                  step="0.0001" 
+                  className="pl-7 h-10 font-bold" 
+                  value={localRate} 
+                  onChange={(e) => setLocalRate(e.target.value)}
+                />
+              </div>
+              <Button onClick={handleSaveGlobalRate} className="bg-primary hover:bg-primary/90">
+                FIXER
+              </Button>
+            </div>
+            <p className="text-[10px] text-zinc-500 italic">
+              Ce taux sera utilisé pour toutes les nouvelles Proformas et Factures.
+              Actuel: 1 EUR ≈ {(1 / parseFloat(localRate || '0.13')).toFixed(2)} CNY
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Search className="h-4 w-4 text-zinc-400" /> RECHERCHE CLIENT
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Input 
+              className="bg-white" 
+              placeholder="Rechercher par nom, email ou numéro..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-white">
