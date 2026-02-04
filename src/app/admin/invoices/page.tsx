@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice, updateInvoiceSupplierCostTotal, updateInvoiceTransportCostPaid } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getOrders, Order } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory, Truck } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory, Truck, Copy } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -485,7 +485,7 @@ export default function InvoicesPage() {
               </Select>
             </TableCell>
             <TableCell className="text-right">
-                <Button variant="ghost" size="icon" asChild>
+                <Button variant="ghost" size="icon" asChild title="Voir PDF">
                     <Link href={`/admin/invoices/${invoice.id}`}>
                         <Eye className="h-4 w-4" />
                     </Link>

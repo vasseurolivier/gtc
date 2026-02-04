@@ -61,6 +61,10 @@ async function getGlobalExchangeRate(): Promise<number> {
     }
 }
 
+/**
+ * Adds a new Proforma to the global /quotes collection.
+ * It's immediately visible to both Admin (global list) and Client (filtered by ID).
+ */
 export async function addQuote(values: any) {
     try {
         const currentRate = await getGlobalExchangeRate();
