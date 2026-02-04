@@ -23,8 +23,8 @@ const quoteSchema = z.object({
   customerId: z.string({ required_error: "Please select a customer." }),
   customerName: z.string(),
   orderId: z.string().optional(),
-  issueDate: z.date(),
-  validUntil: z.date(),
+  issueDate: z.any(),
+  validUntil: z.any(),
   items: z.array(quoteItemSchema).min(1, "At least one item is required."),
   subTotal: z.coerce.number(),
   transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
@@ -67,10 +67,16 @@ export interface Quote {
     depositPercentage?: number;
 }
 
-/**
- * Génère automatiquement une Proforma à partir d'une commande existante.
- * Utilisé pour automatiser le flux Admin.
- */
+const parseDate = (val: any) => {
+    if (!val) return new Date().toISOString();
+    if (typeof val.toDate === 'function') return val.toDate().toISOString();
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object' && 'seconds' in val) {
+        return new Date(val.seconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+};
+
 export async function createQuoteFromOrder(orderId: string) {
     try {
         const order = await getOrderById(orderId);
@@ -102,46 +108,35 @@ export async function createQuoteFromOrder(orderId: string) {
             depositPercentage: 30,
         };
 
-        const validatedData = quoteSchema.parse(newQuoteData);
-
         const docRef = await addDoc(collection(db, 'quotes'), {
-            ...validatedData,
+            ...newQuoteData,
             createdAt: serverTimestamp(),
         });
 
         return { success: true, message: 'Proforma générée automatiquement !', id: docRef.id };
     } catch (error: any) {
         console.error('Error creating quote from order:', error);
-        if (error instanceof z.ZodError) {
-            return { success: false, message: "Erreur de validation : " + error.errors[0].message };
-        }
         return { success: false, message: 'Échec de la génération automatique.' };
     }
 }
 
 export async function addQuote(values: z.infer<typeof quoteSchema>) {
     try {
-        const validatedData = quoteSchema.parse(values);
         const docRef = await addDoc(collection(db, 'quotes'), {
-            ...validatedData,
+            ...values,
             createdAt: serverTimestamp(),
         });
         return { success: true, message: 'Proforma Invoice added successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding quote:', error);
-        if (error instanceof z.ZodError) {
-            return { success: false, message: 'Validation failed.', errors: error.errors };
-        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
 export async function updateQuote(id: string, values: z.infer<typeof quoteSchema>) {
     try {
-        const validatedData = quoteSchema.parse(values);
         const quoteRef = doc(db, 'quotes', id);
-        
-        await updateDoc(quoteRef, validatedData);
+        await updateDoc(quoteRef, values);
 
         const updatedQuote = await getQuoteById(id);
         if (updatedQuote && updatedQuote.status === 'accepted') {
@@ -154,13 +149,9 @@ export async function updateQuote(id: string, values: z.infer<typeof quoteSchema
         return { success: true, message: 'Proforma Invoice updated successfully!' };
     } catch (error: any) {
         console.error('Error updating quote:', error);
-        if (error instanceof z.ZodError) {
-            return { success: false, message: 'Validation failed.', errors: error.errors };
-        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
-
 
 export async function getQuotes(): Promise<Quote[]> {
   try {
@@ -173,9 +164,9 @@ export async function getQuotes(): Promise<Quote[]> {
         quotes.push({
           id: doc.id,
           ...data,
-          issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
-          validUntil: data.validUntil?.toDate().toISOString() || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          issueDate: parseDate(data.issueDate),
+          validUntil: parseDate(data.validUntil),
+          createdAt: parseDate(data.createdAt),
         } as Quote);
     });
 
@@ -200,9 +191,9 @@ export async function getQuoteById(id: string): Promise<Quote | null> {
         return {
             id: quoteSnap.id,
             ...data,
-            issueDate: data.issueDate?.toDate().toISOString() || new Date().toISOString(),
-            validUntil: data.validUntil?.toDate().toISOString() || new Date().toISOString(),
-            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            issueDate: parseDate(data.issueDate),
+            validUntil: parseDate(data.validUntil),
+            createdAt: parseDate(data.createdAt),
         } as Quote;
 
     } catch (error) {
@@ -221,12 +212,9 @@ export async function deleteQuote(id: string) {
     }
 }
 
-
 export async function updateQuoteStatus(id: string, status: z.infer<typeof quoteStatusSchema>) {
     try {
-        const validatedStatus = quoteStatusSchema.parse(status);
         const quoteRef = doc(db, 'quotes', id);
-        
         const quoteSnap = await getDoc(quoteRef);
         if (!quoteSnap.exists()) {
             return { success: false, message: 'Proforma not found.' };
@@ -234,9 +222,9 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         const quoteData = quoteSnap.data();
         const previousStatus = quoteData.status;
 
-        await updateDoc(quoteRef, { status: validatedStatus });
+        await updateDoc(quoteRef, { status });
         
-        if (validatedStatus === 'accepted' && previousStatus !== 'accepted') {
+        if (status === 'accepted' && previousStatus !== 'accepted') {
             const fullQuote = await getQuoteById(id);
             if(fullQuote) {
                 const orderResult = await addOrder(fullQuote);
@@ -252,9 +240,6 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
         return { success: true, message: 'Proforma status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating proforma status:', error);
-         if (error instanceof z.ZodError) {
-            return { success: false, message: 'Invalid status value.' };
-        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

@@ -20,7 +20,7 @@ const packingListItemSchema = z.object({
 
 const packingListSchema = z.object({
   listId: z.string().min(1, 'Packing List ID is required.'),
-  date: z.date(),
+  date: z.any(),
   items: z.array(packingListItemSchema).min(1, 'At least one item is required.'),
 });
 
@@ -34,34 +34,36 @@ export interface PackingList {
     createdAt: string;
 }
 
+const parseDate = (val: any) => {
+    if (!val) return new Date().toISOString();
+    if (typeof val.toDate === 'function') return val.toDate().toISOString();
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object' && 'seconds' in val) {
+        return new Date(val.seconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+};
+
 export async function addPackingList(values: z.infer<typeof packingListSchema>) {
     try {
-        const validatedData = packingListSchema.parse(values);
         const docRef = await addDoc(collection(db, 'packingLists'), {
-            ...validatedData,
+            ...values,
             createdAt: serverTimestamp(),
         });
         return { success: true, message: 'Packing List saved successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding packing list:', error);
-        if (error instanceof z.ZodError) {
-            return { success: false, message: 'Validation failed.', errors: error.errors };
-        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
 export async function updatePackingList(id: string, values: z.infer<typeof packingListSchema>) {
     try {
-        const validatedData = packingListSchema.parse(values);
         const listRef = doc(db, 'packingLists', id);
-        await updateDoc(listRef, validatedData);
+        await updateDoc(listRef, values);
         return { success: true, message: 'Packing List updated successfully!' };
     } catch (error: any) {
         console.error('Error updating packing list:', error);
-        if (error instanceof z.ZodError) {
-            return { success: false, message: 'Validation failed.', errors: error.errors };
-        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -77,8 +79,8 @@ export async function getPackingLists(): Promise<PackingList[]> {
         lists.push({
           id: doc.id,
           ...data,
-          date: data.date?.toDate().toISOString() || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          date: parseDate(data.date),
+          createdAt: parseDate(data.createdAt),
         } as PackingList);
     });
 
@@ -103,8 +105,8 @@ export async function getPackingListById(id: string): Promise<PackingList | null
         return {
             id: listSnap.id,
             ...data,
-            date: data.date?.toDate().toISOString() || new Date().toISOString(),
-            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            date: parseDate(data.date),
+            createdAt: parseDate(data.createdAt),
         } as PackingList;
 
     } catch (error) {

@@ -19,14 +19,14 @@ const orderItemSchema = z.object({
 
 const orderSchema = z.object({
   orderNumber: z.string(),
-  quoteId: z.string(),
+  quoteId: z.string().optional(),
   customerId: z.string(),
   customerName: z.string(),
   items: z.array(orderItemSchema),
   totalAmount: z.coerce.number(),
   status: orderStatusSchema,
   shippingAddress: z.string().optional(),
-  orderDate: z.date(),
+  orderDate: z.any(), // Flexible for server action
   transportCost: z.coerce.number().optional(),
   commissionRate: z.coerce.number().optional(),
 });
@@ -49,6 +49,16 @@ export interface Order {
     commissionRate?: number;
 }
 
+const parseDate = (val: any) => {
+    if (!val) return new Date().toISOString();
+    if (typeof val.toDate === 'function') return val.toDate().toISOString();
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object' && 'seconds' in val) {
+        return new Date(val.seconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+};
+
 export async function addOrder(quote: Quote) {
     try {
         const newOrderData = {
@@ -63,7 +73,7 @@ export async function addOrder(quote: Quote) {
           totalAmount: quote.totalAmount,
           status: "processing" as const,
           shippingAddress: quote.shippingAddress || "",
-          orderDate: new Date(),
+          orderDate: serverTimestamp(),
           createdAt: serverTimestamp(),
           transportCost: quote.transportCost || 0,
           commissionRate: quote.commissionRate || 0,
@@ -73,9 +83,6 @@ export async function addOrder(quote: Quote) {
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding order:', error);
-        if (error instanceof z.ZodError) {
-            return { success: false, message: 'Validation failed.', errors: error.errors };
-        }
         return { success: false, message: 'An unexpected error occurred while creating the order.' };
     }
 }
@@ -86,7 +93,6 @@ export async function updateOrderFromQuote(quote: Quote) {
         const ordersSnapshot = await getDocs(ordersQuery);
 
         if (ordersSnapshot.empty) {
-            // This can happen if a draft quote is updated before being accepted. Not an error.
             return { success: true, message: "No matching order found to update." };
         }
 
@@ -127,15 +133,14 @@ export async function getOrders(): Promise<Order[]> {
         orders.push({
           id: doc.id,
           ...data,
-          orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          orderDate: parseDate(data.orderDate),
+          createdAt: parseDate(data.createdAt),
         } as Order);
     });
 
     return orders;
   } catch (error) {
     console.error("Error fetching orders:", error);
-    // Return an empty array in case of error to prevent crashing the UI
     return [];
   }
 }
@@ -154,8 +159,8 @@ export async function getOrderById(id: string): Promise<Order | null> {
         return {
             id: orderSnap.id,
             ...data,
-            orderDate: data.orderDate?.toDate().toISOString() || new Date().toISOString(),
-            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            orderDate: parseDate(data.orderDate),
+            createdAt: parseDate(data.createdAt),
         } as Order;
 
     } catch (error) {
@@ -182,9 +187,6 @@ export async function updateOrderStatus(id: string, status: z.infer<typeof order
         return { success: true, message: 'Order status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating order status:', error);
-         if (error instanceof z.ZodError) {
-            return { success: false, message: 'Invalid status value.' };
-        }
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
