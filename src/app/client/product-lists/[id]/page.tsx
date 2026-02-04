@@ -56,12 +56,37 @@ export default function ListDetailsPage() {
   
   const { data: list, isLoading: isListLoading } = useDoc(listRef);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'clients', user.uid);
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
+  // Preference Euro/CNY
+  const currencyPreference = profile?.currencyPreference || 'EUR';
+
   const productsQuery = useMemoFirebase(() => {
     if (!db || !user || !listId) return null;
     return collection(db, 'clients', user.uid, 'productLists', listId, 'products');
   }, [db, user, listId]);
 
   const { data: products, isLoading: isProductsLoading } = useCollection(productsQuery);
+
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
+    const priceEur = priceCny * rate;
+    if (currencyPreference === 'EUR') {
+      return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
+    }
+    if (currencyPreference === 'CNY') {
+      return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
+    }
+    return (
+      <div className="flex flex-col">
+        <div className={mainClass}>€{priceEur.toFixed(2)}</div>
+        <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
+      </div>
+    );
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -119,11 +144,11 @@ export default function ListDetailsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <Card className="xl:col-span-2 border-none shadow-md bg-white">
-          <CardHeader><CardTitle>Produits demandés (€)</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Produits demandés</CardTitle></CardHeader>
           <CardContent className="p-0">
-            {isProductsLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div> : products && products.length > 0 ? (
+            {isProductsLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : products && products.length > 0 ? (
               <Table>
-                <TableHeader><TableRow className="bg-zinc-50/50"><TableHead className="pl-6">Produit</TableHead><TableHead>Qté</TableHead><TableHead>Prix Unit. (€)</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow className="bg-zinc-50/50"><TableHead className="pl-6">Produit</TableHead><TableHead>Qté</TableHead><TableHead>Prix Unit.</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {products.map((p) => (
                     <TableRow key={p.id}>
@@ -134,7 +159,9 @@ export default function ListDetailsPage() {
                         </div>
                       </TableCell>
                       <TableCell>{p.quantity}</TableCell>
-                      <TableCell className="font-black text-primary">€{(Number(p.unitPrice || 0) * rate).toFixed(2)}</TableCell>
+                      <TableCell>
+                        {renderPrice(Number(p.unitPrice || 0), "font-black text-primary")}
+                      </TableCell>
                       <TableCell>{p.status === 'published' ? <Badge className="bg-green-500">Validé</Badge> : <Badge variant="outline">Analyse en cours</Badge>}</TableCell>
                     </TableRow>
                   ))}
@@ -160,7 +187,7 @@ export default function ListDetailsPage() {
                 <span className="text-xs font-bold text-zinc-500">{isUploading ? "Envoi..." : "Ajouter des photos"}</span>
               </div>
               <Button type="submit" className="w-full font-bold h-12" disabled={isAdding || isUploading}>
-                {isAdding ? <Loader2 className="animate-spin" /> : "Envoyer ma demande"}
+                {isAdding ? <Loader2 className="animate-spin text-primary" /> : "Envoyer ma demande"}
               </Button>
             </form>
           </CardContent>

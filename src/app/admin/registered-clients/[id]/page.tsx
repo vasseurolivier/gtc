@@ -8,6 +8,7 @@ import {
   updateRegisteredClientStatus, 
   updateRegisteredClientNumber,
   updateRegisteredClientPrefix,
+  updateRegisteredClientCurrencyPreference,
   deleteProductList,
   deleteClientProduct,
   RegisteredClient 
@@ -71,7 +72,8 @@ import {
   Truck,
   Check,
   Tag,
-  Ruler
+  Ruler,
+  Coins
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -97,6 +99,7 @@ export default function ClientDetailPage() {
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
   const [orderPrefix, setOrderPrefix] = useState('');
+  const [currencyPreference, setCurrencyPreference] = useState<'EUR' | 'CNY' | 'BOTH'>('EUR');
   
   // Helper to parse dates from Firestore (which can be Timestamps or strings)
   const parseSafeDate = (val: any): Date => {
@@ -147,6 +150,7 @@ export default function ClientDetailPage() {
         setClient(clientData);
         setClientNumber(clientData.clientNumber || '');
         setOrderPrefix(clientData.orderPrefix || '');
+        setCurrencyPreference(clientData.currencyPreference || 'EUR');
       }
       setGlobalProducts(prods);
       setAllInvoices(invs);
@@ -265,6 +269,16 @@ export default function ClientDetailPage() {
     const result = await updateRegisteredClientPrefix(clientId, orderPrefix);
     if (result.success) {
       toast({ title: "Succès", description: "Préfixe de commande mis à jour." });
+    }
+    setIsSaving(false);
+  };
+
+  const handleUpdateCurrencyPreference = async (pref: 'EUR' | 'CNY' | 'BOTH') => {
+    setIsSaving(true);
+    const result = await updateRegisteredClientCurrencyPreference(clientId, pref);
+    if (result.success) {
+      setCurrencyPreference(pref);
+      toast({ title: "Succès", description: "Préférence de devise enregistrée." });
     }
     setIsSaving(false);
   };
@@ -795,7 +809,22 @@ export default function ClientDetailPage() {
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground italic">Ce préfixe sera ajouté au début de chaque numéro de commande choisi par le client.</p>
+              </div>
+              <div className="pt-4 border-t space-y-3">
+                <div className="text-xs text-muted-foreground uppercase font-bold flex items-center gap-2">
+                  <Coins className="h-3 w-3" /> Préférence Devise (Affichage)
+                </div>
+                <Select value={currencyPreference} onValueChange={(v: any) => handleUpdateCurrencyPreference(v)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EUR">Euro (€) uniquement</SelectItem>
+                    <SelectItem value="CNY">Yuan (¥) uniquement</SelectItem>
+                    <SelectItem value="BOTH">Double affichage (€ + ¥)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground italic">Définit comment les prix apparaissent dans l'espace client.</p>
               </div>
               <div className="text-xs text-muted-foreground pt-2 italic">
                 Client depuis {client.createdAt ? parseSafeDate(client.createdAt).getFullYear() : '-'}

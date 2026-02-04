@@ -11,6 +11,7 @@ export interface RegisteredClient {
     email: string;
     clientNumber?: string;
     orderPrefix?: string; // Prefix for custom order numbers
+    currencyPreference?: 'EUR' | 'CNY' | 'BOTH'; // Display preference
     status?: 'pending' | 'validated';
     createdAt: string;
     phone?: string;
@@ -76,6 +77,19 @@ export async function updateRegisteredClientPrefix(id: string, orderPrefix: stri
         return { success: true, message: 'Préfixe de commande mis à jour.' };
     } catch (e: any) {
         return { success: false, message: 'Erreur lors de la mise à jour du préfixe.' };
+    }
+}
+
+/**
+ * Update the currency preference for a registered client.
+ */
+export async function updateRegisteredClientCurrencyPreference(id: string, preference: 'EUR' | 'CNY' | 'BOTH') {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        await updateDoc(clientRef, { currencyPreference: preference });
+        return { success: true, message: 'Préférence de devise mise à jour.' };
+    } catch (e: any) {
+        return { success: false, message: 'Erreur lors de la mise à jour de la devise.' };
     }
 }
 

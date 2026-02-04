@@ -34,7 +34,8 @@ import {
   Euro,
   Download,
   Hash,
-  Ruler
+  Ruler,
+  Coins
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -82,6 +83,9 @@ export default function ClientOrdersPage() {
     return doc(db, 'clients', user.uid);
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
+
+  // Preference Euro/CNY
+  const currencyPreference = profile?.currencyPreference || 'EUR';
 
   useEffect(() => {
     if (profile?.address && !shippingAddress) {
@@ -139,9 +143,9 @@ export default function ClientOrdersPage() {
     fetchAllSourced();
   }, [db, user, clientLists]);
 
-  const cartTotal = useMemo(() => {
-    return cart.reduce((sum, item) => sum + (item.total * rate), 0);
-  }, [cart, rate]);
+  const cartTotalCny = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.total, 0);
+  }, [cart]);
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -258,16 +262,32 @@ export default function ClientOrdersPage() {
     }
   };
 
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
+    const priceEur = priceCny * rate;
+    if (currencyPreference === 'EUR') {
+      return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
+    }
+    if (currencyPreference === 'CNY') {
+      return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
+    }
+    return (
+      <div className="flex flex-col">
+        <div className={mainClass}>€{priceEur.toFixed(2)}</div>
+        <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-zinc-900">Commandes & Documents</h1>
-          <p className="text-zinc-500 mt-2">Suivez vos importations et gérez vos documents en Euro (€).</p>
+          <p className="text-zinc-500 mt-2">Suivez vos importations et gérez vos documents officiels.</p>
         </div>
         {cart.length > 0 && (
           <Button className="h-12 px-6 bg-primary text-white font-bold rounded-xl shadow-lg" onClick={() => setIsCartDialogOpen(true)}>
-            <ShoppingCart className="mr-2 h-5 w-5" /> Panier (€{cartTotal.toFixed(2)})
+            <ShoppingCart className="mr-2 h-5 w-5" /> Panier ({currencyPreference === 'CNY' ? `¥${cartTotalCny.toFixed(2)}` : `€${(cartTotalCny * rate).toFixed(2)}`})
           </Button>
         )}
       </div>
@@ -290,7 +310,7 @@ export default function ClientOrdersPage() {
                       <TableHead className="pl-6">N° Commande</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-center">Paiement</TableHead>
-                      <TableHead className="text-right">Total (€)</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -306,7 +326,9 @@ export default function ClientOrdersPage() {
                             <Badge variant="outline" className="text-red-500">ATTENTE</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-black">€{(order.totalAmount * rate).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          {renderPrice(order.totalAmount, "font-black text-zinc-900")}
+                        </TableCell>
                         <TableCell className="text-right pr-6">
                           <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
                             <Eye className="h-4 w-4" />
@@ -324,13 +346,13 @@ export default function ClientOrdersPage() {
         <TabsContent value="quotes" className="mt-6">
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
-              {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div> : quotes && quotes.length > 0 ? (
+              {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : quotes && quotes.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Proforma</TableHead>
                       <TableHead>Statut</TableHead>
-                      <TableHead className="text-right">Total (€)</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right pr-6">Documents</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -339,7 +361,9 @@ export default function ClientOrdersPage() {
                       <TableRow key={q.id}>
                         <TableCell className="pl-6 font-bold">{q.quoteNumber}</TableCell>
                         <TableCell><Badge variant={q.status === 'accepted' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right font-black text-primary">€{(q.totalAmount * (q.exchangeRate || rate)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          {renderPrice(q.totalAmount, "font-black text-primary")}
+                        </TableCell>
                         <TableCell className="text-right pr-6">
                           <Button variant="ghost" size="icon" asChild>
                             <Link href={`/client/quotes/${q.id}`}>
@@ -359,13 +383,13 @@ export default function ClientOrdersPage() {
         <TabsContent value="invoices" className="mt-6">
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
-              {isInvoicesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div> : invoices && invoices.length > 0 ? (
+              {isInvoicesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : invoices && invoices.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Facture</TableHead>
                       <TableHead>Échéance</TableHead>
-                      <TableHead className="text-right">Total (€)</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right pr-6">Documents</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -374,7 +398,9 @@ export default function ClientOrdersPage() {
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
-                        <TableCell className="text-right font-black text-primary">€{(inv.totalAmount * (inv.exchangeRate || rate)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          {renderPrice(inv.totalAmount, "font-black text-primary")}
+                        </TableCell>
                         <TableCell className="text-right pr-6">
                           <Button variant="ghost" size="icon" asChild>
                             <Link href={`/client/invoices/${inv.id}`}>
@@ -402,7 +428,7 @@ export default function ClientOrdersPage() {
                   <div className="p-4">
                     <div className="text-[10px] text-zinc-400 font-bold uppercase">{p.sku}</div>
                     <CardTitle className="text-base mt-1">{p.name}</CardTitle>
-                    <div className="text-xl font-black text-primary mt-2">€{(p.price * rate).toFixed(2)}</div>
+                    <div className="mt-2">{renderPrice(p.price, "text-xl font-black text-primary")}</div>
                   </div>
                 </Card>
               ))
@@ -413,11 +439,11 @@ export default function ClientOrdersPage() {
 
       <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader><DialogTitle className="text-2xl font-bold flex items-center gap-2"><ShoppingCart className="text-primary" /> Mon Panier (€)</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-2xl font-bold flex items-center gap-2"><ShoppingCart className="text-primary" /> Mon Panier</DialogTitle></DialogHeader>
           <div className="py-4 space-y-6">
             <div className="border rounded-xl overflow-hidden">
               <Table>
-                <TableHeader className="bg-zinc-50"><TableRow><TableHead>Produit</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total (€)</TableHead><TableHead></TableHead></TableRow></TableHeader>
+                <TableHeader className="bg-zinc-50"><TableRow><TableHead>Produit</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total</TableHead><TableHead></TableHead></TableRow></TableHeader>
                 <TableBody>
                   {cart.map((item) => (
                     <TableRow key={item.key}>
@@ -434,7 +460,9 @@ export default function ClientOrdersPage() {
                           <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.key, 1)}><Plus className="h-3 w-3" /></Button>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-black">€{(item.total * rate).toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        {renderPrice(item.total, "font-black text-zinc-900")}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.key)} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
                       </TableCell>
@@ -474,9 +502,20 @@ export default function ClientOrdersPage() {
 
               <Card className="bg-zinc-950 text-white p-6 h-fit rounded-2xl border-none shadow-2xl">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Estimé</span>
-                <div className="text-3xl font-black text-primary mt-1">€{cartTotal.toFixed(2)}</div>
+                <div className="mt-1">
+                  {currencyPreference === 'CNY' ? (
+                    <div className="text-3xl font-black text-primary">¥{cartTotalCny.toFixed(2)}</div>
+                  ) : currencyPreference === 'EUR' ? (
+                    <div className="text-3xl font-black text-primary">€{(cartTotalCny * rate).toFixed(2)}</div>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-black text-primary">€{(cartTotalCny * rate).toFixed(2)}</div>
+                      <div className="text-sm text-zinc-400 font-bold">¥{cartTotalCny.toFixed(2)}</div>
+                    </>
+                  )}
+                </div>
                 <div className="text-[10px] text-zinc-400 mt-4 leading-relaxed">
-                  Note : Ce total inclut les produits en Euro. Les frais de transport seront ajustés par votre agent.
+                  Note : Les frais de transport seront ajustés par votre agent après réception de la commande.
                 </div>
                 <Button className="w-full mt-6 h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
                   {isSubmittingOrder ? <Loader2 className="animate-spin" /> : "TRANSMETTRE LA COMMANDE"}
@@ -510,7 +549,10 @@ export default function ClientOrdersPage() {
                 <div className="space-y-2">
                   <Badge variant="outline" className="text-primary border-primary/30">REF: {selectedProduct.sku}</Badge>
                   <h3 className="text-3xl font-black text-zinc-900">{selectedProduct.name}</h3>
-                  <div className="text-3xl font-black text-primary">€{(selectedProduct.price * rate).toFixed(2)} <span className="text-xs text-zinc-400 font-normal">/ Unité</span></div>
+                  <div>
+                    {renderPrice(selectedProduct.price, "text-3xl font-black text-primary")}
+                    <span className="text-xs text-zinc-400 font-normal">/ Unité</span>
+                  </div>
                 </div>
 
                 <div className="prose prose-sm text-zinc-600 max-h-40 overflow-y-auto border-y py-4 leading-relaxed">
@@ -546,7 +588,9 @@ export default function ClientOrdersPage() {
                   </div>
                   <div className="pt-4 border-t border-zinc-200 flex justify-between items-center">
                     <span className="font-bold text-zinc-500 uppercase text-[10px] tracking-wider">Sous-total :</span>
-                    <span className="text-2xl font-black text-zinc-900">€{(selectedProduct.price * productQuantity * rate).toFixed(2)}</span>
+                    <span className="text-right">
+                      {renderPrice(selectedProduct.price * productQuantity, "text-2xl font-black text-zinc-900")}
+                    </span>
                   </div>
                   <Button className="w-full h-14 bg-zinc-950 text-white font-black hover:bg-primary transition-all rounded-xl shadow-xl shadow-zinc-900/10" onClick={handleAddToCart}>
                     <ShoppingCart className="mr-2 h-5 w-5" /> AJOUTER AU PANIER
@@ -579,7 +623,7 @@ export default function ClientOrdersPage() {
                 </div>
                 <div className="text-right space-y-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Montant Total</span>
-                  <div className="text-2xl font-black text-primary">€{(selectedOrderPreview.totalAmount * rate).toFixed(2)}</div>
+                  <div>{renderPrice(selectedOrderPreview.totalAmount, "text-2xl font-black text-primary")}</div>
                 </div>
               </div>
 
@@ -594,7 +638,7 @@ export default function ClientOrdersPage() {
                         <TableHead className="w-16"></TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-center">Qté</TableHead>
-                        <TableHead className="text-right">Total (€)</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -615,7 +659,9 @@ export default function ClientOrdersPage() {
                             <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
-                          <TableCell className="py-2 text-right font-bold">€{(item.total * rate).toFixed(2)}</TableCell>
+                          <TableCell className="py-2 text-right">
+                            {renderPrice(item.total, "font-bold text-zinc-900")}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

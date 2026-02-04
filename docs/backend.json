@@ -33,6 +33,11 @@
           "description": "2-letter prefix specific to this client for their order numbers.",
           "maxLength": 2
         },
+        "currencyPreference": {
+          "type": "string",
+          "description": "Preference for price display: EUR, CNY, or BOTH.",
+          "enum": ["EUR", "CNY", "BOTH"]
+        },
         "phone": {
           "type": "string",
           "description": "Phone number of the client."
