@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -158,6 +157,15 @@ export default function ClientOrdersPage() {
     }
   };
 
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid': return <Badge className="bg-green-100 text-green-700">PAYÉ</Badge>;
+      case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200">ACOMPTE RÉGLÉ</Badge>;
+      case 'unpaid': return <Badge variant="outline" className="text-red-500">EN ATTENTE</Badge>;
+      default: return <Badge variant="outline">EN ATTENTE</Badge>;
+    }
+  };
+
   const handleOpenProduct = (product: any) => {
     setSelectedProduct(product);
     setProductQuantity(1);
@@ -248,7 +256,7 @@ export default function ClientOrdersPage() {
         shippingAddress,
         orderDate: new Date().toISOString(),
         createdAt: serverTimestamp(),
-        isPaid: false,
+        paymentStatus: 'unpaid',
       };
       await addDoc(collection(db, 'orders'), orderData);
       toast({ title: "Commande transmise !", description: `Votre commande ${orderNumber} a été envoyée.` });
@@ -320,11 +328,7 @@ export default function ClientOrdersPage() {
                         <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-center">
-                          {order.isPaid ? (
-                            <Badge className="bg-green-100 text-green-700">PAYÉ</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-red-500">ATTENTE</Badge>
-                          )}
+                          {getPaymentStatusBadge(order.paymentStatus)}
                         </TableCell>
                         <TableCell className="text-right">
                           {renderPrice(order.totalAmount, "font-black text-zinc-900")}
@@ -360,7 +364,7 @@ export default function ClientOrdersPage() {
                     {quotes.map((q) => (
                       <TableRow key={q.id}>
                         <TableCell className="pl-6 font-bold">{q.quoteNumber}</TableCell>
-                        <TableCell><Badge variant={q.status === 'accepted' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
+                        <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
                         <TableCell className="text-right">
                           {renderPrice(q.totalAmount, "font-black text-primary")}
                         </TableCell>
@@ -684,10 +688,16 @@ export default function ClientOrdersPage() {
                   </h4>
                   <div className={cn(
                     "p-4 rounded-xl flex items-center gap-3",
-                    selectedOrderPreview.isPaid ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
+                    selectedOrderPreview.paymentStatus === 'paid' ? "bg-green-50 text-green-700 border border-green-100" : 
+                    selectedOrderPreview.paymentStatus === 'deposit_paid' ? "bg-blue-50 text-blue-700 border border-blue-100" :
+                    "bg-red-50 text-red-700 border border-red-100"
                   )}>
-                    {selectedOrderPreview.isPaid ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                    <span className="font-bold">{selectedOrderPreview.isPaid ? "Paiement confirmé" : "Paiement en attente"}</span>
+                    {selectedOrderPreview.paymentStatus === 'paid' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                    <span className="font-bold">
+                      {selectedOrderPreview.paymentStatus === 'paid' ? "Paiement total confirmé" : 
+                       selectedOrderPreview.paymentStatus === 'deposit_paid' ? "Acompte réglé (En attente du solde)" :
+                       "En attente de règlement"}
+                    </span>
                   </div>
                 </div>
               </div>

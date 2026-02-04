@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, where, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import type { Quote } from './quotes';
+import { addInvoiceFromOrder } from './invoices';
 
 const orderStatusSchema = z.enum(["processing", "validated", "shipped", "delivered", "cancelled"]);
 
@@ -19,6 +20,8 @@ const orderItemSchema = z.object({
 
 export type OrderItem = z.infer<typeof orderItemSchema>;
 
+export type PaymentStatus = "unpaid" | "deposit_paid" | "paid";
+
 export interface Order {
     id: string;
     orderNumber: string;
@@ -33,7 +36,9 @@ export interface Order {
     createdAt: string;
     transportCost?: number;
     commissionRate?: number;
-    isPaid?: boolean;
+    paymentStatus: PaymentStatus;
+    depositRequired?: boolean;
+    depositPercentage?: number;
 }
 
 const parseDate = (val: any) => {
@@ -69,10 +74,19 @@ export async function addOrder(quote: Quote) {
           createdAt: serverTimestamp(),
           transportCost: quote.transportCost || 0,
           commissionRate: quote.commissionRate || 0,
-          isPaid: false,
+          paymentStatus: (quote.status === 'paid' ? 'paid' : 'unpaid') as PaymentStatus,
+          depositRequired: quote.depositRequired || false,
+          depositPercentage: quote.depositPercentage || 30,
         };
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
+        
+        // Only generate invoice if it's already fully paid
+        if (newOrderData.paymentStatus === 'paid') {
+            const finalOrder = { ...newOrderData, id: docRef.id } as unknown as Order;
+            await addInvoiceFromOrder(finalOrder);
+        }
+
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error('Error adding order:', error);
@@ -108,6 +122,8 @@ export async function updateOrderFromQuote(quote: Quote) {
             shippingAddress: quote.shippingAddress || "",
             transportCost: quote.transportCost || 0,
             commissionRate: quote.commissionRate || 0,
+            depositRequired: quote.depositRequired || false,
+            depositPercentage: quote.depositPercentage || 30,
         };
 
         await updateDoc(orderRef, updatedOrderData);
@@ -133,7 +149,7 @@ export async function getOrders(): Promise<Order[]> {
           ...data,
           orderDate: parseDate(data.orderDate),
           createdAt: parseDate(data.createdAt),
-          isPaid: data.isPaid || false,
+          paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
         } as Order);
     });
 
@@ -160,7 +176,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
             ...data,
             orderDate: parseDate(data.orderDate),
             createdAt: parseDate(data.createdAt),
-            isPaid: data.isPaid || false,
+            paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
         } as Order;
 
     } catch (error) {
@@ -190,10 +206,27 @@ export async function updateOrderStatus(id: string, status: string) {
     }
 }
 
-export async function updateOrderPaymentStatus(id: string, isPaid: boolean) {
+export async function updateOrderPaymentStatus(id: string, paymentStatus: PaymentStatus) {
     try {
         const orderRef = doc(db, 'orders', id);
-        await updateDoc(orderRef, { isPaid });
+        await updateDoc(orderRef, { paymentStatus });
+
+        // If fully paid, generate invoice if it doesn't exist
+        if (paymentStatus === 'paid') {
+            const orderSnap = await getDoc(orderRef);
+            if (orderSnap.exists()) {
+                const orderData = { ...orderSnap.data(), id: orderSnap.id } as unknown as Order;
+                
+                // Check if invoice already exists
+                const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
+                const invoiceSnap = await getDocs(invoiceQuery);
+                
+                if (invoiceSnap.empty) {
+                    await addInvoiceFromOrder(orderData);
+                }
+            }
+        }
+
         return { success: true, message: 'Payment status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating payment status:', error);

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -10,16 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order } from '@/actions/orders';
+import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order, PaymentStatus } from '@/actions/orders';
 import { getQuotes, Quote, createQuoteFromOrder } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Truck } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Truck, CreditCard } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -142,17 +140,19 @@ export default function OrdersPage() {
     }
   }
 
-  const handlePaymentToggle = async (orderId: string, currentStatus: boolean) => {
-    const newStatus = !currentStatus;
+  const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
     const originalOrders = [...orders];
-    setOrders(orders.map(o => o.id === orderId ? {...o, isPaid: newStatus} : o));
+    setOrders(orders.map(o => o.id === orderId ? {...o, paymentStatus: newStatus} : o));
 
     const result = await updateOrderPaymentStatus(orderId, newStatus);
     if (!result.success) {
         setOrders(originalOrders);
         toast({ variant: 'destructive', title: 'Error', description: result.message });
     } else {
-        toast({ title: 'Success', description: `Commande marquée comme ${newStatus ? 'payée' : 'non payée'}.` });
+        toast({ title: 'Success', description: `Statut de paiement mis à jour.` });
+        if (newStatus === 'paid') {
+            toast({ title: "Facture générée", description: "La facture finale a été créée car le solde est payé." });
+        }
     }
   };
 
@@ -199,6 +199,15 @@ export default function OrdersPage() {
         default: return 'outline';
     }
   }
+
+  const getPaymentBadge = (status: PaymentStatus) => {
+    switch (status) {
+        case 'paid': return <Badge className="bg-green-500 text-[10px] h-5">SOLDE PAYÉ</Badge>;
+        case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 text-[10px] h-5">ACOMPTE OK</Badge>;
+        case 'unpaid': return <Badge variant="outline" className="text-zinc-400 text-[10px] h-5">NON PAYÉ</Badge>;
+        default: return null;
+    }
+  };
 
   const ongoingOrders = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
   const archivedOrders = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
@@ -287,16 +296,19 @@ export default function OrdersPage() {
                 )}
               </TableCell>
               <TableCell className="text-center">
-                <div className="flex flex-col items-center gap-1">
-                  <Checkbox 
-                    checked={order.isPaid} 
-                    onCheckedChange={() => handlePaymentToggle(order.id, !!order.isPaid)}
-                    className="h-5 w-5 border-zinc-300"
-                  />
-                  <span className={cn("text-[9px] font-bold uppercase", order.isPaid ? "text-green-600" : "text-zinc-400")}>
-                    {order.isPaid ? 'Payé' : 'Attente'}
-                  </span>
-                </div>
+                <Select 
+                  defaultValue={order.paymentStatus} 
+                  onValueChange={(value: PaymentStatus) => handlePaymentStatusChange(order.id, value)}
+                >
+                  <SelectTrigger className="w-36 h-8 text-[10px] font-bold">
+                    {getPaymentBadge(order.paymentStatus)}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unpaid">Non payé</SelectItem>
+                    <SelectItem value="deposit_paid">Acompte payé</SelectItem>
+                    <SelectItem value="paid">Total payé</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell className="text-right">
                   <div>¥{order.totalAmount.toFixed(2)}</div>
@@ -313,7 +325,7 @@ export default function OrdersPage() {
                         onClick={() => handleGenerateQuote(order.id)}
                       >
                         {isGeneratingQuote === order.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
-                        Générer Proforma
+                        Générer PI
                       </Button>
                     )}
                     <AlertDialog>

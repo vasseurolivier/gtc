@@ -1,10 +1,9 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
-import { addOrder, updateOrderFromQuote, Order, getOrderById, updateOrderStatus } from './orders';
+import { addOrder, updateOrderFromQuote, Order, getOrderById, updateOrderStatus, updateOrderPaymentStatus } from './orders';
 import { addInvoiceFromOrder, updateInvoiceFromQuote } from './invoices';
 
 export interface QuoteItem {
@@ -85,10 +84,7 @@ export async function updateQuote(id: string, values: any) {
 
         const updatedQuote = await getQuoteById(id);
         if (updatedQuote && (updatedQuote.status === 'accepted' || updatedQuote.status === 'paid')) {
-            const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
-            if (orderUpdateResult.success && orderUpdateResult.orderId) {
-                await updateInvoiceFromQuote(updatedQuote, orderUpdateResult.orderId);
-            }
+            await updateOrderFromQuote(updatedQuote);
         }
 
         return { success: true, message: 'Proforma Invoice updated successfully!' };
@@ -125,8 +121,8 @@ export async function createQuoteFromOrder(orderId: string) {
             status: "draft" as const,
             shippingAddress: order.shippingAddress || "",
             notes: "Généré automatiquement depuis la commande " + order.orderNumber,
-            depositRequired: true,
-            depositPercentage: 30,
+            depositRequired: order.depositRequired || true,
+            depositPercentage: order.depositPercentage || 30,
             exchangeRate: currentRate,
             createdAt: serverTimestamp(),
         };
@@ -213,23 +209,20 @@ export async function updateQuoteStatus(id: string, status: string) {
                     await updateOrderFromQuote(fullQuote);
                     await updateOrderStatus(fullQuote.orderId, 'validated');
                     
-                    const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", fullQuote.orderId));
-                    const invoicesSnap = await getDocs(invoicesQuery);
-                    if (invoicesSnap.empty) {
-                        const orderData = await getOrderById(fullQuote.orderId);
-                        if (orderData) await addInvoiceFromOrder(orderData);
-                    } else {
-                        await updateInvoiceFromQuote(fullQuote, fullQuote.orderId);
+                    if (status === 'paid') {
+                        await updateOrderPaymentStatus(fullQuote.orderId, 'paid');
                     }
                 } else {
                     const orderResult = await addOrder(fullQuote);
-                    if (orderResult.success && orderResult.id) {
-                         const orderDataForInvoice = await getOrderById(orderResult.id);
-                         if (orderDataForInvoice) {
-                            await addInvoiceFromOrder(orderDataForInvoice);
-                         }
+                    if (orderResult.success && orderResult.id && status === 'paid') {
+                         await updateOrderPaymentStatus(orderResult.id, 'paid');
                     }
                 }
+            }
+        } else if (status === 'paid' && previousStatus === 'accepted') {
+            const fullQuote = await getQuoteById(id);
+            if (fullQuote && fullQuote.orderId) {
+                await updateOrderPaymentStatus(fullQuote.orderId, 'paid');
             }
         }
         
