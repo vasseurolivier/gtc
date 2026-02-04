@@ -52,7 +52,6 @@ export default function RegisteredClientsPage() {
           getOrders()
         ]);
         
-        // Fetch all pending sourcing products across all clients
         const sourcingIds = new Set<string>();
         try {
           const q = query(collectionGroup(db, 'products'), where('status', '==', 'pending'));
@@ -62,7 +61,7 @@ export default function RegisteredClientsPage() {
             if (data.clientId) sourcingIds.add(data.clientId);
           });
         } catch (e) {
-          console.error("Sourcing notification error (likely missing index):", e);
+          console.error("Sourcing notification error:", e);
         }
 
         setClients(clientList);

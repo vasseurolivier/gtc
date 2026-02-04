@@ -29,7 +29,7 @@ const quoteSchema = z.object({
   subTotal: z.coerce.number(),
   transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
   commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
-  totalAmount: z.coerce.number().positive({ message: "Total amount must be a positive number." }),
+  totalAmount: z.coerce.number().nonnegative({ message: "Total amount cannot be negative." }),
   status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
   notes: z.string().optional(),
@@ -87,14 +87,14 @@ export async function createQuoteFromOrder(orderId: string) {
                 sku: item.sku || "",
                 description: item.description,
                 quantity: item.quantity,
-                unitPrice: item.unitPrice,
+                unitPrice: item.unitPrice || 0,
                 purchasePrice: (item as any).purchasePrice || 0,
-                total: item.total,
+                total: item.total || 0,
             })),
-            subTotal: order.totalAmount,
+            subTotal: order.totalAmount || 0,
             transportCost: order.transportCost || 0,
             commissionRate: order.commissionRate || 0,
-            totalAmount: order.totalAmount,
+            totalAmount: order.totalAmount || 0,
             status: "draft" as const,
             shippingAddress: order.shippingAddress || "",
             notes: "Généré automatiquement depuis la commande " + order.orderNumber,
@@ -102,7 +102,6 @@ export async function createQuoteFromOrder(orderId: string) {
             depositPercentage: 30,
         };
 
-        // Validation via le schéma existant
         const validatedData = quoteSchema.parse(newQuoteData);
 
         const docRef = await addDoc(collection(db, 'quotes'), {
@@ -113,6 +112,9 @@ export async function createQuoteFromOrder(orderId: string) {
         return { success: true, message: 'Proforma générée automatiquement !', id: docRef.id };
     } catch (error: any) {
         console.error('Error creating quote from order:', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: "Erreur de validation : " + error.errors[0].message };
+        }
         return { success: false, message: 'Échec de la génération automatique.' };
     }
 }
@@ -141,7 +143,6 @@ export async function updateQuote(id: string, values: z.infer<typeof quoteSchema
         
         await updateDoc(quoteRef, validatedData);
 
-        // After updating the quote, find and update the related order and invoice
         const updatedQuote = await getQuoteById(id);
         if (updatedQuote && updatedQuote.status === 'accepted') {
             const orderUpdateResult = await updateOrderFromQuote(updatedQuote);
@@ -235,7 +236,6 @@ export async function updateQuoteStatus(id: string, status: z.infer<typeof quote
 
         await updateDoc(quoteRef, { status: validatedStatus });
         
-        // If status changes to 'accepted' from another status, create order and invoice
         if (validatedStatus === 'accepted' && previousStatus !== 'accepted') {
             const fullQuote = await getQuoteById(id);
             if(fullQuote) {
