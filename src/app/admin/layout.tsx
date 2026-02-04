@@ -161,7 +161,7 @@ function AdminSettings() {
     return (
         <>
             <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
-                <Cog className="mr-2 h-4 w-4" /> Paramètres
+                < Cog className="mr-2 h-4 w-4" /> Paramètres
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-2xl">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -141,7 +142,7 @@ export default function RegisteredClientsPage() {
             <TableBody>
               {filteredClients.length > 0 ? filteredClients.map((client) => {
                 const pendingCount = getPendingOrdersCount(client.id);
-                const isNew = (Date.now() - new Date(client.createdAt).getTime()) < 3600000;
+                const isNew = (Date.now() - new Date(client.createdAt).getTime()) < 3600000; // 1 hour
                 const hasAlert = pendingCount > 0 || client.status === 'pending';
 
                 return (

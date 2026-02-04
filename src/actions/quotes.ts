@@ -69,6 +69,7 @@ export interface Quote {
 
 /**
  * Génère automatiquement une Proforma à partir d'une commande existante.
+ * Utilisé pour automatiser le flux Admin.
  */
 export async function createQuoteFromOrder(orderId: string) {
     try {
