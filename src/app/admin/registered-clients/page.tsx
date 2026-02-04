@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,12 +13,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, UserCheck, ShieldCheck, Eye, ShoppingCart, Bell } from 'lucide-react';
+import { Loader2, Save, Search, Eye, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
@@ -121,7 +121,7 @@ export default function RegisteredClientsPage() {
           className="pl-10 max-w-md bg-white" 
           placeholder="Rechercher par nom, email ou numéro..." 
           value={search}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
