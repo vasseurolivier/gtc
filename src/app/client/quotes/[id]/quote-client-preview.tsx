@@ -72,7 +72,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
-                                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-16 w-auto object-contain"/>}
+                                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain"/>}
                             </div>
                             <div className="text-right">
                                 <h1 className="text-2xl font-black text-zinc-900 tracking-tighter">PROFORMA</h1>
@@ -85,12 +85,12 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">ÉMIS PAR</h3>
                                 <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1">{companyInfo?.address}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{companyInfo?.address}</p>
                             </div>
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">CLIENT</h3>
                                 <p className="font-bold text-zinc-900">{quote.customerName}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1">{quote.shippingAddress || "Adresse de livraison standard"}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{quote.shippingAddress || "Adresse de livraison standard"}</p>
                             </div>
                         </section>
                         
@@ -118,15 +118,15 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                         <div className="flex justify-end pt-10">
                             <div className="w-full max-w-[300px] space-y-3">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Sous-total</span>
+                                    <span className="text-muted-foreground font-medium">Sous-total</span>
                                     <span className="font-bold">€{subTotalEuro.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%)</span>
+                                    <span className="text-muted-foreground font-medium">Commission ({quote.commissionRate}%)</span>
                                     <span className="font-bold">€{commissionEuro.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Frais de port</span>
+                                    <span className="text-muted-foreground font-medium">Frais de port</span>
                                     <span className="font-bold">€{transportEuro.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
@@ -137,27 +137,34 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                         </div>
 
                         <div className="mt-16 border-t pt-8">
-                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Conditions de Règlement</h3>
-                            <div className="text-xs text-zinc-600 space-y-4">
+                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Conditions de Règlement & Coordonnées Bancaires</h3>
+                            <div className="text-xs text-zinc-600 space-y-6">
                                 {quote.depositRequired ? (
                                     <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
                                         <p className="font-bold text-primary mb-1">Acompte à la commande ({quote.depositPercentage}%): €{(totalEuro * (quote.depositPercentage || 30) / 100).toFixed(2)}</p>
-                                        <p>Solde restant ({100 - (quote.depositPercentage || 30)}%): €{(totalEuro * (100 - (quote.depositPercentage || 30)) / 100).toFixed(2)}</p>
+                                        <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
                                 ) : (
-                                    <p className="font-bold">Paiement intégral à réception de la proforma.</p>
+                                    <p className="font-bold text-primary">Paiement intégral de {totalEuro.toFixed(2)}€ à réception de la proforma.</p>
                                 )}
-                                <div className="grid grid-cols-2 gap-8 mt-6">
-                                    <div>
-                                        <p className="font-bold text-zinc-900 mb-1">Coordonnées Bancaires (EUR)</p>
-                                        <p>IBAN: DE24 2022 0800 0056 1684 61</p>
-                                        <p>SWIFT: SXPYDEHH</p>
+                                
+                                <div className="grid grid-cols-2 gap-8 p-6 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                    <div className="space-y-1">
+                                        <p><span className="font-bold text-zinc-900 text-[10px] uppercase block mb-1">Détails de la Banque</span></p>
+                                        <p><span className="font-semibold text-zinc-900">Banque:</span> Banking Circle S.A. - German Branch</p>
+                                        <p><span className="font-semibold text-zinc-900">Adresse:</span> Maximilianstraße 54, 80538 München, Germany</p>
+                                        <p><span className="font-semibold text-zinc-900">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
+                                        <p><span className="font-semibold text-zinc-900">SWIFT:</span> SXPYDEHH</p>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-zinc-900 mb-1">Note</p>
-                                        <p className="italic">Proforma valable jusqu'au {format(new Date(quote.validUntil), 'dd/MM/yyyy')}. Les prix sont fixés en Euro selon le taux de change du jour de l'émission.</p>
+                                    <div className="space-y-1">
+                                        <p><span className="font-bold text-zinc-900 text-[10px] uppercase block mb-1">Bénéficiaire</span></p>
+                                        <p><span className="font-semibold text-zinc-900">Nom:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                        <p><span className="font-semibold text-zinc-900">Méthode:</span> SEPA Instant / SCT</p>
+                                        <p className="mt-4 italic text-primary font-black text-[12px]">Référence à inclure: {quote.quoteNumber} - {quote.customerName}</p>
                                     </div>
                                 </div>
+                                
+                                <p className="italic text-[10px] text-zinc-400">Proforma valable jusqu'au {format(new Date(quote.validUntil), 'dd/MM/yyyy')}. Les prix sont fixés en Euro selon le taux de change verrouillé le jour de l'émission.</p>
                             </div>
                         </div>
                     </div>

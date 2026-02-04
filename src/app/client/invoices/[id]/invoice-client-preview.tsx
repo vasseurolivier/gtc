@@ -4,7 +4,7 @@
 import type { Invoice } from '@/actions/invoices';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Printer, Download, ArrowLeft } from 'lucide-react';
+import { Loader2, Download, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -51,13 +51,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const { companyInfo } = companyInfoContext;
 
     const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
-    // Note: On the client side we show the totals directly in Euro.
-    // Order-specific commission/transport are already bundled in invoice.totalAmount if generated from order.
-
-    const itemChunks = [];
-    for (let i = 0; i < invoice.items.length; i += 10) {
-      itemChunks.push(invoice.items.slice(i, i + 10));
-    }
     
     return (
         <div className="space-y-6">
@@ -77,7 +70,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
-                                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-16 w-auto object-contain"/>}
+                                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain"/>}
                             </div>
                             <div className="text-right">
                                 <h1 className="text-2xl font-black text-zinc-900 tracking-tighter">FACTURE</h1>
@@ -90,12 +83,12 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">ÉMIS PAR</h3>
                                 <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1">{companyInfo?.address}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{companyInfo?.address}</p>
                             </div>
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">DESTINATAIRE</h3>
                                 <p className="font-bold text-zinc-900">{invoice.customerName}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1">{invoice.shippingAddress || "Adresse de livraison habituelle"}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{invoice.shippingAddress || "Adresse de livraison habituelle"}</p>
                             </div>
                         </section>
                         
@@ -137,17 +130,18 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         </div>
 
                         <div className="mt-20 p-6 bg-zinc-50 rounded-2xl border border-zinc-100">
-                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Informations de Paiement</h3>
+                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Informations de Paiement & Coordonnées Bancaires</h3>
                             <div className="grid grid-cols-2 gap-8 text-[11px] text-zinc-600 leading-relaxed">
                                 <div className="space-y-1">
-                                    <p><span className="font-bold text-zinc-900">Banque:</span> Banking Circle S.A.</p>
+                                    <p><span className="font-bold text-zinc-900">Banque:</span> Banking Circle S.A. - German Branch</p>
+                                    <p><span className="font-bold text-zinc-900">Adresse Banque:</span> Maximilianstraße 54, 80538 München, Germany</p>
                                     <p><span className="font-bold text-zinc-900">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
-                                    <p><span className="font-bold text-zinc-900">SWIFT:</span> SXPYDEHH</p>
+                                    <p><span className="font-bold text-zinc-900">SWIFT Code:</span> SXPYDEHH</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p><span className="font-bold text-zinc-900">Bénéficiaire:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
                                     <p><span className="font-bold text-zinc-900">Méthode:</span> SEPA Instant / SCT</p>
-                                    <p className="italic text-primary font-bold">Référence: {invoice.invoiceNumber} + {invoice.customerName}</p>
+                                    <p className="mt-4 italic text-primary font-black text-[12px]">Référence à inclure obligatoirement: {invoice.invoiceNumber} - {invoice.customerName}</p>
                                 </div>
                             </div>
                         </div>
