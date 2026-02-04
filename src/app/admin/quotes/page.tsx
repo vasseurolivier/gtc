@@ -23,7 +23,7 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
