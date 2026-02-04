@@ -4,7 +4,7 @@
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
 import { z } from 'zod';
-import { addOrder, updateOrderFromQuote, Order, getOrderById } from './orders';
+import { addOrder, updateOrderFromQuote, Order, getOrderById, updateOrderStatus } from './orders';
 import { addInvoiceFromOrder, updateInvoiceFromQuote } from './invoices';
 
 export interface QuoteItem {
@@ -207,18 +207,38 @@ export async function updateQuoteStatus(id: string, status: string) {
         if (status === 'accepted' && previousStatus !== 'accepted') {
             const fullQuote = await getQuoteById(id);
             if(fullQuote) {
-                const orderResult = await addOrder(fullQuote);
-                if (orderResult.success && orderResult.id) {
-                     const orderDataForInvoice = await getOrderById(orderResult.id);
-                     if (orderDataForInvoice) {
-                        await addInvoiceFromOrder(orderDataForInvoice);
-                     }
+                // If this quote is already linked to an existing order (from client sourcing request)
+                if (fullQuote.orderId) {
+                    // Update the existing order with quote details and set status to validated
+                    await updateOrderFromQuote(fullQuote);
+                    await updateOrderStatus(fullQuote.orderId, 'validated');
+                    
+                    // Also check if an invoice needs to be created or updated for this order
+                    const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", fullQuote.orderId));
+                    const invoicesSnap = await getDocs(invoicesQuery);
+                    if (invoicesSnap.empty) {
+                        const orderData = await getOrderById(fullQuote.orderId);
+                        if (orderData) await addInvoiceFromOrder(orderData);
+                    } else {
+                        // Update existing invoice with new quote items/prices
+                        await updateInvoiceFromQuote(fullQuote, fullQuote.orderId);
+                    }
+                } else {
+                    // No order exists yet (manual quote created by admin), so create a new one
+                    const orderResult = await addOrder(fullQuote);
+                    if (orderResult.success && orderResult.id) {
+                         const orderDataForInvoice = await getOrderById(orderResult.id);
+                         if (orderDataForInvoice) {
+                            await addInvoiceFromOrder(orderDataForInvoice);
+                         }
+                    }
                 }
             }
         }
         
         return { success: true, message: 'Proforma status updated successfully!' };
     } catch (error: any) {
+        console.error("Error updating quote status:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
