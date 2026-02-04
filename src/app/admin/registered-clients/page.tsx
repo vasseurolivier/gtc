@@ -63,6 +63,7 @@ export default function RegisteredClientsPage() {
     }
 
     async function fetchData() {
+      if (!db) return;
       setIsLoading(true);
       try {
         const [clientList, ords] = await Promise.all([
@@ -72,33 +73,36 @@ export default function RegisteredClientsPage() {
         
         const sourcingIds = new Set<string>();
         try {
-          const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
+          const q = query(collectionGroup(db, 'products'), where('status', '==', 'pending'));
           const snap = await getDocs(q);
           snap.forEach(doc => {
             const data = doc.data();
-            if (data.clientId) sourcingIds.add(data.clientId);
+            if (data && data.clientId && typeof data.clientId === 'string') {
+              sourcingIds.add(data.clientId);
+            }
           });
         } catch (e) {
           console.error("Sourcing notification error:", e);
         }
 
-        setClients(clientList);
-        setOrders(ords);
+        setClients(clientList || []);
+        setOrders(ords || []);
         setPendingSourcingIds(sourcingIds);
         
         const numbers: Record<string, string> = {};
-        clientList.forEach(c => {
+        (clientList || []).forEach(c => {
           numbers[c.id] = c.clientNumber || '';
         });
         setTempNumbers(numbers);
       } catch (error) {
-        console.error(error);
+        console.error("Fetch data error:", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de charger les données.' });
       } finally {
         setIsLoading(false);
       }
     }
     fetchData();
-  }, [router, db]);
+  }, [router, db, toast]);
 
   const handleUpdateNumber = async (id: string) => {
     const newNumber = tempNumbers[id];
@@ -127,28 +131,30 @@ export default function RegisteredClientsPage() {
   };
 
   const handleSaveGlobalRate = () => {
-    const rate = parseFloat(localRate);
-    if (isNaN(rate) || rate <= 0) {
+    const rateValue = parseFloat(localRate);
+    if (isNaN(rateValue) || rateValue <= 0) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Taux invalide.' });
       return;
     }
-    currencyContext?.setExchangeRate(rate);
-    toast({ title: 'Taux mis à jour', description: `1 EUR = ${(1/rate).toFixed(4)} CNY` });
+    currencyContext?.setExchangeRate(rateValue);
+    toast({ title: 'Taux mis à jour', description: `1 EUR = ${(1/rateValue).toFixed(4)} CNY` });
   };
 
   const getPendingOrdersCount = (clientId: string) => {
-    return orders.filter(o => o.customerId === clientId && o.status === 'processing').length;
+    return (orders || []).filter(o => o.customerId === clientId && o.status === 'processing').length;
   };
 
   const hasPendingSourcing = (clientId: string) => {
     return pendingSourcingIds.has(clientId);
   };
 
-  const filteredClients = clients.filter(c => 
-    `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase()) ||
-    c.clientNumber?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredClients = clients.filter(c => {
+    const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+    const email = (c.email || '').toLowerCase();
+    const clientNumber = (c.clientNumber || '').toLowerCase();
+    const s = (search || '').toLowerCase();
+    return fullName.includes(s) || email.includes(s) || clientNumber.includes(s);
+  });
 
   if (isLoading) {
     return (
@@ -192,7 +198,7 @@ export default function RegisteredClientsPage() {
             </div>
             <p className="text-[10px] text-zinc-500 italic">
               Ce taux sera utilisé pour toutes les nouvelles Proformas et Factures.
-              Actuel: 1 EUR ≈ {(1 / parseFloat(localRate || '0.13')).toFixed(2)} CNY
+              Actuel: 1 EUR ≈ {(1 / (parseFloat(localRate) || 0.13)).toFixed(2)} CNY
             </p>
           </CardContent>
         </Card>
@@ -238,7 +244,7 @@ export default function RegisteredClientsPage() {
                     <TableCell className="font-semibold pl-6">
                       <Link href={`/admin/registered-clients/${client.id}`} className="hover:text-primary transition-colors flex flex-col">
                         <span className="flex items-center gap-2">
-                          {client.firstName} {client.lastName}
+                          {client.firstName || ''} {client.lastName || ''}
                           {hasAlert && <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />}
                         </span>
                         <span className="text-[10px] text-muted-foreground font-normal">
@@ -246,7 +252,7 @@ export default function RegisteredClientsPage() {
                         </span>
                       </Link>
                     </TableCell>
-                    <TableCell>{client.email}</TableCell>
+                    <TableCell>{client.email || 'N/A'}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         {pendingOrders > 0 && (

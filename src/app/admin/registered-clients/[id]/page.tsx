@@ -133,23 +133,28 @@ export default function ClientDetailPage() {
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
-      const [clientData, prods, invs, qts] = await Promise.all([
-        getRegisteredClientById(clientId),
-        getProducts(),
-        getInvoices(),
-        getQuotes()
-      ]);
-      
-      if (clientData) {
-        setClient(clientData);
-        setClientNumber(clientData.clientNumber || '');
-        setOrderPrefix(clientData.orderPrefix || '');
-        setCurrencyPreference(clientData.currencyPreference || 'EUR');
+      try {
+        const [clientData, prods, invs, qts] = await Promise.all([
+          getRegisteredClientById(clientId),
+          getProducts(),
+          getInvoices(),
+          getQuotes()
+        ]);
+        
+        if (clientData) {
+          setClient(clientData);
+          setClientNumber(clientData.clientNumber || '');
+          setOrderPrefix(clientData.orderPrefix || '');
+          setCurrencyPreference(clientData.currencyPreference || 'EUR');
+        }
+        setGlobalProducts(prods || []);
+        setAllInvoices(invs || []);
+        setAllQuotes(qts || []);
+      } catch (error) {
+        console.error("Fetch detailed client error:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setGlobalProducts(prods);
-      setAllInvoices(invs);
-      setAllQuotes(qts);
-      setIsLoading(false);
     }
     fetchData();
   }, [clientId]);
@@ -248,7 +253,7 @@ export default function ClientDetailPage() {
   };
 
   const handleUpdatePrefix = async () => {
-    if (orderPrefix.length !== 2) {
+    if ((orderPrefix || '').length !== 2) {
       toast({ variant: "destructive", title: "Erreur", description: "Le préfixe doit faire exactement 2 lettres." });
       return;
     }
@@ -383,11 +388,11 @@ export default function ClientDetailPage() {
   const handleSelectFromGlobalCatalog = (prod: Product) => {
     setEditingProduct({
       id: `PROD-CAT-${Date.now()}`,
-      name: prod.name,
-      sku: prod.sku,
+      name: prod.name || '',
+      sku: prod.sku || '',
       description: prod.description || '',
-      price: prod.price,
-      unitPrice: prod.price,
+      price: prod.price || 0,
+      unitPrice: prod.price || 0,
       images: prod.imageUrl ? [prod.imageUrl] : [],
       weight: prod.weight || 0,
       width: prod.width || 0,
@@ -446,12 +451,12 @@ export default function ClientDetailPage() {
       
       const payload = {
         ...editingProduct,
-        price: Number(editingProduct.price),
-        unitPrice: Number(editingProduct.price),
-        weight: Number(editingProduct.weight),
-        width: Number(editingProduct.width),
-        height: Number(editingProduct.height),
-        length: Number(editingProduct.length),
+        price: Number(editingProduct.price || 0),
+        unitPrice: Number(editingProduct.price || 0),
+        weight: Number(editingProduct.weight || 0),
+        width: Number(editingProduct.width || 0),
+        height: Number(editingProduct.height || 0),
+        length: Number(editingProduct.length || 0),
         status: 'published',
         validatedAt: new Date().toISOString(),
         clientId: clientId,
@@ -475,6 +480,7 @@ export default function ClientDetailPage() {
   };
 
   const handleDeleteProductActual = async (product: any) => {
+    if (!product.productListId || !product.id) return;
     const result = await deleteClientProduct(clientId, product.productListId, product.id);
     if (result.success) {
       toast({ title: "Supprimé", description: result.message });
@@ -485,6 +491,7 @@ export default function ClientDetailPage() {
   };
 
   const handleDeleteListActual = async (list: any) => {
+    if (!list.id) return;
     const result = await deleteProductList(clientId, list.id);
     if (result.success) {
       toast({ title: "Supprimé", description: result.message });
@@ -529,13 +536,13 @@ export default function ClientDetailPage() {
       const invoiceRef = doc(db, 'invoices', inv.id);
       await updateDoc(invoiceRef, {
         customerId: clientId,
-        customerName: `${client.firstName} ${client.lastName}`
+        customerName: `${client.firstName || ''} ${client.lastName || ''}`
       });
       
       toast({ title: "Facture liée", description: `La facture ${inv.invoiceNumber} est maintenant visible par le client.` });
       setIsInvoiceLinkDialogOpen(false);
       const updatedInvs = await getInvoices();
-      setAllInvoices(updatedInvs);
+      setAllInvoices(updatedInvs || []);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -550,13 +557,13 @@ export default function ClientDetailPage() {
       const quoteRef = doc(db, 'quotes', quote.id);
       await updateDoc(quoteRef, {
         customerId: clientId,
-        customerName: `${client.firstName} ${client.lastName}`
+        customerName: `${client.firstName || ''} ${client.lastName || ''}`
       });
       
       toast({ title: "Proforma liée", description: `La proforma ${quote.quoteNumber} est maintenant visible par le client.` });
       setIsQuoteLinkDialogOpen(false);
       const updatedQuotes = await getQuotes();
-      setAllQuotes(updatedQuotes);
+      setAllQuotes(updatedQuotes || []);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -706,7 +713,7 @@ export default function ClientDetailPage() {
 
   const listProducts = useMemo(() => {
     if (!selectedList || !db || !clientId) return [];
-    return publishedProducts.filter(p => p.listId === selectedList.id).concat(pendingSourcingProducts.filter(p => p.listId === selectedList.id));
+    return (publishedProducts || []).filter(p => p.listId === selectedList.id).concat((pendingSourcingProducts || []).filter(p => p.listId === selectedList.id));
   }, [selectedList, publishedProducts, pendingSourcingProducts, db, clientId]);
 
   if (isLoading) {
@@ -753,11 +760,11 @@ export default function ClientDetailPage() {
             <CardContent className="pt-6 space-y-4">
               <div>
                 <div className="text-xs text-muted-foreground uppercase font-bold mb-1">Nom Complet</div>
-                <div className="font-semibold text-lg">{client.firstName} {client.lastName}</div>
+                <div className="font-semibold text-lg">{client.firstName || ''} {client.lastName || ''}</div>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{client.email}</span>
+                <span className="text-sm">{client.email || 'N/A'}</span>
               </div>
               {client.phone && (
                 <div className="flex items-center gap-2">
@@ -797,7 +804,7 @@ export default function ClientDetailPage() {
                     className="h-9 font-bold"
                     maxLength={2}
                   />
-                  <Button size="sm" variant="secondary" onClick={handleUpdatePrefix} disabled={isSaving || orderPrefix.length !== 2}>
+                  <Button size="sm" variant="secondary" onClick={handleUpdatePrefix} disabled={isSaving || (orderPrefix || '').length !== 2}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -881,15 +888,15 @@ export default function ClientDetailPage() {
                           <div className="flex items-center gap-3">
                             {product.images?.[0] && (
                               <div className="relative w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
-                                <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
                               </div>
                             )}
-                            <div className="font-medium text-sm">{product.name}</div>
+                            <div className="font-medium text-sm">{product.name || 'N/A'}</div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs font-mono">{product.sku}</TableCell>
+                        <TableCell className="text-xs font-mono">{product.sku || 'N/A'}</TableCell>
                         <TableCell className="font-bold">¥{Number(product.price || 0).toFixed(2)}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{product.listName}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{product.listName || 'N/A'}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEditProduct(product)}>
@@ -949,17 +956,17 @@ export default function ClientDetailPage() {
                               <div className="flex items-center gap-3">
                                 {product.images?.[0] && (
                                   <div className="relative w-14 h-14 rounded-lg border bg-zinc-50 overflow-hidden shrink-0 shadow-sm">
-                                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                    <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
                                   </div>
                                 )}
                                 <div className="space-y-1">
-                                  <div className="font-black text-sm">{product.name}</div>
-                                  <div className="text-xs text-zinc-500 line-clamp-1">{product.description}</div>
+                                  <div className="font-black text-sm">{product.name || 'N/A'}</div>
+                                  <div className="text-xs text-zinc-500 line-clamp-1">{product.description || ''}</div>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="font-bold">{product.quantity}</TableCell>
-                            <TableCell className="text-xs italic text-zinc-400">{product.listName}</TableCell>
+                            <TableCell className="font-bold">{product.quantity || 0}</TableCell>
+                            <TableCell className="text-xs italic text-zinc-400">{product.listName || 'N/A'}</TableCell>
                             <TableCell className="text-right pr-6">
                               <div className="flex justify-end gap-2">
                                 <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={() => handleEditProduct(product)}>
@@ -1003,10 +1010,10 @@ export default function ClientDetailPage() {
                           )}
                           <CardHeader className="pb-2">
                             <div className="flex justify-between items-start">
-                              <CardTitle className="text-base">{list.name}</CardTitle>
+                              <CardTitle className="text-base">{list.name || 'Sans nom'}</CardTitle>
                               <ChevronRight className="h-4 w-4 text-zinc-300" />
                             </div>
-                            <CardDescription className="text-xs line-clamp-1">{list.description}</CardDescription>
+                            <CardDescription className="text-xs line-clamp-1">{list.description || ""}</CardDescription>
                           </CardHeader>
                           <CardContent className="pb-4">
                             <span className="text-[10px] text-muted-foreground italic">Créé le {list.createdAt ? format(parseSafeDate(list.createdAt), 'dd/MM/yyyy') : '-'}</span>
@@ -1026,7 +1033,7 @@ export default function ClientDetailPage() {
                         <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux listes
                       </Button>
                       <div className="flex items-center gap-4">
-                        <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                        <h3 className="font-bold text-lg">{selectedList.name || 'Liste'}</h3>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button size="sm" variant="destructive" className="h-8 font-bold"><Trash2 className="h-3 w-3 mr-2"/> Supprimer la liste</Button>
@@ -1063,13 +1070,13 @@ export default function ClientDetailPage() {
                                 <div className="flex items-center gap-3">
                                   {product.images?.[0] && (
                                     <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
-                                      <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                      <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
                                     </div>
                                   )}
-                                  <div className="font-medium text-sm">{product.name}</div>
+                                  <div className="font-medium text-sm">{product.name || 'N/A'}</div>
                                 </div>
                               </TableCell>
-                              <TableCell>{product.quantity}</TableCell>
+                              <TableCell>{product.quantity || 0}</TableCell>
                               <TableCell>¥{Number(product.price || 0).toFixed(2)}</TableCell>
                               <TableCell>
                                 {product.status === 'published' ? (
@@ -1118,22 +1125,22 @@ export default function ClientDetailPage() {
               <Tabs defaultValue="active" className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="active" className="gap-2">
-                    <Clock className="h-3 w-3" /> En cours ({activeOrders.length})
+                    <Clock className="h-3 w-3" /> En cours ({(activeOrders || []).length})
                   </TabsTrigger>
                   <TabsTrigger value="archived" className="gap-2">
-                    <History className="h-3 w-3" /> Archives ({archivedOrders.length})
+                    <History className="h-3 w-3" /> Archives ({(archivedOrders || []).length})
                   </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="active">
                   <Card className="border-none shadow-md overflow-hidden bg-white">
-                    {renderOrdersTable(activeOrders)}
+                    {renderOrdersTable(activeOrders || [])}
                   </Card>
                 </TabsContent>
                 
                 <TabsContent value="archived">
                   <Card className="border-none shadow-md overflow-hidden bg-white">
-                    {renderOrdersTable(archivedOrders)}
+                    {renderOrdersTable(archivedOrders || [])}
                   </Card>
                 </TabsContent>
               </Tabs>
@@ -1159,12 +1166,12 @@ export default function ClientDetailPage() {
                   <TableBody>
                     {linkedQuotes && linkedQuotes.length > 0 ? linkedQuotes.map((quote) => (
                       <TableRow key={quote.id}>
-                        <TableCell className="pl-6 font-bold">{quote.quoteNumber}</TableCell>
+                        <TableCell className="pl-6 font-bold">{quote.quoteNumber || 'N/A'}</TableCell>
                         <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
-                          <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : 'secondary'}>{quote.status}</Badge>
+                          <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : 'secondary'}>{quote.status || 'draft'}</Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">¥{quote.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold">¥{Number(quote.totalAmount || 0).toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="sm" asChild>
@@ -1222,12 +1229,12 @@ export default function ClientDetailPage() {
                   <TableBody>
                     {linkedInvoices && linkedInvoices.length > 0 ? linkedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
-                        <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
+                        <TableCell className="pl-6 font-bold">{inv.invoiceNumber || 'N/A'}</TableCell>
                         <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
-                          <Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status}</Badge>
+                          <Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status || 'unpaid'}</Badge>
                         </TableCell>
-                        <TableCell className="text-right pr-6 font-semibold">¥{inv.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6 font-semibold">¥{Number(inv.totalAmount || 0).toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="sm" asChild>
@@ -1285,16 +1292,16 @@ export default function ClientDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {globalProducts.map(p => (
+                {(globalProducts || []).map(p => (
                   <TableRow key={p.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><Image src={p.imageUrl} alt={p.name} fill className="object-cover" /></div>}
-                        <span className="text-xs font-bold">{p.name}</span>
+                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><Image src={p.imageUrl} alt={p.name || 'Produit'} fill className="object-cover" /></div>}
+                        <span className="text-xs font-bold">{p.name || 'Sans nom'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs">{p.sku}</TableCell>
-                    <TableCell className="text-xs">¥{p.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs">{p.sku || 'N/A'}</TableCell>
+                    <TableCell className="text-xs">¥{Number(p.price || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="secondary" onClick={() => handleSelectFromGlobalCatalog(p)}>
                         Sélectionner
@@ -1327,9 +1334,9 @@ export default function ClientDetailPage() {
               <TableBody>
                 {allInvoices.filter(i => i.customerId !== clientId).map(inv => (
                   <TableRow key={inv.id}>
-                    <TableCell className="text-xs font-bold">{inv.invoiceNumber}</TableCell>
-                    <TableCell className="text-xs">{inv.customerName}</TableCell>
-                    <TableCell className="text-xs font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs font-bold">{inv.invoiceNumber || 'N/A'}</TableCell>
+                    <TableCell className="text-xs">{inv.customerName || 'N/A'}</TableCell>
+                    <TableCell className="text-xs font-bold">¥{Number(inv.totalAmount || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" onClick={() => handleLinkInvoice(inv)}>Attribuer</Button>
                     </TableCell>
@@ -1360,9 +1367,9 @@ export default function ClientDetailPage() {
               <TableBody>
                 {allQuotes.filter(q => q.customerId !== clientId).map(quote => (
                   <TableRow key={quote.id}>
-                    <TableCell className="text-xs font-bold">{quote.quoteNumber}</TableCell>
-                    <TableCell className="text-xs">{quote.customerName}</TableCell>
-                    <TableCell className="text-xs font-bold">¥{quote.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs font-bold">{quote.quoteNumber || 'N/A'}</TableCell>
+                    <TableCell className="text-xs">{quote.customerName || 'N/A'}</TableCell>
+                    <TableCell className="text-xs font-bold">¥{Number(quote.totalAmount || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" onClick={() => handleLinkQuote(quote)}>Attribuer</Button>
                     </TableCell>
@@ -1379,7 +1386,7 @@ export default function ClientDetailPage() {
           <DialogHeader>
             <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" /> 
-              Commande {selectedOrderPreview?.orderNumber}
+              Commande {selectedOrderPreview?.orderNumber || 'N/A'}
             </DialogTitle>
             <DialogDescription>
               Détails complets de la demande client.
@@ -1391,11 +1398,11 @@ export default function ClientDetailPage() {
               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border border-zinc-100">
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Statut</span>
-                  <div>{getOrderStatusBadge(selectedOrderPreview.status)}</div>
+                  <div>{getOrderStatusBadge(selectedOrderPreview.status || 'processing')}</div>
                 </div>
                 <div className="text-right space-y-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Total</span>
-                  <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div>
+                  <div className="text-2xl font-black text-primary">¥{Number(selectedOrderPreview.totalAmount || 0).toFixed(2)}</div>
                 </div>
               </div>
 
@@ -1414,23 +1421,23 @@ export default function ClientDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                      {(selectedOrderPreview.items || []).map((item: any, idx: number) => (
                         <TableRow key={idx}>
                           <TableCell className="py-2">
                             {item.photo && (
                               <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
-                                <Image src={item.photo} alt={item.description} fill className="object-cover" />
+                                <Image src={item.photo} alt={item.description || 'Produit'} fill className="object-cover" />
                               </div>
                             )}
                           </TableCell>
                           <TableCell className="py-2">
                             <div className="font-medium text-sm">
-                              {item.description}
+                              {item.description || 'N/A'}
                               {item.size && <Badge variant="secondary" className="ml-2 text-[10px] h-4 px-1">{item.size}</Badge>}
                             </div>
-                            <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
+                            <div className="text-[10px] text-zinc-400 font-mono">{item.sku || ''}</div>
                           </TableCell>
-                          <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
+                          <TableCell className="py-2 text-center font-bold">{item.quantity || 0}</TableCell>
                           <TableCell className="py-2 text-right font-bold">¥{Number(item.total || 0).toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
@@ -1482,10 +1489,10 @@ export default function ClientDetailPage() {
             {selectedOrderPreview?.status !== 'cancelled' && (
               <Button 
                 className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold"
-                disabled={isGeneratingQuote === selectedOrderPreview.id}
-                onClick={() => handleGenerateQuote(selectedOrderPreview.id)}
+                disabled={isGeneratingQuote === selectedOrderPreview?.id}
+                onClick={() => handleGenerateQuote(selectedOrderPreview?.id)}
               >
-                {isGeneratingQuote === selectedOrderPreview.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {isGeneratingQuote === selectedOrderPreview?.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 Générer Proforma
               </Button>
             )}
@@ -1510,7 +1517,7 @@ export default function ClientDetailPage() {
                     <ImageIcon className="h-3 w-3" /> Photos & Vidéos (Catalogue)
                   </Label>
                   <div className="grid grid-cols-3 gap-3">
-                    {editingProduct.images?.map((url: string, idx: number) => {
+                    {(editingProduct.images || []).map((url: string, idx: number) => {
                       const isVideo = url.includes('.mp4') || url.includes('video');
                       return (
                         <div key={idx} className="relative aspect-square rounded-xl border bg-zinc-50 overflow-hidden group shadow-sm">
@@ -1555,7 +1562,7 @@ export default function ClientDetailPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-zinc-400">Nom Commercial</Label>
                     <input 
-                      value={editingProduct.name} 
+                      value={editingProduct.name || ''} 
                       onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
                       className="font-bold h-10 text-lg w-full bg-transparent outline-none border-b focus:border-primary"
                     />
@@ -1565,7 +1572,7 @@ export default function ClientDetailPage() {
                     <div className="space-y-1">
                       <Label className="text-[10px] font-bold uppercase text-zinc-400">SKU / Réf</Label>
                       <Input 
-                        value={editingProduct.sku} 
+                        value={editingProduct.sku || ''} 
                         onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
                         placeholder="YW-REF-001"
                         className="h-9 text-sm font-mono"
@@ -1578,7 +1585,7 @@ export default function ClientDetailPage() {
                         <Input 
                           type="number"
                           className="pl-7 h-9 text-sm font-black text-primary"
-                          value={editingProduct.price} 
+                          value={editingProduct.price || 0} 
                           onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
                         />
                       </div>
@@ -1598,7 +1605,7 @@ export default function ClientDetailPage() {
                       <div className="text-[10px] text-zinc-500">Permet au client de choisir une taille lors de sa commande.</div>
                     </div>
                     <Switch 
-                      checked={editingProduct.hasSizeSelection} 
+                      checked={editingProduct.hasSizeSelection || false} 
                       onCheckedChange={(checked) => setEditingProduct({...editingProduct, hasSizeSelection: checked})} 
                     />
                   </div>
@@ -1608,14 +1615,14 @@ export default function ClientDetailPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Maximize className="h-3 w-3" /> Dimensions (cm)</Label>
                     <div className="grid grid-cols-3 gap-2">
-                      <Input type="number" className="h-9 px-2 text-xs" placeholder="L" value={editingProduct.length} onChange={(e) => setEditingProduct({...editingProduct, length: e.target.value})} />
-                      <Input type="number" className="h-9 px-2 text-xs" placeholder="W" value={editingProduct.width} onChange={(e) => setEditingProduct({...editingProduct, width: e.target.value})} />
-                      <Input type="number" className="h-9 px-2 text-xs" placeholder="H" value={editingProduct.height} onChange={(e) => setEditingProduct({...editingProduct, height: e.target.value})} />
+                      <Input type="number" className="h-9 px-2 text-xs" placeholder="L" value={editingProduct.length || 0} onChange={(e) => setEditingProduct({...editingProduct, length: e.target.value})} />
+                      <Input type="number" className="h-9 px-2 text-xs" placeholder="W" value={editingProduct.width || 0} onChange={(e) => setEditingProduct({...editingProduct, width: e.target.value})} />
+                      <Input type="number" className="h-9 px-2 text-xs" placeholder="H" value={editingProduct.height || 0} onChange={(e) => setEditingProduct({...editingProduct, height: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2"><Scale className="h-3 w-3" /> Poids (kg)</Label>
-                    <Input type="number" step="0.01" className="h-9" value={editingProduct.weight} onChange={(e) => setEditingProduct({...editingProduct, weight: e.target.value})} />
+                    <Input type="number" step="0.01" className="h-9" value={editingProduct.weight || 0} onChange={(e) => setEditingProduct({...editingProduct, weight: e.target.value})} />
                   </div>
                 </div>
               </div>
@@ -1625,7 +1632,7 @@ export default function ClientDetailPage() {
                   <Label className="text-xs font-bold uppercase text-zinc-400">Description Technique & Spécifications</Label>
                   <Textarea 
                     rows={15}
-                    value={editingProduct.description}
+                    value={editingProduct.description || ''}
                     onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
                     placeholder="Détaillez ici les caractéristiques techniques qui seront visibles par le client..."
                     className="text-sm architectural leading-relaxed border-zinc-200 focus:ring-primary shadow-inner"
