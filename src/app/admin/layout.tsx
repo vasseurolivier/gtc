@@ -12,6 +12,7 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarMenuBadge,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -391,7 +392,14 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </SidebarContent>
       </Sidebar>
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 lg:hidden sticky top-0 bg-white z-30">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <span className="font-bold text-sm text-zinc-800">Administration</span>
+        </header>
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }

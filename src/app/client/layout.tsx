@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -13,7 +14,8 @@ import {
   SidebarMenuItem, 
   SidebarMenuButton, 
   SidebarFooter, 
-  SidebarInset 
+  SidebarInset,
+  SidebarTrigger
 } from '@/components/ui/sidebar';
 import { 
   LayoutDashboard, 
@@ -156,9 +158,10 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="bg-zinc-50">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-8 sticky top-0 z-30">
+        <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Accès Sécurisé</Badge>
+            <SidebarTrigger className="-ml-1 lg:hidden" />
+            <Badge variant="outline" className="hidden sm:flex text-green-600 border-green-200 bg-green-50">Accès Sécurisé</Badge>
             <h2 className="font-bold text-zinc-800">Espace Client</h2>
           </div>
           <div className="flex items-center gap-4">
