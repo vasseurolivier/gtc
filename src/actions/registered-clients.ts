@@ -10,6 +10,7 @@ export interface RegisteredClient {
     lastName: string;
     email: string;
     clientNumber?: string;
+    orderPrefix?: string; // Prefix for custom order numbers
     status?: 'pending' | 'validated';
     createdAt: string;
     phone?: string;
@@ -60,6 +61,21 @@ export async function updateRegisteredClientNumber(id: string, clientNumber: str
     } catch (e: any) {
         console.error("Error updating client number:", e);
         return { success: false, message: e.message || 'Une erreur est survenue.' };
+    }
+}
+
+/**
+ * Update the order prefix for a registered client.
+ */
+export async function updateRegisteredClientPrefix(id: string, orderPrefix: string) {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        // Ensure only 2 chars uppercase
+        const cleanPrefix = orderPrefix.substring(0, 2).toUpperCase();
+        await updateDoc(clientRef, { orderPrefix: cleanPrefix });
+        return { success: true, message: 'Préfixe de commande mis à jour.' };
+    } catch (e: any) {
+        return { success: false, message: 'Erreur lors de la mise à jour du préfixe.' };
     }
 }
 

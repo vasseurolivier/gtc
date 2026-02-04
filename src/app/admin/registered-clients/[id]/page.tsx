@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useContext } from 'react';
@@ -6,6 +7,7 @@ import {
   getRegisteredClientById, 
   updateRegisteredClientStatus, 
   updateRegisteredClientNumber,
+  updateRegisteredClientPrefix,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost } from '@/actions/orders';
@@ -62,7 +64,8 @@ import {
   Clock,
   AlertCircle,
   Truck,
-  Check
+  Check,
+  Tag
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -88,6 +91,7 @@ export default function ClientDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
+  const [orderPrefix, setOrderPrefix] = useState('');
   
   // Helper to parse dates from Firestore (which can be Timestamps or strings)
   const parseSafeDate = (val: any): Date => {
@@ -137,6 +141,7 @@ export default function ClientDetailPage() {
       if (clientData) {
         setClient(clientData);
         setClientNumber(clientData.clientNumber || '');
+        setOrderPrefix(clientData.orderPrefix || '');
       }
       setGlobalProducts(prods);
       setAllInvoices(invs);
@@ -241,6 +246,19 @@ export default function ClientDetailPage() {
     const result = await updateRegisteredClientNumber(clientId, clientNumber);
     if (result.success) {
       toast({ title: "Succès", description: "Numéro client mis à jour." });
+    }
+    setIsSaving(false);
+  };
+
+  const handleUpdatePrefix = async () => {
+    if (orderPrefix.length !== 2) {
+      toast({ variant: "destructive", title: "Erreur", description: "Le préfixe doit faire exactement 2 lettres." });
+      return;
+    }
+    setIsSaving(true);
+    const result = await updateRegisteredClientPrefix(clientId, orderPrefix);
+    if (result.success) {
+      toast({ title: "Succès", description: "Préfixe de commande mis à jour." });
     }
     setIsSaving(false);
   };
@@ -686,6 +704,24 @@ export default function ClientDetailPage() {
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
+              </div>
+              <div className="pt-4 border-t space-y-3">
+                <div className="text-xs text-muted-foreground uppercase font-bold flex items-center gap-2">
+                  <Tag className="h-3 w-3" /> Préfixe Commande (2 lettres)
+                </div>
+                <div className="flex gap-2">
+                  <Input 
+                    value={orderPrefix} 
+                    onChange={(e) => setOrderPrefix(e.target.value.toUpperCase().substring(0, 2))}
+                    placeholder="ex: OL"
+                    className="h-9 font-bold"
+                    maxLength={2}
+                  />
+                  <Button size="sm" variant="secondary" onClick={handleUpdatePrefix} disabled={isSaving || orderPrefix.length !== 2}>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">Ce préfixe sera ajouté au début de chaque numéro de commande choisi par le client.</p>
               </div>
               <div className="text-xs text-muted-foreground pt-2 italic">
                 Client depuis {client.createdAt ? parseSafeDate(client.createdAt).getFullYear() : '-'}

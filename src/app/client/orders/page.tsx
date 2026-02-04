@@ -32,7 +32,8 @@ import {
   CreditCard,
   AlertCircle,
   Euro,
-  Download
+  Download,
+  Hash
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -54,6 +55,7 @@ export default function ClientOrdersPage() {
   const [isCartDialogOpen, setIsCartDialogOpen] = useState(false);
   const [productQuantity, setProductQuantity] = useState(1);
   const [shippingAddress, setShippingAddress] = useState('');
+  const [orderSuffix, setOrderSuffix] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
@@ -194,9 +196,16 @@ export default function ClientOrdersPage() {
 
   const handleConfirmOrder = async () => {
     if (!user || cart.length === 0 || !db) return;
+    if (!orderSuffix) {
+      toast({ variant: "destructive", title: "Champ requis", description: "Veuillez choisir un numéro de commande." });
+      return;
+    }
+
     setIsSubmittingOrder(true);
     try {
-      const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+      const prefix = profile?.orderPrefix || 'ORD';
+      const orderNumber = `${prefix}${orderSuffix.toUpperCase()}`;
+      
       const orderData = {
         orderNumber,
         customerId: user.uid,
@@ -219,6 +228,7 @@ export default function ClientOrdersPage() {
       await addDoc(collection(db, 'orders'), orderData);
       toast({ title: "Commande transmise !", description: `Votre commande ${orderNumber} a été envoyée.` });
       setCart([]);
+      setOrderSuffix('');
       setIsCartDialogOpen(false);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: "Impossible de valider la commande." });
@@ -404,15 +414,39 @@ export default function ClientOrdersPage() {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="flex-grow space-y-2">
-                <Label className="font-bold">Destination de livraison</Label>
-                <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-24" placeholder="Port, entrepôt..." />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="font-bold flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-primary" /> Choisir votre numéro de commande
+                  </Label>
+                  <div className="flex items-center">
+                    <div className="h-10 px-3 bg-zinc-100 border border-r-0 rounded-l-md flex items-center justify-center font-black text-zinc-500">
+                      {profile?.orderPrefix || 'ORD'}
+                    </div>
+                    <Input 
+                      className="rounded-l-none font-bold uppercase" 
+                      placeholder="ex: 2024-001" 
+                      value={orderSuffix}
+                      onChange={(e) => setOrderSuffix(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-400 italic">Le numéro final sera : {(profile?.orderPrefix || 'ORD') + (orderSuffix || '...')}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-bold flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" /> Destination de livraison
+                  </Label>
+                  <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-24" placeholder="Port, entrepôt..." />
+                </div>
               </div>
-              <Card className="w-full md:w-72 bg-zinc-950 text-white p-6">
+
+              <Card className="bg-zinc-950 text-white p-6 h-fit">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Commande</span>
                 <div className="text-3xl font-black text-primary">€{cartTotal.toFixed(2)}</div>
-                <Button className="w-full mt-6 h-12 bg-primary font-bold" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0}>
+                <Button className="w-full mt-6 h-12 bg-primary font-bold" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
                   {isSubmittingOrder ? <Loader2 className="animate-spin" /> : "VALIDER LA COMMANDE"}
                 </Button>
               </Card>

@@ -28,6 +28,11 @@
           "type": "string",
           "description": "Unique client number assigned by admin."
         },
+        "orderPrefix": {
+          "type": "string",
+          "description": "2-letter prefix specific to this client for their order numbers.",
+          "maxLength": 2
+        },
         "phone": {
           "type": "string",
           "description": "Phone number of the client."
