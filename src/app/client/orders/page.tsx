@@ -33,7 +33,8 @@ import {
   AlertCircle,
   Euro,
   Download,
-  Hash
+  Hash,
+  Ruler
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -42,6 +43,8 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
+
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
@@ -54,6 +57,7 @@ export default function ClientOrdersPage() {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isCartDialogOpen, setIsCartDialogOpen] = useState(false);
   const [productQuantity, setProductQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [shippingAddress, setShippingAddress] = useState('');
   const [orderSuffix, setOrderSuffix] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
@@ -152,6 +156,7 @@ export default function ClientOrdersPage() {
   const handleOpenProduct = (product: any) => {
     setSelectedProduct(product);
     setProductQuantity(1);
+    setSelectedSize(null);
     setCurrentImageIdx(0);
     setIsProductDialogOpen(true);
   };
@@ -163,7 +168,15 @@ export default function ClientOrdersPage() {
 
   const handleAddToCart = () => {
     if (!selectedProduct) return;
-    const existingIdx = cart.findIndex(item => item.id === selectedProduct.id);
+    
+    if (selectedProduct.hasSizeSelection && !selectedSize) {
+      toast({ variant: "destructive", title: "Taille requise", description: "Veuillez sélectionner une taille pour cet article." });
+      return;
+    }
+
+    const itemKey = `${selectedProduct.id}-${selectedSize || 'no-size'}`;
+    const existingIdx = cart.findIndex(item => item.key === itemKey);
+    
     if (existingIdx > -1) {
       const newCart = [...cart];
       newCart[existingIdx].quantity += productQuantity;
@@ -171,27 +184,33 @@ export default function ClientOrdersPage() {
       setCart(newCart);
     } else {
       setCart([...cart, {
+        key: itemKey,
         id: selectedProduct.id,
         name: selectedProduct.name,
         sku: selectedProduct.sku || '',
         quantity: productQuantity,
         unitPrice: Number(selectedProduct.price || 0),
         total: productQuantity * Number(selectedProduct.price || 0),
-        photo: selectedProduct.images?.[0] || ''
+        photo: selectedProduct.images?.[0] || '',
+        size: selectedSize
       }]);
     }
-    toast({ title: "Produit ajouté", description: `${selectedProduct.name} est dans votre panier.` });
+    toast({ title: "Produit ajouté", description: `${selectedProduct.name} ${selectedSize ? `(Taille ${selectedSize})` : ''} est dans votre panier.` });
     setIsProductDialogOpen(false);
   };
 
-  const updateCartItemQuantity = (id: string, delta: number) => {
+  const updateCartItemQuantity = (key: string, delta: number) => {
     setCart(cart.map(item => {
-      if (item.id === id) {
+      if (item.key === key) {
         const newQty = Math.max(1, item.quantity + delta);
         return { ...item, quantity: newQty, total: newQty * item.unitPrice };
       }
       return item;
     }));
+  };
+
+  const removeFromCart = (key: string) => {
+    setCart(cart.filter(item => item.key !== key));
   };
 
   const handleConfirmOrder = async () => {
@@ -211,12 +230,13 @@ export default function ClientOrdersPage() {
         customerId: user.uid,
         customerName: `${profile?.firstName} ${profile?.lastName}`,
         items: cart.map(item => ({
-          description: item.name,
+          description: item.name + (item.size ? ` (Taille: ${item.size})` : ''),
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.total,
-          photo: item.photo
+          photo: item.photo,
+          size: item.size || null
         })),
         totalAmount: cart.reduce((sum, item) => sum + item.total, 0),
         status: 'processing',
@@ -396,19 +416,27 @@ export default function ClientOrdersPage() {
           <div className="py-4 space-y-6">
             <div className="border rounded-xl overflow-hidden">
               <Table>
-                <TableHeader className="bg-zinc-50"><TableRow><TableHead>Produit</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total (€)</TableHead></TableRow></TableHeader>
+                <TableHeader className="bg-zinc-50"><TableRow><TableHead>Produit</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total (€)</TableHead><TableHead></TableHead></TableRow></TableHeader>
                 <TableBody>
                   {cart.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-bold text-sm">{item.name}</TableCell>
+                    <TableRow key={item.key}>
+                      <TableCell className="py-4">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{item.name}</span>
+                          {item.size && <Badge variant="secondary" className="w-fit text-[10px] h-4 mt-1">Taille: {item.size}</Badge>}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.id, -1)}><Minus className="h-3 w-3" /></Button>
-                          <span>{item.quantity}</span>
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.id, 1)}><Plus className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.key, -1)}><Minus className="h-3 w-3" /></Button>
+                          <span className="font-bold">{item.quantity}</span>
+                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.key, 1)}><Plus className="h-3 w-3" /></Button>
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-black">€{(item.total * rate).toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.key)} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -418,15 +446,15 @@ export default function ClientOrdersPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="font-bold flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-primary" /> Choisir votre numéro de commande
+                  <Label className="font-bold flex items-center gap-2 text-zinc-700">
+                    <Hash className="h-4 w-4 text-primary" /> Référence de commande
                   </Label>
                   <div className="flex items-center">
                     <div className="h-10 px-3 bg-zinc-100 border border-r-0 rounded-l-md flex items-center justify-center font-black text-zinc-500">
                       {profile?.orderPrefix || 'ORD'}
                     </div>
                     <Input 
-                      className="rounded-l-none font-bold uppercase" 
+                      className="rounded-l-none font-bold uppercase focus-visible:ring-primary" 
                       placeholder="ex: 2024-001" 
                       value={orderSuffix}
                       onChange={(e) => setOrderSuffix(e.target.value)}
@@ -436,18 +464,21 @@ export default function ClientOrdersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-bold flex items-center gap-2">
+                  <Label className="font-bold flex items-center gap-2 text-zinc-700">
                     <MapPin className="h-4 w-4 text-primary" /> Destination de livraison
                   </Label>
-                  <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-24" placeholder="Port, entrepôt..." />
+                  <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-24 focus-visible:ring-primary" placeholder="Port, entrepôt..." />
                 </div>
               </div>
 
-              <Card className="bg-zinc-950 text-white p-6 h-fit">
-                <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Commande</span>
-                <div className="text-3xl font-black text-primary">€{cartTotal.toFixed(2)}</div>
-                <Button className="w-full mt-6 h-12 bg-primary font-bold" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
-                  {isSubmittingOrder ? <Loader2 className="animate-spin" /> : "VALIDER LA COMMANDE"}
+              <Card className="bg-zinc-950 text-white p-6 h-fit rounded-2xl border-none shadow-2xl">
+                <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Estimé</span>
+                <div className="text-3xl font-black text-primary mt-1">€{cartTotal.toFixed(2)}</div>
+                <div className="text-[10px] text-zinc-400 mt-4 leading-relaxed">
+                  Note : Ce total inclut les produits en Euro. Les frais de transport seront ajustés par votre agent.
+                </div>
+                <Button className="w-full mt-6 h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
+                  {isSubmittingOrder ? <Loader2 className="animate-spin" /> : "TRANSMETTRE LA COMMANDE"}
                 </Button>
               </Card>
             </div>
@@ -456,29 +487,67 @@ export default function ClientOrdersPage() {
       </Dialog>
 
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedProduct && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6">
-              <div className="relative aspect-square rounded-2xl border bg-zinc-50 overflow-hidden">
-                {selectedProduct.images?.[currentImageIdx] && <Image src={selectedProduct.images[currentImageIdx]} alt="Product" fill className="object-contain p-4" />}
+              <div className="space-y-4">
+                <div className="relative aspect-square rounded-2xl border bg-zinc-50 overflow-hidden shadow-inner">
+                  {selectedProduct.images?.[currentImageIdx] && <Image src={selectedProduct.images[currentImageIdx]} alt="Product" fill className="object-contain p-4" />}
+                </div>
+                {selectedProduct.images && selectedProduct.images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {selectedProduct.images.map((img: string, idx: number) => (
+                      <button key={idx} onClick={() => setCurrentImageIdx(idx)} className={cn("relative w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 transition-all", currentImageIdx === idx ? "border-primary" : "border-transparent opacity-60")}>
+                        <Image src={img} alt="thumb" fill className="object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+              
               <div className="space-y-6">
-                <Badge variant="outline" className="text-primary">REF: {selectedProduct.sku}</Badge>
-                <h3 className="text-2xl font-bold">{selectedProduct.name}</h3>
-                <div className="text-3xl font-black text-primary">€{(selectedProduct.price * rate).toFixed(2)} <span className="text-xs text-zinc-400 font-normal">/ Unité</span></div>
-                <div className="prose prose-sm text-zinc-600 max-h-40 overflow-y-auto border-y py-4">{selectedProduct.description}</div>
-                <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl">
-                  <Label className="font-bold">Quantité</Label>
+                <div className="space-y-2">
+                  <Badge variant="outline" className="text-primary border-primary/30">REF: {selectedProduct.sku}</Badge>
+                  <h3 className="text-3xl font-black text-zinc-900">{selectedProduct.name}</h3>
+                  <div className="text-3xl font-black text-primary">€{(selectedProduct.price * rate).toFixed(2)} <span className="text-xs text-zinc-400 font-normal">/ Unité</span></div>
+                </div>
+
+                <div className="prose prose-sm text-zinc-600 max-h-40 overflow-y-auto border-y py-4 leading-relaxed">
+                  {selectedProduct.description || "Aucune description technique."}
+                </div>
+
+                {selectedProduct.hasSizeSelection && (
+                  <div className="space-y-3">
+                    <Label className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                      <Ruler className="h-3 w-3" /> Sélectionner une taille
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {SIZES.map((size) => (
+                        <Button 
+                          key={size} 
+                          variant={selectedSize === size ? "default" : "outline"}
+                          className={cn("h-10 font-bold transition-all", selectedSize === size ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "hover:border-primary/50")}
+                          onClick={() => setSelectedSize(size)}
+                        >
+                          {size}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+                  <Label className="font-black text-xs uppercase tracking-widest text-zinc-400">Quantité souhaitée</Label>
                   <div className="flex items-center gap-4">
-                    <Button variant="outline" className="h-12 w-12" onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}><Minus /></Button>
-                    <Input className="h-12 text-center font-black text-lg" value={productQuantity} readOnly />
-                    <Button variant="outline" className="h-12 w-12" onClick={() => setProductQuantity(productQuantity + 1)}><Plus /></Button>
+                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}><Minus className="h-4 w-4" /></Button>
+                    <Input className="h-12 text-center font-black text-xl bg-white border-zinc-200 rounded-xl" value={productQuantity} readOnly />
+                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(productQuantity + 1)}><Plus className="h-4 w-4" /></Button>
                   </div>
-                  <div className="pt-4 border-t flex justify-between items-center">
-                    <span className="font-medium text-zinc-500">Sous-total :</span>
-                    <span className="text-2xl font-black">€{(selectedProduct.price * productQuantity * rate).toFixed(2)}</span>
+                  <div className="pt-4 border-t border-zinc-200 flex justify-between items-center">
+                    <span className="font-bold text-zinc-500 uppercase text-[10px] tracking-wider">Sous-total :</span>
+                    <span className="text-2xl font-black text-zinc-900">€{(selectedProduct.price * productQuantity * rate).toFixed(2)}</span>
                   </div>
-                  <Button className="w-full h-14 bg-zinc-950 text-white font-black hover:bg-primary" onClick={handleAddToCart}>
+                  <Button className="w-full h-14 bg-zinc-950 text-white font-black hover:bg-primary transition-all rounded-xl shadow-xl shadow-zinc-900/10" onClick={handleAddToCart}>
                     <ShoppingCart className="mr-2 h-5 w-5" /> AJOUTER AU PANIER
                   </Button>
                 </div>
@@ -538,7 +607,10 @@ export default function ClientOrdersPage() {
                             )}
                           </TableCell>
                           <TableCell className="py-2">
-                            <div className="font-medium text-sm">{item.description}</div>
+                            <div className="font-medium text-sm">
+                              {item.description}
+                              {item.size && <Badge variant="secondary" className="ml-2 text-[10px] h-4 px-1">{item.size}</Badge>}
+                            </div>
                             <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>

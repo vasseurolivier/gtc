@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -65,7 +66,8 @@ import {
   AlertCircle,
   Truck,
   Check,
-  Tag
+  Tag,
+  Ruler
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -365,6 +367,7 @@ export default function ClientDetailPage() {
       width: product.width || 0,
       height: product.height || 0,
       length: product.length || 0,
+      hasSizeSelection: product.hasSizeSelection || false,
     });
     setIsProductDialogOpen(true);
   };
@@ -382,6 +385,7 @@ export default function ClientDetailPage() {
       width: prod.width || 0,
       height: prod.height || 0,
       length: prod.length || 0,
+      hasSizeSelection: false,
       isNew: true 
     });
     setIsCatalogDialogOpen(false);
@@ -401,6 +405,7 @@ export default function ClientDetailPage() {
       width: 0,
       height: 0,
       length: 0,
+      hasSizeSelection: false,
       isNew: true
     });
     setIsProductDialogOpen(true);
@@ -1226,7 +1231,10 @@ export default function ClientDetailPage() {
                             )}
                           </TableCell>
                           <TableCell className="py-2">
-                            <div className="font-medium text-sm">{item.description}</div>
+                            <div className="font-medium text-sm">
+                              {item.description}
+                              {item.size && <Badge variant="secondary" className="ml-2 text-[10px] h-4 px-1">{item.size}</Badge>}
+                            </div>
                             <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
@@ -1386,6 +1394,24 @@ export default function ClientDetailPage() {
                         />
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase text-primary flex items-center gap-2">
+                      <Ruler className="h-3 w-3" /> Options du produit
+                    </Label>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-bold text-zinc-800">Grille de tailles (XS-4XL)</div>
+                      <div className="text-[10px] text-zinc-500">Permet au client de choisir une taille lors de sa commande.</div>
+                    </div>
+                    <Switch 
+                      checked={editingProduct.hasSizeSelection} 
+                      onCheckedChange={(checked) => setEditingProduct({...editingProduct, hasSizeSelection: checked})} 
+                    />
                   </div>
                 </div>
 
