@@ -8,6 +8,7 @@ import {
   updateRegisteredClientNumber,
   RegisteredClient 
 } from '@/actions/registered-clients';
+import { updateOrderStatus } from '@/actions/orders';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -17,6 +18,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
@@ -199,6 +207,15 @@ export default function ClientDetailPage() {
       toast({ title: "Succès", description: "Numéro client mis à jour." });
     }
     setIsSaving(false);
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: any) => {
+    const result = await updateOrderStatus(orderId, newStatus);
+    if (result.success) {
+      toast({ title: "Statut mis à jour", description: "La commande a été actualisée." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
   };
 
   // Media Management
@@ -416,7 +433,20 @@ export default function ClientDetailPage() {
               </TableCell>
               <TableCell>{order.orderDate ? format(new Date(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
               <TableCell>
-                <Badge variant="outline" className="capitalize">{order.status}</Badge>
+                <Select 
+                  defaultValue={order.status} 
+                  onValueChange={(value) => handleStatusChange(order.id, value)}
+                >
+                  <SelectTrigger className="w-36 h-9">
+                    {getOrderStatusBadge(order.status)}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="processing">En cours</SelectItem>
+                    <SelectItem value="shipped">Expédié</SelectItem>
+                    <SelectItem value="delivered">Livré</SelectItem>
+                    <SelectItem value="cancelled">Annulé</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
               <TableCell className="text-right pr-6">
