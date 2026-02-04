@@ -77,3 +77,21 @@ export async function updateRegisteredClientStatus(id: string, status: 'pending'
         return { success: false, message: e.message || 'Une erreur est survenue.' };
     }
 }
+
+/**
+ * Update client profile from the client space.
+ */
+export async function updateClientProfile(id: string, data: Partial<RegisteredClient>) {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        await updateDoc(clientRef, {
+            phone: data.phone,
+            companyName: data.companyName,
+            address: data.address,
+        });
+        return { success: true, message: 'Profil mis à jour avec succès.' };
+    } catch (e: any) {
+        console.error("Error updating client profile:", e);
+        return { success: false, message: 'Erreur lors de la mise à jour.' };
+    }
+}

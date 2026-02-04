@@ -21,6 +21,7 @@ export default function ClientLoginPage() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const auth = useAuth();
@@ -60,6 +61,7 @@ export default function ClientLoginPage() {
         firstName,
         lastName,
         email,
+        phone,
         clientNumber: '', // Will be assigned by admin
         status: 'pending', // Account must be validated by admin
         createdAt: new Date().toISOString(),
@@ -130,6 +132,10 @@ export default function ClientLoginPage() {
                       <Label htmlFor="lastName">Nom</Label>
                       <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-phone">Téléphone / WhatsApp</Label>
+                    <Input id="reg-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+33..." required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="reg-email">Email</Label>
