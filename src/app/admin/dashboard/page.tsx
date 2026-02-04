@@ -5,15 +5,16 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getSubmissions, Submission } from '@/actions/submissions';
 import { getOrders, Order } from '@/actions/orders';
 import { getInvoices, Invoice } from '@/actions/invoices';
-import { getQuotes, Quote } from '@/actions/quotes';
+import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
 import { format, subDays, parseISO } from 'date-fns';
-import { Loader2, Euro, ShoppingCart, CircleAlert, Package, Truck } from 'lucide-react';
+import { fr } from 'date-fns/locale';
+import { Loader2, Euro, CircleAlert, Package, Truck, UserCheck, ArrowRight, Clock } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 interface DailyRevenue {
   date: string;
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<RegisteredClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -41,12 +43,14 @@ export default function DashboardPage() {
 
     async function fetchData() {
       try {
-        const [ords, invs] = await Promise.all([
+        const [ords, invs, clis] = await Promise.all([
             getOrders(),
             getInvoices(),
+            getRegisteredClients()
         ]);
         setOrders(ords);
         setInvoices(invs);
+        setClients(clis);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -70,7 +74,8 @@ export default function DashboardPage() {
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.totalAmount, 0);
 
-  const ordersToProcess = orders.filter(o => o.status === 'processing').length;
+  const ordersToProcess = orders.filter(o => o.status === 'processing');
+  const pendingClients = clients.filter(c => c.status === 'pending');
   const shippedOrders = orders.filter(o => o.status === 'shipped').length;
   
   const pendingAmount = invoices
@@ -94,7 +99,6 @@ export default function DashboardPage() {
                 dailyTotals[invoiceDate] += invoice.totalAmount;
             }
         } catch (error) {
-            // Ignore invoices with invalid date formats
             console.error(`Invalid date format for invoice ${invoice.id}:`, invoice.issueDate);
         }
     });
@@ -104,6 +108,7 @@ export default function DashboardPage() {
   
   const chartData = getChartData();
   const recentOrders = orders.slice(0, 5);
+  const recentClients = clients.slice(0, 5);
 
 
   if (isLoading || !isAuthenticated) {
@@ -115,69 +120,78 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+    <div className="container py-8 space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Tableau de Bord</h1>
+        <p className="text-sm text-muted-foreground">Dernière mise à jour : {format(new Date(), 'HH:mm')}</p>
+      </div>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
+      {/* Metrics Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-primary shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <Euro className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Demandes à traiter</CardTitle>
+            <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">¥{totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Based on paid invoices</p>
+            <div className="text-2xl font-black">{ordersToProcess.length}</div>
+            <p className="text-xs text-zinc-500 mt-1">Commandes en attente de Proforma</p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card className="border-l-4 border-l-orange-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders to Process</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Comptes à valider</CardTitle>
+            <UserCheck className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ordersToProcess}</div>
-            <p className="text-xs text-muted-foreground">Orders with "processing" status</p>
+            <div className="text-2xl font-black text-orange-600">{pendingClients.length}</div>
+            <p className="text-xs text-zinc-500 mt-1">Nouveaux inscrits en attente d'accès</p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card className="border-l-4 border-l-green-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Shipped Orders</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Chiffre d'Affaires</CardTitle>
+            <Euro className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{shippedOrders}</div>
-            <p className="text-xs text-muted-foreground">Orders currently in transit</p>
+            <div className="text-2xl font-black">¥{totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-zinc-500 mt-1">Basé sur les factures payées</p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card className="border-l-4 border-l-red-600 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
-            <CircleAlert className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-bold uppercase text-muted-foreground">En-cours Client</CardTitle>
+            <CircleAlert className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">¥{pendingAmount.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">From unpaid & overdue invoices</p>
+            <div className="text-2xl font-black">¥{pendingAmount.toFixed(2)}</div>
+            <p className="text-xs text-zinc-500 mt-1">Montant total des factures impayées</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Main Chart */}
+        <Card className="lg:col-span-2 shadow-sm">
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
-            <CardDescription>Paid invoices revenue over the last 30 days.</CardDescription>
+            <CardTitle>Évolution du Revenu</CardTitle>
+            <CardDescription>Revenu des factures payées sur les 30 derniers jours.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] w-full">
+          <CardContent className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(value) => `¥${value}`}/>
                 <Tooltip 
-                  formatter={(value:any) => [`¥${value.toFixed(2)}`, 'Revenue']}
+                  formatter={(value:any) => [`¥${value.toFixed(2)}`, 'Revenu']}
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--background))', 
-                    borderColor: 'hsl(var(--border))' 
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: '8px'
                   }}
                 />
                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -186,49 +200,89 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>The last 5 orders created.</CardDescription>
+        {/* New Clients Activity */}
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Nouveaux Clients</CardTitle>
+              <CardDescription>Dernières inscriptions</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/registered-clients"><ArrowRight className="h-4 w-4" /></Link>
+            </Button>
           </CardHeader>
-          <CardContent>
-             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
+          <CardContent className="p-0">
+            <Table>
               <TableBody>
-                {recentOrders.length > 0 ? recentOrders.map(order => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      <Link href="/admin/orders" className="hover:underline flex items-center gap-2">
-                         {order.orderNumber}
-                      </Link>
+                {recentClients.length > 0 ? recentClients.map(client => (
+                  <TableRow key={client.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/admin/registered-clients/${client.id}`)}>
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm">{client.firstName} {client.lastName}</span>
+                        <span className="text-[10px] text-muted-foreground">{client.email}</span>
+                      </div>
                     </TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                    <TableCell className="text-right">
+                      {client.status === 'pending' ? (
+                        <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50 text-[10px]">À VALIDER</Badge>
+                      ) : (
+                        <Badge className="bg-green-500 text-[10px]">ACTIF</Badge>
+                      )}
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground">¥{order.totalAmount.toFixed(2)}</TableCell>
                   </TableRow>
                 )) : (
-                   <TableRow>
-                     <TableCell colSpan={4} className="h-24 text-center">
-                        No recent orders.
-                     </TableCell>
-                   </TableRow>
+                  <TableRow><TableCell className="h-24 text-center text-muted-foreground">Aucun client inscrit.</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Orders Section */}
+      <Card className="shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Dernières Commandes & Demandes</CardTitle>
+            <CardDescription>Suivi des flux de sourcing en temps réel.</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/admin/orders">Voir toutes les commandes</Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+           <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="pl-6">N° Commande</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right pr-6">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentOrders.length > 0 ? recentOrders.map(order => (
+                <TableRow key={order.id} className="hover:bg-muted/50">
+                  <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
+                  <TableCell>{order.customerName}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{format(new Date(order.orderDate), 'dd MMM yyyy', { locale: fr })}</TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusBadgeVariant(order.status)} className="text-[10px] uppercase">{order.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right pr-6 font-black">¥{order.totalAmount.toFixed(2)}</TableCell>
+                </TableRow>
+              )) : (
+                 <TableRow>
+                   <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                      Aucune commande récente.
+                   </TableCell>
+                 </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-    
