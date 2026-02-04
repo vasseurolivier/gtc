@@ -10,7 +10,7 @@ import {
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { updateOrderStatus } from '@/actions/orders';
-import { createQuoteFromOrder } from '@/actions/quotes';
+import { createQuoteFromOrder, getQuotes, Quote } from '@/actions/quotes';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -91,9 +91,11 @@ export default function ClientDetailPage() {
   const [pendingSourcingProducts, setPendingSourcingProducts] = useState<any[]>([]);
   const [isAggregationLoading, setIsAggregationLoading] = useState(false);
   
-  // Invoice linking logic
+  // Linking logic
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
+  const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
   const [isInvoiceLinkDialogOpen, setIsInvoiceLinkDialogOpen] = useState(false);
+  const [isQuoteLinkDialogOpen, setIsQuoteLinkDialogOpen] = useState(false);
 
   // Edit logic
   const [selectedList, setSelectedList] = useState<any | null>(null);
@@ -109,10 +111,11 @@ export default function ClientDetailPage() {
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
-      const [clientData, prods, invs] = await Promise.all([
+      const [clientData, prods, invs, qts] = await Promise.all([
         getRegisteredClientById(clientId),
         getProducts(),
-        getInvoices()
+        getInvoices(),
+        getQuotes()
       ]);
       
       if (clientData) {
@@ -121,6 +124,7 @@ export default function ClientDetailPage() {
       }
       setGlobalProducts(prods);
       setAllInvoices(invs);
+      setAllQuotes(qts);
       setIsLoading(false);
     }
     fetchData();
@@ -140,6 +144,20 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
+  // Quotes Query (Linked to this client)
+  const quotesQuery = useMemoFirebase(() => {
+    if (!db || !clientId) return null;
+    return query(collection(db, 'quotes'), where('customerId', '==', clientId));
+  }, [db, clientId]);
+  const { data: linkedQuotes } = useCollection(quotesQuery);
+
+  // Invoices Query (Linked to this client)
+  const invoicesQuery = useMemoFirebase(() => {
+    if (!db || !clientId) return null;
+    return query(collection(db, 'invoices'), where('customerId', '==', clientId));
+  }, [db, clientId]);
+  const { data: linkedInvoices } = useCollection(invoicesQuery);
+
   // Split orders into active and archived
   const { activeOrders, archivedOrders } = useMemo(() => {
     if (!orders) return { activeOrders: [], archivedOrders: [] };
@@ -157,20 +175,6 @@ export default function ClientDetailPage() {
       archivedOrders: [...archived].sort(sortByDate) 
     };
   }, [orders]);
-
-  // Invoices Query (Linked to this client)
-  const invoicesQuery = useMemoFirebase(() => {
-    if (!db || !clientId) return null;
-    return query(collection(db, 'invoices'), where('customerId', '==', clientId));
-  }, [db, clientId]);
-  const { data: invoices } = useCollection(invoicesQuery);
-
-  // Products of selected list Query
-  const listProductsQuery = useMemoFirebase(() => {
-    if (!db || !clientId || !selectedList) return null;
-    return collection(db, 'clients', clientId, 'productLists', selectedList.id, 'products');
-  }, [db, clientId, selectedList]);
-  const { data: listProducts } = useCollection(listProductsQuery);
 
   // Aggregation of all products for the "Catalogue" and "Sourcing" badges
   useEffect(() => {
@@ -249,7 +253,6 @@ export default function ClientDetailPage() {
     }
   };
 
-  // Media Management
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -384,7 +387,6 @@ export default function ClientDetailPage() {
       
       toast({ title: "Produit validé", description: "L'article est maintenant disponible dans le catalogue du client." });
       setIsProductDialogOpen(false);
-      // Trigger re-aggregation
       router.refresh();
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
@@ -418,6 +420,27 @@ export default function ClientDetailPage() {
       setIsInvoiceLinkDialogOpen(false);
       const updatedInvs = await getInvoices();
       setAllInvoices(updatedInvs);
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLinkQuote = async (quote: Quote) => {
+    if (!db || !client) return;
+    setIsSaving(true);
+    try {
+      const quoteRef = doc(db, 'quotes', quote.id);
+      await updateDoc(quoteRef, {
+        customerId: clientId,
+        customerName: `${client.firstName} ${client.lastName}`
+      });
+      
+      toast({ title: "Proforma liée", description: `La proforma ${quote.quoteNumber} est maintenant visible par le client.` });
+      setIsQuoteLinkDialogOpen(false);
+      const updatedQuotes = await getQuotes();
+      setAllQuotes(updatedQuotes);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -600,9 +623,9 @@ export default function ClientDetailPage() {
 
         <div className="lg:col-span-2">
           <Tabs defaultValue="catalogue" className="w-full">
-            <TabsList className="bg-white border shadow-sm p-1 h-12 rounded-xl mb-6">
-              <TabsTrigger value="catalogue" className="rounded-lg h-full"><Star className="h-4 w-4 mr-2" /> Catalogue Privé</TabsTrigger>
-              <TabsTrigger value="lists" className="rounded-lg h-full relative">
+            <TabsList className="bg-white border shadow-sm p-1 h-12 rounded-xl mb-6 overflow-x-auto flex-nowrap w-full justify-start">
+              <TabsTrigger value="catalogue" className="rounded-lg h-full px-4"><Star className="h-4 w-4 mr-2" /> Catalogue</TabsTrigger>
+              <TabsTrigger value="lists" className="rounded-lg h-full px-4 relative">
                 <ClipboardList className="h-4 w-4 mr-2" /> Sourcing
                 {pendingSourcingProducts.length > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
@@ -610,7 +633,7 @@ export default function ClientDetailPage() {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="orders" className="rounded-lg h-full relative">
+              <TabsTrigger value="orders" className="rounded-lg h-full px-4 relative">
                 <ShoppingCart className="h-4 w-4 mr-2" /> Commandes
                 {activeOrders.length > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
@@ -618,7 +641,8 @@ export default function ClientDetailPage() {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="invoices" className="rounded-lg h-full"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
+              <TabsTrigger value="quotes" className="rounded-lg h-full px-4"><FileText className="h-4 w-4 mr-2" /> Proformas</TabsTrigger>
+              <TabsTrigger value="invoices" className="rounded-lg h-full px-4"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
             </TabsList>
 
             <TabsContent value="catalogue">
@@ -848,6 +872,50 @@ export default function ClientDetailPage() {
               </Tabs>
             </TabsContent>
 
+            <TabsContent value="quotes">
+              <div className="mb-4 flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => setIsQuoteLinkDialogOpen(true)}>
+                  <LinkIcon className="h-4 w-4 mr-2" /> Lier une proforma existante
+                </Button>
+              </div>
+              <Card className="border-none shadow-md overflow-hidden bg-white">
+                <Table>
+                  <TableHeader className="bg-zinc-50">
+                    <TableRow>
+                      <TableHead className="pl-6">N° Proforma</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right pr-6">Montant</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {linkedQuotes && linkedQuotes.length > 0 ? linkedQuotes.map((quote) => (
+                      <TableRow key={quote.id}>
+                        <TableCell className="pl-6 font-bold">{quote.quoteNumber}</TableCell>
+                        <TableCell>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>
+                          <Badge variant={quote.status === 'accepted' ? 'default' : 'secondary'}>{quote.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">¥{quote.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin/quotes/${quote.id}`}>
+                              <Eye className="h-4 w-4 mr-2" /> Voir
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune proforma liée.</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="invoices">
               <div className="mb-4 flex justify-end">
                 <Button size="sm" variant="outline" onClick={() => setIsInvoiceLinkDialogOpen(true)}>
@@ -862,10 +930,11 @@ export default function ClientDetailPage() {
                       <TableHead>Échéance</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right pr-6">Montant</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoices && invoices.length > 0 ? invoices.map((inv) => (
+                    {linkedInvoices && linkedInvoices.length > 0 ? linkedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell>{format(new Date(inv.dueDate), 'dd/MM/yyyy')}</TableCell>
@@ -873,10 +942,17 @@ export default function ClientDetailPage() {
                           <Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status}</Badge>
                         </TableCell>
                         <TableCell className="text-right pr-6 font-semibold">¥{inv.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin/invoices/${inv.id}`}>
+                              <Eye className="h-4 w-4 mr-2" /> Voir
+                            </Link>
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     )) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">Aucune facture.</TableCell>
+                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune facture liée.</TableCell>
                       </TableRow>
                     )}
                   </TableBody>
@@ -953,6 +1029,40 @@ export default function ClientDetailPage() {
                     <TableCell className="text-xs font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" onClick={() => handleLinkInvoice(inv)}>Attribuer</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quote Link Dialog */}
+      <Dialog open={isQuoteLinkDialogOpen} onOpenChange={setIsQuoteLinkDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Lier une proforma existante</DialogTitle>
+            <DialogDescription>Sélectionnez une proforma pour l'attribuer à ce client.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>N° Proforma</TableHead>
+                  <TableHead>Client Actuel</TableHead>
+                  <TableHead>Montant</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allQuotes.filter(q => q.customerId !== clientId).map(quote => (
+                  <TableRow key={quote.id}>
+                    <TableCell className="text-xs font-bold">{quote.quoteNumber}</TableCell>
+                    <TableCell className="text-xs">{quote.customerName}</TableCell>
+                    <TableCell className="text-xs font-bold">¥{quote.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" onClick={() => handleLinkQuote(quote)}>Attribuer</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1118,10 +1228,10 @@ export default function ClientDetailPage() {
                 <div className="p-4 bg-zinc-50 rounded-xl border space-y-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-zinc-400">Nom Commercial</Label>
-                    <Input 
+                    <input 
                       value={editingProduct.name} 
                       onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
-                      className="font-bold h-10 text-lg"
+                      className="font-bold h-10 text-lg w-full bg-transparent outline-none border-b focus:border-primary"
                     />
                   </div>
                   
@@ -1173,13 +1283,13 @@ export default function ClientDetailPage() {
                     rows={15}
                     value={editingProduct.description}
                     onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
-                    placeholder="Détaillez ici les caractéristiques techniques qui seront visibles par le client (matériaux, certifications, emballage)..."
+                    placeholder="Détaillez ici les caractéristiques techniques qui seront visibles par le client..."
                     className="text-sm architectural leading-relaxed border-zinc-200 focus:ring-primary shadow-inner"
                   />
                 </div>
                 <div className="p-4 bg-primary/5 rounded-xl text-xs text-primary/80 border border-primary/10">
                   <p className="font-black mb-1 flex items-center gap-2"><CheckCircle2 className="h-3 w-3" /> NOTE DE PUBLICATION</p>
-                  <p>Une fois publié, ce produit apparaîtra instantanément dans l'onglet <strong>"Mon Catalogue"</strong> du client avec les prix et médias configurés ci-contre.</p>
+                  <p>Une fois publié, ce produit apparaîtra instantanément dans l'onglet <strong>"Mon Catalogue"</strong> du client.</p>
                 </div>
               </div>
             </div>

@@ -105,7 +105,17 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  // 3. Sourced Products Aggregation
+  // 3. Fetch Proformas (Quotes)
+  const quotesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, 'quotes'),
+      where('customerId', '==', user.uid)
+    );
+  }, [db, user]);
+  const { data: quotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
+
+  // 4. Sourced Products Aggregation
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'clients', user.uid, 'productLists');
@@ -156,6 +166,15 @@ export default function ClientOrdersPage() {
       return dateB - dateA;
     });
   }, [invoices]);
+
+  const sortedQuotes = useMemo(() => {
+    if (!quotes) return [];
+    return [...quotes].sort((a, b) => {
+      const dateA = a.issueDate ? new Date(a.issueDate).getTime() : 0;
+      const dateB = b.issueDate ? new Date(b.issueDate).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [quotes]);
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -303,10 +322,11 @@ export default function ClientOrdersPage() {
       </div>
 
       <Tabs defaultValue="orders" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl bg-white shadow-sm border p-1 rounded-xl">
-          <TabsTrigger value="orders"><Package className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
-          <TabsTrigger value="invoices"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
-          <TabsTrigger value="catalog"><Star className="h-4 w-4 mr-2" /> Mon Catalogue</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-white shadow-sm border p-1 rounded-xl h-auto">
+          <TabsTrigger value="orders" className="py-2"><Package className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
+          <TabsTrigger value="quotes" className="py-2"><FileText className="h-4 w-4 mr-2" /> Proformas</TabsTrigger>
+          <TabsTrigger value="invoices" className="py-2"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
+          <TabsTrigger value="catalog" className="py-2"><Star className="h-4 w-4 mr-2" /> Catalogue</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="mt-6">
@@ -376,10 +396,57 @@ export default function ClientOrdersPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="quotes" className="mt-6">
+          <Card className="border-none shadow-md overflow-hidden bg-white">
+            <CardHeader className="border-b border-zinc-50">
+              <CardTitle>Mes Factures Proforma</CardTitle>
+              <CardDescription>Consultez vos devis et factures proforma validées par votre agent.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {isQuotesLoading ? (
+                <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
+              ) : sortedQuotes.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-zinc-50/50">
+                      <TableHead className="pl-6">N° Proforma</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedQuotes.map((quote) => (
+                      <TableRow key={quote.id}>
+                        <TableCell className="pl-6 font-bold">{quote.quoteNumber}</TableCell>
+                        <TableCell>{quote.issueDate ? format(new Date(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant={quote.status === 'accepted' ? 'default' : 'outline'}>{quote.status === 'accepted' ? 'Accepté' : quote.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-bold">¥{quote.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin/quotes/${quote.id}`}>
+                              <Eye className="h-4 w-4 mr-2" /> Voir PDF
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-20 text-center text-zinc-400">Aucune proforma disponible.</div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="invoices" className="mt-6">
           <Card className="border-none shadow-md overflow-hidden bg-white">
             <CardHeader className="border-b border-zinc-50">
-              <CardTitle>Facturation</CardTitle>
+              <CardTitle>Facturation Finale</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {isInvoicesLoading ? (
@@ -405,7 +472,7 @@ export default function ClientOrdersPage() {
                         <TableCell className="text-right pr-6">
                           <Button variant="ghost" size="sm" asChild>
                             <Link href={`/admin/invoices/${inv.id}`}>
-                              <Eye className="h-4 w-4 mr-2" /> Voir
+                              <Eye className="h-4 w-4 mr-2" /> Voir PDF
                             </Link>
                           </Button>
                         </TableCell>
