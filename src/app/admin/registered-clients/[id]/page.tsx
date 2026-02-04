@@ -13,7 +13,7 @@ import {
   deleteClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder } from '@/actions/orders';
+import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder, type PaymentStatus } from '@/actions/orders';
 import { createQuoteFromOrder, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
 import { deleteInvoice, getInvoices, Invoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -279,10 +279,13 @@ export default function ClientDetailPage() {
     }
   };
 
-  const handlePaymentToggle = async (orderId: string, currentStatus: boolean) => {
-    const result = await updateOrderPaymentStatus(orderId, !currentStatus);
+  const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
+    const result = await updateOrderPaymentStatus(orderId, newStatus);
     if (result.success) {
       toast({ title: "Paiement mis à jour", description: "Le statut a été enregistré." });
+      if (newStatus === 'paid') {
+        toast({ title: "Facture générée", description: "La facture finale a été créée car le solde est payé." });
+      }
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
@@ -578,6 +581,15 @@ export default function ClientDetailPage() {
     }
   };
 
+  const getPaymentBadge = (status: string) => {
+    switch (status) {
+        case 'paid': return <Badge className="bg-green-500 text-[10px] h-5">SOLDE PAYÉ</Badge>;
+        case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 text-[10px] h-5">ACOMPTE OK</Badge>;
+        case 'unpaid': return <Badge variant="outline" className="text-zinc-400 text-[10px] h-5">NON PAYÉ</Badge>;
+        default: return <Badge variant="outline" className="text-zinc-400 text-[10px] h-5">NON PAYÉ</Badge>;
+    }
+  };
+
   const renderOrdersTable = (orderList: any[]) => (
     <Table>
       <TableHeader className="bg-zinc-50">
@@ -585,7 +597,7 @@ export default function ClientDetailPage() {
           <TableHead className="pl-6">N° Commande</TableHead>
           <TableHead>Statut</TableHead>
           <TableHead className="text-center">Frais Port (CNY)</TableHead>
-          <TableHead className="text-center">Payé ?</TableHead>
+          <TableHead className="text-center">Paiement</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead className="text-right pr-6">Action</TableHead>
         </TableRow>
@@ -630,11 +642,19 @@ export default function ClientDetailPage() {
                 ¥{(order.transportCost || 0).toFixed(2)}
               </TableCell>
               <TableCell className="text-center">
-                <Checkbox 
-                  checked={order.isPaid} 
-                  onCheckedChange={() => handlePaymentToggle(order.id, !!order.isPaid)}
-                  className="mx-auto"
-                />
+                <Select 
+                  defaultValue={order.paymentStatus} 
+                  onValueChange={(value: PaymentStatus) => handlePaymentStatusChange(order.id, value)}
+                >
+                  <SelectTrigger className="w-36 h-8 text-[10px] font-bold">
+                    {getPaymentBadge(order.paymentStatus)}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unpaid">Non payé</SelectItem>
+                    <SelectItem value="deposit_paid">Acompte payé</SelectItem>
+                    <SelectItem value="paid">Total payé</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
               <TableCell className="text-right pr-6">
