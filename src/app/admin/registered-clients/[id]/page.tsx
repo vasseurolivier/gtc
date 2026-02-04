@@ -84,6 +84,15 @@ export default function ClientDetailPage() {
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
   
+  // Helper to parse dates from Firestore (which can be Timestamps or strings)
+  const parseSafeDate = (val: any): Date => {
+    if (!val) return new Date();
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   // Catalog & Sourcing logic
   const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
   const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
@@ -165,8 +174,8 @@ export default function ClientDetailPage() {
     const archived = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
     
     const sortByDate = (a: any, b: any) => {
-      const dateA = a.orderDate ? new Date(a.orderDate).getTime() : 0;
-      const dateB = b.orderDate ? new Date(b.orderDate).getTime() : 0;
+      const dateA = a.orderDate ? parseSafeDate(a.orderDate).getTime() : 0;
+      const dateB = b.orderDate ? parseSafeDate(b.orderDate).getTime() : 0;
       return dateB - dateA;
     };
 
@@ -488,7 +497,7 @@ export default function ClientDetailPage() {
                   {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
                 </div>
               </TableCell>
-              <TableCell>{order.orderDate ? format(new Date(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
+              <TableCell>{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
               <TableCell>
                 <Select 
                   defaultValue={order.status} 
@@ -540,6 +549,13 @@ export default function ClientDetailPage() {
       </TableBody>
     </Table>
   );
+
+  const listProducts = useMemo(() => {
+    if (!selectedList || !db || !clientId) return [];
+    // Note: Use direct getDocs or useCollection for reactivity.
+    // For now, return publishedProducts filtered by listId if reactive enough.
+    return publishedProducts.filter(p => p.listId === selectedList.id).concat(pendingSourcingProducts.filter(p => p.listId === selectedList.id));
+  }, [selectedList, publishedProducts, pendingSourcingProducts, db, clientId]);
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -616,6 +632,9 @@ export default function ClientDetailPage() {
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
+              </div>
+              <div className="text-xs text-muted-foreground pt-2 italic">
+                Client depuis {client.createdAt ? parseSafeDate(client.createdAt).getFullYear() : '-'}
               </div>
             </CardContent>
           </Card>
@@ -776,7 +795,7 @@ export default function ClientDetailPage() {
                             <CardDescription className="text-xs line-clamp-1">{list.description}</CardDescription>
                           </CardHeader>
                           <CardContent className="pb-4">
-                            <span className="text-[10px] text-muted-foreground italic">Créé le {format(new Date(list.createdAt), 'dd/MM/yyyy')}</span>
+                            <span className="text-[10px] text-muted-foreground italic">Créé le {list.createdAt ? format(parseSafeDate(list.createdAt), 'dd/MM/yyyy') : '-'}</span>
                           </CardContent>
                         </Card>
                       )
@@ -893,7 +912,7 @@ export default function ClientDetailPage() {
                     {linkedQuotes && linkedQuotes.length > 0 ? linkedQuotes.map((quote) => (
                       <TableRow key={quote.id}>
                         <TableCell className="pl-6 font-bold">{quote.quoteNumber}</TableCell>
-                        <TableCell>{format(new Date(quote.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
                           <Badge variant={quote.status === 'accepted' ? 'default' : 'secondary'}>{quote.status}</Badge>
                         </TableCell>
@@ -937,7 +956,7 @@ export default function ClientDetailPage() {
                     {linkedInvoices && linkedInvoices.length > 0 ? linkedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
-                        <TableCell>{format(new Date(inv.dueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
                           <Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status}</Badge>
                         </TableCell>
@@ -1142,6 +1161,9 @@ export default function ClientDetailPage() {
                 <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 architectural leading-relaxed whitespace-pre-wrap">
                   {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
                 </div>
+              </div>
+              <div className="text-xs text-muted-foreground italic px-4">
+                Passée le {selectedOrderPreview.orderDate ? format(parseSafeDate(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm') : '-'}
               </div>
             </div>
           )}

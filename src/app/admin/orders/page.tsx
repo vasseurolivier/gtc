@@ -47,6 +47,15 @@ export default function OrdersPage() {
   }
   const { currency, exchangeRate } = currencyContext;
 
+  // Helper to parse dates from Firestore (which can be Timestamps or strings)
+  const parseSafeDate = (val: any): Date => {
+    if (!val) return new Date();
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -182,7 +191,8 @@ export default function OrdersPage() {
       <TableBody>
         {orderList.map((order) => {
           const isClientInitiated = !order.quoteId;
-          const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000; // less than 1 hour
+          const orderCreatedDate = parseSafeDate(order.createdAt);
+          const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000; // less than 1 hour
 
           return (
             <TableRow key={order.id} className={cn(isVeryRecent && !isArchived && "bg-primary/5")}>
@@ -197,7 +207,7 @@ export default function OrdersPage() {
                   {order.customerName}
                 </Link>
               </TableCell>
-              <TableCell>{formatInTimeZone(new Date(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
+              <TableCell>{formatInTimeZone(parseSafeDate(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
               <TableCell>
                 <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
                   <SelectTrigger className="w-36">

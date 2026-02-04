@@ -37,6 +37,15 @@ export default function RegisteredClientsPage() {
   const { toast } = useToast();
   const db = useFirestore();
 
+  // Helper to parse dates from Firestore (which can be Timestamps or strings)
+  const parseSafeDate = (val: any): Date => {
+    if (!val) return new Date();
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
@@ -177,7 +186,7 @@ export default function RegisteredClientsPage() {
                           {hasAlert && <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />}
                         </span>
                         <span className="text-[10px] text-muted-foreground font-normal">
-                          Inscrit le {client.createdAt ? format(new Date(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
+                          Inscrit le {client.createdAt ? format(parseSafeDate(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
                         </span>
                       </Link>
                     </TableCell>

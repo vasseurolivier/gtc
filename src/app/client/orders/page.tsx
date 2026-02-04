@@ -62,6 +62,15 @@ export default function ClientOrdersPage() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
+  // Helper to parse dates from Firestore (which can be Timestamps or strings)
+  const parseSafeDate = (val: any): Date => {
+    if (!val) return new Date();
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   // Cart State
   const [cart, setCart] = useState<any[]>([]);
 
@@ -152,8 +161,8 @@ export default function ClientOrdersPage() {
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
-      const dateA = a.orderDate ? new Date(a.orderDate).getTime() : 0;
-      const dateB = b.orderDate ? new Date(b.orderDate).getTime() : 0;
+      const dateA = a.orderDate ? parseSafeDate(a.orderDate).getTime() : 0;
+      const dateB = b.orderDate ? parseSafeDate(b.orderDate).getTime() : 0;
       return dateB - dateA;
     });
   }, [orders]);
@@ -161,8 +170,8 @@ export default function ClientOrdersPage() {
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
-      const dateA = a.issueDate ? new Date(a.issueDate).getTime() : 0;
-      const dateB = b.issueDate ? new Date(b.issueDate).getTime() : 0;
+      const dateA = a.issueDate ? parseSafeDate(a.issueDate).getTime() : 0;
+      const dateB = b.issueDate ? parseSafeDate(b.issueDate).getTime() : 0;
       return dateB - dateA;
     });
   }, [invoices]);
@@ -170,8 +179,8 @@ export default function ClientOrdersPage() {
   const sortedQuotes = useMemo(() => {
     if (!quotes) return [];
     return [...quotes].sort((a, b) => {
-      const dateA = a.issueDate ? new Date(a.issueDate).getTime() : 0;
-      const dateB = b.issueDate ? new Date(b.issueDate).getTime() : 0;
+      const dateA = a.issueDate ? parseSafeDate(a.issueDate).getTime() : 0;
+      const dateB = b.issueDate ? parseSafeDate(b.issueDate).getTime() : 0;
       return dateB - dateA;
     });
   }, [quotes]);
@@ -352,7 +361,7 @@ export default function ClientOrdersPage() {
                     {sortedOrders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
-                        <TableCell>{order.orderDate ? format(new Date(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell>{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
@@ -420,7 +429,7 @@ export default function ClientOrdersPage() {
                     {sortedQuotes.map((quote) => (
                       <TableRow key={quote.id}>
                         <TableCell className="pl-6 font-bold">{quote.quoteNumber}</TableCell>
-                        <TableCell>{quote.issueDate ? format(new Date(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
                           <Badge variant={quote.status === 'accepted' ? 'default' : 'outline'}>{quote.status === 'accepted' ? 'Accepté' : quote.status}</Badge>
                         </TableCell>
@@ -466,7 +475,7 @@ export default function ClientOrdersPage() {
                     {sortedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
-                        <TableCell>{inv.dueDate ? format(new Date(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>{getInvoiceStatusBadge(inv.status)}</TableCell>
                         <TableCell className="text-right font-bold">¥{inv.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
@@ -658,7 +667,7 @@ export default function ClientOrdersPage() {
               Détails de la commande {selectedOrderPreview?.orderNumber}
             </DialogTitle>
             <DialogDescription>
-              Passée le {selectedOrderPreview?.orderDate && format(new Date(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm')}
+              Passée le {selectedOrderPreview?.orderDate ? format(parseSafeDate(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm') : '-'}
             </DialogDescription>
           </DialogHeader>
 
