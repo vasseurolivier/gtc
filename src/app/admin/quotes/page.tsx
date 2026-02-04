@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -126,6 +127,10 @@ function QuotesPageContent() {
             purchasePrice: item.purchasePrice || 0,
             imageUrl: item.photo || '',
             stock: 0,
+            weight: 0,
+            width: 0,
+            height: 0,
+            length: 0,
         });
 
         if (result.success) {
