@@ -60,6 +60,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     }
     
     const { companyInfo } = companyInfoContext;
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
@@ -81,7 +82,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-24">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
-                        <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain"/>}</div>
+                        <div>{displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain block"/>}</div>
                         <div className="text-right">
                             <h1 className="text-base font-bold text-black">INVOICE</h1>
                             <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
@@ -98,7 +99,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
                             <p className="font-bold">{customer?.name}</p>
                             {customer?.company && <p>{customer.company}</p>}
-                            <p className="whitespace-pre-wrap">{customer?.address}</p>
+                            <p className="whitespace-pre-wrap">{invoice.shippingAddress || customer?.address}</p>
                         </div>
                     </section>
                     
@@ -151,7 +152,24 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                     </div>
 
-                    <div className="mt-8 border-t pt-4 text-[10px] text-muted-foreground italic">
+                    <div className="mt-8 p-4 bg-zinc-50 rounded-lg border text-xs">
+                        <h3 className="font-bold mb-2">COORDONNÉES BANCAIRES</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <p><strong>Banque:</strong> Banking Circle S.A. - German Branch</p>
+                                <p><strong>Adresse Banque:</strong> Maximilianstraße 54, 80538 München, Germany</p>
+                                <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
+                                <p><strong>SWIFT:</strong> SXPYDEHH</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p><strong>Bénéficiaire:</strong> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
+                                <p className="mt-2 italic text-primary">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 border-t pt-2 text-[10px] text-muted-foreground italic">
                         * Taux de change appliqué (verrouillé) : 1 CNY = {invoiceRate.toFixed(4)} EUR
                     </div>
                 </div>

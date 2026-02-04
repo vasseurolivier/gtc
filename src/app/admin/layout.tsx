@@ -181,6 +181,25 @@ function AdminSettings() {
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right pt-2 font-bold text-primary">Logo Documents</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                {isUploadingPublicLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : publicLogo ? (
+                                                    <img src={publicLogo} alt="Public Logo" className="object-contain h-full w-full" />
+                                                ) : (
+                                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                                                )}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'publicLogo')} className="h-8 text-xs cursor-pointer" />
+                                                <Input placeholder="URL directe logo pro..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="h-8 text-xs" />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground italic">C'est le logo qui apparaîtra sur les Proformas et Invoices des clients.</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2">Logo Admin</Label>
                                     <div className="col-span-3 space-y-2">
                                         <div className="flex items-center gap-4">
@@ -193,25 +212,7 @@ function AdminSettings() {
                                             </div>
                                             <div className="flex-grow space-y-1">
                                                 <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL directe..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="h-8 text-xs" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label className="text-right pt-2">Logo Public</Label>
-                                    <div className="col-span-3 space-y-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                                {isUploadingPublicLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : publicLogo ? (
-                                                    <img src={publicLogo} alt="Public Logo" className="object-contain h-full w-full" />
-                                                ) : (
-                                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
-                                                )}
-                                            </div>
-                                            <div className="flex-grow space-y-1">
-                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'publicLogo')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL directe..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="h-8 text-xs" />
+                                                <Input placeholder="URL logo secondaire..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="h-8 text-xs" />
                                             </div>
                                         </div>
                                     </div>

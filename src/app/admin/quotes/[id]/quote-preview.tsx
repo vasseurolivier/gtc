@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -64,8 +63,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     
     const { currency, exchangeRate } = currencyContext;
     const { companyInfo } = companyInfoContext;
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
+    // Use stored rate or current context rate
+    const quoteRate = quote.exchangeRate || exchangeRate || 0.13;
     const commissionAmount = quote.subTotal * ((quote.commissionRate || 0) / 100);
 
     const itemChunks = [];
@@ -87,9 +89,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>
-                            {companyInfo.logo && 
-                                <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain" />
-                            }
+                            {displayLogo && <img src={displayLogo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain block" />}
                         </div>
                         <div className="text-right w-1/3">
                             <h1 className="text-base font-bold text-black leading-tight">PROFORMA</h1>
@@ -154,11 +154,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                         <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
                                         <td className="p-1 align-top text-right leading-tight border">
                                             <span className="font-bold">¥{item.unitPrice.toFixed(2)}</span>
-                                            <span className="text-muted-foreground"> ({currency.symbol}{(item.unitPrice * exchangeRate).toFixed(2)})</span>
+                                            <span className="text-muted-foreground"> ({currency.symbol}{(item.unitPrice * quoteRate).toFixed(2)})</span>
                                         </td>
                                         <td className="p-1 align-top text-right font-medium leading-tight border">
                                             <span className="font-bold">¥{(item.quantity * item.unitPrice).toFixed(2)}</span>
-                                            <span className="text-muted-foreground"> ({currency.symbol}{((item.quantity * item.unitPrice) * exchangeRate).toFixed(2)})</span>
+                                            <span className="text-muted-foreground"> ({currency.symbol}{((item.quantity * item.unitPrice) * quoteRate).toFixed(2)})</span>
                                         </td>
                                     </tr>
                                 )
@@ -173,7 +173,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <span className="text-muted-foreground">Sous-total :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{quote.subTotal.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.subTotal * exchangeRate).toFixed(2)})</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.subTotal * quoteRate).toFixed(2)})</span>
                                     </span>
                                 </div>
                                 
@@ -181,7 +181,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <span className="text-muted-foreground">Commission ({quote.commissionRate || 0}%) :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{commissionAmount.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(commissionAmount * exchangeRate).toFixed(2)})</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(commissionAmount * quoteRate).toFixed(2)})</span>
                                     </span>
                                 </div>
                                 
@@ -189,7 +189,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <span className="text-muted-foreground">Frais de port :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * exchangeRate).toFixed(2)})</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * quoteRate).toFixed(2)})</span>
                                     </span>
                                 </div>
 
@@ -197,13 +197,30 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <span>TOTAL :</span>
                                     <span className="text-right">
                                         <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)})</span>
+                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * quoteRate).toFixed(2)})</span>
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                    <div className="break-before-page mt-8 pt-4">
+                    <div className="mt-8 pt-4">
+                        <div className="p-4 bg-zinc-50 rounded-lg border text-xs mb-4">
+                            <h3 className="font-bold mb-2 uppercase">Coordonnées Bancaires (Paiement)</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <p><strong>Banque:</strong> Banking Circle S.A. - German Branch</p>
+                                    <p><strong>Adresse:</strong> Maximilianstraße 54, 80538 München, Germany</p>
+                                    <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
+                                    <p><strong>SWIFT:</strong> SXPYDEHH</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p><strong>Bénéficiaire:</strong> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                    <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
+                                    <p className="mt-2 italic text-primary font-bold">Référence: {quote.quoteNumber} - {quote.customerName}</p>
+                                </div>
+                            </div>
+                        </div>
+
                         {quote.notes && (
                             <div className="mb-4">
                                 <h3 className="font-semibold mb-1 text-xs leading-tight">Notes:</h3>
@@ -213,37 +230,26 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         )}
                         
-                        <div className="mb-4 pt-4">
+                        <div className="mb-4 pt-4 border-t">
                             <h3 className="font-semibold mb-2 text-xs leading-tight">Termes de Paiement :</h3>
                             {quote.depositRequired ? (
                                 <>
                                     <p className="text-xs text-muted-foreground space-y-1 leading-tight">
-                                        Acompte ({quote.depositPercentage || 30}%): <strong>¥{(quote.totalAmount * ((quote.depositPercentage || 30) / 100)).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * ((quote.depositPercentage || 30) / 100) * exchangeRate).toFixed(2)})
+                                        Acompte ({quote.depositPercentage || 30}%): <strong>¥{(quote.totalAmount * ((quote.depositPercentage || 30) / 100)).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * ((quote.depositPercentage || 30) / 100) * quoteRate).toFixed(2)})
                                         <br />
                                         <span className="text-xs">Payable dans les 3 jours suivant la réception de cette proforma.</span>
                                     </p>
                                     <p className="text-xs text-muted-foreground space-y-1 leading-tight mt-2">
-                                        Solde restant ({100 - (quote.depositPercentage || 30)}%): <strong>¥{(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100)).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100) * exchangeRate).toFixed(2)})
+                                        Solde restant ({100 - (quote.depositPercentage || 30)}%): <strong>¥{(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100)).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100) * quoteRate).toFixed(2)})
                                         <br />
                                         <span className="text-xs">Payable après le contrôle qualité et avant le départ de l'usine.</span>
                                     </p>
                                 </>
                             ) : (
                                 <p className="text-xs text-muted-foreground space-y-1 leading-tight">
-                                    Paiement intégral de <strong>¥{quote.totalAmount.toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}) payable avant l'expédition.
+                                    Paiement intégral de <strong>¥{quote.totalAmount.toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * quoteRate).toFixed(2)}) payable avant l'expédition.
                                 </p>
                             )}
-                        </div>
-                    
-                        <h3 className="font-semibold mb-2 text-xs leading-tight">Coordonnées Bancaires :</h3>
-                        <div className="text-xs text-muted-foreground space-y-1 leading-tight">
-                            <p><span className="font-medium">Bank Name:</span> Banking Circle S.A. - German Branch</p>
-                            <p><span className="font-medium">Account Name:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
-                            <p><span className="font-medium">Bank Address:</span> Maximilianstraße 54,80538 München, Germany</p>
-                            <p><span className="font-medium">Payment method:</span> SEPA Inst /SEPA SCT.</p>
-                            <p><span className="font-medium">IBAN:</span> DE24202208000056168461</p>
-                            <p><span className="font-medium">SWIFT Code:</span> SXPYDEHH (XXX* If 11 characters are required)</p>
-                            <p className="mt-1"><span className="font-medium">Payment Message:</span> Please include the following memo/message to receiver when making a payment: [Buyer Name] [Invoice/Contract Number] [Product]</p>
                         </div>
                     </div>
                 </div>
@@ -252,5 +258,3 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         </main>
     );
 }
-
-    

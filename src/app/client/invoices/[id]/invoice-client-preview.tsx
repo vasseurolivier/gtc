@@ -49,7 +49,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     }
     
     const { companyInfo } = companyInfoContext;
-
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
     
     return (
@@ -70,7 +70,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
-                                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain"/>}
+                                {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain block"/>}
                             </div>
                             <div className="text-right">
                                 <h1 className="text-2xl font-black text-zinc-900 tracking-tighter">FACTURE</h1>

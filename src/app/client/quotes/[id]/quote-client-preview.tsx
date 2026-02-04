@@ -49,6 +49,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
     }
     
     const { companyInfo } = companyInfoContext;
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const subTotalEuro = quote.subTotal * quoteRate;
     const commissionEuro = (quote.subTotal * (quote.commissionRate || 0) / 100) * quoteRate;
     const transportEuro = (quote.transportCost || 0) * quoteRate;
@@ -72,7 +73,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
-                                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain"/>}
+                                {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain block"/>}
                             </div>
                             <div className="text-right">
                                 <h1 className="text-2xl font-black text-zinc-900 tracking-tighter">PROFORMA</h1>
