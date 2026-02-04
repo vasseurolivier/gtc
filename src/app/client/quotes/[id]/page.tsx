@@ -26,13 +26,9 @@ export default function ClientQuotePage() {
             getQuoteById(id).then(data => {
                 // Security check: ensure the quote belongs to the current client
                 if (data && data.customerId === user.uid) {
-                    setInvoice(data); // Using setInvoice locally for state update
+                    setQuote(data);
                 } else {
                     setQuote(null);
-                }
-                // Correction: actual state setter is setQuote
-                if (data && data.customerId === user.uid) {
-                    setQuote(data);
                 }
                 setIsLoading(false);
             });
