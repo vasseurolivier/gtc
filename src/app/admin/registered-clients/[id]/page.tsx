@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   getRegisteredClientById, 
@@ -45,7 +46,11 @@ import {
   X,
   PlayCircle,
   Image as ImageIcon,
-  Sparkles
+  Sparkles,
+  MapPin,
+  FileText,
+  History,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -84,6 +89,10 @@ export default function ClientDetailPage() {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isMediaUploading, setIsMediaUploading] = useState(false);
 
+  // Order Preview logic
+  const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
+  const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
+
   // Fetch client and auxiliary data
   useEffect(() => {
     async function fetchData() {
@@ -118,6 +127,24 @@ export default function ClientDetailPage() {
     return query(collection(db, 'orders'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
+
+  // Split orders into active and archived
+  const { activeOrders, archivedOrders } = useMemo(() => {
+    if (!orders) return { activeOrders: [], archivedOrders: [] };
+    const active = orders.filter(o => o.status === 'processing' || o.status === 'shipped');
+    const archived = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
+    
+    const sortByDate = (a: any, b: any) => {
+      const dateA = a.orderDate ? new Date(a.orderDate).getTime() : 0;
+      const dateB = b.orderDate ? new Date(b.orderDate).getTime() : 0;
+      return dateB - dateA;
+    };
+
+    return { 
+      activeOrders: [...active].sort(sortByDate), 
+      archivedOrders: [...archived].sort(sortByDate) 
+    };
+  }, [orders]);
 
   // Invoices Query (Linked to this client)
   const invoicesQuery = useMemoFirebase(() => {
@@ -211,7 +238,7 @@ export default function ClientDetailPage() {
     setEditingProduct({ ...editingProduct, images: newImages });
   };
 
-  // Open validation dialog for a product (could be sourcing or manual)
+  // Open validation dialog for a product
   const handleEditProduct = (product: any) => {
     setEditingProduct({
       ...product,
@@ -227,7 +254,6 @@ export default function ClientDetailPage() {
     setIsProductDialogOpen(true);
   };
 
-  // Pre-fill from global catalog but DON'T publish yet - open validation dialog
   const handleSelectFromGlobalCatalog = (prod: Product) => {
     setEditingProduct({
       id: `PROD-CAT-${Date.now()}`,
@@ -241,13 +267,12 @@ export default function ClientDetailPage() {
       width: prod.width || 0,
       height: prod.height || 0,
       length: prod.length || 0,
-      isNew: true // Flag to indicate we need to create the doc
+      isNew: true 
     });
     setIsCatalogDialogOpen(false);
     setIsProductDialogOpen(true);
   };
 
-  // Prepare a blank manual product
   const handleManualAdd = () => {
     setEditingProduct({
       id: `PROD-MAN-${Date.now()}`,
@@ -351,7 +376,76 @@ export default function ClientDetailPage() {
     }
   };
 
-  const pendingOrdersCount = orders?.filter(o => o.status === 'processing').length || 0;
+  const handleOpenOrderPreview = (order: any) => {
+    setSelectedOrderPreview(order);
+    setIsOrderPreviewOpen(true);
+  };
+
+  const getOrderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
+      case 'shipped': return <Badge className="bg-blue-500">Expédié</Badge>;
+      case 'processing': return <Badge variant="outline">En cours</Badge>;
+      case 'cancelled': return <Badge variant="destructive">Annulé</Badge>;
+      default: return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const renderOrdersTable = (orderList: any[]) => (
+    <Table>
+      <TableHeader className="bg-zinc-50">
+        <TableRow>
+          <TableHead className="pl-6">N° Commande</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead className="text-right pr-6">Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {orderList.length > 0 ? orderList.map((order) => {
+          const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000;
+          const isClientInitiated = !order.quoteId;
+
+          return (
+            <TableRow key={order.id} className={cn(isVeryRecent && "bg-primary/5")}>
+              <TableCell className="pl-6 font-bold">
+                <div className="flex items-center gap-2">
+                  {order.orderNumber}
+                  {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                </div>
+              </TableCell>
+              <TableCell>{order.orderDate ? format(new Date(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className="capitalize">{order.status}</Badge>
+              </TableCell>
+              <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
+              <TableCell className="text-right pr-6">
+                <div className="flex justify-end gap-2">
+                  {isClientInitiated && order.status === 'processing' && (
+                    <Button variant="secondary" size="sm" asChild className="bg-primary hover:bg-primary/90 text-white font-bold h-8">
+                      <Link href={`/admin/quotes?fromOrder=${order.id}`}>
+                        <Sparkles className="mr-2 h-3 w-3" /> Générer Proforma
+                      </Link>
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="h-8" onClick={() => handleOpenOrderPreview(order)}>
+                    <Eye className="h-4 w-4 mr-2" /> Voir
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          )
+        }) : (
+          <TableRow>
+            <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune commande dans cette section.</TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+
+  const pendingOrdersCount = activeOrders.length;
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -594,61 +688,28 @@ export default function ClientDetailPage() {
             </TabsContent>
 
             <TabsContent value="orders">
-              <Card className="border-none shadow-md overflow-hidden bg-white">
-                <Table>
-                  <TableHeader className="bg-zinc-50">
-                    <TableRow>
-                      <TableHead className="pl-6">N° Commande</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-right pr-6">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orders && orders.length > 0 ? orders.map((order) => {
-                      const isVeryRecent = (Date.now() - new Date(order.createdAt).getTime()) < 3600000;
-                      const isClientInitiated = !order.quoteId;
-
-                      return (
-                        <TableRow key={order.id} className={cn(isVeryRecent && "bg-primary/5")}>
-                          <TableCell className="pl-6 font-bold">
-                            <div className="flex items-center gap-2">
-                              {order.orderNumber}
-                              {isVeryRecent && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
-                            </div>
-                          </TableCell>
-                          <TableCell>{format(new Date(order.orderDate), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="capitalize">{order.status}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right pr-6">
-                            <div className="flex justify-end gap-2">
-                              {isClientInitiated && order.status === 'processing' && (
-                                <Button variant="secondary" size="sm" asChild className="bg-primary hover:bg-primary/90 text-white font-bold h-8">
-                                  <Link href={`/admin/quotes?fromOrder=${order.id}`}>
-                                    <Sparkles className="mr-2 h-3 w-3" /> Générer Proforma
-                                  </Link>
-                                </Button>
-                              )}
-                              <Button variant="ghost" size="sm" asChild className="h-8">
-                                <Link href="/admin/orders">
-                                  <Eye className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    }) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </Card>
+              <Tabs defaultValue="active" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="active" className="gap-2">
+                    <Clock className="h-3 w-3" /> En cours ({activeOrders.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="archived" className="gap-2">
+                    <History className="h-3 w-3" /> Archives ({archivedOrders.length})
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="active">
+                  <Card className="border-none shadow-md overflow-hidden bg-white">
+                    {renderOrdersTable(activeOrders)}
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="archived">
+                  <Card className="border-none shadow-md overflow-hidden bg-white">
+                    {renderOrdersTable(archivedOrders)}
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             <TabsContent value="invoices">
@@ -765,6 +826,93 @@ export default function ClientDetailPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Order Preview Dialog */}
+      <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" /> 
+              Commande {selectedOrderPreview?.orderNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Détails complets de la demande client.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrderPreview && (
+            <div className="space-y-8 py-4">
+              <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Statut</span>
+                  <div>{getOrderStatusBadge(selectedOrderPreview.status)}</div>
+                </div>
+                <div className="text-right space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Total</span>
+                  <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                  <Package className="h-4 w-4 text-zinc-400" /> Articles
+                </h4>
+                <div className="border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead className="w-16"></TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell className="py-2">
+                            {item.photo && (
+                              <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
+                                <Image src={item.photo} alt={item.description} fill className="object-cover" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="font-medium text-sm">{item.description}</div>
+                            <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
+                          </TableCell>
+                          <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
+                          <TableCell className="py-2 text-right font-bold">¥{Number(item.total || 0).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
+                </h4>
+                <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                  {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="flex-1 font-bold" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button>
+            {selectedOrderPreview?.status === 'processing' && (
+              <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold">
+                <Link href={`/admin/quotes?fromOrder=${selectedOrderPreview.id}`}>
+                  <Sparkles className="mr-2 h-4 w-4" /> Générer Proforma
+                </Link>
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Product Edit / Validation Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
@@ -777,7 +925,6 @@ export default function ClientDetailPage() {
           
           {editingProduct && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
-              {/* Left Column: Media & Basic Info */}
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2">
@@ -876,7 +1023,6 @@ export default function ClientDetailPage() {
                 </div>
               </div>
               
-              {/* Right Column: Technical Details */}
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-zinc-400">Description Technique & Spécifications</Label>
