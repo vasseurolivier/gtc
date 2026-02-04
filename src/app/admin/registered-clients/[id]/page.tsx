@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   getRegisteredClientById, 
@@ -8,7 +8,7 @@ import {
   updateRegisteredClientNumber,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { updateOrderStatus, updateOrderPaymentStatus } from '@/actions/orders';
+import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost } from '@/actions/orders';
 import { createQuoteFromOrder, getQuotes, Quote } from '@/actions/quotes';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
@@ -60,7 +60,9 @@ import {
   FileText,
   History,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Truck,
+  Check
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -70,6 +72,7 @@ import { getProducts, Product } from '@/actions/products';
 import { getInvoices, Invoice } from '@/actions/invoices';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
+import { CurrencyContext } from '@/context/currency-context';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -77,6 +80,8 @@ export default function ClientDetailPage() {
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
+  const currencyContext = useContext(CurrencyContext);
+  const { exchangeRate } = currencyContext || { exchangeRate: 0.13 };
 
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,6 +120,8 @@ export default function ClientDetailPage() {
   // Order Preview logic
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
+  const [orderTransportInput, setOrderTransportInput] = useState('');
+  const [isUpdatingOrderTransport, setIsUpdatingOrderTransport] = useState(false);
 
   // Fetch client and auxiliary data
   useEffect(() => {
@@ -251,6 +258,27 @@ export default function ClientDetailPage() {
     const result = await updateOrderPaymentStatus(orderId, !currentStatus);
     if (result.success) {
       toast({ title: "Paiement mis à jour", description: "Le statut a été enregistré." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handleUpdateTransport = async () => {
+    if (!selectedOrderPreview) return;
+    const cost = parseFloat(orderTransportInput);
+    if (isNaN(cost)) return;
+
+    setIsUpdatingOrderTransport(true);
+    const result = await updateOrderTransportCost(selectedOrderPreview.id, cost);
+    setIsUpdatingOrderTransport(false);
+
+    if (result.success) {
+      toast({ title: "Succès", description: "Frais de transport mis à jour." });
+      setSelectedOrderPreview({ 
+        ...selectedOrderPreview, 
+        transportCost: cost, 
+        totalAmount: result.newTotal 
+      });
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
@@ -470,6 +498,7 @@ export default function ClientDetailPage() {
 
   const handleOpenOrderPreview = (order: any) => {
     setSelectedOrderPreview(order);
+    setOrderTransportInput((order.transportCost || 0).toString());
     setIsOrderPreviewOpen(true);
   };
 
@@ -490,6 +519,7 @@ export default function ClientDetailPage() {
         <TableRow>
           <TableHead className="pl-6">N° Commande</TableHead>
           <TableHead>Statut</TableHead>
+          <TableHead className="text-center">Frais Port (CNY)</TableHead>
           <TableHead className="text-center">Payé ?</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead className="text-right pr-6">Action</TableHead>
@@ -531,6 +561,9 @@ export default function ClientDetailPage() {
                   </SelectContent>
                 </Select>
               </TableCell>
+              <TableCell className="text-center font-medium">
+                ¥{(order.transportCost || 0).toFixed(2)}
+              </TableCell>
               <TableCell className="text-center">
                 <Checkbox 
                   checked={order.isPaid} 
@@ -566,7 +599,7 @@ export default function ClientDetailPage() {
           )
         }) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
+            <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
           </TableRow>
         )}
       </TableBody>
@@ -1169,15 +1202,39 @@ export default function ClientDetailPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h4 className="font-bold text-zinc-900 flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
-                </h4>
-                <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 architectural leading-relaxed whitespace-pre-wrap">
-                  {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-zinc-400" /> Frais de Transport (CNY)
+                  </h4>
+                  <div className="flex gap-2">
+                    <Input 
+                      type="number" 
+                      value={orderTransportInput} 
+                      onChange={(e) => setOrderTransportInput(e.target.value)}
+                      className="h-10 font-bold"
+                    />
+                    <Button 
+                      onClick={handleUpdateTransport} 
+                      disabled={isUpdatingOrderTransport}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      {isUpdatingOrderTransport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 italic">Ces frais seront inclus dans le montant total facturé.</p>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
+                  </h4>
+                  <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                    {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
+                  </div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground italic px-4">
+              
+              <div className="text-xs text-muted-foreground italic px-4 border-t pt-4">
                 Passée le {selectedOrderPreview.orderDate ? format(parseSafeDate(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm') : '-'}
               </div>
             </div>

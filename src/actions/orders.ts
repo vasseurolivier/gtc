@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -15,21 +14,7 @@ const orderItemSchema = z.object({
   unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
   purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
   total: z.coerce.number().nonnegative("Total cannot be negative."),
-});
-
-const orderSchema = z.object({
-  orderNumber: z.string(),
-  quoteId: z.string().optional(),
-  customerId: z.string(),
-  customerName: z.string(),
-  items: z.array(orderItemSchema),
-  totalAmount: z.coerce.number(),
-  status: orderStatusSchema,
-  shippingAddress: z.string().optional(),
-  orderDate: z.any(), // Flexible for server action
-  transportCost: z.coerce.number().optional(),
-  commissionRate: z.coerce.number().optional(),
-  isPaid: z.boolean().optional().default(false),
+  photo: z.string().optional(),
 });
 
 export type OrderItem = z.infer<typeof orderItemSchema>;
@@ -37,7 +22,7 @@ export type OrderItem = z.infer<typeof orderItemSchema>;
 export interface Order {
     id: string;
     orderNumber: string;
-    quoteId: string;
+    quoteId?: string;
     customerId: string;
     customerName: string;
     items: OrderItem[];
@@ -69,8 +54,13 @@ export async function addOrder(quote: Quote) {
           customerId: quote.customerId,
           customerName: quote.customerName,
           items: quote.items.map(item => ({
-            ...item,
-            purchasePrice: item.purchasePrice || 0
+            description: item.description,
+            sku: item.sku || '',
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            purchasePrice: item.purchasePrice || 0,
+            total: item.total,
+            photo: (item as any).photo || ''
           })),
           totalAmount: quote.totalAmount,
           status: "processing" as const,
@@ -106,8 +96,13 @@ export async function updateOrderFromQuote(quote: Quote) {
             customerId: quote.customerId,
             customerName: quote.customerName,
             items: quote.items.map(item => ({
-                ...item,
-                purchasePrice: item.purchasePrice || 0
+                description: item.description,
+                sku: item.sku || '',
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                purchasePrice: item.purchasePrice || 0,
+                total: item.total,
+                photo: (item as any).photo || ''
             })),
             totalAmount: quote.totalAmount,
             shippingAddress: quote.shippingAddress || "",
@@ -184,11 +179,10 @@ export async function deleteOrder(id: string) {
     }
 }
 
-export async function updateOrderStatus(id: string, status: z.infer<typeof orderStatusSchema>) {
+export async function updateOrderStatus(id: string, status: string) {
     try {
-        const validatedStatus = orderStatusSchema.parse(status);
         const orderRef = doc(db, 'orders', id);
-        await updateDoc(orderRef, { status: validatedStatus });
+        await updateDoc(orderRef, { status: status });
         return { success: true, message: 'Order status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating order status:', error);
@@ -203,6 +197,29 @@ export async function updateOrderPaymentStatus(id: string, isPaid: boolean) {
         return { success: true, message: 'Payment status updated successfully!' };
     } catch (error: any) {
         console.error('Error updating payment status:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateOrderTransportCost(id: string, cost: number) {
+    try {
+        const orderRef = doc(db, 'orders', id);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return { success: false, message: "Order not found." };
+        
+        const data = orderSnap.data();
+        const itemsTotal = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
+        const commissionRate = Number(data.commissionRate) || 0;
+        const commissionAmount = itemsTotal * (commissionRate / 100);
+        const newTotal = itemsTotal + commissionAmount + cost;
+
+        await updateDoc(orderRef, { 
+            transportCost: cost,
+            totalAmount: newTotal
+        });
+        return { success: true, message: 'Transport cost updated.', newTotal };
+    } catch (error: any) {
+        console.error('Error updating transport cost:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

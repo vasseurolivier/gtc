@@ -10,14 +10,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, Order } from '@/actions/orders';
+import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order } from '@/actions/orders';
 import { getQuotes, Quote, createQuoteFromOrder } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, FileText, Sparkles, CreditCard } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Truck } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -40,6 +41,8 @@ export default function OrdersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddOrderOpen, setAddOrderOpen] = useState(false);
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
+  const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
+  const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   
   const currencyContext = useContext(CurrencyContext);
   if (!currencyContext) {
@@ -80,6 +83,13 @@ export default function OrdersPage() {
         const acceptedQuotes = fetchedQuotes.filter(q => q.status === 'accepted');
         setQuotes(acceptedQuotes);
         setCustomers(fetchedCustomers);
+        
+        // Init transport inputs
+        const inputs: Record<string, string> = {};
+        fetchedOrders.forEach(o => {
+          inputs[o.id] = (o.transportCost || 0).toString();
+        });
+        setTransportInputs(inputs);
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
     }
@@ -146,6 +156,22 @@ export default function OrdersPage() {
     }
   };
 
+  const handleUpdateTransportCost = async (orderId: string) => {
+    const cost = parseFloat(transportInputs[orderId] || '0');
+    if (isNaN(cost)) return;
+
+    setIsUpdatingTransport(orderId);
+    const result = await updateOrderTransportCost(orderId, cost);
+    setIsUpdatingTransport(null);
+
+    if (result.success) {
+      toast({ title: "Succès", description: "Frais de transport mis à jour." });
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: result.newTotal } : o));
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
   const handleGenerateQuote = async (orderId: string) => {
     setIsGeneratingQuote(orderId);
     try {
@@ -196,6 +222,7 @@ export default function OrdersPage() {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Statut</TableHead>
+            <TableHead className="text-center">Frais Port (CNY)</TableHead>
             <TableHead className="text-center">Paiement</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -236,6 +263,29 @@ export default function OrdersPage() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+              </TableCell>
+              <TableCell className="text-center">
+                {!isArchived ? (
+                  <div className="flex items-center justify-center gap-1">
+                    <Input 
+                      type="number" 
+                      className="w-20 h-8 text-xs text-center"
+                      value={transportInputs[order.id] || ''}
+                      onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: e.target.value })}
+                    />
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8"
+                      disabled={isUpdatingTransport === order.id}
+                      onClick={() => handleUpdateTransportCost(order.id)}
+                    >
+                      {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-xs">¥{(order.transportCost || 0).toFixed(2)}</span>
+                )}
               </TableCell>
               <TableCell className="text-center">
                 <div className="flex flex-col items-center gap-1">
