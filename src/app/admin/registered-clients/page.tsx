@@ -10,11 +10,13 @@ import {
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { getOrders, Order } from '@/actions/orders';
+import { useFirestore } from '@/firebase';
+import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, Eye, ShoppingCart } from 'lucide-react';
+import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -25,6 +27,7 @@ import { cn } from '@/lib/utils';
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingSourcingIds, setPendingSourcingIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -32,6 +35,7 @@ export default function RegisteredClientsPage() {
   const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
   const router = useRouter();
   const { toast } = useToast();
+  const db = useFirestore();
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
@@ -43,14 +47,30 @@ export default function RegisteredClientsPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [data, ords] = await Promise.all([
+        const [clientList, ords] = await Promise.all([
           getRegisteredClients(),
           getOrders()
         ]);
-        setClients(data);
+        
+        // Fetch all pending sourcing products across all clients
+        const sourcingIds = new Set<string>();
+        try {
+          const q = query(collectionGroup(db, 'products'), where('status', '==', 'pending'));
+          const snap = await getDocs(q);
+          snap.forEach(doc => {
+            const data = doc.data();
+            if (data.clientId) sourcingIds.add(data.clientId);
+          });
+        } catch (e) {
+          console.error("Sourcing notification error (likely missing index):", e);
+        }
+
+        setClients(clientList);
         setOrders(ords);
+        setPendingSourcingIds(sourcingIds);
+        
         const numbers: Record<string, string> = {};
-        data.forEach(c => {
+        clientList.forEach(c => {
           numbers[c.id] = c.clientNumber || '';
         });
         setTempNumbers(numbers);
@@ -61,7 +81,7 @@ export default function RegisteredClientsPage() {
       }
     }
     fetchData();
-  }, [router]);
+  }, [router, db]);
 
   const handleUpdateNumber = async (id: string) => {
     const newNumber = tempNumbers[id];
@@ -91,6 +111,10 @@ export default function RegisteredClientsPage() {
 
   const getPendingOrdersCount = (clientId: string) => {
     return orders.filter(o => o.customerId === clientId && o.status === 'processing').length;
+  };
+
+  const hasPendingSourcing = (clientId: string) => {
+    return pendingSourcingIds.has(clientId);
   };
 
   const filteredClients = clients.filter(c => 
@@ -141,9 +165,9 @@ export default function RegisteredClientsPage() {
             </TableHeader>
             <TableBody>
               {filteredClients.length > 0 ? filteredClients.map((client) => {
-                const pendingCount = getPendingOrdersCount(client.id);
-                const isNew = (Date.now() - new Date(client.createdAt).getTime()) < 3600000; // 1 hour
-                const hasAlert = pendingCount > 0 || client.status === 'pending';
+                const pendingOrders = getPendingOrdersCount(client.id);
+                const isPendingSourcing = hasPendingSourcing(client.id);
+                const hasAlert = pendingOrders > 0 || client.status === 'pending' || isPendingSourcing;
 
                 return (
                   <TableRow key={client.id} className={cn("hover:bg-muted/30", hasAlert && "bg-red-50/20")}>
@@ -161,23 +185,29 @@ export default function RegisteredClientsPage() {
                     <TableCell>{client.email}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        {pendingCount > 0 && (
+                        {pendingOrders > 0 && (
                           <Badge className="bg-red-600 animate-pulse flex gap-1 text-[10px] w-fit">
                             <ShoppingCart className="h-3 w-3" />
-                            {pendingCount} COMMANDE(S)
+                            {pendingOrders} COMMANDE(S)
+                          </Badge>
+                        )}
+                        {isPendingSourcing && (
+                          <Badge className="bg-orange-600 animate-pulse flex gap-1 text-[10px] w-fit">
+                            <ClipboardList className="h-3 w-3" />
+                            SOURCING EN ATTENTE
                           </Badge>
                         )}
                         {client.status === 'pending' && (
-                          <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 text-[10px] w-fit">
-                            NOUVEAU COMPTE
+                          <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 text-[10px] w-fit uppercase font-black">
+                            Nouveau Compte
                           </Badge>
                         )}
-                        {!hasAlert && <span className="text-xs text-muted-foreground italic">Aucune</span>}
+                        {!hasAlert && <span className="text-xs text-zinc-300 italic">Aucune</span>}
                       </div>
                     </TableCell>
                     <TableCell>
                       {client.status === 'validated' ? (
-                        <Badge className="bg-green-500 hover:bg-green-600">Validé</Badge>
+                        <Badge className="bg-green-500">Validé</Badge>
                       ) : (
                         <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50">En attente</Badge>
                       )}

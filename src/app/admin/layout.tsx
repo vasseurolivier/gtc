@@ -52,6 +52,8 @@ import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
+import { useFirestore } from '@/firebase';
+import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
 
 function AdminSettings() {
     const currencyContext = useContext(CurrencyContext);
@@ -275,9 +277,11 @@ function AdminSettings() {
 function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const db = useFirestore();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
   const [pendingClients, setPendingClients] = useState(0);
+  const [pendingSourcing, setPendingSourcing] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
@@ -292,7 +296,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   }, [router, pathname]);
 
   useEffect(() => {
-    if (isAuthenticated !== true) return;
+    if (isAuthenticated !== true || !db) return;
     async function fetchCounts() {
         try {
             const [subs, ords, cls] = await Promise.all([
@@ -300,15 +304,27 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
               getOrders(),
               getRegisteredClients()
             ]);
+            
+            // Check for pending sourcing products
+            let sourcingCount = 0;
+            try {
+              const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
+              const snap = await getDocs(q);
+              sourcingCount = snap.size;
+            } catch (e) {
+              console.error("Sourcing notification error:", e);
+            }
+
             setUnreadMessages(subs.filter(s => !s.read).length);
             setPendingOrders(ords.filter(o => o.status === 'processing').length);
             setPendingClients(cls.filter(c => c.status === 'pending').length);
+            setPendingSourcing(sourcingCount);
         } catch (error) {}
     }
     fetchCounts();
     const interval = setInterval(fetchCounts, 10000);
     return () => clearInterval(interval);
-  }, [pathname, isAuthenticated]);
+  }, [pathname, isAuthenticated, db]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('isAdminAuthenticated');
@@ -319,7 +335,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
-    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: (pendingOrders + pendingClients) },
+    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: (pendingOrders + pendingClients + pendingSourcing) },
     { href: '/admin/customers', icon: <Users />, label: 'Leads CRM' },
     { href: '/admin/suppliers', icon: <Factory />, label: 'Suppliers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },

@@ -59,7 +59,8 @@ import {
   MapPin,
   FileText,
   History,
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -83,17 +84,18 @@ export default function ClientDetailPage() {
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
   
-  // Catalog logic
+  // Catalog & Sourcing logic
   const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
   const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
-  const [isPublishedLoading, setIsPublishedLoading] = useState(false);
+  const [pendingSourcingProducts, setPendingSourcingProducts] = useState<any[]>([]);
+  const [isAggregationLoading, setIsAggregationLoading] = useState(false);
   
   // Invoice linking logic
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
   const [isInvoiceLinkDialogOpen, setIsInvoiceLinkDialogOpen] = useState(false);
 
-  // Sourcing & Validation logic
+  // Edit logic
   const [selectedList, setSelectedList] = useState<any | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -170,27 +172,36 @@ export default function ClientDetailPage() {
   }, [db, clientId, selectedList]);
   const { data: listProducts } = useCollection(listProductsQuery);
 
-  // Aggregation of all published products for the "Catalogue" tab
+  // Aggregation of all products for the "Catalogue" and "Sourcing" badges
   useEffect(() => {
     if (!db || !clientId || !productLists) return;
-    async function fetchPublished() {
-      setIsPublishedLoading(true);
+    async function aggregate() {
+      setIsAggregationLoading(true);
       try {
-        const allPublished: any[] = [];
+        const published: any[] = [];
+        const pending: any[] = [];
         for (const list of productLists!) {
           const prodCol = collection(db!, 'clients', clientId, 'productLists', list.id, 'products');
-          const q = query(prodCol, where('status', '==', 'published'));
-          const snap = await getDocs(q);
-          snap.forEach(doc => allPublished.push({ ...doc.data(), id: doc.id, listName: list.name, listId: list.id }));
+          const snap = await getDocs(prodCol);
+          snap.forEach(doc => {
+            const data = doc.data();
+            const item = { ...data, id: doc.id, listName: list.name, listId: list.id };
+            if (data.status === 'published') {
+              published.push(item);
+            } else {
+              pending.push(item);
+            }
+          });
         }
-        setPublishedProducts(allPublished);
+        setPublishedProducts(published);
+        setPendingSourcingProducts(pending);
       } catch (e) {
         console.error("Aggregation error:", e);
       } finally {
-        setIsPublishedLoading(false);
+        setIsAggregationLoading(false);
       }
     }
-    fetchPublished();
+    aggregate();
   }, [db, clientId, productLists]);
 
   const handleToggleStatus = async () => {
@@ -274,7 +285,6 @@ export default function ClientDetailPage() {
     setEditingProduct({ ...editingProduct, images: newImages });
   };
 
-  // Open validation dialog for a product
   const handleEditProduct = (product: any) => {
     setEditingProduct({
       ...product,
@@ -332,7 +342,7 @@ export default function ClientDetailPage() {
     
     setIsSaving(true);
     try {
-      let listId = editingProduct.productListId || (selectedList?.id);
+      let listId = editingProduct.listId || editingProduct.productListId || (selectedList?.id);
       
       if (editingProduct.isNew && !listId) {
         const existingList = productLists?.find(l => l.name === "Catalogue Officiel");
@@ -367,11 +377,14 @@ export default function ClientDetailPage() {
       };
       
       delete payload.isNew;
+      delete payload.listId;
+      delete payload.listName;
 
       await setDoc(productRef, payload, { merge: true });
       
       toast({ title: "Produit validé", description: "L'article est maintenant disponible dans le catalogue du client." });
       setIsProductDialogOpen(false);
+      // Trigger re-aggregation
       router.refresh();
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
@@ -503,8 +516,6 @@ export default function ClientDetailPage() {
     </Table>
   );
 
-  const pendingOrdersCount = activeOrders.length;
-
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
@@ -589,12 +600,19 @@ export default function ClientDetailPage() {
           <Tabs defaultValue="catalogue" className="w-full">
             <TabsList className="bg-white border shadow-sm p-1 h-12 rounded-xl mb-6">
               <TabsTrigger value="catalogue" className="rounded-lg h-full"><Star className="h-4 w-4 mr-2" /> Catalogue Privé</TabsTrigger>
-              <TabsTrigger value="lists" className="rounded-lg h-full"><ClipboardList className="h-4 w-4 mr-2" /> Sourcing</TabsTrigger>
+              <TabsTrigger value="lists" className="rounded-lg h-full relative">
+                <ClipboardList className="h-4 w-4 mr-2" /> Sourcing
+                {pendingSourcingProducts.length > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
+                    {pendingSourcingProducts.length}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="orders" className="rounded-lg h-full relative">
                 <ShoppingCart className="h-4 w-4 mr-2" /> Commandes
-                {pendingOrdersCount > 0 && (
+                {activeOrders.length > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
-                    {pendingOrdersCount}
+                    {activeOrders.length}
                   </span>
                 )}
               </TabsTrigger>
@@ -625,7 +643,7 @@ export default function ClientDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {isPublishedLoading ? (
+                    {isAggregationLoading ? (
                       <TableRow><TableCell colSpan={5} className="h-32 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
                     ) : publishedProducts.length > 0 ? publishedProducts.map((product) => (
                       <TableRow key={product.id}>
@@ -663,86 +681,144 @@ export default function ClientDetailPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="lists">
-              {!selectedList ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {productLists && productLists.length > 0 ? productLists.map((list) => (
-                    <Card key={list.id} className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedList(list)}>
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-base">{list.name}</CardTitle>
-                          <ChevronRight className="h-4 w-4 text-zinc-300" />
-                        </div>
-                        <CardDescription className="text-xs line-clamp-1">{list.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <span className="text-[10px] text-muted-foreground italic">Créé le {format(new Date(list.createdAt), 'dd/MM/yyyy')}</span>
-                      </CardContent>
-                    </Card>
-                  )) : (
-                    <div className="col-span-full p-12 text-center bg-white rounded-2xl border-2 border-dashed text-muted-foreground">
-                      Aucune liste de produits pour ce client.
-                    </div>
-                  )}
-                </div>
-              ) : (
+            <TabsContent value="lists" className="space-y-8">
+              {/* Urgent Pending Sourcing Section */}
+              {pendingSourcingProducts.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Button variant="link" onClick={() => setSelectedList(null)} className="p-0 text-zinc-500">
-                      <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux listes
-                    </Button>
-                    <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertCircle className="h-5 w-5" />
+                    <h3 className="font-black text-lg uppercase tracking-tight">Demandes de Sourcing en attente</h3>
                   </div>
-                  
-                  <Card className="border-none shadow-md overflow-hidden bg-white">
+                  <Card className="border-2 border-red-100 shadow-xl overflow-hidden bg-white">
                     <Table>
-                      <TableHeader className="bg-zinc-50">
+                      <TableHeader className="bg-red-50">
                         <TableRow>
-                          <TableHead className="pl-6">Produit</TableHead>
-                          <TableHead>Qté</TableHead>
-                          <TableHead>Prix Final</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead className="text-right pr-6">Actions</TableHead>
+                          <TableHead className="pl-6 text-red-900 font-bold">Produit demandé</TableHead>
+                          <TableHead className="text-red-900 font-bold">Quantité</TableHead>
+                          <TableHead className="text-red-900 font-bold">Liste Source</TableHead>
+                          <TableHead className="text-right pr-6 text-red-900 font-bold">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {listProducts && listProducts.length > 0 ? listProducts.map((product) => (
-                          <TableRow key={product.id}>
+                        {pendingSourcingProducts.map((product) => (
+                          <TableRow key={product.id} className="hover:bg-red-50/30">
                             <TableCell className="pl-6 py-4">
                               <div className="flex items-center gap-3">
                                 {product.images?.[0] && (
-                                  <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
+                                  <div className="relative w-14 h-14 rounded-lg border bg-zinc-50 overflow-hidden shrink-0 shadow-sm">
                                     <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                                   </div>
                                 )}
-                                <div className="font-medium text-sm">{product.name}</div>
+                                <div className="space-y-1">
+                                  <div className="font-black text-sm">{product.name}</div>
+                                  <div className="text-xs text-zinc-500 line-clamp-1">{product.description}</div>
+                                </div>
                               </div>
                             </TableCell>
-                            <TableCell>{product.quantity}</TableCell>
-                            <TableCell>¥{Number(product.price || 0).toFixed(2)}</TableCell>
-                            <TableCell>
-                              {product.status === 'published' ? (
-                                <Badge className="bg-green-500 text-[10px] px-2 py-0">Publié</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-zinc-400 border-zinc-200 text-[10px] px-2 py-0">En attente</Badge>
-                              )}
-                            </TableCell>
+                            <TableCell className="font-bold">{product.quantity}</TableCell>
+                            <TableCell className="text-xs italic text-zinc-400">{product.listName}</TableCell>
                             <TableCell className="text-right pr-6">
-                              <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
-                                {product.status === 'published' ? 'Modifier' : 'Enrichir & Valider'}
+                              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={() => handleEditProduct(product)}>
+                                <Sparkles className="h-3 w-3 mr-2" /> Compléter & Valider
                               </Button>
                             </TableCell>
                           </TableRow>
-                        )) : (
-                          <TableRow>
-                            <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucun produit dans cette liste.</TableCell>
-                          </TableRow>
-                        )}
+                        ))}
                       </TableBody>
                     </Table>
                   </Card>
                 </div>
               )}
+
+              {/* Lists Browser */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg text-zinc-800">Parcourir les listes de projets</h3>
+                {!selectedList ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {productLists && productLists.length > 0 ? productLists.map((list) => {
+                      const listPendingCount = pendingSourcingProducts.filter(p => p.listId === list.id).length;
+                      return (
+                        <Card key={list.id} className={cn("border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer relative", listPendingCount > 0 && "ring-1 ring-red-200")} onClick={() => setSelectedList(list)}>
+                          {listPendingCount > 0 && (
+                            <Badge className="absolute -top-2 -right-2 bg-red-600 text-[10px]">{listPendingCount} ATTENTE</Badge>
+                          )}
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <CardTitle className="text-base">{list.name}</CardTitle>
+                              <ChevronRight className="h-4 w-4 text-zinc-300" />
+                            </div>
+                            <CardDescription className="text-xs line-clamp-1">{list.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="pb-4">
+                            <span className="text-[10px] text-muted-foreground italic">Créé le {format(new Date(list.createdAt), 'dd/MM/yyyy')}</span>
+                          </CardContent>
+                        </Card>
+                      )
+                    }) : (
+                      <div className="col-span-full p-12 text-center bg-white rounded-2xl border-2 border-dashed text-muted-foreground">
+                        Aucune liste de produits pour ce client.
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="flex items-center justify-between">
+                      <Button variant="link" onClick={() => setSelectedList(null)} className="p-0 text-zinc-500 hover:no-underline">
+                        <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux listes
+                      </Button>
+                      <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                    </div>
+                    
+                    <Card className="border-none shadow-md overflow-hidden bg-white">
+                      <Table>
+                        <TableHeader className="bg-zinc-50">
+                          <TableRow>
+                            <TableHead className="pl-6">Produit</TableHead>
+                            <TableHead>Qté</TableHead>
+                            <TableHead>Prix Final</TableHead>
+                            <TableHead>Statut</TableHead>
+                            <TableHead className="text-right pr-6">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {listProducts && listProducts.length > 0 ? listProducts.map((product) => (
+                            <TableRow key={product.id}>
+                              <TableCell className="pl-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  {product.images?.[0] && (
+                                    <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
+                                      <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                    </div>
+                                  )}
+                                  <div className="font-medium text-sm">{product.name}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell>{product.quantity}</TableCell>
+                              <TableCell>¥{Number(product.price || 0).toFixed(2)}</TableCell>
+                              <TableCell>
+                                {product.status === 'published' ? (
+                                  <Badge className="bg-green-500 text-[10px] px-2 py-0">Publié</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-red-500 border-red-200 bg-red-50 text-[10px] px-2 py-0 animate-pulse">À TRAITER</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right pr-6">
+                                <Button size="sm" variant={product.status === 'published' ? "outline" : "default"} onClick={() => handleEditProduct(product)}>
+                                  {product.status === 'published' ? 'Modifier' : 'Compléter & Publier'}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )) : (
+                            <TableRow>
+                              <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucun produit dans cette liste.</TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </Card>
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="orders">
