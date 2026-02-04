@@ -97,7 +97,8 @@ export default function ClientOrdersPage() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'invoices'), where('customerId', '==', user.uid));
+    // Only show paid invoices to the client
+    return query(collection(db, 'invoices'), where('customerId', '==', user.uid), where('status', '==', 'paid'));
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
@@ -363,7 +364,7 @@ export default function ClientOrdersPage() {
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Facture</TableHead>
-                      <TableHead>Statut</TableHead>
+                      <TableHead>Échéance</TableHead>
                       <TableHead className="text-right">Total (€)</TableHead>
                       <TableHead className="text-right pr-6">Documents</TableHead>
                     </TableRow>
@@ -372,7 +373,7 @@ export default function ClientOrdersPage() {
                     {invoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
-                        <TableCell><Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status}</Badge></TableCell>
+                        <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell className="text-right font-black text-primary">€{(inv.totalAmount * (inv.exchangeRate || rate)).toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
                           <Button variant="ghost" size="icon" asChild>
@@ -385,7 +386,7 @@ export default function ClientOrdersPage() {
                     ))}
                   </TableBody>
                 </Table>
-              ) : <div className="p-20 text-center text-zinc-400">Aucune facture.</div>}
+              ) : <div className="p-20 text-center text-zinc-400">Aucune facture payée disponible pour le moment.</div>}
             </CardContent>
           </Card>
         </TabsContent>

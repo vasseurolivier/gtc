@@ -4,7 +4,7 @@
 import type { Invoice } from '@/actions/invoices';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pdfHeight;
         }
-        pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
+        pdf.save(`invoice-acquittee-${invoice.invoiceNumber}.pdf`);
     };
 
     if (!companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
@@ -67,13 +67,18 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
                 <div id="pdf-content" className="relative p-12 bg-white min-h-[297mm] pb-24">
-                    <div className="flex-grow">
+                    {/* Stamp logic for PDF */}
+                    <div className="absolute top-48 right-16 border-4 border-green-500 rounded-xl px-6 py-2 rotate-[-15deg] opacity-40 z-0">
+                        <span className="text-4xl font-black text-green-500 uppercase">PAYÉ</span>
+                    </div>
+
+                    <div className="flex-grow relative z-10">
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain block"/>}
                             </div>
                             <div className="text-right">
-                                <h1 className="text-2xl font-black text-zinc-900 tracking-tighter">FACTURE</h1>
+                                <h1 className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">Facture Acquittée</h1>
                                 <p className="mt-1 text-sm font-bold text-primary">N° {invoice.invoiceNumber}</p>
                                 <p className="text-xs text-muted-foreground mt-1">Date: {format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
@@ -92,6 +97,11 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             </div>
                         </section>
                         
+                        <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-100 flex items-center gap-3 text-green-700">
+                            <CheckCircle2 className="h-5 w-5" />
+                            <span className="text-xs font-bold uppercase tracking-wide">Cette facture est acquittée. Le montant total a été perçu par nos services.</span>
+                        </div>
+
                         <table className="w-full text-sm border-collapse">
                             <thead>
                                 <tr className="text-left bg-zinc-900 text-white">
@@ -123,26 +133,16 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     <span className="font-bold">€{(subTotal * invoiceRate).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
-                                    <span className="font-black text-zinc-900">TOTAL À PAYER</span>
-                                    <span className="text-2xl font-black text-primary">€{(invoice.totalAmount * invoiceRate).toFixed(2)}</span>
+                                    <span className="font-black text-zinc-900 uppercase">Montant Total Réglé</span>
+                                    <span className="text-2xl font-black text-green-600">€{(invoice.totalAmount * invoiceRate).toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="mt-20 p-6 bg-zinc-50 rounded-2xl border border-zinc-100">
-                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Informations de Paiement & Coordonnées Bancaires</h3>
-                            <div className="grid grid-cols-2 gap-8 text-[11px] text-zinc-600 leading-relaxed">
-                                <div className="space-y-1">
-                                    <p><span className="font-bold text-zinc-900">Banque:</span> Banking Circle S.A. - German Branch</p>
-                                    <p><span className="font-bold text-zinc-900">Adresse Banque:</span> Maximilianstraße 54, 80538 München, Germany</p>
-                                    <p><span className="font-bold text-zinc-900">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
-                                    <p><span className="font-bold text-zinc-900">SWIFT Code:</span> SXPYDEHH</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p><span className="font-bold text-zinc-900">Bénéficiaire:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
-                                    <p><span className="font-bold text-zinc-900">Méthode:</span> SEPA Instant / SCT</p>
-                                    <p className="mt-4 italic text-primary font-black text-[12px]">Référence à inclure obligatoirement: {invoice.invoiceNumber} - {invoice.customerName}</p>
-                                </div>
+                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest text-center">Historique de paiement</h3>
+                            <div className="text-center text-[11px] text-zinc-500 italic">
+                                Le règlement de cette facture a été validé le {invoice.paymentDate ? format(new Date(invoice.paymentDate), 'dd MMMM yyyy') : format(new Date(), 'dd MMMM yyyy')}.
                             </div>
                         </div>
                     </div>
