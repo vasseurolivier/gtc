@@ -957,7 +957,7 @@ export default function ClientDetailPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </div>
+            </Table>
           </div>
         </DialogContent>
       </Dialog>
@@ -1029,7 +1029,7 @@ export default function ClientDetailPage() {
                 <h4 className="font-bold text-zinc-900 flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
                 </h4>
-                <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 architectural leading-relaxed whitespace-pre-wrap">
                   {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
                 </div>
               </div>
@@ -1174,7 +1174,7 @@ export default function ClientDetailPage() {
                     value={editingProduct.description}
                     onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
                     placeholder="Détaillez ici les caractéristiques techniques qui seront visibles par le client (matériaux, certifications, emballage)..."
-                    className="text-sm leading-relaxed border-zinc-200 focus:ring-primary shadow-inner"
+                    className="text-sm architectural leading-relaxed border-zinc-200 focus:ring-primary shadow-inner"
                   />
                 </div>
                 <div className="p-4 bg-primary/5 rounded-xl text-xs text-primary/80 border border-primary/10">

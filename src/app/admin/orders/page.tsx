@@ -112,7 +112,7 @@ export default function OrdersPage() {
   
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     const originalOrders = [...orders];
-    const updatedOrders = orders.map(o => o.id === orderId ? {...o, status: newStatus} : i);
+    const updatedOrders = orders.map(o => o.id === orderId ? {...o, status: newStatus} : o);
     setOrders(updatedOrders);
 
     const result = await updateOrderStatus(orderId, newStatus);
@@ -145,7 +145,7 @@ export default function OrdersPage() {
     switch (status) {
         case 'delivered': return 'default';
         case 'shipped': return 'secondary';
-        case 'validated': return 'default'; // Using default (greenish/primary) for validated
+        case 'validated': return 'default'; 
         case 'processing': return 'outline';
         case 'cancelled': return 'destructive';
         default: return 'outline';
