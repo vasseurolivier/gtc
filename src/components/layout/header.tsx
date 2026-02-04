@@ -92,14 +92,14 @@ export function Header() {
     }
 
     return cn(
-      "relative transition-all duration-300 font-headline font-bold text-xs uppercase tracking-[0.2em] text-white/80 hover:text-white",
+      "relative transition-all duration-300 font-headline font-bold text-[13px] uppercase tracking-[0.2em] text-white/80 hover:text-white",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
       isActive ? "text-primary after:w-full" : ""
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-xs uppercase tracking-[0.2em] text-white/80 hover:text-white",
+    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[13px] uppercase tracking-[0.2em] text-white/80 hover:text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     pathname.startsWith('/services')
       ? "text-primary after:w-full"
@@ -161,7 +161,7 @@ export function Header() {
         </div>
         
         <div className="flex items-center gap-4">
-            <Button variant="outline" className="hidden sm:flex border-white/20 text-white hover:bg-white hover:text-black font-headline text-[10px] uppercase tracking-widest font-bold h-10" asChild>
+            <Button variant="outline" className="hidden sm:flex border-primary text-primary hover:bg-primary hover:text-white font-headline text-[11px] uppercase tracking-widest font-bold h-10 px-6 transition-all duration-300" asChild>
               <Link href="/client/login">
                 <UserCircle className="mr-2 h-4 w-4" />
                 <span>
