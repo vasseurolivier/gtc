@@ -9,17 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
-} from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,7 +39,6 @@ import { useState, useMemo, useEffect, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { deleteOrder } from '@/actions/orders';
 import { CurrencyContext } from '@/context/currency-context';
 
 export default function ClientOrdersPage() {
@@ -68,6 +56,12 @@ export default function ClientOrdersPage() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
+  const [cart, setCart] = useState<any[]>([]);
+  const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
+  const [isSourcedLoading, setIsSourcedLoading] = useState(false);
+  const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
+  const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
+
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -75,12 +69,6 @@ export default function ClientOrdersPage() {
     const d = new Date(val);
     return isNaN(d.getTime()) ? new Date() : d;
   };
-
-  const [cart, setCart] = useState<any[]>([]);
-  const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
-  const [isSourcedLoading, setIsSourcedLoading] = useState(false);
-  const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
-  const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -163,6 +151,11 @@ export default function ClientOrdersPage() {
     setProductQuantity(1);
     setCurrentImageIdx(0);
     setIsProductDialogOpen(true);
+  };
+
+  const handleViewOrder = (order: any) => {
+    setSelectedOrderPreview(order);
+    setIsOrderPreviewOpen(true);
   };
 
   const handleAddToCart = () => {
@@ -260,15 +253,33 @@ export default function ClientOrdersPage() {
             <CardContent className="p-0">
               {isOrdersLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : orders && orders.length > 0 ? (
                 <Table>
-                  <TableHeader><TableRow className="bg-zinc-50/50"><TableHead className="pl-6">N° Commande</TableHead><TableHead>Statut</TableHead><TableHead className="text-center">Paiement</TableHead><TableHead className="text-right">Total (€)</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow></TableHeader>
+                  <TableHeader>
+                    <TableRow className="bg-zinc-50/50">
+                      <TableHead className="pl-6">N° Commande</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-center">Paiement</TableHead>
+                      <TableHead className="text-right">Total (€)</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {orders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
-                        <TableCell className="text-center">{order.isPaid ? <Badge className="bg-green-100 text-green-700">PAYÉ</Badge> : <Badge variant="outline" className="text-red-500">ATTENTE</Badge>}</TableCell>
+                        <TableCell className="text-center">
+                          {order.isPaid ? (
+                            <Badge className="bg-green-100 text-green-700">PAYÉ</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-red-500">ATTENTE</Badge>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right font-black">€{(order.totalAmount * rate).toFixed(2)}</TableCell>
-                        <TableCell className="text-right pr-6"><Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}><Eye className="h-4 w-4" /></Button></TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -289,7 +300,7 @@ export default function ClientOrdersPage() {
                       <TableRow key={q.id}>
                         <TableCell className="pl-6 font-bold">{q.quoteNumber}</TableCell>
                         <TableCell><Badge variant={q.status === 'accepted' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right pr-6 font-black text-primary">€{(q.totalAmount * q.exchangeRate).toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6 font-black text-primary">€{(q.totalAmount * (q.exchangeRate || rate)).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -310,7 +321,7 @@ export default function ClientOrdersPage() {
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell><Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status}</Badge></TableCell>
-                        <TableCell className="text-right pr-6 font-black text-primary">€{(inv.totalAmount * inv.exchangeRate).toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6 font-black text-primary">€{(inv.totalAmount * (inv.exchangeRate || rate)).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -413,10 +424,102 @@ export default function ClientOrdersPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" /> 
+              Détails Commande {selectedOrderPreview?.orderNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Historique et récapitulatif de votre demande.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrderPreview && (
+            <div className="space-y-8 py-4">
+              <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Statut Actuel</span>
+                  <div>{getOrderStatusBadge(selectedOrderPreview.status)}</div>
+                </div>
+                <div className="text-right space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Montant Total</span>
+                  <div className="text-2xl font-black text-primary">€{(selectedOrderPreview.totalAmount * rate).toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                  <Package className="h-4 w-4 text-zinc-400" /> Articles commandés
+                </h4>
+                <div className="border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead className="w-16"></TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right">Total (€)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell className="py-2">
+                            {item.photo && (
+                              <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
+                                <Image src={item.photo} alt={item.description} fill className="object-cover" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="font-medium text-sm">{item.description}</div>
+                            <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
+                          </TableCell>
+                          <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
+                          <TableCell className="py-2 text-right font-bold">€{(item.total * rate).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
+                  </h4>
+                  <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap min-h-[80px]">
+                    {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-zinc-400" /> Statut du Paiement
+                  </h4>
+                  <div className={cn(
+                    "p-4 rounded-xl flex items-center gap-3",
+                    selectedOrderPreview.isPaid ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
+                  )}>
+                    {selectedOrderPreview.isPaid ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                    <span className="font-bold">{selectedOrderPreview.isPaid ? "Paiement confirmé" : "Paiement en attente"}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground italic px-4 border-t pt-4">
+                Date de commande : {selectedOrderPreview.orderDate ? format(parseSafeDate(selectedOrderPreview.orderDate), 'dd/MM/yyyy HH:mm') : '-'}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" className="w-full font-bold h-12 rounded-xl" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
-
-function handleViewOrder(order: any) {
-  // Logic already defined in state
 }
