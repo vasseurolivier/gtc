@@ -59,7 +59,7 @@ export function HeroSection() {
                 <Badge variant="secondary" className="bg-primary text-white border-none px-4 py-1 text-[10px] md:text-sm font-semibold uppercase tracking-wider animate-in fade-in slide-in-from-left-4 duration-1000">
                   {dictionary.heroSection.tag}
                 </Badge>
-                <h1 className="text-xl md:text-6xl lg:text-7xl font-headline font-extrabold tracking-tight text-white leading-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                <h1 className="text-xl md:text-5xl lg:text-6xl font-headline font-extrabold tracking-tight text-white leading-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                     {dictionary.heroSection.title}
                 </h1>
                 <p className="text-sm md:text-2xl text-zinc-300 leading-tight md:leading-relaxed max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
