@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where, deleteDoc } from 'firebase/firestore';
 
 export interface RegisteredClient {
     id: string;
@@ -109,5 +109,32 @@ export async function updateClientProfile(id: string, data: Partial<RegisteredCl
     } catch (e: any) {
         console.error("Error updating client profile:", e);
         return { success: false, message: 'Erreur lors de la mise à jour.' };
+    }
+}
+
+/**
+ * Delete a product list for a client.
+ */
+export async function deleteProductList(clientId: string, listId: string) {
+    try {
+        const listRef = doc(db, 'clients', clientId, 'productLists', listId);
+        // In a real app we should also delete products inside, but for prototype we delete the doc.
+        await deleteDoc(listRef);
+        return { success: true, message: 'Liste supprimée avec succès.' };
+    } catch (e: any) {
+        return { success: false, message: 'Erreur lors de la suppression de la liste.' };
+    }
+}
+
+/**
+ * Delete a specific product from a client's list.
+ */
+export async function deleteClientProduct(clientId: string, listId: string, productId: string) {
+    try {
+        const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', productId);
+        await deleteDoc(productRef);
+        return { success: true, message: 'Produit supprimé.' };
+    } catch (e: any) {
+        return { success: false, message: 'Erreur lors de la suppression du produit.' };
     }
 }

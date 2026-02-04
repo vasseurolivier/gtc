@@ -8,10 +8,13 @@ import {
   updateRegisteredClientStatus, 
   updateRegisteredClientNumber,
   updateRegisteredClientPrefix,
+  deleteProductList,
+  deleteClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost } from '@/actions/orders';
-import { createQuoteFromOrder, getQuotes, Quote } from '@/actions/quotes';
+import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder } from '@/actions/orders';
+import { createQuoteFromOrder, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
+import { deleteInvoice, getInvoices, Invoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Select, 
@@ -74,7 +78,6 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { getProducts, Product } from '@/actions/products';
-import { getInvoices, Invoice } from '@/actions/invoices';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
@@ -177,6 +180,7 @@ export default function ClientDetailPage() {
   // Invoices Query (Linked to this client)
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
+    // Note: for admin we show all invoices linked to this client, not just paid ones
     return query(collection(db, 'invoices'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: linkedInvoices } = useCollection(invoicesQuery);
@@ -477,6 +481,54 @@ export default function ClientDetailPage() {
     }
   };
 
+  const handleDeleteProductActual = async (product: any) => {
+    const result = await deleteClientProduct(clientId, product.productListId, product.id);
+    if (result.success) {
+      toast({ title: "Supprimé", description: result.message });
+      router.refresh();
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handleDeleteListActual = async (list: any) => {
+    const result = await deleteProductList(clientId, list.id);
+    if (result.success) {
+      toast({ title: "Supprimé", description: result.message });
+      setSelectedList(null);
+      router.refresh();
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handleDeleteOrderActual = async (id: string) => {
+    const result = await deleteOrder(id);
+    if (result.success) {
+      toast({ title: "Supprimé", description: "La commande a été supprimée." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handleDeleteQuoteActual = async (id: string) => {
+    const result = await deleteQuote(id);
+    if (result.success) {
+      toast({ title: "Supprimé", description: "La proforma a été supprimée." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
+  const handleDeleteInvoiceActual = async (id: string) => {
+    const result = await deleteInvoice(id);
+    if (result.success) {
+      toast({ title: "Supprimé", description: "La facture a été supprimée." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
+  };
+
   const handleLinkInvoice = async (inv: Invoice) => {
     if (!db || !client) return;
     setIsSaving(true);
@@ -616,6 +668,23 @@ export default function ClientDetailPage() {
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenOrderPreview(order)}>
                     <Eye className="h-4 w-4" />
                   </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer cette commande ?</AlertDialogTitle>
+                        <AlertDialogDescription>Cette action est irréversible et supprimera la commande de votre espace et de celui du client.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteOrderActual(order.id)}>Supprimer</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </TableCell>
             </TableRow>
@@ -805,9 +874,23 @@ export default function ClientDetailPage() {
                             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEditProduct(product)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500" onClick={() => handleUnpublishProduct(product)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer définitivement ?</AlertDialogTitle>
+                                  <AlertDialogDescription>L'article sera retiré du catalogue client et supprimé de sa liste de sourcing.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteProductActual(product)}>Supprimer</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -857,9 +940,26 @@ export default function ClientDetailPage() {
                             <TableCell className="font-bold">{product.quantity}</TableCell>
                             <TableCell className="text-xs italic text-zinc-400">{product.listName}</TableCell>
                             <TableCell className="text-right pr-6">
-                              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={() => handleEditProduct(product)}>
-                                <Sparkles className="h-3 w-3 mr-2" /> Compléter & Valider
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={() => handleEditProduct(product)}>
+                                  <Sparkles className="h-3 w-3 mr-2" /> Compléter & Valider
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4"/></Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
+                                      <AlertDialogDescription>Cette action retirera l'article de la liste du client.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteProductActual(product)}>Supprimer</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -904,7 +1004,24 @@ export default function ClientDetailPage() {
                       <Button variant="link" onClick={() => setSelectedList(null)} className="p-0 text-zinc-500 hover:no-underline">
                         <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux listes
                       </Button>
-                      <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                      <div className="flex items-center gap-4">
+                        <h3 className="font-bold text-lg">{selectedList.name}</h3>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" className="h-8 font-bold"><Trash2 className="h-3 w-3 mr-2"/> Supprimer la liste</Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer la liste complète ?</AlertDialogTitle>
+                              <AlertDialogDescription>Cela supprimera la liste et tous les produits associés pour ce client.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteListActual(selectedList)}>Confirmer la suppression</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                     
                     <Card className="border-none shadow-md overflow-hidden bg-white">
@@ -941,9 +1058,26 @@ export default function ClientDetailPage() {
                                 )}
                               </TableCell>
                               <TableCell className="text-right pr-6">
-                                <Button size="sm" variant={product.status === 'published' ? "outline" : "default"} onClick={() => handleEditProduct(product)}>
-                                  {product.status === 'published' ? 'Modifier' : 'Compléter & Publier'}
-                                </Button>
+                                <div className="flex justify-end gap-2">
+                                  <Button size="sm" variant={product.status === 'published' ? "outline" : "default"} onClick={() => handleEditProduct(product)}>
+                                    {product.status === 'published' ? 'Modifier' : 'Compléter & Publier'}
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4"/></Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
+                                        <AlertDialogDescription>L'article sera définitivement retiré de cette liste.</AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteProductActual(product)}>Supprimer</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
                               </TableCell>
                             </TableRow>
                           )) : (
@@ -1011,11 +1145,30 @@ export default function ClientDetailPage() {
                         </TableCell>
                         <TableCell className="text-right font-semibold">¥{quote.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/admin/quotes/${quote.id}`}>
-                              <Eye className="h-4 w-4 mr-2" /> Voir
-                            </Link>
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/admin/quotes/${quote.id}`}>
+                                <Eye className="h-4 w-4 mr-2" /> Voir
+                              </Link>
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cette proforma ?</AlertDialogTitle>
+                                  <AlertDialogDescription>Elle ne sera plus visible ni par vous ni par le client.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteQuoteActual(quote.id)}>Supprimer</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )) : (
@@ -1055,11 +1208,30 @@ export default function ClientDetailPage() {
                         </TableCell>
                         <TableCell className="text-right pr-6 font-semibold">¥{inv.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/admin/invoices/${inv.id}`}>
-                              <Eye className="h-4 w-4 mr-2" /> Voir
-                            </Link>
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/admin/invoices/${inv.id}`}>
+                                <Eye className="h-4 w-4 mr-2" /> Voir
+                              </Link>
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cette facture ?</AlertDialogTitle>
+                                  <AlertDialogDescription>Cette action est définitive.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteInvoiceActual(inv.id)}>Supprimer</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )) : (
