@@ -143,7 +143,7 @@ export default function ClientDetailPage() {
   // Split orders into active and archived
   const { activeOrders, archivedOrders } = useMemo(() => {
     if (!orders) return { activeOrders: [], archivedOrders: [] };
-    const active = orders.filter(o => o.status === 'processing' || o.status === 'shipped');
+    const active = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
     const archived = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
     
     const sortByDate = (a: any, b: any) => {
@@ -434,6 +434,7 @@ export default function ClientDetailPage() {
     switch (status) {
       case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
       case 'shipped': return <Badge className="bg-blue-500">Expédié</Badge>;
+      case 'validated': return <Badge className="bg-green-600">Validé</Badge>;
       case 'processing': return <Badge variant="outline">En cours</Badge>;
       case 'cancelled': return <Badge variant="destructive">Annulé</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;
@@ -475,6 +476,7 @@ export default function ClientDetailPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="processing">En cours</SelectItem>
+                    <SelectItem value="validated">Validé</SelectItem>
                     <SelectItem value="shipped">Expédié</SelectItem>
                     <SelectItem value="delivered">Livré</SelectItem>
                     <SelectItem value="cancelled">Annulé</SelectItem>
@@ -955,7 +957,7 @@ export default function ClientDetailPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

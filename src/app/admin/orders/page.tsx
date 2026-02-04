@@ -112,7 +112,7 @@ export default function OrdersPage() {
   
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     const originalOrders = [...orders];
-    const updatedOrders = orders.map(o => o.id === orderId ? {...o, status: newStatus} : o);
+    const updatedOrders = orders.map(o => o.id === orderId ? {...o, status: newStatus} : i);
     setOrders(updatedOrders);
 
     const result = await updateOrderStatus(orderId, newStatus);
@@ -145,13 +145,14 @@ export default function OrdersPage() {
     switch (status) {
         case 'delivered': return 'default';
         case 'shipped': return 'secondary';
+        case 'validated': return 'default'; // Using default (greenish/primary) for validated
         case 'processing': return 'outline';
         case 'cancelled': return 'destructive';
         default: return 'outline';
     }
   }
 
-  const ongoingOrders = orders.filter(o => o.status === 'processing' || o.status === 'shipped');
+  const ongoingOrders = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
   const archivedOrders = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
   
   const archivedOrdersByCustomer = archivedOrders.reduce((acc, order) => {
@@ -204,6 +205,7 @@ export default function OrdersPage() {
                   </SelectTrigger>
                   <SelectContent>
                       <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="validated">Validated</SelectItem>
                       <SelectItem value="shipped">Shipped</SelectItem>
                       <SelectItem value="delivered">Delivered</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>

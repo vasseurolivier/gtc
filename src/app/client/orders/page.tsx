@@ -161,6 +161,7 @@ export default function ClientOrdersPage() {
     switch (status) {
       case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
       case 'shipped': return <Badge className="bg-blue-500">Expédié</Badge>;
+      case 'validated': return <Badge className="bg-green-600 font-black">VALIDÉ !</Badge>;
       case 'processing': return <Badge variant="outline">En cours</Badge>;
       case 'cancelled': return <Badge variant="destructive">Annulé</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;

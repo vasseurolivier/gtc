@@ -6,7 +6,7 @@ import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp
 import { z } from 'zod';
 import type { Quote } from './quotes';
 
-const orderStatusSchema = z.enum(["processing", "shipped", "delivered", "cancelled"]);
+const orderStatusSchema = z.enum(["processing", "validated", "shipped", "delivered", "cancelled"]);
 
 const orderItemSchema = z.object({
   sku: z.string().optional(),
@@ -41,7 +41,7 @@ export interface Order {
     customerName: string;
     items: OrderItem[];
     totalAmount: number;
-    status: "processing" | "shipped" | "delivered" | "cancelled";
+    status: "processing" | "validated" | "shipped" | "delivered" | "cancelled";
     shippingAddress?: string;
     orderDate: string;
     createdAt: string;
