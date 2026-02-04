@@ -404,7 +404,7 @@ function QuotesPageContent() {
             <TableCell className="font-medium">
               <div className="flex items-center gap-2">
                 {quote.quoteNumber}
-                {quote.orderId && <LinkIcon className="h-3 w-3 text-primary" title="Lié à une commande client" />}
+                {quote.orderId && <span title="Lié à une commande client"><LinkIcon className="h-3 w-3 text-primary" /></span>}
               </div>
             </TableCell>
             <TableCell>{quote.customerName}</TableCell>
