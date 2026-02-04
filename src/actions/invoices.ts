@@ -75,7 +75,7 @@ export async function addInvoiceFromOrder(order: Order) {
         const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
 
         const newInvoiceData = {
-          invoiceNumber: `INV-${order.orderNumber.replace('O-', '')}`,
+          invoiceNumber: `INV-${order.orderNumber.replace('O-', '').replace('ORD-', '')}`,
           orderId: order.id,
           orderNumber: order.orderNumber,
           customerId: order.customerId,
@@ -103,6 +103,50 @@ export async function addInvoiceFromOrder(order: Order) {
     } catch (error: any) {
         console.error('Error adding invoice:', error);
         return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+/**
+ * Updates an existing invoice based on changes in an accepted Quote (Proforma).
+ */
+export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
+    try {
+        const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", orderId));
+        const invoicesSnapshot = await getDocs(invoicesQuery);
+
+        if (invoicesSnapshot.empty) {
+            // If no invoice exists yet, it's not an error, we just don't update anything
+            return { success: true, message: "No matching invoice found to update." };
+        }
+
+        const invoiceDoc = invoicesSnapshot.docs[0];
+        const invoiceRef = doc(db, 'invoices', invoiceDoc.id);
+
+        const supplierCostTotal = quote.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+
+        const updatedInvoiceData = {
+            customerId: quote.customerId,
+            customerName: quote.customerName,
+            items: quote.items.map(item => ({
+                description: item.description,
+                sku: item.sku || '',
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                purchasePrice: item.purchasePrice || 0,
+                total: item.total
+            })),
+            totalAmount: quote.totalAmount,
+            supplierCostTotal: supplierCostTotal,
+            transportCost: quote.transportCost || 0,
+        };
+
+        await updateDoc(invoiceRef, updatedInvoiceData);
+        
+        return { success: true, message: 'Invoice updated successfully from proforma!' };
+
+    } catch (error: any) {
+        console.error('Error updating invoice from quote:', error);
+        return { success: false, message: 'An unexpected error occurred while updating the invoice.' };
     }
 }
 
