@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, UserCheck, ShieldCheck, Eye, ShoppingCart } from 'lucide-react';
+import { Loader2, Save, Search, UserCheck, ShieldCheck, Eye, ShoppingCart, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -120,7 +121,7 @@ export default function RegisteredClientsPage() {
           className="pl-10 max-w-md bg-white" 
           placeholder="Rechercher par nom, email ou numéro..." 
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
@@ -131,7 +132,7 @@ export default function RegisteredClientsPage() {
               <TableRow>
                 <TableHead className="w-[200px] pl-6">Nom / Prénom</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Commandes</TableHead>
+                <TableHead>Notifications</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="w-[200px]">Numéro Client</TableHead>
                 <TableHead className="text-right pr-6">Actions</TableHead>
@@ -140,11 +141,17 @@ export default function RegisteredClientsPage() {
             <TableBody>
               {filteredClients.length > 0 ? filteredClients.map((client) => {
                 const pendingCount = getPendingOrdersCount(client.id);
+                const isNew = (Date.now() - new Date(client.createdAt).getTime()) < 3600000;
+                const hasAlert = pendingCount > 0 || client.status === 'pending';
+
                 return (
-                  <TableRow key={client.id} className="hover:bg-muted/30">
+                  <TableRow key={client.id} className={cn("hover:bg-muted/30", hasAlert && "bg-red-50/20")}>
                     <TableCell className="font-semibold pl-6">
                       <Link href={`/admin/registered-clients/${client.id}`} className="hover:text-primary transition-colors flex flex-col">
-                        <span>{client.firstName} {client.lastName}</span>
+                        <span className="flex items-center gap-2">
+                          {client.firstName} {client.lastName}
+                          {hasAlert && <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />}
+                        </span>
                         <span className="text-[10px] text-muted-foreground font-normal">
                           Inscrit le {client.createdAt ? format(new Date(client.createdAt), 'dd/MM/yyyy', { locale: fr }) : 'N/A'}
                         </span>
@@ -152,14 +159,20 @@ export default function RegisteredClientsPage() {
                     </TableCell>
                     <TableCell>{client.email}</TableCell>
                     <TableCell>
-                      {pendingCount > 0 ? (
-                        <Badge className="bg-red-600 animate-pulse flex gap-1 text-[10px]">
-                          <ShoppingCart className="h-3 w-3" />
-                          {pendingCount} EN ATTENTE
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">Aucune active</span>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {pendingCount > 0 && (
+                          <Badge className="bg-red-600 animate-pulse flex gap-1 text-[10px] w-fit">
+                            <ShoppingCart className="h-3 w-3" />
+                            {pendingCount} COMMANDE(S)
+                          </Badge>
+                        )}
+                        {client.status === 'pending' && (
+                          <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 text-[10px] w-fit">
+                            NOUVEAU COMPTE
+                          </Badge>
+                        )}
+                        {!hasAlert && <span className="text-xs text-muted-foreground italic">Aucune</span>}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {client.status === 'validated' ? (

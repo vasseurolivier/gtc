@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -46,6 +47,7 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getSubmissions } from '@/actions/submissions';
 import { getOrders } from '@/actions/orders';
+import { getRegisteredClients } from '@/actions/registered-clients';
 import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
 import { uploadFile } from '@/actions/upload';
@@ -275,6 +277,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
+  const [pendingClients, setPendingClients] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
@@ -292,12 +295,14 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
     if (isAuthenticated !== true) return;
     async function fetchCounts() {
         try {
-            const [subs, ords] = await Promise.all([
+            const [subs, ords, cls] = await Promise.all([
               getSubmissions(),
-              getOrders()
+              getOrders(),
+              getRegisteredClients()
             ]);
             setUnreadMessages(subs.filter(s => !s.read).length);
             setPendingOrders(ords.filter(o => o.status === 'processing').length);
+            setPendingClients(cls.filter(c => c.status === 'pending').length);
         } catch (error) {}
     }
     fetchCounts();
@@ -314,7 +319,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
-    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: pendingOrders > 0 ? pendingOrders : 0 },
+    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: (pendingOrders + pendingClients) },
     { href: '/admin/customers', icon: <Users />, label: 'Leads CRM' },
     { href: '/admin/suppliers', icon: <Factory />, label: 'Suppliers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },

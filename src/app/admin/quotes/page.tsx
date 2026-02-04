@@ -226,12 +226,12 @@ function QuotesPageContent() {
               description: item.description,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
-              purchasePrice: item.purchasePrice || 0,
+              purchasePrice: (item as any).purchasePrice || 0,
               total: item.total,
               photo: (item as any).photo || "",
             }));
             form.reset({
-              quoteNumber: `PI-${order.orderNumber.replace('ORD-', '')}`,
+              quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
               customerId: order.customerId,
               customerName: order.customerName,
               orderId: order.id,
@@ -546,7 +546,7 @@ function QuotesPageContent() {
                                 </div>
                                 <div className="flex items-center gap-4 pt-2">
                                     <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
-                                        {watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain" /> : <UploadCloud className="h-4 w-4 text-zinc-300" />}
+                                        {watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain h-full w-full" /> : <UploadCloud className="h-4 w-4 text-zinc-300" />}
                                     </div>
                                     <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                                         <FormItem className="flex-grow"><FormControl><Input placeholder="URL photo..." {...photoField} className="h-8 text-xs" /></FormControl></FormItem>
