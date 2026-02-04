@@ -36,7 +36,7 @@ export default function TradingLogisticsPage() {
       subtitle: "De la sortie d'usine à votre entrepôt, nous gérons chaque maillon de la chaîne. Suivi de production, contrôle qualité rigoureux et transport optimisé pour une tranquillité totale."
     },
     stats: [
-      { label: "Containers / An", value: "5000+" },
+      { label: "Containers / An", value: "30+" },
       { label: "Taux de Conformité", value: "99.8%" },
       { label: "Blocages Douaniers", value: "0" },
       { label: "Délais Respectés", value: "95%" }

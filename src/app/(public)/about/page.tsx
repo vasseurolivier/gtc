@@ -44,7 +44,7 @@ export default function AboutPage() {
       { label: "Années d'Expérience", value: "10+", icon: <History className="h-5 w-5" /> },
       { label: "Usines Auditées", value: "1000+", icon: <Building className="h-5 w-5" /> },
       { label: "Clients Mondiaux", value: "25+", icon: <Users className="h-5 w-5" /> },
-      { label: "Conteneurs / An", value: "5000+", icon: <Package className="h-5 w-5" /> }
+      { label: "Conteneurs / An", value: "30+", icon: <Package className="h-5 w-5" /> }
     ],
     mission: {
       title: "Notre Mission : Votre Croissance",
