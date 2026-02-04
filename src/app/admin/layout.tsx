@@ -351,7 +351,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
                       {item.badge !== undefined && item.badge > 0 && (
                         <SidebarMenuBadge className={cn(
                           "bg-primary text-white",
-                          item.href === '/admin/orders' && "bg-red-600 animate-pulse"
+                          (item.href === '/admin/orders' || item.href === '/admin/registered-clients') && "bg-red-600 animate-pulse"
                         )}>
                           {item.badge}
                         </SidebarMenuBadge>
