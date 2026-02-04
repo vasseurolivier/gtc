@@ -5,10 +5,21 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@
 import { collection, query, where, getDocs, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,6 +46,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { deleteOrder } from '@/actions/orders';
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
@@ -219,6 +231,15 @@ export default function ClientOrdersPage() {
     setIsOrderPreviewOpen(true);
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    const result = await deleteOrder(orderId);
+    if (result.success) {
+      toast({ title: "Commande annulée", description: "Votre commande a été supprimée avec succès." });
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer la commande." });
+    }
+  };
+
   const handleConfirmOrder = async () => {
     if (!user || cart.length === 0 || !db) return;
     setIsSubmittingOrder(true);
@@ -313,9 +334,34 @@ export default function ClientOrdersPage() {
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-right font-semibold">¥{order.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
-                            <Eye className="h-4 w-4 mr-2" /> Voir
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                              <Eye className="h-4 w-4 mr-2" /> Voir
+                            </Button>
+                            {order.status === 'processing' && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-300 hover:text-red-500">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Annuler cette commande ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irréversible. Votre demande de commande sera définitivement supprimée de notre système.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Retour</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteOrder(order.id)} className="bg-red-600 hover:bg-red-700 text-white">
+                                      Supprimer la commande
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
