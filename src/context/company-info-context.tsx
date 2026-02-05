@@ -23,13 +23,16 @@ interface CompanyInfoContextType {
 
 export const CompanyInfoContext = createContext<CompanyInfoContextType | undefined>(undefined);
 
+// Un logo par défaut au cas où l'utilisateur n'en a pas encore mis
+const DEFAULT_LOGO = "https://i.postimg.cc/m2m0XQZp/gtc-logo-placeholder.png";
+
 const defaultCompanyInfo: CompanyInfo = {
-  name: 'Yiwu Huanqiu Trading',
+  name: 'Global Trading China',
   address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
   email: 'info@globaltradingchina.com',
-  phone: '+8613564770717',
-  logo: '',
-  publicLogo: '',
+  phone: '+86 135 6477 0717',
+  logo: DEFAULT_LOGO,
+  publicLogo: DEFAULT_LOGO,
   brochureUrl: '',
 };
 
@@ -45,17 +48,21 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        setCompanyInfoState(prev => ({ ...prev, ...docSnap.data() as Partial<CompanyInfo> }));
+        const data = docSnap.data();
+        setCompanyInfoState({
+            ...defaultCompanyInfo,
+            ...data,
+            // Assurer que le logo n'est jamais une chaîne vide pour éviter les erreurs 404
+            logo: data.logo || DEFAULT_LOGO,
+            publicLogo: data.publicLogo || data.logo || DEFAULT_LOGO
+        } as CompanyInfo);
       } else {
-        // If the document does not exist, create it with default values.
-        setDoc(docRef, defaultCompanyInfo).catch(error => {
-            console.error("Failed to create initial company info document:", error);
-        });
+        setDoc(docRef, defaultCompanyInfo).catch(console.error);
         setCompanyInfoState(defaultCompanyInfo);
       }
       setIsCompanyInfoLoaded(true);
     }, (error) => {
-        console.error("Failed to listen to company info from Firestore:", error);
+        console.error("Error loading company info:", error);
         setCompanyInfoState(defaultCompanyInfo);
         setIsCompanyInfoLoaded(true);
     });
@@ -69,7 +76,7 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
         await setDoc(docRef, newInfo, { merge: true });
     } catch (error) {
-        console.error('Failed to save company info to Firestore', error);
+        console.error('Failed to save company info:', error);
     }
   };
   

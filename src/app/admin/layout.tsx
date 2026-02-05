@@ -28,7 +28,6 @@ import {
   Landmark,
   FileSignature,
   ClipboardList,
-  Factory,
   UserCheck,
   FileDown,
   Settings,
@@ -36,8 +35,8 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CurrencyProvider, CurrencyContext } from '@/context/currency-context';
-import { CompanyInfoProvider, CompanyInfoContext, CompanyInfo } from '@/context/company-info-context';
+import { CurrencyContext } from '@/context/currency-context';
+import { CompanyInfoContext } from '@/context/company-info-context';
 import { useContext, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -45,12 +44,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getSubmissions } from '@/actions/submissions';
 import { getOrders } from '@/actions/orders';
 import { getRegisteredClients } from '@/actions/registered-clients';
-import { AppProviders } from '@/components/app-providers';
 import { Loader2 } from 'lucide-react';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
@@ -64,11 +61,9 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
     
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    // Currency state
     const [selectedCurrency, setSelectedCurrency] = useState('EUR');
     const [localRate, setLocalRate] = useState('');
     
-    // Company Info state
     const [companyName, setCompanyName] = useState('');
     const [companyAddress, setCompanyAddress] = useState('');
     const [companyEmail, setCompanyEmail] = useState('');
@@ -77,7 +72,6 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
     const [publicLogo, setPublicLogo] = useState('');
     const [brochureUrl, setBrochureUrl] = useState('');
     
-    // Upload state
     const [isUploadingLogo, setIsUploadingLogo] = useState(false);
     const [isUploadingPublicLogo, setIsUploadingPublicLogo] = useState(false);
     const [isUploadingBrochure, setIsUploadingBrochure] = useState(false);
@@ -350,15 +344,12 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
               getRegisteredClients()
             ]);
             
-            // Check for pending sourcing products
             let sourcingCount = 0;
             try {
               const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
               const snap = await getDocs(q);
               sourcingCount = snap.size;
-            } catch (e) {
-              console.error("Sourcing notification error:", e);
-            }
+            } catch (e) {}
 
             setUnreadMessages(subs.filter(s => !s.read).length);
             setPendingOrders(ords.filter(o => o.status === 'processing').length);
@@ -397,13 +388,15 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) return null;
 
+  const displayLogo = companyInfoContext?.companyInfo.publicLogo || companyInfoContext?.companyInfo.logo;
+
   return (
     <SidebarProvider>
       <Sidebar className="no-print bg-muted/20">
         <SidebarContent>
-          <SidebarHeader>
-             <Link href="/" className="flex items-center gap-2">
-                {companyInfoContext?.companyInfo.logo && <Image src={companyInfoContext.companyInfo.logo} alt="Company Logo" width={120} height={120} className="object-contain" />}
+          <SidebarHeader className="p-4">
+             <Link href="/" className="flex items-center justify-center py-4">
+                {displayLogo && <img src={displayLogo} alt="Company Logo" className="max-h-16 w-auto object-contain" />}
             </Link>
           </SidebarHeader>
           <SidebarMenu>
@@ -465,16 +458,10 @@ export default function AdminRootLayout({ children }: { children: React.ReactNod
   if (!mounted) return null;
 
   if (pathname.endsWith('/admin/login')) {
-    return <AppProviders>{children}</AppProviders>;
+    return <>{children}</>;
   }
 
   return (
-    <AppProviders>
-      <CompanyInfoProvider>
-          <CurrencyProvider>
-              <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
-          </CurrencyProvider>
-      </CompanyInfoProvider>
-    </AppProviders>
+    <ProtectedAdminLayout>{children}</ProtectedAdminLayout>
   )
 }

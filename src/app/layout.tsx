@@ -4,6 +4,7 @@ import './globals.css';
 import { AppProviders } from '@/components/app-providers';
 import Script from 'next/script';
 import { CompanyInfoProvider } from '@/context/company-info-context';
+import { CurrencyProvider } from '@/context/currency-context';
 import { ReactNode } from 'react';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
@@ -24,14 +25,12 @@ export default function RootLayout({
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-          {/* Google tag (gtag.js) */}
           <Script async src="https://www.googletagmanager.com/gtag/js?id=G-WSMMTQ99HW"></Script>
           <Script id="google-analytics">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-
               gtag('config', 'G-WSMMTQ99HW');
             `}
           </Script>
@@ -40,7 +39,9 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <AppProviders>
             <CompanyInfoProvider>
-              {children}
+              <CurrencyProvider>
+                {children}
+              </CurrencyProvider>
             </CompanyInfoProvider>
           </AppProviders>
         </FirebaseClientProvider>

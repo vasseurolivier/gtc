@@ -31,7 +31,12 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
         if (!element) return;
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+        const canvas = await html2canvas(element, { 
+            scale: 2, 
+            useCORS: true,
+            logging: false,
+            allowTaint: true
+        });
         const data = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -83,7 +88,14 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                     <div className="flex-grow">
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
-                                {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-20 w-auto object-contain block"/>}
+                                {displayLogo && (
+                                    <img 
+                                        src={displayLogo} 
+                                        alt="Logo" 
+                                        crossOrigin="anonymous" 
+                                        className="h-20 w-auto object-contain block"
+                                    />
+                                )}
                             </div>
                             <div className="text-right">
                                 <h1 className="text-2xl font-black text-zinc-900 tracking-tighter">PROFORMA</h1>
