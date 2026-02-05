@@ -37,7 +37,7 @@ import {
   Ruler,
   Coins,
   ShieldCheck,
-  Building2
+  Building2 
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -105,7 +105,7 @@ export default function ClientOrdersPage() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'paid'));
+    return collection(db, 'clients', user.uid, 'invoices');
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
@@ -145,6 +145,37 @@ export default function ClientOrdersPage() {
     }
     fetchAllSourced();
   }, [db, user, clientLists]);
+
+  // SMART SORTING LOGIC
+  const sortedOrders = useMemo(() => {
+    if (!orders) return [];
+    return [...orders].sort((a, b) => {
+      const isPendingA = a.paymentStatus !== 'paid' ? 1 : 0;
+      const isPendingB = b.paymentStatus !== 'paid' ? 1 : 0;
+      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
+    });
+  }, [orders]);
+
+  const sortedQuotes = useMemo(() => {
+    if (!quotes) return [];
+    return [...quotes].sort((a, b) => {
+      const isPendingA = (a.status !== 'accepted' && a.status !== 'paid') ? 1 : 0;
+      const isPendingB = (b.status !== 'accepted' && b.status !== 'paid') ? 1 : 0;
+      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
+    });
+  }, [quotes]);
+
+  const sortedInvoices = useMemo(() => {
+    if (!invoices) return [];
+    return [...invoices].sort((a, b) => {
+      const isPendingA = a.status !== 'paid' ? 1 : 0;
+      const isPendingB = b.status !== 'paid' ? 1 : 0;
+      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
+    });
+  }, [invoices]);
 
   const cartTotalCny = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.total, 0);
@@ -325,7 +356,7 @@ export default function ClientOrdersPage() {
         <TabsContent value="orders" className="mt-6">
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
-              {isOrdersLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : orders && orders.length > 0 ? (
+              {isOrdersLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : sortedOrders.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
@@ -337,9 +368,14 @@ export default function ClientOrdersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="pl-6 font-bold">{order.orderNumber}</TableCell>
+                    {sortedOrders.map((order) => (
+                      <TableRow key={order.id} className={cn(order.paymentStatus !== 'paid' && "bg-primary/5")}>
+                        <TableCell className="pl-6 font-bold">
+                          <div className="flex items-center gap-2">
+                            {order.orderNumber}
+                            {order.paymentStatus !== 'paid' && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
+                          </div>
+                        </TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-center">
                           {getPaymentStatusBadge(order.paymentStatus)}
@@ -364,7 +400,7 @@ export default function ClientOrdersPage() {
         <TabsContent value="quotes" className="mt-6">
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
-              {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : quotes && quotes.length > 0 ? (
+              {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : sortedQuotes.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
@@ -375,22 +411,30 @@ export default function ClientOrdersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {quotes.map((q) => (
-                      <TableRow key={q.id}>
-                        <TableCell className="pl-6 font-bold">{q.quoteNumber}</TableCell>
-                        <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right">
-                          {renderPrice(q.totalAmount, "font-black text-primary")}
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/client/quotes/${q.id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {sortedQuotes.map((q) => {
+                      const isPending = q.status !== 'accepted' && q.status !== 'paid';
+                      return (
+                        <TableRow key={q.id} className={cn(isPending && "bg-primary/5")}>
+                          <TableCell className="pl-6 font-bold">
+                            <div className="flex items-center gap-2">
+                              {q.quoteNumber}
+                              {isPending && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
+                            </div>
+                          </TableCell>
+                          <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
+                          <TableCell className="text-right">
+                            {renderPrice(q.totalAmount, "font-black text-primary")}
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link href={`/client/quotes/${q.id}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : <div className="p-20 text-center text-zinc-400">Aucune proforma.</div>}
@@ -401,36 +445,50 @@ export default function ClientOrdersPage() {
         <TabsContent value="invoices" className="mt-6">
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
-              {isInvoicesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : invoices && invoices.length > 0 ? (
+              {isInvoicesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : sortedInvoices.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Facture</TableHead>
                       <TableHead>Échéance</TableHead>
+                      <TableHead className="text-center">Statut</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right pr-6">Documents</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoices.map((inv) => (
-                      <TableRow key={inv.id}>
-                        <TableCell className="pl-6 font-bold">{inv.invoiceNumber}</TableCell>
-                        <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
-                        <TableCell className="text-right">
-                          {renderPrice(inv.totalAmount, "font-black text-primary")}
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/client/invoices/${inv.id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {sortedInvoices.map((inv) => {
+                      const isPending = inv.status !== 'paid';
+                      return (
+                        <TableRow key={inv.id} className={cn(isPending && "bg-red-50/30")}>
+                          <TableCell className="pl-6 font-bold">
+                            <div className="flex items-center gap-2">
+                              {inv.invoiceNumber}
+                              {isPending && <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />}
+                            </div>
+                          </TableCell>
+                          <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={inv.status === 'paid' ? 'bg-green-500' : 'bg-red-500'}>
+                              {inv.status === 'paid' ? 'Acquittée' : 'À régler'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {renderPrice(inv.totalAmount, "font-black text-primary")}
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Button variant="ghost" size="icon" asChild disabled={inv.status !== 'paid'}>
+                              <Link href={`/client/invoices/${inv.id}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
-              ) : <div className="p-20 text-center text-zinc-400">Aucune facture payée disponible pour le moment.</div>}
+              ) : <div className="p-20 text-center text-zinc-400">Aucune facture enregistrée.</div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -742,7 +800,7 @@ export default function ClientOrdersPage() {
                   <h4 className="font-bold text-zinc-900 flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-zinc-400" /> Adresse de livraison
                   </h4>
-                  <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap min-h-[80px]">
+                  <div className="p-4 bg-white border rounded-xl text-sm text-zinc-600 architectural leading-relaxed whitespace-pre-wrap min-h-[80px]">
                     {selectedOrderPreview.shippingAddress || "Aucune adresse renseignée."}
                   </div>
                 </div>
