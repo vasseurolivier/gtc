@@ -10,13 +10,15 @@ import {
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { getOrders, Order } from '@/actions/orders';
+import { getCustomers, Customer } from '@/actions/customers';
 import { useFirestore } from '@/firebase';
 import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList, TrendingUp, Euro } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList, Euro, UserPlus, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -27,6 +29,7 @@ import { CurrencyContext } from '@/context/currency-context';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
+  const [leads, setLeads] = useState<Customer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingSourcingIds, setPendingSourcingIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +37,8 @@ export default function RegisteredClientsPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
+  const [isLeadsDialogOpen, setIsLeadsDialogOpen] = useState(false);
+  
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -66,8 +71,9 @@ export default function RegisteredClientsPage() {
       if (!db) return;
       setIsLoading(true);
       try {
-        const [clientList, ords] = await Promise.all([
+        const [clientList, leadList, ords] = await Promise.all([
           getRegisteredClients(),
+          getCustomers(),
           getOrders()
         ]);
         
@@ -85,7 +91,12 @@ export default function RegisteredClientsPage() {
           console.error("Sourcing notification error:", e);
         }
 
+        // Filter out leads that already have an account
+        const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
+        const availableLeads = leadList.filter(l => !registeredEmails.has((l.email || '').toLowerCase()) && l.email);
+
         setClients(clientList || []);
+        setLeads(availableLeads || []);
         setOrders(ords || []);
         setPendingSourcingIds(sourcingIds);
         
@@ -171,6 +182,9 @@ export default function RegisteredClientsPage() {
           <h1 className="text-3xl font-bold">Comptes Clients</h1>
           <p className="text-muted-foreground">Validez les comptes et gérez les dossiers clients.</p>
         </div>
+        <Button onClick={() => setIsLeadsDialogOpen(true)} className="bg-primary hover:bg-primary/90 font-bold">
+          <UserPlus className="mr-2 h-4 w-4" /> Enregistrer un Prospect (Lead)
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -336,6 +350,47 @@ export default function RegisteredClientsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isLeadsDialogOpen} onOpenChange={setIsLeadsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Sélectionner un Prospect à enregistrer</DialogTitle>
+            <DialogDescription>Choisissez un prospect du CRM pour lui créer un accès sécurisé à l'espace client.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {leads.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell className="font-bold">{lead.name}</TableCell>
+                      <TableCell className="text-xs">{lead.email}</TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" asChild>
+                          <Link href={`/admin/customers/${lead.id}`}>
+                            Créer accès <ArrowRight className="ml-2 h-3 w-3" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="p-12 text-center text-muted-foreground">
+                Tous vos prospects avec email ont déjà un compte ou aucun prospect n'est enregistré.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

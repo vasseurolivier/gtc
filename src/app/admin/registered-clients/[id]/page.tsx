@@ -533,11 +533,21 @@ export default function ClientDetailPage() {
     if (!db || !client) return;
     setIsSaving(true);
     try {
+      const customerFullName = `${client.firstName || ''} ${client.lastName || ''}`;
+      // 1. Update Master Copy
       const invoiceRef = doc(db, 'invoices', inv.id);
       await updateDoc(invoiceRef, {
         customerId: clientId,
-        customerName: `${client.firstName || ''} ${client.lastName || ''}`
+        customerName: customerFullName
       });
+      
+      // 2. Create Client Subcollection Copy (Distinct Copy)
+      const clientInvoiceRef = doc(db, 'clients', clientId, 'invoices', inv.id);
+      await setDoc(clientInvoiceRef, {
+        ...inv,
+        customerId: clientId,
+        customerName: customerFullName
+      }, { merge: true });
       
       toast({ title: "Facture liée", description: `La facture ${inv.invoiceNumber} est maintenant visible par le client.` });
       setIsInvoiceLinkDialogOpen(false);
@@ -554,11 +564,21 @@ export default function ClientDetailPage() {
     if (!db || !client) return;
     setIsSaving(true);
     try {
+      const customerFullName = `${client.firstName || ''} ${client.lastName || ''}`;
+      // 1. Update Master Copy
       const quoteRef = doc(db, 'quotes', quote.id);
       await updateDoc(quoteRef, {
         customerId: clientId,
-        customerName: `${client.firstName || ''} ${client.lastName || ''}`
+        customerName: customerFullName
       });
+      
+      // 2. Create Client Subcollection Copy (Distinct Copy)
+      const clientQuoteRef = doc(db, 'clients', clientId, 'quotes', quote.id);
+      await setDoc(clientQuoteRef, {
+        ...quote,
+        customerId: clientId,
+        customerName: customerFullName
+      }, { merge: true });
       
       toast({ title: "Proforma liée", description: `La proforma ${quote.quoteNumber} est maintenant visible par le client.` });
       setIsQuoteLinkDialogOpen(false);
@@ -617,7 +637,7 @@ export default function ClientDetailPage() {
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
-              <TableCell className="pl-6 font-bold">
+              <TableCell className="pl-6 py-4 font-bold">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     {order.orderNumber}

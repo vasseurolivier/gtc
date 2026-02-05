@@ -16,9 +16,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { initializeApp, deleteApp, getApp, getApps } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
 
@@ -56,9 +56,10 @@ export default function CustomerProfilePage() {
             
             // Check if a client account with this email already exists
             if (data?.email && db) {
-                const clientRef = doc(db, 'clients', data.id); // Try by ID first
-                const clientSnap = await getDoc(clientRef);
-                if (clientSnap.exists()) {
+                // Search by email in clients collection
+                const q = query(collection(db, 'clients'), where('email', '==', data.email));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
                     setIsAlreadyClient(true);
                 }
             }
@@ -77,8 +78,7 @@ export default function CustomerProfilePage() {
 
         setIsConverting(true);
         try {
-            // Logic to create a user without signing out the current admin
-            // We use a secondary Firebase app instance for this specific task
+            // 1. Create User in Firebase Auth using a secondary app instance
             const secondaryAppName = `secondary-${Date.now()}`;
             const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
             const secondaryAuth = getAuth(secondaryApp);
@@ -87,7 +87,7 @@ export default function CustomerProfilePage() {
             const uid = userCredential.user.uid;
 
             if (db) {
-                // Create the client document
+                // 2. Create the client document
                 const clientDoc = {
                     id: uid,
                     firstName: customer.name.split(' ')[0] || '',
@@ -103,7 +103,34 @@ export default function CustomerProfilePage() {
 
                 await setDoc(doc(db, 'clients', uid), clientDoc);
                 
-                toast({ title: "Compte Client Créé", description: `Un accès a été créé pour ${customer.email}.` });
+                // 3. AUTO-SYNC HISTORY: Find and link all existing master quotes/invoices
+                const quotesQuery = query(collection(db, 'quotes'), where('customerId', '==', customer.id));
+                const quotesSnap = await getDocs(quotesQuery);
+                for (const qDoc of quotesSnap.docs) {
+                    const quoteData = qDoc.data();
+                    // Update master
+                    await updateDoc(qDoc.ref, { customerId: uid });
+                    // Create copy in client subcollection
+                    await setDoc(doc(db, 'clients', uid, 'quotes', qDoc.id), { ...quoteData, customerId: uid }, { merge: true });
+                }
+
+                const invoicesQuery = query(collection(db, 'invoices'), where('customerId', '==', customer.id));
+                const invoicesSnap = await getDocs(invoicesQuery);
+                for (const iDoc of invoicesSnap.docs) {
+                    const invData = iDoc.data();
+                    // Update master
+                    await updateDoc(iDoc.ref, { customerId: uid });
+                    // Create copy in client subcollection
+                    await setDoc(doc(db, 'clients', uid, 'invoices', iDoc.id), { ...invData, customerId: uid }, { merge: true });
+                }
+
+                const ordersQuery = query(collection(db, 'orders'), where('customerId', '==', customer.id));
+                const ordersSnap = await getDocs(ordersQuery);
+                for (const oDoc of ordersSnap.docs) {
+                    await updateDoc(oDoc.ref, { customerId: uid });
+                }
+
+                toast({ title: "Compte Client Créé", description: `Accès créé et historique synchronisé pour ${customer.email}.` });
                 setIsConvertDialogOpen(false);
                 setIsAlreadyClient(true);
             }
@@ -291,7 +318,7 @@ export default function CustomerProfilePage() {
                     <DialogHeader>
                         <DialogTitle>Promouvoir en Compte Client</DialogTitle>
                         <DialogDescription>
-                            Cela va créer un accès sécurisé pour <strong>{customer.email}</strong>. Toutes les informations du CRM seront transférées vers son nouvel Espace Client.
+                            Cela va créer un accès sécurisé pour <strong>{customer.email}</strong>. Toutes les informations (Société, Adresse) et les documents (PI, Invoices) seront transférés vers son nouvel Espace Client.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
