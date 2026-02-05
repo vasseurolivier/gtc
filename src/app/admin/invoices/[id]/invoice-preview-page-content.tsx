@@ -41,7 +41,7 @@ export default function InvoicePreviewPageContent() {
                     }
                     
                     // Try to fetch from registered clients first (since converted leads use Auth UID)
-                    let clientData = await getRegisteredClientById(invoice.customerId);
+                    let clientData: any = await getRegisteredClientById(invoice.customerId);
                     
                     // Fallback to CRM customers if not found
                     if (!clientData) {

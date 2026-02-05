@@ -43,7 +43,7 @@ export default function QuotePreviewPageContent() {
                 }
 
                 // Handle both converted clients and Leads
-                let clientData = await getRegisteredClientById(quote.customerId);
+                let clientData: any = await getRegisteredClientById(quote.customerId);
                 if (!clientData) {
                     clientData = await getCustomerById(quote.customerId);
                 }
