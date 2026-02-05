@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { getCustomerById, Customer } from '@/actions/customers';
-import { User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart, FileSpreadsheet, ArrowLeft, Loader2, MapPin, UserPlus, Lock, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Phone, Building, Globe, StickyNote, Euro, ShoppingCart, FileSpreadsheet, ArrowLeft, Loader2, MapPin, UserPlus, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,12 @@ export default function CustomerProfilePage() {
     };
 
     const handleCreateClientAccount = async () => {
-        if (!customer || !initialPassword || initialPassword.length < 6) {
+        if (!customer || !customer.email) {
+            toast({ variant: "destructive", title: "Email manquant", description: "L'email est obligatoire pour créer un compte." });
+            return;
+        }
+        
+        if (!initialPassword || initialPassword.length < 6) {
             toast({ variant: "destructive", title: "Erreur", description: "Le mot de passe doit faire au moins 6 caractères." });
             return;
         }
@@ -229,7 +233,16 @@ export default function CustomerProfilePage() {
                 </Button>
                 <div className="flex gap-2">
                     {!isAlreadyClient ? (
-                        <Button onClick={() => setIsConvertDialogOpen(true)} className="bg-primary hover:bg-primary/90">
+                        <Button 
+                            onClick={() => {
+                                if (!customer.email) {
+                                    toast({ variant: "destructive", title: "Email requis", description: "Veuillez d'abord modifier ce prospect dans le CRM pour lui ajouter un email." });
+                                } else {
+                                    setIsConvertDialogOpen(true);
+                                }
+                            }} 
+                            className="bg-primary hover:bg-primary/90"
+                        >
                             <UserPlus className="mr-2 h-4 w-4" />
                             Créer un accès Espace Client
                         </Button>
@@ -255,7 +268,9 @@ export default function CustomerProfilePage() {
                              </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
-                            <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {customer.email || 'N/A'}</div>
+                            <div className={cn("flex items-center gap-2 font-medium", !customer.email && "text-red-500")}>
+                                <Mail className="h-4 w-4" /> {customer.email || 'Email manquant (Action requise)'}
+                            </div>
                             {customer.phone && <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {customer.phone}</div>}
                             {customer.company && <div className="flex items-center gap-2 text-muted-foreground font-bold text-zinc-900"><Building className="h-4 w-4" /> {customer.company}</div>}
                             {customer.country && <div className="flex items-center gap-2 text-muted-foreground"><Globe className="h-4 w-4" /> {customer.country}</div>}
@@ -277,6 +292,15 @@ export default function CustomerProfilePage() {
                     </Card>
                 </div>
                 <div className="lg:col-span-2">
+                    {!customer.email && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 shrink-0" />
+                            <div>
+                                <p className="font-bold">Information manquante</p>
+                                <p className="text-sm">Pour créer un compte client, un email est indispensable. Retournez à la liste du CRM pour modifier ce prospect et lui attribuer une adresse email valide.</p>
+                            </div>
+                        </div>
+                    )}
                     <Card className="border-none shadow-md">
                         <CardHeader>
                             <CardTitle>Historique des Commandes</CardTitle>

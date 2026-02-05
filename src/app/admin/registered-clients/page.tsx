@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -91,9 +90,12 @@ export default function RegisteredClientsPage() {
           console.error("Sourcing notification error:", e);
         }
 
-        // Filter out leads that already have an account
+        // Only filter out those who already have a registered account (matching email)
         const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
-        const availableLeads = leadList.filter(l => !registeredEmails.has((l.email || '').toLowerCase()) && l.email);
+        const availableLeads = leadList.filter(l => {
+          if (!l.email) return true; // Always show leads without email so they can be completed
+          return !registeredEmails.has(l.email.toLowerCase());
+        });
 
         setClients(clientList || []);
         setLeads(availableLeads || []);
@@ -368,24 +370,29 @@ export default function RegisteredClientsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leads.map((lead) => (
-                    <TableRow key={lead.id}>
-                      <TableCell className="font-bold">{lead.name}</TableCell>
-                      <TableCell className="text-xs">{lead.email}</TableCell>
-                      <TableCell className="text-right">
-                        <Button size="sm" asChild>
-                          <Link href={`/admin/customers/${lead.id}`}>
-                            Créer accès <ArrowRight className="ml-2 h-3 w-3" />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {leads.map((lead) => {
+                    const hasEmail = !!lead.email;
+                    return (
+                      <TableRow key={lead.id}>
+                        <TableCell className="font-bold">{lead.name}</TableCell>
+                        <TableCell className={cn("text-xs", !hasEmail && "text-red-400 italic")}>
+                          {lead.email || "Email manquant"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="sm" asChild>
+                            <Link href={`/admin/customers/${lead.id}`}>
+                              {hasEmail ? "Créer accès" : "Voir / Modifier"} <ArrowRight className="ml-2 h-3 w-3" />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             ) : (
               <div className="p-12 text-center text-muted-foreground">
-                Tous vos prospects avec email ont déjà un compte ou aucun prospect n'est enregistré.
+                Aucun prospect enregistré dans le CRM.
               </div>
             )}
           </div>
