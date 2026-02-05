@@ -81,7 +81,7 @@ export async function addOrder(quote: Quote) {
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
         
-        // Only generate invoice if it's already fully paid
+        // Automatisme : générer facture si déjà payé intégralement
         if (newOrderData.paymentStatus === 'paid') {
             const finalOrder = { ...newOrderData, id: docRef.id } as unknown as Order;
             await addInvoiceFromOrder(finalOrder);
@@ -211,13 +211,13 @@ export async function updateOrderPaymentStatus(id: string, paymentStatus: Paymen
         const orderRef = doc(db, 'orders', id);
         await updateDoc(orderRef, { paymentStatus });
 
-        // If fully paid, generate invoice if it doesn't exist
+        // AUTOMATISME : Si le solde est payé intégralement, générer la facture si elle n'existe pas
         if (paymentStatus === 'paid') {
             const orderSnap = await getDoc(orderRef);
             if (orderSnap.exists()) {
                 const orderData = { ...orderSnap.data(), id: orderSnap.id } as unknown as Order;
                 
-                // Check if invoice already exists
+                // On vérifie d'abord si une facture n'existe pas déjà pour cet OrderID
                 const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
                 const invoiceSnap = await getDocs(invoiceQuery);
                 

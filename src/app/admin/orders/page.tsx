@@ -15,9 +15,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order, PaymentStatus } from '@/actions/orders';
-import { getQuotes, Quote, createQuoteFromOrder } from '@/actions/quotes';
+import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Truck, CreditCard } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -39,7 +39,6 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddOrderOpen, setAddOrderOpen] = useState(false);
-  const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   
@@ -172,21 +171,9 @@ export default function OrdersPage() {
     }
   };
 
-  const handleGenerateQuote = async (orderId: string) => {
-    setIsGeneratingQuote(orderId);
-    try {
-      const result = await createQuoteFromOrder(orderId);
-      if (result.success) {
-        toast({ title: "Succès", description: result.message });
-        router.push('/admin/quotes');
-      } else {
-        toast({ variant: "destructive", title: "Erreur", description: result.message });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erreur", description: "Une erreur est survenue." });
-    } finally {
-      setIsGeneratingQuote(null);
-    }
+  const handleNavigateToQuote = (orderId: string) => {
+    // Redirection vers la page des proformas avec l'ID de commande pour pré-remplissage et choix des options
+    router.push(`/admin/quotes?fromOrder=${orderId}`);
   };
 
   const getStatusBadgeVariant = (status: Order['status']) => {
@@ -321,10 +308,9 @@ export default function OrdersPage() {
                         variant="secondary" 
                         size="sm" 
                         className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
-                        disabled={isGeneratingQuote === order.id}
-                        onClick={() => handleGenerateQuote(order.id)}
+                        onClick={() => handleNavigateToQuote(order.id)}
                       >
-                        {isGeneratingQuote === order.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
+                        <Sparkles className="mr-2 h-3 w-3" />
                         Générer PI
                       </Button>
                     )}
