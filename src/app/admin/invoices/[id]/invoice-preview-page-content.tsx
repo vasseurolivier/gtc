@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -6,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 
 import type { Invoice } from '@/actions/invoices';
 import { getInvoiceById } from '@/actions/invoices';
-import type { Customer } from '@/actions/customers';
 import { getCustomerById } from '@/actions/customers';
+import { getRegisteredClientById } from '@/actions/registered-clients';
 import type { Product } from '@/actions/products';
 import { getProducts } from '@/actions/products';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ export default function InvoicePreviewPageContent() {
     const params = useParams();
     const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    const [data, setData] = useState<{ invoice: Invoice | null, customer: Customer | null, products: Product[] } | null>(null);
+    const [data, setData] = useState<{ invoice: Invoice | null, customer: any | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const companyInfoContext = useContext(CompanyInfoContext);
 
@@ -40,11 +39,18 @@ export default function InvoicePreviewPageContent() {
                     if (!invoice) {
                         return { invoice: null, customer: null, products: [] };
                     }
-                    const [customer, products] = await Promise.all([
-                        getCustomerById(invoice.customerId),
-                        getProducts()
-                    ]);
-                    return { invoice, customer, products };
+                    
+                    // Try to fetch from registered clients first (since converted leads use Auth UID)
+                    let clientData = await getRegisteredClientById(invoice.customerId);
+                    
+                    // Fallback to CRM customers if not found
+                    if (!clientData) {
+                        clientData = await getCustomerById(invoice.customerId);
+                    }
+
+                    const products = await getProducts();
+                    
+                    return { invoice, customer: clientData, products };
                 } catch (e) {
                     console.error(e);
                     return { invoice: null, customer: null, products: [] };

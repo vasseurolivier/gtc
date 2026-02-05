@@ -1,13 +1,10 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
-import type { Customer } from '@/actions/customers';
-import type { Product } from '@/actions/products';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
@@ -15,7 +12,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 
-export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: Customer, products: Product[] }) {
+export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: any, products: any[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
 
@@ -66,7 +63,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
-    // Use stored rate or current context rate
     const quoteRate = quote.exchangeRate || exchangeRate || 0.13;
     const commissionAmount = quote.subTotal * ((quote.commissionRate || 0) / 100);
 
@@ -75,6 +71,9 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
       itemChunks.push(quote.items.slice(i, i + 10));
     }
 
+    // Customer normalization
+    const companyName = customer.companyName || customer.company || '';
+    const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : customer.name;
 
     return (
         <main id="invoice-preview" className="w-full mx-auto bg-white">
@@ -92,7 +91,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             {displayLogo && <img src={displayLogo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain block" />}
                         </div>
                         <div className="text-right w-1/3">
-                            <h1 className="text-base font-bold text-black leading-tight">PROFORMA</h1>
+                            <h1 className="text-base font-bold text-black uppercase leading-tight">Proforma</h1>
                             <p className="mt-1 text-xs text-muted-foreground leading-tight">N° {quote.quoteNumber}</p>
                         </div>
                     </header>
@@ -106,8 +105,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">FACTURÉ À</h3>
-                                <p className="font-bold leading-tight">{(customer as any)?.companyName || customer?.company || customer?.name}</p>
-                                <p className="whitespace-pre-wrap leading-tight">{quote.shippingAddress || customer?.address}</p>
+                                {companyName && <p className="font-bold uppercase leading-tight">{companyName}</p>}
+                                <p className={cn("leading-tight", companyName ? "text-muted-foreground" : "font-bold")}>{contactName}</p>
+                                <p className="whitespace-pre-wrap leading-tight mt-1">{quote.shippingAddress || customer?.address}</p>
+                                <div className="mt-2 space-y-0.5">
+                                    {customer?.phone && <p className="flex items-center gap-1 text-[10px]"><Phone className="h-2.5 w-2.5" /> {customer.phone}</p>}
+                                    {customer?.email && <p className="flex items-center gap-1 text-[10px]"><Mail className="h-2.5 w-2.5" /> {customer.email}</p>}
+                                </div>
                             </div>
                         </div>
 
@@ -257,3 +261,5 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         </main>
     );
 }
+
+import { cn } from "@/lib/utils"

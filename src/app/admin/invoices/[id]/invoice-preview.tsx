@@ -1,26 +1,21 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
-import type { Customer } from '@/actions/customers';
-import type { Product } from '@/actions/products';
 import { getOrderById, Order } from '@/actions/orders';
 import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer } from 'lucide-react';
-import { format } from 'date-fns';
+import { Loader2, Printer, Phone, Mail } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: Customer, products: Product[] }) {
+export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: any, products: any[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [order, setOrder] = useState<Order | null>(null);
 
-    // Use the exchange rate stored in the invoice, OR fallback to current global rate
     const invoiceRate = invoice.exchangeRate || currencyContext?.exchangeRate || 0.13;
 
     useEffect(() => {
@@ -72,6 +67,10 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     for (let i = 0; i < invoice.items.length; i += 10) {
       itemChunks.push(invoice.items.slice(i, i + 10));
     }
+
+    // Customer normalization
+    const companyName = customer.companyName || customer.company || '';
+    const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : customer.name;
     
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
@@ -84,7 +83,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                         <div>{displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain block"/>}</div>
                         <div className="text-right">
-                            <h1 className="text-base font-bold text-black">INVOICE</h1>
+                            <h1 className="text-base font-bold text-black uppercase">Invoice</h1>
                             <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
                         </div>
                     </header>
@@ -97,8 +96,13 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
-                            <p className="font-bold">{(customer as any)?.companyName || customer?.company || customer?.name}</p>
-                            <p className="whitespace-pre-wrap">{invoice.shippingAddress || customer?.address}</p>
+                            {companyName && <p className="font-bold uppercase">{companyName}</p>}
+                            <p className={companyName ? "text-muted-foreground" : "font-bold"}>{contactName}</p>
+                            <p className="whitespace-pre-wrap mt-1">{invoice.shippingAddress || customer?.address}</p>
+                            <div className="mt-2 space-y-0.5">
+                                {customer?.phone && <p className="flex items-center gap-1 text-[10px]"><Phone className="h-2.5 w-2.5" /> {customer.phone}</p>}
+                                {customer?.email && <p className="flex items-center gap-1 text-[10px]"><Mail className="h-2.5 w-2.5" /> {customer.email}</p>}
+                            </div>
                         </div>
                     </section>
                     

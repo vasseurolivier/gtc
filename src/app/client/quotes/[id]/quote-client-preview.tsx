@@ -1,10 +1,9 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 export function QuoteClientPreview({ quote }: { quote: Quote }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -25,7 +25,6 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
     }, [db, user]);
     const { data: profile } = useDoc(clientRef);
 
-    // Always use the rate frozen at creation for the client
     const quoteRate = quote.exchangeRate || 0.13;
 
     const handleDownloadPdf = async () => {
@@ -111,9 +110,16 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                 <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{companyInfo?.address}</p>
                             </div>
                             <div>
-                                <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">CLIENT</h3>
-                                <p className="font-bold text-zinc-900">{profile?.companyName || quote.customerName}</p>
+                                <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">DESTINATAIRE</h3>
+                                {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
+                                <p className={cn("text-zinc-900", profile?.companyName ? "text-zinc-600 font-medium" : "font-bold")}>
+                                    {profile?.firstName} {profile?.lastName}
+                                </p>
                                 <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
+                                <div className="mt-3 space-y-1">
+                                    {profile?.phone && <p className="text-zinc-500 text-[11px] flex items-center gap-1.5"><Phone className="h-3 w-3" /> {profile.phone}</p>}
+                                    {profile?.email && <p className="text-zinc-500 text-[11px] flex items-center gap-1.5"><Mail className="h-3 w-3" /> {profile.email}</p>}
+                                </div>
                             </div>
                         </section>
                         

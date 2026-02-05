@@ -1,10 +1,9 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, CheckCircle2, Phone, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -25,7 +25,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     }, [db, user]);
     const { data: profile } = useDoc(clientRef);
 
-    // Clients only see the Euro price frozen at creation
     const invoiceRate = invoice.exchangeRate || 0.13;
 
     const handleDownloadPdf = async () => {
@@ -82,7 +81,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
                 <div id="pdf-content" className="relative p-12 bg-white min-h-[297mm] pb-24">
-                    {/* Stamp logic for PDF */}
                     <div className="absolute top-48 right-16 border-4 border-green-500 rounded-xl px-6 py-2 rotate-[-15deg] opacity-40 z-0">
                         <span className="text-4xl font-black text-green-500 uppercase">PAYÉ</span>
                     </div>
@@ -114,8 +112,17 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             </div>
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">DESTINATAIRE</h3>
-                                <p className="font-bold text-zinc-900">{profile?.companyName || invoice.customerName}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{invoice.shippingAddress || profile?.address || "Adresse de livraison habituelle"}</p>
+                                {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
+                                <p className={cn("text-zinc-900", profile?.companyName ? "text-zinc-600 font-medium" : "font-bold")}>
+                                    {profile?.firstName} {profile?.lastName}
+                                </p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">
+                                    {invoice.shippingAddress || profile?.address || "Adresse de livraison habituelle"}
+                                </p>
+                                <div className="mt-3 space-y-1">
+                                    {profile?.phone && <p className="text-zinc-500 text-[11px] flex items-center gap-1.5"><Phone className="h-3 w-3" /> {profile.phone}</p>}
+                                    {profile?.email && <p className="text-zinc-500 text-[11px] flex items-center gap-1.5"><Mail className="h-3 w-3" /> {profile.email}</p>}
+                                </div>
                             </div>
                         </section>
                         

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -6,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 
 import type { Quote } from '@/actions/quotes';
 import { getQuoteById } from '@/actions/quotes';
-import type { Customer } from '@/actions/customers';
 import { getCustomerById } from '@/actions/customers';
+import { getRegisteredClientById } from '@/actions/registered-clients';
 import type { Product } from '@/actions/products';
 import { getProducts } from '@/actions/products';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ export default function QuotePreviewPageContent() {
     const params = useParams();
     const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    const [data, setData] = useState<{ quote: Quote | null, customer: Customer | null, products: Product[] } | null>(null);
+    const [data, setData] = useState<{ quote: Quote | null, customer: any | null, products: Product[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const companyInfoContext = useContext(CompanyInfoContext);
 
@@ -42,11 +41,15 @@ export default function QuotePreviewPageContent() {
                     setData({ quote: null, customer: null, products: [] });
                     return;
                 }
-                const [customer, products] = await Promise.all([
-                    getCustomerById(quote.customerId),
-                    getProducts()
-                ]);
-                setData({ quote, customer, products });
+
+                // Handle both converted clients and Leads
+                let clientData = await getRegisteredClientById(quote.customerId);
+                if (!clientData) {
+                    clientData = await getCustomerById(quote.customerId);
+                }
+
+                const products = await getProducts();
+                setData({ quote, customer: clientData, products });
             } catch (e) {
                 console.error(e);
                 setData({ quote: null, customer: null, products: [] });
