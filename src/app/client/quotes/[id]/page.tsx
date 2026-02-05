@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -23,8 +22,8 @@ export default function ClientQuotePage() {
         }
 
         if (id && user) {
-            getQuoteById(id).then(data => {
-                // Security check: ensure the quote belongs to the current client
+            // Client reads from their own subcollection
+            getQuoteById(id, user.uid).then(data => {
                 if (data && data.customerId === user.uid) {
                     setQuote(data);
                 } else {

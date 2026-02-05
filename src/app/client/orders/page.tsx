@@ -98,16 +98,17 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
 
+  // Client specifically reads from their isolated subcollection
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    // Only show paid invoices to the client
-    return query(collection(db, 'invoices'), where('customerId', '==', user.uid), where('status', '==', 'paid'));
+    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'paid'));
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
+  // Client specifically reads from their isolated subcollection
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'quotes'), where('customerId', '==', user.uid));
+    return collection(db, 'clients', user.uid, 'quotes');
   }, [db, user]);
   const { data: quotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
 

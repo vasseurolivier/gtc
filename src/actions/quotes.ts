@@ -1,10 +1,10 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import { addOrder, updateOrderFromQuote, Order, getOrderById, updateOrderStatus, updateOrderPaymentStatus } from './orders';
-import { addInvoiceFromOrder, updateInvoiceFromQuote } from './invoices';
+import { addInvoiceFromOrder } from './invoices';
 
 export interface QuoteItem {
   sku?: string;
@@ -61,18 +61,30 @@ async function getGlobalExchangeRate(): Promise<number> {
 }
 
 /**
- * Adds a new Proforma to the global /quotes collection.
+ * Adds a new Proforma to both global and client subcollection.
  */
 export async function addQuote(values: any) {
     try {
         const currentRate = await getGlobalExchangeRate();
-        const docRef = await addDoc(collection(db, 'quotes'), {
+        const quoteId = `QT-${Date.now()}`;
+        const data = {
             ...values,
+            id: quoteId,
             exchangeRate: currentRate,
             createdAt: serverTimestamp(),
-        });
-        return { success: true, message: 'Proforma Invoice added successfully!', id: docRef.id };
+        };
+
+        // Admin Master Copy
+        await setDoc(doc(db, 'quotes', quoteId), data);
+        
+        // Client Distinct Copy
+        if (values.customerId) {
+            await setDoc(doc(db, 'clients', values.customerId, 'quotes', quoteId), data);
+        }
+
+        return { success: true, message: 'Proforma Invoice added successfully!', id: quoteId };
     } catch (error: any) {
+        console.error("Add quote error:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -80,7 +92,18 @@ export async function addQuote(values: any) {
 export async function updateQuote(id: string, values: any) {
     try {
         const quoteRef = doc(db, 'quotes', id);
+        const quoteSnap = await getDoc(quoteRef);
+        
+        if (!quoteSnap.exists()) return { success: false, message: "Quote not found" };
+        const quoteData = quoteSnap.data();
+
         await updateDoc(quoteRef, values);
+
+        // Update Client Copy
+        if (quoteData.customerId) {
+            const clientQuoteRef = doc(db, 'clients', quoteData.customerId, 'quotes', id);
+            await updateDoc(clientQuoteRef, values);
+        }
 
         const updatedQuote = await getQuoteById(id);
         if (updatedQuote && (updatedQuote.status === 'accepted' || updatedQuote.status === 'paid')) {
@@ -98,8 +121,10 @@ export async function createQuoteFromOrder(orderId: string) {
         const order = await getOrderById(orderId);
         if (!order) return { success: false, message: "Commande introuvable." };
         const currentRate = await getGlobalExchangeRate();
+        const quoteId = `PI-AUTO-${Date.now()}`;
 
         const newQuoteData = {
+            id: quoteId,
             quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
             customerId: order.customerId,
             customerName: order.customerName,
@@ -127,9 +152,12 @@ export async function createQuoteFromOrder(orderId: string) {
             createdAt: serverTimestamp(),
         };
 
-        const docRef = await addDoc(collection(db, 'quotes'), newQuoteData);
-        return { success: true, message: 'Proforma générée automatiquement !', id: docRef.id };
+        await setDoc(doc(db, 'quotes', quoteId), newQuoteData);
+        await setDoc(doc(db, 'clients', order.customerId, 'quotes', quoteId), newQuoteData);
+
+        return { success: true, message: 'Proforma générée automatiquement !', id: quoteId };
     } catch (error: any) {
+        console.error("Auto quote generation error:", error);
         return { success: false, message: 'Échec de la génération automatique.' };
     }
 }
@@ -158,9 +186,12 @@ export async function getQuotes(): Promise<Quote[]> {
   }
 }
 
-export async function getQuoteById(id: string): Promise<Quote | null> {
+export async function getQuoteById(id: string, clientId?: string): Promise<Quote | null> {
     try {
-        const quoteRef = doc(db, 'quotes', id);
+        const quoteRef = clientId 
+            ? doc(db, 'clients', clientId, 'quotes', id)
+            : doc(db, 'quotes', id);
+            
         const quoteSnap = await getDoc(quoteRef);
 
         if (!quoteSnap.exists()) return null;
@@ -181,7 +212,17 @@ export async function getQuoteById(id: string): Promise<Quote | null> {
 
 export async function deleteQuote(id: string) {
     try {
-        await deleteDoc(doc(db, 'quotes', id));
+        const quoteRef = doc(db, 'quotes', id);
+        const quoteSnap = await getDoc(quoteRef);
+        
+        if (quoteSnap.exists()) {
+            const data = quoteSnap.data();
+            if (data.customerId) {
+                await deleteDoc(doc(db, 'clients', data.customerId, 'quotes', id));
+            }
+        }
+        
+        await deleteDoc(quoteRef);
         return { success: true, message: 'Proforma Invoice deleted successfully!' };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };
@@ -198,6 +239,11 @@ export async function updateQuoteStatus(id: string, status: string) {
         const previousStatus = quoteData.status;
 
         await updateDoc(quoteRef, { status });
+        
+        // Sync Client Copy
+        if (quoteData.customerId) {
+            await updateDoc(doc(db, 'clients', quoteData.customerId, 'quotes', id), { status });
+        }
         
         const isPositiveStatus = status === 'accepted' || status === 'paid';
         const wasPositiveStatus = previousStatus === 'accepted' || previousStatus === 'paid';

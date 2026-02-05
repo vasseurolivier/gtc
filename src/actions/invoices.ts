@@ -1,8 +1,7 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
-import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, where } from 'firebase/firestore';
+import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDoc, where, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import { getOrderById, type Order, type OrderItem } from './orders';
 import type { Quote } from './quotes';
@@ -68,8 +67,10 @@ export async function addInvoiceFromOrder(order: Order) {
     try {
         const currentRate = await getGlobalExchangeRate();
         const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+        const invoiceId = `INV-DOC-${Date.now()}`;
 
         const newInvoiceData = {
+          id: invoiceId,
           invoiceNumber: `INV-${order.orderNumber.replace('O-', '').replace('ORD-', '')}`,
           orderId: order.id,
           orderNumber: order.orderNumber,
@@ -93,50 +94,15 @@ export async function addInvoiceFromOrder(order: Order) {
           createdAt: serverTimestamp(),
         };
         
-        const docRef = await addDoc(collection(db, 'invoices'), newInvoiceData);
-        return { success: true, message: 'Invoice created successfully!', id: docRef.id };
+        // Master Copy
+        await setDoc(doc(db, 'invoices', invoiceId), newInvoiceData);
+        // Client Copy
+        await setDoc(doc(db, 'clients', order.customerId, 'invoices', invoiceId), newInvoiceData);
+
+        return { success: true, message: 'Invoice created successfully!', id: invoiceId };
     } catch (error: any) {
         console.error('Error adding invoice:', error);
         return { success: false, message: 'An unexpected error occurred.' };
-    }
-}
-
-export async function updateInvoiceFromQuote(quote: Quote, orderId: string) {
-    try {
-        const invoicesQuery = query(collection(db, "invoices"), where("orderId", "==", orderId));
-        const invoicesSnapshot = await getDocs(invoicesQuery);
-
-        if (invoicesSnapshot.empty) {
-            return { success: true, message: "No matching invoice found to update." };
-        }
-
-        const invoiceDoc = invoicesSnapshot.docs[0];
-        const invoiceRef = doc(db, 'invoices', invoiceDoc.id);
-
-        const supplierCostTotal = quote.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
-
-        const updatedInvoiceData = {
-            customerId: quote.customerId,
-            customerName: quote.customerName,
-            items: quote.items.map(item => ({
-                description: item.description,
-                sku: item.sku || '',
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                purchasePrice: item.purchasePrice || 0,
-                total: item.total
-            })),
-            totalAmount: quote.totalAmount,
-            supplierCostTotal: supplierCostTotal,
-            transportCost: quote.transportCost || 0,
-            shippingAddress: quote.shippingAddress || "",
-        };
-
-        await updateDoc(invoiceRef, updatedInvoiceData);
-        return { success: true, message: 'Invoice updated successfully from proforma!' };
-    } catch (error: any) {
-        console.error('Error updating invoice from quote:', error);
-        return { success: false, message: 'An unexpected error occurred while updating the invoice.' };
     }
 }
 
@@ -166,9 +132,12 @@ export async function getInvoices(): Promise<Invoice[]> {
   }
 }
 
-export async function getInvoiceById(id: string): Promise<Invoice | null> {
+export async function getInvoiceById(id: string, clientId?: string): Promise<Invoice | null> {
     try {
-        const invoiceRef = doc(db, 'invoices', id);
+        const invoiceRef = clientId 
+            ? doc(db, 'clients', clientId, 'invoices', id)
+            : doc(db, 'invoices', id);
+            
         const invoiceSnap = await getDoc(invoiceRef);
 
         if (!invoiceSnap.exists()) {
@@ -195,7 +164,17 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
 
 export async function deleteInvoice(id: string) {
     try {
-        await deleteDoc(doc(db, 'invoices', id));
+        const invRef = doc(db, 'invoices', id);
+        const invSnap = await getDoc(invRef);
+        
+        if (invSnap.exists()) {
+            const data = invSnap.data();
+            if (data.customerId) {
+                await deleteDoc(doc(db, 'clients', data.customerId, 'invoices', id));
+            }
+        }
+        
+        await deleteDoc(invRef);
         return { success: true, message: 'Invoice deleted successfully!' };
     } catch (error: any) {
         console.error('Error deleting invoice:', error);
@@ -206,11 +185,22 @@ export async function deleteInvoice(id: string) {
 export async function updateInvoiceStatus(id: string, status: string) {
     try {
         const invoiceRef = doc(db, 'invoices', id);
+        const invSnap = await getDoc(invoiceRef);
+        if (!invSnap.exists()) return { success: false, message: 'Not found' };
+        
         const updateData: any = { status };
         if (status === 'paid') {
             updateData.paymentDate = serverTimestamp();
         }
+        
         await updateDoc(invoiceRef, updateData);
+        
+        // Sync Client Copy
+        const clientId = invSnap.data().customerId;
+        if (clientId) {
+            await updateDoc(doc(db, 'clients', clientId, 'invoices', id), updateData);
+        }
+
         return { success: true, message: 'Invoice status updated successfully!' };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };
@@ -246,6 +236,11 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
 
         updateData.status = newStatus;
         await updateDoc(invoiceRef, updateData);
+        
+        // Sync Client Copy
+        if (invoiceData.customerId) {
+            await updateDoc(doc(db, 'clients', invoiceData.customerId, 'invoices', id), updateData);
+        }
 
         return { success: true, message: `Paiement enregistré.`, newStatus: newStatus, newAmountPaid: newTotalAmountPaidInCny };
     } catch (error: any) {

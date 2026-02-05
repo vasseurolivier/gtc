@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -26,7 +25,8 @@ export default function ClientInvoicePage() {
         }
 
         if (id && user) {
-            getInvoiceById(id).then(data => {
+            // Client reads from their own subcollection
+            getInvoiceById(id, user.uid).then(data => {
                 // Security check: ensure the invoice belongs to the current client AND is paid
                 if (data && data.customerId === user.uid && data.status === 'paid') {
                     setInvoice(data);
