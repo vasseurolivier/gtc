@@ -31,6 +31,7 @@ import {
   Factory,
   UserCheck,
   FileDown,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -56,7 +57,7 @@ import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
 import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
 
-function AdminSettings() {
+function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const { toast } = useToast();
@@ -163,9 +164,13 @@ function AdminSettings() {
     
     return (
         <>
-            <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
-                < Cog className="mr-2 h-4 w-4" /> Paramètres
-            </Button>
+            {trigger ? (
+              <div onClick={() => setIsDialogOpen(true)}>{trigger}</div>
+            ) : (
+              <Button variant="ghost" onClick={() => setIsDialogOpen(true)} className="justify-start w-full">
+                  <Cog className="mr-2 h-4 w-4" /> Paramètres
+              </Button>
+            )}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
@@ -274,6 +279,44 @@ function AdminSettings() {
             </Dialog>
         </>
     );
+}
+
+function MobileBottomNav({ unreadMessages, pendingCount }: { unreadMessages: number, pendingCount: number }) {
+  const pathname = usePathname();
+  
+  const navItems = [
+    { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Stats' },
+    { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
+    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Clients', badge: pendingCount },
+    { href: '/admin/orders', icon: <ShoppingCart />, label: 'Orders' },
+  ];
+
+  return (
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-t border-zinc-800 h-16 flex items-center justify-around px-2 pb-safe">
+      {navItems.map((item) => (
+        <Link key={item.href} href={item.href} className={cn(
+          "flex flex-col items-center justify-center gap-1 min-w-[60px] relative transition-all duration-300",
+          pathname.startsWith(item.href) ? "text-primary scale-110" : "text-zinc-500"
+        )}>
+          <div className="relative">
+            {item.icon}
+            {item.badge !== undefined && item.badge > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                {item.badge}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
+        </Link>
+      ))}
+      <AdminSettings trigger={
+        <div className="flex flex-col items-center justify-center gap-1 min-w-[60px] text-zinc-500">
+          <Settings className="h-6 w-6" />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">Réglages</span>
+        </div>
+      } />
+    </div>
+  );
 }
 
 function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
@@ -393,13 +436,19 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </SidebarContent>
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 lg:hidden sticky top-0 bg-white z-30">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <span className="font-bold text-sm text-zinc-800">Administration</span>
+      <SidebarInset className="pb-20 lg:pb-0">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-white z-30 lg:h-16">
+          <SidebarTrigger className="-ml-1 lg:hidden" />
+          <Separator orientation="vertical" className="mr-2 h-4 lg:hidden" />
+          <span className="font-bold text-sm text-zinc-800">Administration GTC</span>
         </header>
-        {children}
+        <div className="flex-grow">
+          {children}
+        </div>
+        <MobileBottomNav 
+          unreadMessages={unreadMessages} 
+          pendingCount={(pendingOrders + pendingClients + pendingSourcing)} 
+        />
       </SidebarInset>
     </SidebarProvider>
   );

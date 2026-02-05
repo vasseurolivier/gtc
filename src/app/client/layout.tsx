@@ -25,7 +25,8 @@ import {
   Home,
   Receipt,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  ShoppingBag
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,32 @@ import { Loader2 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+function ClientMobileNav() {
+  const pathname = usePathname();
+  
+  const navItems = [
+    { href: '/client', icon: <Home className="h-6 w-6" />, label: 'Accueil' },
+    { href: '/client/product-lists', icon: <ClipboardList className="h-6 w-6" />, label: 'Sourcing' },
+    { href: '/client/orders', icon: <ShoppingBag className="h-6 w-6" />, label: 'Commandes' },
+    { href: '/client/profile', icon: <User className="h-6 w-6" />, label: 'Profil' },
+  ];
+
+  return (
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-zinc-100 h-16 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      {navItems.map((item) => (
+        <Link key={item.href} href={item.href} className={cn(
+          "flex flex-col items-center justify-center gap-1 min-w-[60px] transition-all duration-300",
+          pathname === item.href ? "text-primary scale-110" : "text-zinc-400"
+        )}>
+          {item.icon}
+          <span className="text-[10px] font-bold uppercase tracking-tight">{item.label}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -157,7 +184,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           </Button>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset className="bg-zinc-50">
+      <SidebarInset className="bg-zinc-50 pb-20 lg:pb-0">
         <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1 lg:hidden" />
@@ -171,9 +198,10 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="p-8">
+        <main className="p-4 md:p-8">
           {children}
         </main>
+        <ClientMobileNav />
       </SidebarInset>
     </SidebarProvider>
   );
