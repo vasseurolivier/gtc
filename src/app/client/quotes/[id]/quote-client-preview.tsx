@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -91,7 +92,6 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                     <img 
                                         src={displayLogo} 
                                         alt="Logo" 
-                                        crossOrigin="anonymous" 
                                         className="h-20 w-auto object-contain block"
                                     />
                                 )}
@@ -166,7 +166,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                         </div>
 
                         <div className="mt-16 border-t pt-8">
-                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Conditions de Règlement & Coordonnées Bancaires</h3>
+                            <h3 className="font-black text-[10px] uppercase text-zinc-400 mb-4 tracking-widest">Conditions de Règlement</h3>
                             <div className="text-xs text-zinc-600 space-y-6">
                                 {quote.depositRequired ? (
                                     <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
@@ -181,19 +181,15 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                     <div className="space-y-1">
                                         <p><span className="font-bold text-zinc-900 text-[10px] uppercase block mb-1">Détails de la Banque</span></p>
                                         <p><span className="font-semibold text-zinc-900">Banque:</span> Banking Circle S.A. - German Branch</p>
-                                        <p><span className="font-semibold text-zinc-900">Adresse:</span> Maximilianstraße 54, 80538 München, Germany</p>
                                         <p><span className="font-semibold text-zinc-900">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
                                         <p><span className="font-semibold text-zinc-900">SWIFT:</span> SXPYDEHH</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p><span className="font-bold text-zinc-900 text-[10px] uppercase block mb-1">Bénéficiaire</span></p>
                                         <p><span className="font-semibold text-zinc-900">Nom:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
-                                        <p><span className="font-semibold text-zinc-900">Méthode:</span> SEPA Instant / SCT</p>
-                                        <p className="mt-4 italic text-primary font-black text-[12px]">Référence à inclure: {quote.quoteNumber} - {quote.customerName}</p>
+                                        <p className="mt-4 italic text-primary font-black text-[12px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
                                     </div>
                                 </div>
-                                
-                                <p className="italic text-[10px] text-zinc-400">Proforma valable jusqu'au {format(new Date(quote.validUntil), 'dd/MM/yyyy')}. Les prix sont fixés en Euro selon le taux de change verrouillé le jour de l'émission.</p>
                             </div>
                         </div>
                     </div>

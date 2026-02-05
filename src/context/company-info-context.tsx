@@ -23,8 +23,8 @@ interface CompanyInfoContextType {
 
 export const CompanyInfoContext = createContext<CompanyInfoContextType | undefined>(undefined);
 
-// Un logo par défaut au cas où l'utilisateur n'en a pas encore mis
-const DEFAULT_LOGO = "https://i.postimg.cc/m2m0XQZp/gtc-logo-placeholder.png";
+// Logo par défaut plus robuste
+const DEFAULT_LOGO = "https://placehold.co/600x200/e11d48/white?text=Global+Trading+China";
 
 const defaultCompanyInfo: CompanyInfo = {
   name: 'Global Trading China',
@@ -52,7 +52,6 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
         setCompanyInfoState({
             ...defaultCompanyInfo,
             ...data,
-            // Assurer que le logo n'est jamais une chaîne vide pour éviter les erreurs 404
             logo: data.logo || DEFAULT_LOGO,
             publicLogo: data.publicLogo || data.logo || DEFAULT_LOGO
         } as CompanyInfo);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -92,7 +93,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     <img 
                                         src={displayLogo} 
                                         alt="Logo" 
-                                        crossOrigin="anonymous" 
                                         className="h-20 w-auto object-contain block"
                                     />
                                 )}
