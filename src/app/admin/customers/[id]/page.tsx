@@ -20,6 +20,7 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
+import { cn } from '@/lib/utils';
 
 export default function CustomerProfilePage() {
     const params = useParams();
