@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -113,10 +114,10 @@ export async function updateRegisteredClientStatus(id: string, status: 'pending'
  */
 export async function deleteRegisteredClient(id: string) {
     try {
-        // 1. Delete the Firestore document
+        // 1. Delete the Firestore document first to clean up the UI
         await deleteDoc(doc(db, 'clients', id));
 
-        // 2. Attempt to delete from Auth via Admin SDK (if possible in this env)
+        // 2. Attempt to delete from Auth via Admin SDK
         try {
             const admin = await import('firebase-admin');
             if (!admin.apps.length) {
@@ -125,19 +126,16 @@ export async function deleteRegisteredClient(id: string) {
                 });
             }
             await admin.auth().deleteUser(id);
-            return { success: true, message: 'Compte client et identifiants supprimés définitivement.' };
+            return { success: true, message: 'Compte supprimé. L\'email est maintenant libre.' };
         } catch (authError) {
-            console.warn("Could not delete Auth user automatically:", authError);
-            // Document is deleted, but Auth record might persist.
-            // Inform the user so they can do it manually in Firebase Console if recreate fails.
+            // Document is deleted, but Auth record might persist if Admin SDK isn't fully set up
             return { 
                 success: true, 
-                message: 'Profil supprimé. Note: Les identifiants de connexion n\'ont pas pu être retirés automatiquement. Veuillez les supprimer manuellement dans la console Firebase pour libérer cet email.' 
+                message: 'Profil supprimé. Note: Veuillez supprimer manuellement l\'email dans la console Firebase (onglet Authentication) pour le rendre à nouveau disponible.' 
             };
         }
     } catch (e: any) {
-        console.error("Error deleting registered client:", e);
-        return { success: false, message: 'Erreur lors de la suppression du compte.' };
+        return { success: false, message: 'Erreur lors de la suppression.' };
     }
 }
 

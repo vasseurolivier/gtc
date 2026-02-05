@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -136,12 +137,11 @@ export default function CustomerProfilePage() {
                 setIsAlreadyClient(true);
             }
         } catch (e: any) {
-            console.error("Account creation error:", e);
             if (e.code === 'auth/email-already-in-use') {
                 toast({ 
                     variant: "destructive", 
-                    title: "Email déjà utilisé", 
-                    description: "Cet email est déjà enregistré dans le système. Si vous avez supprimé ce client récemment, vous devez supprimer ses identifiants manuellement dans la console Firebase pour libérer l'email." 
+                    title: "Email indisponible", 
+                    description: "Cet email existe déjà dans le système d'authentification. Veuillez supprimer l'ancien compte client ou libérer l'email manuellement dans la console Firebase (onglet Authentication)." 
                 });
             } else {
                 toast({ variant: "destructive", title: "Erreur de création", description: e.message });
