@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Loader2, 
   Package, 
@@ -34,7 +35,9 @@ import {
   Download,
   Hash,
   Ruler,
-  Coins
+  Coins,
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -45,6 +48,7 @@ import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+const WAREHOUSE_3PL_ADDRESS = "Entrepôt Central GTC - Service Logistique 3PL\n浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501\nYiwu, Zhejiang, China";
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
@@ -59,6 +63,7 @@ export default function ClientOrdersPage() {
   const [productQuantity, setProductQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [shippingAddress, setShippingAddress] = useState('');
+  const [is3PLSelected, setIs3PLSelected] = useState(false);
   const [orderSuffix, setOrderSuffix] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
@@ -87,10 +92,10 @@ export default function ClientOrdersPage() {
   const currencyPreference = profile?.currencyPreference || 'EUR';
 
   useEffect(() => {
-    if (profile?.address && !shippingAddress) {
+    if (profile?.address && !shippingAddress && !is3PLSelected) {
       setShippingAddress(profile.address);
     }
-  }, [profile, shippingAddress]);
+  }, [profile, shippingAddress, is3PLSelected]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -98,14 +103,12 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
 
-  // Client specifically reads from their isolated subcollection
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'paid'));
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  // Client specifically reads from their isolated subcollection
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'clients', user.uid, 'quotes');
@@ -226,6 +229,15 @@ export default function ClientOrdersPage() {
 
   const removeFromCart = (key: string) => {
     setCart(cart.filter(item => item.key !== key));
+  };
+
+  const toggle3PLService = (checked: boolean) => {
+    setIs3PLSelected(checked);
+    if (checked) {
+      setShippingAddress(WAREHOUSE_3PL_ADDRESS);
+    } else {
+      setShippingAddress(profile?.address || '');
+    }
   };
 
   const handleConfirmOrder = async () => {
@@ -498,11 +510,49 @@ export default function ClientOrdersPage() {
                   <p className="text-[10px] text-zinc-400 italic">Le numéro final sera : {(profile?.orderPrefix || 'ORD') + (orderSuffix || '...')}</p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="font-bold flex items-center gap-2 text-zinc-700">
-                    <MapPin className="h-4 w-4 text-primary" /> Destination de livraison
-                  </Label>
-                  <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-24 focus-visible:ring-primary" placeholder="Port, entrepôt..." />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="font-bold flex items-center gap-2 text-zinc-700">
+                      <MapPin className="h-4 w-4 text-primary" /> Destination de livraison
+                    </Label>
+                    
+                    {/* Option 3PL Warehouse */}
+                    <div 
+                      className={cn(
+                        "p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer flex items-start gap-3",
+                        is3PLSelected ? "border-primary bg-primary/5 shadow-inner" : "border-zinc-100 bg-zinc-50 hover:border-zinc-200"
+                      )}
+                      onClick={() => toggle3PLService(!is3PLSelected)}
+                    >
+                      <Checkbox 
+                        id="3pl-option" 
+                        checked={is3PLSelected} 
+                        onCheckedChange={(checked) => toggle3PLService(checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="space-y-1">
+                        <Label htmlFor="3pl-option" className="font-black text-sm cursor-pointer flex items-center gap-2">
+                          <Building2 className="h-4 w-4" /> 
+                          Service 3PL (Entrepôt GTC)
+                        </Label>
+                        <p className="text-[10px] text-zinc-500 leading-tight">
+                          Livrez vos marchandises directement dans notre centre de logistique à Yiwu pour consolidation ou expédition ultérieure.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Textarea 
+                      value={shippingAddress} 
+                      onChange={(e) => {
+                        setShippingAddress(e.target.value);
+                        if (is3PLSelected && e.target.value !== WAREHOUSE_3PL_ADDRESS) {
+                          setIs3PLSelected(false);
+                        }
+                      }} 
+                      className="h-24 focus-visible:ring-primary text-sm leading-relaxed" 
+                      placeholder="Port, entrepôt ou adresse finale..." 
+                    />
+                  </div>
                 </div>
               </div>
 
