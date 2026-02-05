@@ -26,6 +26,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
     const { data: profile } = useDoc(clientRef);
 
     const quoteRate = quote.exchangeRate || 0.13;
+    const currencyPref = profile?.currencyPreference || 'EUR';
 
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
@@ -63,12 +64,22 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
     }
     
     const { companyInfo } = companyInfoContext;
-    // Modification: Utilisation directe du logo admin
     const displayLogo = companyInfo.logo;
-    const subTotalEuro = quote.subTotal * quoteRate;
-    const commissionEuro = (quote.subTotal * (quote.commissionRate || 0) / 100) * quoteRate;
-    const transportEuro = (quote.transportCost || 0) * quoteRate;
-    const totalEuro = quote.totalAmount * quoteRate;
+
+    const renderPrice = (cnyValue: number, isMain = false) => {
+        const eurValue = cnyValue * quoteRate;
+        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        return (
+            <div className="flex flex-col items-end">
+                <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
+                <span className="text-[10px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+            </div>
+        );
+    };
+
+    const commissionCny = quote.subTotal * (quote.commissionRate || 0) / 100;
+    const transportCny = quote.transportCost || 0;
 
     return (
         <div className="space-y-6">
@@ -89,11 +100,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && (
-                                    <img 
-                                        src={displayLogo} 
-                                        alt="Logo" 
-                                        className="h-20 w-auto object-contain block"
-                                    />
+                                    <img src={displayLogo} alt="Logo" className="h-20 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
@@ -128,8 +135,8 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                 <tr className="text-left bg-zinc-100 text-zinc-900">
                                     <th className="p-4 font-bold border-none first:rounded-l-lg">Description des articles</th>
                                     <th className="p-4 text-center font-bold border-none">Qté</th>
-                                    <th className="p-4 text-right font-bold border-none">Prix Unit. (€)</th>
-                                    <th className="p-4 text-right font-bold border-none last:rounded-r-lg">Total (€)</th>
+                                    <th className="p-4 text-right font-bold border-none">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                    <th className="p-4 text-right font-bold border-none last:rounded-r-lg">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
@@ -137,8 +144,8 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                     <tr key={idx}>
                                         <td className="p-4 font-medium text-zinc-900">{item.description}</td>
                                         <td className="p-4 text-center font-medium">{item.quantity}</td>
-                                        <td className="p-4 text-right font-medium">€{(item.unitPrice * quoteRate).toFixed(2)}</td>
-                                        <td className="p-4 text-right font-bold text-zinc-900">€{(item.total * quoteRate).toFixed(2)}</td>
+                                        <td className="p-4 text-right font-medium">{renderPrice(item.unitPrice)}</td>
+                                        <td className="p-4 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -148,19 +155,19 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                             <div className="w-full max-w-[300px] space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground font-medium">Sous-total</span>
-                                    <span className="font-bold">€{subTotalEuro.toFixed(2)}</span>
+                                    <span className="font-bold">{renderPrice(quote.subTotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground font-medium">Commission ({quote.commissionRate}%)</span>
-                                    <span className="font-bold">€{commissionEuro.toFixed(2)}</span>
+                                    <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground font-medium">Frais de port</span>
-                                    <span className="font-bold">€{transportEuro.toFixed(2)}</span>
+                                    <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900">TOTAL ESTIMÉ</span>
-                                    <span className="text-2xl font-black text-primary">€{totalEuro.toFixed(2)}</span>
+                                    <span className="text-2xl font-black text-primary">{renderPrice(quote.totalAmount, true)}</span>
                                 </div>
                             </div>
                         </div>
@@ -170,11 +177,13 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                             <div className="text-xs text-zinc-600 space-y-6">
                                 {quote.depositRequired ? (
                                     <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                                        <p className="font-bold text-primary mb-1">Acompte à la commande ({quote.depositPercentage}%): €{(totalEuro * (quote.depositPercentage || 30) / 100).toFixed(2)}</p>
+                                        <p className="font-bold text-primary mb-1">
+                                            Acompte à la commande ({quote.depositPercentage}%): {renderPrice(quote.totalAmount * (quote.depositPercentage || 30) / 100)}
+                                        </p>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
                                 ) : (
-                                    <p className="font-bold text-primary">Paiement intégral de {totalEuro.toFixed(2)}€ à réception de la proforma.</p>
+                                    <p className="font-bold text-primary">Paiement intégral de {renderPrice(quote.totalAmount)} à réception de la proforma.</p>
                                 )}
                                 
                                 <div className="grid grid-cols-2 gap-8 p-6 bg-zinc-50 rounded-2xl border border-zinc-100">

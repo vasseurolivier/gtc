@@ -26,6 +26,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const { data: profile } = useDoc(clientRef);
 
     const invoiceRate = invoice.exchangeRate || 0.13;
+    const currencyPref = profile?.currencyPreference || 'EUR';
 
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
@@ -63,9 +64,21 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     }
     
     const { companyInfo } = companyInfoContext;
-    // Modification: Utilisation directe du logo admin
     const displayLogo = companyInfo.logo;
-    const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
+
+    const renderPrice = (cnyValue: number, isMain = false) => {
+        const eurValue = cnyValue * invoiceRate;
+        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        return (
+            <div className="flex flex-col items-end">
+                <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
+                <span className="text-[10px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+            </div>
+        );
+    };
+
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + item.total, 0);
     
     return (
         <div className="space-y-6">
@@ -90,11 +103,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <header className="w-full flex justify-between items-start pt-2 pb-6 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && (
-                                    <img 
-                                        src={displayLogo} 
-                                        alt="Logo" 
-                                        className="h-20 w-auto object-contain block"
-                                    />
+                                    <img src={displayLogo} alt="Logo" className="h-20 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
@@ -135,9 +144,9 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <thead>
                                 <tr className="text-left bg-zinc-900 text-white">
                                     <th className="p-4 font-bold border-none first:rounded-l-lg">Description</th>
-                                    <th className="p-4 text-center font-bold border-none">Quantité</th>
-                                    <th className="p-4 text-right font-bold border-none">Prix Unitaire (€)</th>
-                                    <th className="p-4 text-right font-bold border-none last:rounded-r-lg">Total (€)</th>
+                                    <th className="p-4 text-center font-bold border-none">Qté</th>
+                                    <th className="p-4 text-right font-bold border-none">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                    <th className="p-4 text-right font-bold border-none last:rounded-r-lg">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
@@ -148,8 +157,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                             {item.sku && <p className="text-[10px] font-mono text-muted-foreground mt-1">{item.sku}</p>}
                                         </td>
                                         <td className="p-4 text-center font-medium">{item.quantity}</td>
-                                        <td className="p-4 text-right font-medium">€{(item.unitPrice * invoiceRate).toFixed(2)}</td>
-                                        <td className="p-4 text-right font-bold text-zinc-900">€{(item.total * invoiceRate).toFixed(2)}</td>
+                                        <td className="p-4 text-right font-medium">{renderPrice(item.unitPrice)}</td>
+                                        <td className="p-4 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -159,11 +168,11 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <div className="w-full max-w-[300px] space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground font-medium">Sous-total</span>
-                                    <span className="font-bold">€{(subTotal * invoiceRate).toFixed(2)}</span>
+                                    <span className="font-bold">{renderPrice(subTotalCny)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase">Montant Total Réglé</span>
-                                    <span className="text-2xl font-black text-green-600">€{(invoice.totalAmount * invoiceRate).toFixed(2)}</span>
+                                    <span className="text-2xl font-black text-green-600">{renderPrice(invoice.totalAmount, true)}</span>
                                 </div>
                             </div>
                         </div>

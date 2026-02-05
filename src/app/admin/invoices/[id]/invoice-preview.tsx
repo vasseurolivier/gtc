@@ -10,6 +10,7 @@ import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { cn } from "@/lib/utils"
 
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: any, products: any[] }) {
     const currencyContext = useContext(CurrencyContext);
@@ -17,6 +18,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const [order, setOrder] = useState<Order | null>(null);
 
     const invoiceRate = invoice.exchangeRate || currencyContext?.exchangeRate || 0.13;
+    const currencyPref = customer?.currencyPreference || 'BOTH';
 
     useEffect(() => {
         if (invoice.orderId) {
@@ -56,25 +58,35 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     };
 
     if (!currencyContext || !companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
-        return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+        return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     }
     
     const { companyInfo } = companyInfoContext;
-    // Modification: Utilisation directe du logo admin
     const displayLogo = companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
-    const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
+    const renderPrice = (cnyValue: number, isMain = false) => {
+        const eurValue = cnyValue * invoiceRate;
+        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        return (
+            <div className="flex flex-col items-end">
+                <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
+                <span className="text-[10px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+            </div>
+        );
+    };
+
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + item.total, 0);
     const commissionRate = order?.commissionRate || 0;
-    const commissionAmount = subTotal * (commissionRate / 100);
-    const transportCost = order?.transportCost || 0;
+    const commissionCny = subTotalCny * (commissionRate / 100);
+    const transportCny = order?.transportCost || 0;
 
     const itemChunks = [];
     for (let i = 0; i < invoice.items.length; i += 10) {
       itemChunks.push(invoice.items.slice(i, i + 10));
     }
 
-    // Normalisation Client
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
     
@@ -120,8 +132,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <th className="p-2 font-bold border">Image</th>
                                 <th className="w-1/2 p-2 font-bold border">Description</th>
                                 <th className="text-right p-2 font-bold border">Quantité</th>
-                                <th className="text-right p-2 font-bold border">Prix Unitaire (€)</th>
-                                <th className="text-right p-2 font-bold border">Total (€)</th>
+                                <th className="text-right p-2 font-bold border">Prix Unitaire ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="text-right p-2 font-bold border">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
                         {itemChunks.map((chunk, chunkIndex) => (
@@ -133,8 +145,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                             <td className="p-1 border">{product?.imageUrl && <img src={product.imageUrl} width={40} height={40} className="object-contain mx-auto"/>}</td>
                                             <td className="p-1 border"><p className="font-medium">{item.description}</p></td>
                                             <td className="p-1 text-right border">{item.quantity}</td>
-                                            <td className="p-1 text-right border font-bold">€{(item.unitPrice * invoiceRate).toFixed(2)}</td>
-                                            <td className="p-1 text-right border font-bold">€{(item.quantity * item.unitPrice * invoiceRate).toFixed(2)}</td>
+                                            <td className="p-1 text-right border font-bold">{renderPrice(item.unitPrice)}</td>
+                                            <td className="p-1 text-right border font-bold">{renderPrice(item.total)}</td>
                                         </tr>
                                     )
                                 })}
@@ -146,19 +158,19 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <div className="w-1/2 space-y-1 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
-                                <span className="font-bold">€{(subTotal * invoiceRate).toFixed(2)}</span>
+                                <span className="font-bold">{renderPrice(subTotalCny)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
-                                <span className="font-bold">€{(commissionAmount * invoiceRate).toFixed(2)}</span>
+                                <span className="font-bold">{renderPrice(commissionCny)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Frais de port :</span>
-                                <span className="font-bold">€{(transportCost * invoiceRate).toFixed(2)}</span>
+                                <span className="font-bold">{renderPrice(transportCny)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-sm pt-2 mt-2 border-t-2 border-black">
                                 <span>TOTAL FINAL :</span>
-                                <span className="text-primary">€{(invoice.totalAmount * invoiceRate).toFixed(2)}</span>
+                                <span className="text-primary">{renderPrice(invoice.totalAmount, true)}</span>
                             </div>
                         </div>
                     </div>

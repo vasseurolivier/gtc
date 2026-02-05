@@ -55,26 +55,38 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     if (!currencyContext || !companyInfoContext?.isCompanyInfoLoaded) {
         return (
              <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
     
-    const { currency, exchangeRate } = currencyContext;
     const { companyInfo } = companyInfoContext;
-    // Modification: Utilisation directe du logo admin
     const displayLogo = companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
-    const quoteRate = quote.exchangeRate || exchangeRate || 0.13;
-    const commissionAmount = quote.subTotal * ((quote.commissionRate || 0) / 100);
+    const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
+    const currencyPref = customer?.currencyPreference || 'BOTH';
+
+    const renderPrice = (cnyValue: number, isMain = false) => {
+        const eurValue = cnyValue * quoteRate;
+        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        return (
+            <div className="flex flex-col items-end">
+                <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
+                <span className="text-[10px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+            </div>
+        );
+    };
+
+    const commissionCny = quote.subTotal * ((quote.commissionRate || 0) / 100);
+    const transportCny = quote.transportCost || 0;
 
     const itemChunks = [];
     for (let i = 0; i < quote.items.length; i += 10) {
       itemChunks.push(quote.items.slice(i, i + 10));
     }
 
-    // Normalisation Client
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
 
@@ -134,9 +146,9 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <tr className="text-left bg-blue-100 text-blue-800">
                                 <th className="p-2 font-bold border">Image</th>
                                 <th className="w-1/2 p-2 font-bold border">Description</th>
-                                <th className="text-right p-2 font-bold border">Quantité</th>
-                                <th className="text-right p-2 font-bold border">Prix Unitaire</th>
-                                <th className="text-right p-2 font-bold border">Total</th>
+                                <th className="text-right p-2 font-bold border">Qté</th>
+                                <th className="text-right p-2 font-bold border">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="text-right p-2 font-bold border">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
                         {itemChunks.map((chunk, chunkIndex) => (
@@ -158,12 +170,10 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                         </td>
                                         <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
                                         <td className="p-1 align-top text-right leading-tight border">
-                                            <span className="font-bold">¥{item.unitPrice.toFixed(2)}</span>
-                                            <span className="text-muted-foreground"> ({currency.symbol}{(item.unitPrice * quoteRate).toFixed(2)})</span>
+                                            {renderPrice(item.unitPrice)}
                                         </td>
                                         <td className="p-1 align-top text-right font-medium leading-tight border">
-                                            <span className="font-bold">¥{(item.quantity * item.unitPrice).toFixed(2)}</span>
-                                            <span className="text-muted-foreground"> ({currency.symbol}{((item.quantity * item.unitPrice) * quoteRate).toFixed(2)})</span>
+                                            {renderPrice(item.total)}
                                         </td>
                                     </tr>
                                 )
@@ -176,34 +186,22 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <div className="w-full md:w-2/3 lg:w-1/2 space-y-1 text-xs">
                                 <div className="flex justify-between leading-tight">
                                     <span className="text-muted-foreground">Sous-total :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{quote.subTotal.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.subTotal * quoteRate).toFixed(2)})</span>
-                                    </span>
+                                    <span className="text-right">{renderPrice(quote.subTotal)}</span>
                                 </div>
                                 
                                 <div className="flex justify-between leading-tight">
                                     <span className="text-muted-foreground">Commission ({quote.commissionRate || 0}%) :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{commissionAmount.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(commissionAmount * quoteRate).toFixed(2)})</span>
-                                    </span>
+                                    <span className="text-right">{renderPrice(commissionCny)}</span>
                                 </div>
                                 
                                 <div className="flex justify-between leading-tight">
                                     <span className="text-muted-foreground">Frais de port :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{(quote.transportCost || 0).toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{((quote.transportCost || 0) * quoteRate).toFixed(2)})</span>
-                                    </span>
+                                    <span className="text-right">{renderPrice(transportCny)}</span>
                                 </div>
 
                                 <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t-2 border-black">
                                     <span>TOTAL :</span>
-                                    <span className="text-right">
-                                        <span className="font-bold">¥{quote.totalAmount.toFixed(2)}</span>
-                                        <span className="text-muted-foreground"> ({currency.symbol}{(quote.totalAmount * quoteRate).toFixed(2)})</span>
-                                    </span>
+                                    <span className="text-right">{renderPrice(quote.totalAmount, true)}</span>
                                 </div>
                             </div>
                         </div>
@@ -240,12 +238,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             {quote.depositRequired ? (
                                 <>
                                     <p className="text-xs text-muted-foreground space-y-1 leading-tight">
-                                        Acompte ({quote.depositPercentage || 30}%): <strong>¥{(quote.totalAmount * ((quote.depositPercentage || 30) / 100)).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * ((quote.depositPercentage || 30) / 100) * quoteRate).toFixed(2)})
+                                        Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(quote.totalAmount * ((quote.depositPercentage || 30) / 100))}</strong>
                                         <br />
                                         <span className="text-xs">Payable sous 3 jours.</span>
                                     </p>
                                     <p className="text-xs text-muted-foreground space-y-1 leading-tight mt-2">
-                                        Solde ({100 - (quote.depositPercentage || 30)}%): <strong>¥{(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100)).toFixed(2)}</strong> (ou {currency.symbol}{(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100) * quoteRate).toFixed(2)})
+                                        Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100))}</strong>
                                         <br />
                                         <span className="text-xs">Payable après contrôle qualité et avant expédition.</span>
                                     </p>
