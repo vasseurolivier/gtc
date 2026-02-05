@@ -11,9 +11,19 @@ import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export function QuoteClientPreview({ quote }: { quote: Quote }) {
     const companyInfoContext = useContext(CompanyInfoContext);
+    const { user } = useUser();
+    const db = useFirestore();
+
+    const clientRef = useMemoFirebase(() => {
+        if (!db || !user) return null;
+        return doc(db, 'clients', user.uid);
+    }, [db, user]);
+    const { data: profile } = useDoc(clientRef);
 
     // Always use the rate frozen at creation for the client
     const quoteRate = quote.exchangeRate || 0.13;
@@ -90,8 +100,8 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                             </div>
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">CLIENT</h3>
-                                <p className="font-bold text-zinc-900">{quote.customerName}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{quote.shippingAddress || "Adresse de livraison standard"}</p>
+                                <p className="font-bold text-zinc-900">{profile?.companyName || quote.customerName}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
                             </div>
                         </section>
                         

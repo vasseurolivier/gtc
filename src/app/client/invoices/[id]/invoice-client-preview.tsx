@@ -2,7 +2,7 @@
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { Loader2, Download, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -11,9 +11,19 @@ import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const companyInfoContext = useContext(CompanyInfoContext);
+    const { user } = useUser();
+    const db = useFirestore();
+
+    const clientRef = useMemoFirebase(() => {
+        if (!db || !user) return null;
+        return doc(db, 'clients', user.uid);
+    }, [db, user]);
+    const { data: profile } = useDoc(clientRef);
 
     // Clients only see the Euro price frozen at creation
     const invoiceRate = invoice.exchangeRate || 0.13;
@@ -92,8 +102,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             </div>
                             <div>
                                 <h3 className="font-black text-[10px] uppercase text-muted-foreground mb-3 tracking-widest">DESTINATAIRE</h3>
-                                <p className="font-bold text-zinc-900">{invoice.customerName}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{invoice.shippingAddress || "Adresse de livraison habituelle"}</p>
+                                <p className="font-bold text-zinc-900">{profile?.companyName || invoice.customerName}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-1 text-xs">{invoice.shippingAddress || profile?.address || "Adresse de livraison habituelle"}</p>
                             </div>
                         </section>
                         

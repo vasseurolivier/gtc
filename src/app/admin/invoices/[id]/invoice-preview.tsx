@@ -97,8 +97,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </div>
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
-                            <p className="font-bold">{customer?.name}</p>
-                            {customer?.company && <p>{customer.company}</p>}
+                            <p className="font-bold">{(customer as any)?.companyName || customer?.company || customer?.name}</p>
                             <p className="whitespace-pre-wrap">{invoice.shippingAddress || customer?.address}</p>
                         </div>
                     </section>

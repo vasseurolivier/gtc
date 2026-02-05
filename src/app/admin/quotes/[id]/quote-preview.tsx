@@ -106,8 +106,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                             <div>
                                 <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">FACTURÉ À</h3>
-                                <p className="font-bold leading-tight">{customer?.name}</p>
-                                {customer?.company && <p className="leading-tight">{customer.company}</p>}
+                                <p className="font-bold leading-tight">{(customer as any)?.companyName || customer?.company || customer?.name}</p>
                                 <p className="whitespace-pre-wrap leading-tight">{quote.shippingAddress || customer?.address}</p>
                             </div>
                         </div>
