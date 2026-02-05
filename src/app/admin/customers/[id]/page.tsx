@@ -54,9 +54,8 @@ export default function CustomerProfilePage() {
             const data = await getCustomerById(id!);
             setCustomer(data);
             
-            // Check if a client account with this email already exists
+            // Check if a client account with this email already exists in Firestore
             if (data?.email && db) {
-                // Search by email in clients collection
                 const q = query(collection(db, 'clients'), where('email', '==', data.email));
                 const snap = await getDocs(q);
                 if (!snap.empty) {
@@ -82,12 +81,13 @@ export default function CustomerProfilePage() {
         }
 
         setIsConverting(true);
-        try {
-            // 1. Create User in Firebase Auth using a secondary app instance
-            const secondaryAppName = `secondary-${Date.now()}`;
-            const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-            const secondaryAuth = getAuth(secondaryApp);
+        // Use a secondary app to create the user without logging out the admin
+        const secondaryAppName = `secondary-${Date.now()}`;
+        const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+        const secondaryAuth = getAuth(secondaryApp);
 
+        try {
+            // 1. Create User in Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, customer.email, initialPassword);
             const uid = userCredential.user.uid;
 
@@ -113,9 +113,7 @@ export default function CustomerProfilePage() {
                 const quotesSnap = await getDocs(quotesQuery);
                 for (const qDoc of quotesSnap.docs) {
                     const quoteData = qDoc.data();
-                    // Update master
                     await updateDoc(qDoc.ref, { customerId: uid });
-                    // Create copy in client subcollection
                     await setDoc(doc(db, 'clients', uid, 'quotes', qDoc.id), { ...quoteData, customerId: uid }, { merge: true });
                 }
 
@@ -123,9 +121,7 @@ export default function CustomerProfilePage() {
                 const invoicesSnap = await getDocs(invoicesQuery);
                 for (const iDoc of invoicesSnap.docs) {
                     const invData = iDoc.data();
-                    // Update master
                     await updateDoc(iDoc.ref, { customerId: uid });
-                    // Create copy in client subcollection
                     await setDoc(doc(db, 'clients', uid, 'invoices', iDoc.id), { ...invData, customerId: uid }, { merge: true });
                 }
 
@@ -139,13 +135,19 @@ export default function CustomerProfilePage() {
                 setIsConvertDialogOpen(false);
                 setIsAlreadyClient(true);
             }
-
-            // Cleanup secondary app
-            await deleteApp(secondaryApp);
         } catch (e: any) {
             console.error("Account creation error:", e);
-            toast({ variant: "destructive", title: "Erreur de création", description: e.message });
+            if (e.code === 'auth/email-already-in-use') {
+                toast({ 
+                    variant: "destructive", 
+                    title: "Email déjà utilisé", 
+                    description: "Cet email est déjà enregistré dans le système. Si vous avez supprimé ce client récemment, vous devez supprimer ses identifiants manuellement dans la console Firebase pour libérer l'email." 
+                });
+            } else {
+                toast({ variant: "destructive", title: "Erreur de création", description: e.message });
+            }
         } finally {
+            await deleteApp(secondaryApp);
             setIsConverting(false);
         }
     };
@@ -260,7 +262,7 @@ export default function CustomerProfilePage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-1 space-y-8">
+                <div className="lg:col-span-1 space-y-6">
                     <Card className="border-none shadow-md">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><User /> {customer.name}</CardTitle>

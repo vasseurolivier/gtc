@@ -1,8 +1,8 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where, deleteDoc, setDoc } from 'firebase/firestore';
+import { firebaseConfig } from '@/firebase/config';
 
 export interface RegisteredClient {
     id: string;
@@ -109,13 +109,34 @@ export async function updateRegisteredClientStatus(id: string, status: 'pending'
 }
 
 /**
- * Delete a registered client account record.
+ * Delete a registered client account record and try to remove their Auth credentials.
  */
 export async function deleteRegisteredClient(id: string) {
     try {
+        // 1. Delete the Firestore document
         await deleteDoc(doc(db, 'clients', id));
-        return { success: true, message: 'Compte client supprimé définitivement.' };
+
+        // 2. Attempt to delete from Auth via Admin SDK (if possible in this env)
+        try {
+            const admin = await import('firebase-admin');
+            if (!admin.apps.length) {
+                admin.initializeApp({
+                    projectId: firebaseConfig.projectId
+                });
+            }
+            await admin.auth().deleteUser(id);
+            return { success: true, message: 'Compte client et identifiants supprimés définitivement.' };
+        } catch (authError) {
+            console.warn("Could not delete Auth user automatically:", authError);
+            // Document is deleted, but Auth record might persist.
+            // Inform the user so they can do it manually in Firebase Console if recreate fails.
+            return { 
+                success: true, 
+                message: 'Profil supprimé. Note: Les identifiants de connexion n\'ont pas pu être retirés automatiquement. Veuillez les supprimer manuellement dans la console Firebase pour libérer cet email.' 
+            };
+        }
     } catch (e: any) {
+        console.error("Error deleting registered client:", e);
         return { success: false, message: 'Erreur lors de la suppression du compte.' };
     }
 }
@@ -144,7 +165,6 @@ export async function updateClientProfile(id: string, data: Partial<RegisteredCl
 export async function deleteProductList(clientId: string, listId: string) {
     try {
         const listRef = doc(db, 'clients', clientId, 'productLists', listId);
-        // In a real app we should also delete products inside, but for prototype we delete the doc.
         await deleteDoc(listRef);
         return { success: true, message: 'Liste supprimée avec succès.' };
     } catch (e: any) {
