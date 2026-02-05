@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -63,7 +62,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     
     const { currency, exchangeRate } = currencyContext;
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    // Modification: Utilisation directe du logo admin
+    const displayLogo = companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
     const quoteRate = quote.exchangeRate || exchangeRate || 0.13;

@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -64,7 +63,8 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    // Modification: Utilisation directe du logo admin
+    const displayLogo = companyInfo.logo;
     const subTotalEuro = quote.subTotal * quoteRate;
     const commissionEuro = (quote.subTotal * (quote.commissionRate || 0) / 100) * quoteRate;
     const transportEuro = (quote.transportCost || 0) * quoteRate;

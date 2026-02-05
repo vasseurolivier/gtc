@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -64,7 +63,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    // Modification: Utilisation directe du logo admin
+    const displayLogo = companyInfo.logo;
     const subTotal = invoice.items.reduce((sum, item) => sum + item.total, 0);
     
     return (
