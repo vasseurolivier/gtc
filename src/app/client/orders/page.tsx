@@ -188,12 +188,13 @@ export default function ClientOrdersPage() {
       return;
     }
 
+    const finalQuantity = Math.max(1, productQuantity);
     const itemKey = `${selectedProduct.id}-${selectedSize || 'no-size'}`;
     const existingIdx = cart.findIndex(item => item.key === itemKey);
     
     if (existingIdx > -1) {
       const newCart = [...cart];
-      newCart[existingIdx].quantity += productQuantity;
+      newCart[existingIdx].quantity += finalQuantity;
       newCart[existingIdx].total = newCart[existingIdx].quantity * newCart[existingIdx].unitPrice;
       setCart(newCart);
     } else {
@@ -202,9 +203,9 @@ export default function ClientOrdersPage() {
         id: selectedProduct.id,
         name: selectedProduct.name,
         sku: selectedProduct.sku || '',
-        quantity: productQuantity,
+        quantity: finalQuantity,
         unitPrice: Number(selectedProduct.price || 0),
-        total: productQuantity * Number(selectedProduct.price || 0),
+        total: finalQuantity * Number(selectedProduct.price || 0),
         photo: selectedProduct.images?.[0] || '',
         size: selectedSize
       }]);
@@ -588,13 +589,25 @@ export default function ClientOrdersPage() {
                   <Label className="font-black text-xs uppercase tracking-widest text-zinc-400">Quantité souhaitée</Label>
                   <div className="flex items-center gap-4">
                     <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}><Minus className="h-4 w-4" /></Button>
-                    <Input className="h-12 text-center font-black text-xl bg-white border-zinc-200 rounded-xl" value={productQuantity} readOnly />
+                    <Input 
+                      type="number"
+                      min="1"
+                      className="h-12 text-center font-black text-xl bg-white border-zinc-200 rounded-xl" 
+                      value={productQuantity} 
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setProductQuantity(isNaN(val) ? 0 : val);
+                      }}
+                      onBlur={() => {
+                        if (productQuantity < 1) setProductQuantity(1);
+                      }}
+                    />
                     <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(productQuantity + 1)}><Plus className="h-4 w-4" /></Button>
                   </div>
                   <div className="pt-4 border-t border-zinc-200 flex justify-between items-center">
                     <span className="font-bold text-zinc-500 uppercase text-[10px] tracking-wider">Sous-total :</span>
                     <span className="text-right">
-                      {renderPrice(selectedProduct.price * productQuantity, "text-2xl font-black text-zinc-900")}
+                      {renderPrice(selectedProduct.price * Math.max(1, productQuantity), "text-2xl font-black text-zinc-900")}
                     </span>
                   </div>
                   <Button className="w-full h-14 bg-zinc-950 text-white font-black hover:bg-primary transition-all rounded-xl shadow-xl shadow-zinc-900/10" onClick={handleAddToCart}>
