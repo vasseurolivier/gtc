@@ -109,6 +109,18 @@ export async function updateRegisteredClientStatus(id: string, status: 'pending'
 }
 
 /**
+ * Delete a registered client account record.
+ */
+export async function deleteRegisteredClient(id: string) {
+    try {
+        await deleteDoc(doc(db, 'clients', id));
+        return { success: true, message: 'Compte client supprimé définitivement.' };
+    } catch (e: any) {
+        return { success: false, message: 'Erreur lors de la suppression du compte.' };
+    }
+}
+
+/**
  * Update client profile from the client space.
  */
 export async function updateClientProfile(id: string, data: Partial<RegisteredClient>) {

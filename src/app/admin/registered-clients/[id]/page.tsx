@@ -9,6 +9,7 @@ import {
   updateRegisteredClientNumber,
   updateRegisteredClientPrefix,
   updateRegisteredClientCurrencyPreference,
+  deleteRegisteredClient,
   deleteProductList,
   deleteClientProduct,
   RegisteredClient 
@@ -96,6 +97,7 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingClient, setIsDeletingClient] = useState(false);
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
   const [orderPrefix, setOrderPrefix] = useState('');
@@ -240,6 +242,19 @@ export default function ClientDetailPage() {
     if (result.success) {
       setClient({ ...client, status: newStatus });
       toast({ title: result.message });
+    }
+  };
+
+  const handleDeleteClientActual = async () => {
+    if (!client) return;
+    setIsDeletingClient(true);
+    const result = await deleteRegisteredClient(clientId);
+    if (result.success) {
+      toast({ title: "Succès", description: "Compte supprimé définitivement." });
+      router.push('/admin/registered-clients');
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+      setIsDeletingClient(false);
     }
   };
 
@@ -766,6 +781,28 @@ export default function ClientDetailPage() {
           <Button size="sm" variant="outline" onClick={handleToggleStatus}>
             {client.status === 'validated' ? 'Suspendre' : 'Valider maintenant'}
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="destructive" disabled={isDeletingClient}>
+                {isDeletingClient ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                Supprimer le compte
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer définitivement ce compte ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action supprimera l'accès du client à son espace. Toutes ses données de profil seront effacées de la liste des comptes. Les documents globaux (factures, proformas) resteront dans votre base mais ne seront plus liés à ce client.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteClientActual} className="bg-red-600 hover:bg-red-700 text-white font-bold">
+                  Confirmer la suppression
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
@@ -843,7 +880,7 @@ export default function ClientDetailPage() {
                     <SelectItem value="BOTH">Double affichage (€ + ¥)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground italic">Définit comment les prix apparaissent dans l'espace client.</p>
+                <p className="text-[10px] text-zinc-500 italic">Définit comment les prix apparaissent dans l'espace client.</p>
               </div>
               <div className="text-xs text-muted-foreground pt-2 italic">
                 Client depuis {client.createdAt ? parseSafeDate(client.createdAt).getFullYear() : '-'}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -6,6 +7,7 @@ import {
   getRegisteredClients, 
   updateRegisteredClientNumber, 
   updateRegisteredClientStatus,
+  deleteRegisteredClient,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { getOrders, Order } from '@/actions/orders';
@@ -17,7 +19,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList, Euro, UserPlus, ArrowRight } from 'lucide-react';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
+import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList, Euro, UserPlus, ArrowRight, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -59,60 +72,60 @@ export default function RegisteredClientsPage() {
     return isNaN(d.getTime()) ? new Date() : d;
   };
 
+  const fetchData = async () => {
+    if (!db) return;
+    setIsLoading(true);
+    try {
+      const [clientList, leadList, ords] = await Promise.all([
+        getRegisteredClients(),
+        getCustomers(),
+        getOrders()
+      ]);
+      
+      const sourcingIds = new Set<string>();
+      try {
+        const q = query(collectionGroup(db, 'products'), where('status', '==', 'pending'));
+        const snap = await getDocs(q);
+        snap.forEach(doc => {
+          const data = doc.data();
+          if (data && data.clientId && typeof data.clientId === 'string') {
+            sourcingIds.add(data.clientId);
+          }
+        });
+      } catch (e) {
+        console.error("Sourcing notification error:", e);
+      }
+
+      // Only filter out those who already have a registered account (matching email)
+      const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
+      const availableLeads = leadList.filter(l => {
+        if (!l.email) return true; // Always show leads without email so they can be completed
+        return !registeredEmails.has(l.email.toLowerCase());
+      });
+
+      setClients(clientList || []);
+      setLeads(availableLeads || []);
+      setOrders(ords || []);
+      setPendingSourcingIds(sourcingIds);
+      
+      const numbers: Record<string, string> = {};
+      (clientList || []).forEach(c => {
+        numbers[c.id] = c.clientNumber || '';
+      });
+      setTempNumbers(numbers);
+    } catch (error) {
+      console.error("Fetch data error:", error);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de charger les données.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
       router.push('/admin/login');
       return;
-    }
-
-    async function fetchData() {
-      if (!db) return;
-      setIsLoading(true);
-      try {
-        const [clientList, leadList, ords] = await Promise.all([
-          getRegisteredClients(),
-          getCustomers(),
-          getOrders()
-        ]);
-        
-        const sourcingIds = new Set<string>();
-        try {
-          const q = query(collectionGroup(db, 'products'), where('status', '==', 'pending'));
-          const snap = await getDocs(q);
-          snap.forEach(doc => {
-            const data = doc.data();
-            if (data && data.clientId && typeof data.clientId === 'string') {
-              sourcingIds.add(data.clientId);
-            }
-          });
-        } catch (e) {
-          console.error("Sourcing notification error:", e);
-        }
-
-        // Only filter out those who already have a registered account (matching email)
-        const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
-        const availableLeads = leadList.filter(l => {
-          if (!l.email) return true; // Always show leads without email so they can be completed
-          return !registeredEmails.has(l.email.toLowerCase());
-        });
-
-        setClients(clientList || []);
-        setLeads(availableLeads || []);
-        setOrders(ords || []);
-        setPendingSourcingIds(sourcingIds);
-        
-        const numbers: Record<string, string> = {};
-        (clientList || []).forEach(c => {
-          numbers[c.id] = c.clientNumber || '';
-        });
-        setTempNumbers(numbers);
-      } catch (error) {
-        console.error("Fetch data error:", error);
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de charger les données.' });
-      } finally {
-        setIsLoading(false);
-      }
     }
     fetchData();
   }, [router, db, toast]);
@@ -141,6 +154,16 @@ export default function RegisteredClientsPage() {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
     setValidatingId(null);
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    const result = await deleteRegisteredClient(id);
+    if (result.success) {
+      toast({ title: "Supprimé", description: result.message });
+      setClients(prev => prev.filter(c => c.id !== id));
+    } else {
+      toast({ variant: "destructive", title: "Erreur", description: result.message });
+    }
   };
 
   const handleSaveGlobalRate = () => {
@@ -338,6 +361,27 @@ export default function RegisteredClientsPage() {
                           <>Valider</>
                         )}
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer ce compte client ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Attention, cela supprimera l'accès du client à son espace. Les documents (factures, proformas) liés à ce client resteront dans votre historique global mais ne seront plus accessibles par le client.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteClient(client.id)} className="bg-red-600 hover:bg-red-700 text-white">
+                              Confirmer la suppression
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 )
