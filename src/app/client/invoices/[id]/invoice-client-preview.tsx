@@ -3,7 +3,7 @@
 import type { Invoice } from '@/actions/invoices';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, CheckCircle2, Phone, Mail } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, CheckCircle2, Phone, Mail, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -143,7 +144,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <table className="w-full text-sm border-collapse">
                             <thead>
                                 <tr className="text-left bg-zinc-900 text-white">
-                                    <th className="p-4 font-bold border-none first:rounded-l-lg">Description</th>
+                                    <th className="p-4 font-bold border-none first:rounded-l-lg">Image</th>
+                                    <th className="p-4 font-bold border-none">Description</th>
                                     <th className="p-4 text-center font-bold border-none">Qté</th>
                                     <th className="p-4 text-right font-bold border-none">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                     <th className="p-4 text-right font-bold border-none last:rounded-r-lg">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
@@ -152,6 +154,17 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <tbody className="divide-y divide-zinc-100">
                                 {invoice.items.map((item, idx) => (
                                     <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
+                                        <td className="p-4">
+                                            {item.photo ? (
+                                                <div className="relative w-12 h-12 rounded-lg border bg-white overflow-hidden shadow-sm">
+                                                    <img src={item.photo} alt={item.description} className="object-contain w-full h-full" />
+                                                </div>
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg border bg-zinc-50 flex items-center justify-center text-zinc-300">
+                                                    <Package className="h-6 w-6" />
+                                                </div>
+                                            )}
+                                        </td>
                                         <td className="p-4">
                                             <p className="font-bold text-zinc-900">{item.description}</p>
                                             {item.sku && <p className="text-[10px] font-mono text-muted-foreground mt-1">{item.sku}</p>}

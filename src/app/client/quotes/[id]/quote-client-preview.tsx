@@ -3,7 +3,7 @@
 import type { Quote } from '@/actions/quotes';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, Phone, Mail } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -133,7 +133,8 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                         <table className="w-full text-sm border-collapse">
                             <thead>
                                 <tr className="text-left bg-zinc-100 text-zinc-900">
-                                    <th className="p-4 font-bold border-none first:rounded-l-lg">Description des articles</th>
+                                    <th className="p-4 font-bold border-none first:rounded-l-lg">Image</th>
+                                    <th className="p-4 font-bold border-none">Description des articles</th>
                                     <th className="p-4 text-center font-bold border-none">Qté</th>
                                     <th className="p-4 text-right font-bold border-none">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                     <th className="p-4 text-right font-bold border-none last:rounded-r-lg">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
@@ -142,7 +143,21 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                             <tbody className="divide-y divide-zinc-100">
                                 {quote.items.map((item, idx) => (
                                     <tr key={idx}>
-                                        <td className="p-4 font-medium text-zinc-900">{item.description}</td>
+                                        <td className="p-4">
+                                            {(item as any).photo ? (
+                                                <div className="relative w-12 h-12 rounded-lg border bg-white overflow-hidden shadow-sm">
+                                                    <img src={(item as any).photo} alt={item.description} className="object-contain w-full h-full" />
+                                                </div>
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg border bg-zinc-50 flex items-center justify-center text-zinc-300">
+                                                    <Package className="h-6 w-6" />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-4 font-medium text-zinc-900">
+                                            <p className="font-bold">{item.description}</p>
+                                            {item.sku && <p className="text-[10px] font-mono text-muted-foreground mt-1">{item.sku}</p>}
+                                        </td>
                                         <td className="p-4 text-center font-medium">{item.quantity}</td>
                                         <td className="p-4 text-right font-medium">{renderPrice(item.unitPrice)}</td>
                                         <td className="p-4 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
