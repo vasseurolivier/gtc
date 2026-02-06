@@ -209,21 +209,30 @@ export async function updateOrderStatus(id: string, status: string) {
 export async function updateOrderPaymentStatus(id: string, paymentStatus: PaymentStatus) {
     try {
         const orderRef = doc(db, 'orders', id);
-        await updateDoc(orderRef, { paymentStatus });
+        const orderSnap = await getDoc(orderRef);
+        
+        if (!orderSnap.exists()) return { success: false, message: "Order not found" };
+        
+        const currentData = orderSnap.data();
+        const updatePayload: any = { paymentStatus };
+
+        // Si on passe à "payé", on valide automatiquement la commande si elle est encore "en traitement"
+        if (paymentStatus === 'paid' && currentData.status === 'processing') {
+            updatePayload.status = 'validated';
+        }
+
+        await updateDoc(orderRef, updatePayload);
 
         // AUTOMATISME : Si le solde est payé intégralement, générer la facture si elle n'existe pas
         if (paymentStatus === 'paid') {
-            const orderSnap = await getDoc(orderRef);
-            if (orderSnap.exists()) {
-                const orderData = { ...orderSnap.data(), id: orderSnap.id } as unknown as Order;
-                
-                // On vérifie d'abord si une facture n'existe pas déjà pour cet OrderID
-                const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
-                const invoiceSnap = await getDocs(invoiceQuery);
-                
-                if (invoiceSnap.empty) {
-                    await addInvoiceFromOrder(orderData);
-                }
+            const orderData = { ...currentData, ...updatePayload, id: orderSnap.id } as unknown as Order;
+            
+            // On vérifie d'abord si une facture n'existe pas déjà pour cet OrderID
+            const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
+            const invoiceSnap = await getDocs(invoiceQuery);
+            
+            if (invoiceSnap.empty) {
+                await addInvoiceFromOrder(orderData);
             }
         }
 

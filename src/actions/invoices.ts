@@ -69,6 +69,9 @@ export async function addInvoiceFromOrder(order: Order) {
         const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
         const invoiceId = `INV-DOC-${Date.now()}`;
 
+        // Si la commande est déjà notée comme payée, on génère une facture acquittée
+        const isPaid = order.paymentStatus === 'paid';
+
         const newInvoiceData = {
           id: invoiceId,
           invoiceNumber: `INV-${order.orderNumber.replace('O-', '').replace('ORD-', '')}`,
@@ -83,8 +86,9 @@ export async function addInvoiceFromOrder(order: Order) {
             purchasePrice: item.purchasePrice || 0
           })),
           totalAmount: order.totalAmount,
-          status: 'unpaid' as const,
-          amountPaid: 0,
+          status: isPaid ? 'paid' : 'unpaid',
+          amountPaid: isPaid ? order.totalAmount : 0,
+          paymentDate: isPaid ? new Date().toISOString() : null,
           supplierCostTotal: supplierCostTotal,
           supplierCostPaid: 0,
           transportCost: order.transportCost || 0,
