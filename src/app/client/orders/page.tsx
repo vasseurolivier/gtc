@@ -147,7 +147,7 @@ export default function ClientOrdersPage() {
     fetchAllSourced();
   }, [db, user, clientLists]);
 
-  // SMART SORTING LOGIC
+  // SMART SORTING LOGIC (Pending on top, then Creation Date Desc)
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {

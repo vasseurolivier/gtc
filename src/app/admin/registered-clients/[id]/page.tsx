@@ -204,6 +204,27 @@ export default function ClientDetailPage() {
     };
   }, [orders]);
 
+  // SORTED QUOTES & INVOICES (Pending first, then Creation Date Desc)
+  const sortedLinkedInvoices = useMemo(() => {
+    if (!linkedInvoices) return [];
+    return [...linkedInvoices].sort((a, b) => {
+      const isPendingA = a.status !== 'paid' ? 1 : 0;
+      const isPendingB = b.status !== 'paid' ? 1 : 0;
+      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
+    });
+  }, [linkedInvoices]);
+
+  const sortedLinkedQuotes = useMemo(() => {
+    if (!linkedQuotes) return [];
+    return [...linkedQuotes].sort((a, b) => {
+      const isPendingA = (a.status !== 'accepted' && a.status !== 'paid') ? 1 : 0;
+      const isPendingB = (b.status !== 'accepted' && b.status !== 'paid') ? 1 : 0;
+      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
+    });
+  }, [linkedQuotes]);
+
   useEffect(() => {
     if (!db || !clientId || !productLists) return;
     async function aggregate() {
@@ -1232,7 +1253,7 @@ export default function ClientDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {linkedQuotes && linkedQuotes.length > 0 ? linkedQuotes.map((quote) => (
+                    {sortedLinkedQuotes && sortedLinkedQuotes.length > 0 ? sortedLinkedQuotes.map((quote) => (
                       <TableRow key={quote.id}>
                         <TableCell className="pl-6 font-bold">{quote.quoteNumber || 'N/A'}</TableCell>
                         <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
@@ -1296,13 +1317,15 @@ export default function ClientDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {linkedInvoices && linkedInvoices.length > 0 ? linkedInvoices.map((inv) => (
+                    {sortedLinkedInvoices && sortedLinkedInvoices.length > 0 ? sortedLinkedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber || 'N/A'}</TableCell>
                         <TableCell className="text-xs">{inv.issueDate ? format(parseSafeDate(inv.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell className="text-xs">{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
-                          <Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status || 'unpaid'}</Badge>
+                          <Badge className={inv.status === 'paid' ? 'bg-green-500' : 'bg-red-500'}>
+                            {inv.status === 'paid' ? 'Acquittée' : 'À régler'}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right pr-6 font-semibold">¥{Number(inv.totalAmount || 0).toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
