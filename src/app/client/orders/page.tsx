@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -361,6 +362,7 @@ export default function ClientOrdersPage() {
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Commande</TableHead>
+                      <TableHead>Date</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-center">Paiement</TableHead>
                       <TableHead className="text-right">Total</TableHead>
@@ -370,11 +372,14 @@ export default function ClientOrdersPage() {
                   <TableBody>
                     {sortedOrders.map((order) => (
                       <TableRow key={order.id} className={cn(order.paymentStatus !== 'paid' && "bg-primary/5")}>
-                        <TableCell className="pl-6 font-bold">
+                        <TableCell className="pl-6 py-4 font-bold">
                           <div className="flex items-center gap-2">
                             {order.orderNumber}
                             {order.paymentStatus !== 'paid' && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
                         </TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-center">
@@ -405,6 +410,7 @@ export default function ClientOrdersPage() {
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Proforma</TableHead>
+                      <TableHead>Date d'émission</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right pr-6">Documents</TableHead>
@@ -420,6 +426,9 @@ export default function ClientOrdersPage() {
                               {q.quoteNumber}
                               {isPending && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
                             </div>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {q.issueDate ? format(parseSafeDate(q.issueDate), 'dd/MM/yyyy') : '-'}
                           </TableCell>
                           <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
                           <TableCell className="text-right">
@@ -450,6 +459,7 @@ export default function ClientOrdersPage() {
                   <TableHeader>
                     <TableRow className="bg-zinc-50/50">
                       <TableHead className="pl-6">N° Facture</TableHead>
+                      <TableHead>Émise le</TableHead>
                       <TableHead>Échéance</TableHead>
                       <TableHead className="text-center">Statut</TableHead>
                       <TableHead className="text-right">Total</TableHead>
@@ -467,7 +477,10 @@ export default function ClientOrdersPage() {
                               {isPending && <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />}
                             </div>
                           </TableCell>
-                          <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                          <TableCell className="text-xs">
+                            {inv.issueDate ? format(parseSafeDate(inv.issueDate), 'dd/MM/yyyy') : '-'}
+                          </TableCell>
+                          <TableCell className="text-xs">{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                           <TableCell className="text-center">
                             <Badge className={inv.status === 'paid' ? 'bg-green-500' : 'bg-red-500'}>
                               {inv.status === 'paid' ? 'Acquittée' : 'À régler'}

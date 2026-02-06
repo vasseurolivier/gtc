@@ -625,6 +625,7 @@ export default function ClientDetailPage() {
       <TableHeader className="bg-zinc-50">
         <TableRow>
           <TableHead className="pl-6">N° Commande</TableHead>
+          <TableHead>Date</TableHead>
           <TableHead>Statut</TableHead>
           <TableHead className="text-center">Frais Port (CNY)</TableHead>
           <TableHead className="text-center">Paiement</TableHead>
@@ -644,15 +645,13 @@ export default function ClientDetailPage() {
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
               <TableCell className="pl-6 py-4 font-bold">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    {order.orderNumber}
-                    {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
-                  </div>
-                  <span className="text-[10px] text-zinc-400 font-normal">
-                    {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
-                  </span>
+                <div className="flex items-center gap-2">
+                  {order.orderNumber}
+                  {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
                 </div>
+              </TableCell>
+              <TableCell className="text-xs whitespace-nowrap">
+                {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
               </TableCell>
               <TableCell>
                 <Select 
@@ -751,7 +750,7 @@ export default function ClientDetailPage() {
           )
         }) : (
           <TableRow>
-            <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
+            <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">Aucune commande.</TableCell>
           </TableRow>
         )}
       </TableBody>
@@ -1289,6 +1288,7 @@ export default function ClientDetailPage() {
                   <TableHeader className="bg-zinc-50">
                     <TableRow>
                       <TableHead className="pl-6">N° Facture</TableHead>
+                      <TableHead>Émission</TableHead>
                       <TableHead>Échéance</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right pr-6">Montant</TableHead>
@@ -1299,7 +1299,8 @@ export default function ClientDetailPage() {
                     {linkedInvoices && linkedInvoices.length > 0 ? linkedInvoices.map((inv) => (
                       <TableRow key={inv.id}>
                         <TableCell className="pl-6 font-bold">{inv.invoiceNumber || 'N/A'}</TableCell>
-                        <TableCell>{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell className="text-xs">{inv.issueDate ? format(parseSafeDate(inv.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell className="text-xs">{inv.dueDate ? format(parseSafeDate(inv.dueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
                           <Badge className={inv.status === 'paid' ? 'bg-green-500' : ''}>{inv.status || 'unpaid'}</Badge>
                         </TableCell>
@@ -1333,7 +1334,7 @@ export default function ClientDetailPage() {
                       </TableRow>
                     )) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune facture liée.</TableCell>
+                        <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">Aucune facture liée.</TableCell>
                       </TableRow>
                     )}
                   </TableBody>

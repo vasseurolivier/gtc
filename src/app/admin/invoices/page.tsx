@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +20,7 @@ import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, u
 import { getCustomers, Customer } from '@/actions/customers';
 import { getOrders, Order } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory, Truck, Copy } from 'lucide-react';
+import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -329,6 +330,7 @@ export default function InvoicesPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Invoice #</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Total Facturé</TableHead>
             <TableHead>Montant Payé</TableHead>
@@ -354,6 +356,9 @@ export default function InvoicesPage() {
           return(
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+            <TableCell className="text-xs whitespace-nowrap">
+              {invoice.issueDate ? format(new Date(invoice.issueDate), 'dd/MM/yyyy') : '-'}
+            </TableCell>
             <TableCell>{invoice.customerName}</TableCell>
             <TableCell className="text-right">
                 <div>¥{invoice.totalAmount.toFixed(2)}</div>
