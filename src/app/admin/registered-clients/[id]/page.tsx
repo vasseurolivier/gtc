@@ -99,6 +99,7 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [isDeletingClient, setIsDeletingClient] = useState(false);
   const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
   const [clientNumber, setClientNumber] = useState('');
@@ -187,7 +188,7 @@ export default function ClientDetailPage() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
-    return query(collection(db, 'invoices'), where('customerId', '==', clientId));
+    return collection(db, 'clients', clientId, 'invoices');
   }, [db, clientId]);
   const { data: linkedInvoices } = useCollection(invoicesQuery);
 
