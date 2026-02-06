@@ -114,7 +114,7 @@ export default function ClientOrdersPage() {
 
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'clients', user.uid, 'quotes');
+    return query(collection(db, 'quotes'), where('customerId', '==', user.uid));
   }, [db, user]);
   const { data: quotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
 
