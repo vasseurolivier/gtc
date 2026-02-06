@@ -74,7 +74,8 @@ import {
   Check, 
   Tag, 
   Ruler, 
-  Coins 
+  Coins,
+  ShieldAlert
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -354,7 +355,6 @@ export default function ClientDetailPage() {
   };
 
   const handleGenerateQuote = (orderId: string) => {
-    // Redirection vers le formulaire de proforma avec l'ID de commande pour pré-remplissage manuel
     router.push(`/admin/quotes?fromOrder=${orderId}`);
   };
 
@@ -404,6 +404,7 @@ export default function ClientDetailPage() {
       width: product.width || 0,
       height: product.height || 0,
       length: product.length || 0,
+      moq: product.moq || 1,
       hasSizeSelection: product.hasSizeSelection || false,
     });
     setIsProductDialogOpen(true);
@@ -422,6 +423,7 @@ export default function ClientDetailPage() {
       width: prod.width || 0,
       height: prod.height || 0,
       length: prod.length || 0,
+      moq: 1,
       hasSizeSelection: false,
       isNew: true 
     });
@@ -442,6 +444,7 @@ export default function ClientDetailPage() {
       width: 0,
       height: 0,
       length: 0,
+      moq: 1,
       hasSizeSelection: false,
       isNew: true
     });
@@ -481,6 +484,7 @@ export default function ClientDetailPage() {
         width: Number(editingProduct.width || 0),
         height: Number(editingProduct.height || 0),
         length: Number(editingProduct.length || 0),
+        moq: Number(editingProduct.moq || 1),
         status: 'published',
         validatedAt: new Date().toISOString(),
         clientId: clientId,
@@ -558,14 +562,12 @@ export default function ClientDetailPage() {
     setIsSaving(true);
     try {
       const customerFullName = `${client.firstName || ''} ${client.lastName || ''}`;
-      // 1. Update Master Copy
       const invoiceRef = doc(db, 'invoices', inv.id);
       await updateDoc(invoiceRef, {
         customerId: clientId,
         customerName: customerFullName
       });
       
-      // 2. Create Client Subcollection Copy (Distinct Copy)
       const clientInvoiceRef = doc(db, 'clients', clientId, 'invoices', inv.id);
       await setDoc(clientInvoiceRef, {
         ...inv,
@@ -589,14 +591,12 @@ export default function ClientDetailPage() {
     setIsSaving(true);
     try {
       const customerFullName = `${client.firstName || ''} ${client.lastName || ''}`;
-      // 1. Update Master Copy
       const quoteRef = doc(db, 'quotes', quote.id);
       await updateDoc(quoteRef, {
         customerId: clientId,
         customerName: customerFullName
       });
       
-      // 2. Create Client Subcollection Copy (Distinct Copy)
       const clientQuoteRef = doc(db, 'clients', clientId, 'quotes', quote.id);
       await setDoc(clientQuoteRef, {
         ...quote,
@@ -659,8 +659,6 @@ export default function ClientDetailPage() {
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && order.status === 'processing';
-          
-          // Vérification si une PI est déjà liée à cette commande
           const hasQuote = linkedQuotes?.some(q => q.orderId === order.id);
 
           return (
@@ -964,7 +962,7 @@ export default function ClientDetailPage() {
                       <TableHead className="pl-6">Produit</TableHead>
                       <TableHead>SKU</TableHead>
                       <TableHead>Prix Final</TableHead>
-                      <TableHead>Source</TableHead>
+                      <TableHead>MOQ</TableHead>
                       <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -985,7 +983,7 @@ export default function ClientDetailPage() {
                         </TableCell>
                         <TableCell className="text-xs font-mono">{product.sku || 'N/A'}</TableCell>
                         <TableCell className="font-bold">¥{Number(product.price || 0).toFixed(2)}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{product.listName || 'N/A'}</TableCell>
+                        <TableCell className="text-xs font-black text-primary">{product.moq || 1}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEditProduct(product)}>
@@ -1331,7 +1329,7 @@ export default function ClientDetailPage() {
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="sm" asChild>
-                              <Link href={`/admin/invoices/${inv.id}`}>
+                              <Link href={`/client/invoices/${inv.id}`}>
                                 <Eye className="h-4 w-4 mr-2" /> Voir
                               </Link>
                             </Button>
@@ -1688,18 +1686,29 @@ export default function ClientDetailPage() {
                 <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-black uppercase text-primary flex items-center gap-2">
-                      <Ruler className="h-3 w-3" /> Options du produit
+                      <ShieldAlert className="h-3 w-3" /> Conditions de vente
                     </Label>
                   </div>
-                  <div className="flex items-center justify-between py-2">
-                    <div className="space-y-0.5">
-                      <div className="text-sm font-bold text-zinc-800">Grille de tailles (XS-4XL)</div>
-                      <div className="text-[10px] text-zinc-500">Permet au client de choisir une taille lors de sa commande.</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-bold uppercase text-zinc-500">Quantité Minimum (MOQ)</Label>
+                      <Input 
+                        type="number" 
+                        min="1"
+                        value={editingProduct.moq || 1} 
+                        onChange={(e) => setEditingProduct({...editingProduct, moq: e.target.value})}
+                        className="h-9 font-black"
+                      />
                     </div>
-                    <Switch 
-                      checked={editingProduct.hasSizeSelection || false} 
-                      onCheckedChange={(checked) => setEditingProduct({...editingProduct, hasSizeSelection: checked})} 
-                    />
+                    <div className="flex items-center justify-between pt-6">
+                      <div className="space-y-0.5">
+                        <div className="text-xs font-bold text-zinc-800">Grille tailles</div>
+                      </div>
+                      <Switch 
+                        checked={editingProduct.hasSizeSelection || false} 
+                        onCheckedChange={(checked) => setEditingProduct({...editingProduct, hasSizeSelection: checked})} 
+                      />
+                    </div>
                   </div>
                 </div>
 

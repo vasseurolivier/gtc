@@ -89,7 +89,6 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
 
-  // Preference Euro/CNY
   const currencyPreference = profile?.currencyPreference || 'EUR';
 
   useEffect(() => {
@@ -147,7 +146,6 @@ export default function ClientOrdersPage() {
     fetchAllSourced();
   }, [db, user, clientLists]);
 
-  // SMART SORTING LOGIC (Pending on top, then Creation Date Desc)
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -204,7 +202,7 @@ export default function ClientOrdersPage() {
 
   const handleOpenProduct = (product: any) => {
     setSelectedProduct(product);
-    setProductQuantity(1);
+    setProductQuantity(Number(product.moq || 1));
     setSelectedSize(null);
     setCurrentImageIdx(0);
     setIsProductDialogOpen(true);
@@ -218,18 +216,27 @@ export default function ClientOrdersPage() {
   const handleAddToCart = () => {
     if (!selectedProduct) return;
     
+    const moq = Number(selectedProduct.moq || 1);
+    if (productQuantity < moq) {
+      toast({ 
+        variant: "destructive", 
+        title: "Quantité insuffisante", 
+        description: `Ce produit nécessite une commande minimum de ${moq} unités.` 
+      });
+      return;
+    }
+
     if (selectedProduct.hasSizeSelection && !selectedSize) {
       toast({ variant: "destructive", title: "Taille requise", description: "Veuillez sélectionner une taille pour cet article." });
       return;
     }
 
-    const finalQuantity = Math.max(1, productQuantity);
     const itemKey = `${selectedProduct.id}-${selectedSize || 'no-size'}`;
     const existingIdx = cart.findIndex(item => item.key === itemKey);
     
     if (existingIdx > -1) {
       const newCart = [...cart];
-      newCart[existingIdx].quantity += finalQuantity;
+      newCart[existingIdx].quantity += productQuantity;
       newCart[existingIdx].total = newCart[existingIdx].quantity * newCart[existingIdx].unitPrice;
       setCart(newCart);
     } else {
@@ -238,21 +245,24 @@ export default function ClientOrdersPage() {
         id: selectedProduct.id,
         name: selectedProduct.name,
         sku: selectedProduct.sku || '',
-        quantity: finalQuantity,
+        quantity: productQuantity,
         unitPrice: Number(selectedProduct.price || 0),
-        total: finalQuantity * Number(selectedProduct.price || 0),
+        total: productQuantity * Number(selectedProduct.price || 0),
         photo: selectedProduct.images?.[0] || '',
-        size: selectedSize
+        size: selectedSize,
+        moq: moq
       }]);
     }
-    toast({ title: "Produit ajouté", description: `${selectedProduct.name} ${selectedSize ? `(Taille ${selectedSize})` : ''} est dans votre panier.` });
+    toast({ title: "Produit ajouté", description: `${selectedProduct.name} est dans votre panier.` });
     setIsProductDialogOpen(false);
   };
 
   const updateCartItemQuantity = (key: string, delta: number) => {
     setCart(cart.map(item => {
       if (item.key === key) {
-        const newQty = Math.max(1, item.quantity + delta);
+        const moq = Number(item.moq || 1);
+        const newQty = Math.max(moq, item.quantity + delta);
+        if (newQty < moq) return item;
         return { ...item, quantity: newQty, total: newQty * item.unitPrice };
       }
       return item;
@@ -510,7 +520,10 @@ export default function ClientOrdersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {isSourcedLoading ? [1,2,3,4].map(i => <div key={i} className="h-64 bg-zinc-100 animate-pulse rounded-2xl" />) : sourcedProducts.length > 0 ? (
               sourcedProducts.map((p) => (
-                <Card key={p.id} className="border-none shadow-md overflow-hidden bg-white hover:ring-2 hover:ring-primary/50 cursor-pointer" onClick={() => handleOpenProduct(p)}>
+                <Card key={p.id} className="border-none shadow-md overflow-hidden bg-white hover:ring-2 hover:ring-primary/50 cursor-pointer relative" onClick={() => handleOpenProduct(p)}>
+                  {Number(p.moq || 1) > 1 && (
+                    <Badge className="absolute top-2 right-2 z-10 bg-primary/90 text-[10px] font-black">MOQ: {p.moq}</Badge>
+                  )}
                   <div className="relative aspect-square bg-zinc-50">
                     {p.images?.[0] ? <Image src={p.images[0]} alt={p.name} fill className="object-contain p-4" /> : <Package className="h-12 w-12 mx-auto mt-20 text-zinc-200" />}
                   </div>
@@ -540,6 +553,7 @@ export default function ClientOrdersPage() {
                         <div className="flex flex-col">
                           <span className="font-bold text-sm">{item.name}</span>
                           {item.size && <Badge variant="secondary" className="w-fit text-[10px] h-4 mt-1">Taille: {item.size}</Badge>}
+                          {Number(item.moq || 1) > 1 && <span className="text-[9px] text-zinc-400 mt-1 uppercase font-bold">MOQ: {item.moq}</span>}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
@@ -587,7 +601,6 @@ export default function ClientOrdersPage() {
                       <MapPin className="h-4 w-4 text-primary" /> Destination de livraison
                     </Label>
                     
-                    {/* Option 3PL Warehouse */}
                     <div 
                       className={cn(
                         "p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer flex items-start gap-3",
@@ -674,7 +687,12 @@ export default function ClientOrdersPage() {
               
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Badge variant="outline" className="text-primary border-primary/30">REF: {selectedProduct.sku}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-primary border-primary/30">REF: {selectedProduct.sku}</Badge>
+                    {Number(selectedProduct.moq || 1) > 1 && (
+                      <Badge className="bg-zinc-950 text-white font-black text-[10px]">MOQ: {selectedProduct.moq} UNITÉS</Badge>
+                    )}
+                  </div>
                   <h3 className="text-3xl font-black text-zinc-900">{selectedProduct.name}</h3>
                   <div>
                     {renderPrice(selectedProduct.price, "text-3xl font-black text-primary")}
@@ -707,12 +725,17 @@ export default function ClientOrdersPage() {
                 )}
 
                 <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
-                  <Label className="font-black text-xs uppercase tracking-widest text-zinc-400">Quantité souhaitée</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="font-black text-xs uppercase tracking-widest text-zinc-400">Quantité souhaitée</Label>
+                    {Number(selectedProduct.moq || 1) > 1 && (
+                      <span className="text-[10px] font-bold text-red-500 italic">Min. {selectedProduct.moq} unités</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-4">
-                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}><Minus className="h-4 w-4" /></Button>
+                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(Math.max(Number(selectedProduct.moq || 1), productQuantity - 1))}><Minus className="h-4 w-4" /></Button>
                     <Input 
                       type="number"
-                      min="1"
+                      min={Number(selectedProduct.moq || 1)}
                       className="h-12 text-center font-black text-xl bg-white border-zinc-200 rounded-xl" 
                       value={productQuantity} 
                       onChange={(e) => {
@@ -720,7 +743,8 @@ export default function ClientOrdersPage() {
                         setProductQuantity(isNaN(val) ? 0 : val);
                       }}
                       onBlur={() => {
-                        if (productQuantity < 1) setProductQuantity(1);
+                        const moq = Number(selectedProduct.moq || 1);
+                        if (productQuantity < moq) setProductQuantity(moq);
                       }}
                     />
                     <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(productQuantity + 1)}><Plus className="h-4 w-4" /></Button>
