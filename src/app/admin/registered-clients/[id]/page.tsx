@@ -75,7 +75,8 @@ import {
   Tag, 
   Ruler, 
   Coins,
-  ShieldAlert
+  ShieldAlert,
+  Settings2
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -132,6 +133,10 @@ export default function ClientDetailPage() {
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
   const [orderTransportInput, setOrderTransportInput] = useState('');
   const [isUpdatingOrderTransport, setIsUpdatingOrderTransport] = useState(false);
+
+  // MOQ inline editing states
+  const [editingMoqId, setEditingMoqId] = useState<string | null>(null);
+  const [tempMoq, setTempMoq] = useState<string>('');
 
   useEffect(() => {
     async function fetchData() {
@@ -205,7 +210,6 @@ export default function ClientDetailPage() {
     };
   }, [orders]);
 
-  // SORTED QUOTES & INVOICES (Pending first, then Creation Date Desc)
   const sortedLinkedInvoices = useMemo(() => {
     if (!linkedInvoices) return [];
     return [...linkedInvoices].sort((a, b) => {
@@ -406,6 +410,7 @@ export default function ClientDetailPage() {
       length: product.length || 0,
       moq: product.moq || 1,
       hasSizeSelection: product.hasSizeSelection || false,
+      availability: product.availability || 'both',
     });
     setIsProductDialogOpen(true);
   };
@@ -425,6 +430,7 @@ export default function ClientDetailPage() {
       length: prod.length || 0,
       moq: 1,
       hasSizeSelection: false,
+      availability: 'both',
       isNew: true 
     });
     setIsCatalogDialogOpen(false);
@@ -446,6 +452,7 @@ export default function ClientDetailPage() {
       length: 0,
       moq: 1,
       hasSizeSelection: false,
+      availability: 'both',
       isNew: true
     });
     setIsProductDialogOpen(true);
@@ -504,6 +511,28 @@ export default function ClientDetailPage() {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleInlineMoqSave = async (product: any) => {
+    if (!db || !clientId) return;
+    const moqVal = parseInt(tempMoq);
+    if (isNaN(moqVal) || moqVal < 1) {
+      toast({ variant: "destructive", title: "Erreur", description: "MOQ invalide." });
+      return;
+    }
+
+    setSavingId(product.id);
+    try {
+      const productRef = doc(db, 'clients', clientId, 'productLists', product.listId, 'products', product.id);
+      await updateDoc(productRef, { moq: moqVal });
+      toast({ title: "MOQ mis à jour" });
+      setEditingMoqId(null);
+      router.refresh();
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message });
+    } finally {
+      setSavingId(null);
     }
   };
 
@@ -962,7 +991,7 @@ export default function ClientDetailPage() {
                       <TableHead className="pl-6">Produit</TableHead>
                       <TableHead>SKU</TableHead>
                       <TableHead>Prix Final</TableHead>
-                      <TableHead>MOQ</TableHead>
+                      <TableHead className="w-24 text-center">MOQ</TableHead>
                       <TableHead className="text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -978,12 +1007,51 @@ export default function ClientDetailPage() {
                                 <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
                               </div>
                             )}
-                            <div className="font-medium text-sm">{product.name || 'N/A'}</div>
+                            <div className="space-y-0.5">
+                              <div className="font-medium text-sm">{product.name || 'N/A'}</div>
+                              <div className="text-[9px] text-zinc-400 font-bold uppercase">
+                                {product.availability === 'personalized_only' ? 'Perso. uniquement' : 
+                                 product.availability === 'standard_only' ? 'Standard uniquement' : 
+                                 'Standard & Perso.'}
+                              </div>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-xs font-mono">{product.sku || 'N/A'}</TableCell>
                         <TableCell className="font-bold">¥{Number(product.price || 0).toFixed(2)}</TableCell>
-                        <TableCell className="text-xs font-black text-primary">{product.moq || 1}</TableCell>
+                        <TableCell className="text-center">
+                          {editingMoqId === product.id ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                className="w-16 h-8 text-center text-xs font-black" 
+                                value={tempMoq} 
+                                onChange={(e) => setTempMoq(e.target.value)} 
+                                autoFocus
+                              />
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-8 w-8 text-green-600"
+                                onClick={() => handleInlineMoqSave(product)}
+                                disabled={savingId === product.id}
+                              >
+                                {savingId === product.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                              </Button>
+                            </div>
+                          ) : (
+                            <div 
+                              className="text-xs font-black text-primary cursor-pointer hover:bg-zinc-100 rounded px-2 py-1 inline-block transition-colors"
+                              onClick={() => {
+                                setEditingMoqId(product.id);
+                                setTempMoq((product.moq || 1).toString());
+                              }}
+                            >
+                              {product.moq || 1}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEditProduct(product)}>
@@ -1689,25 +1757,48 @@ export default function ClientDetailPage() {
                       <ShieldAlert className="h-3 w-3" /> Conditions de vente
                     </Label>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold uppercase text-zinc-500">Quantité Minimum (MOQ)</Label>
-                      <Input 
-                        type="number" 
-                        min="1"
-                        value={editingProduct.moq || 1} 
-                        onChange={(e) => setEditingProduct({...editingProduct, moq: e.target.value})}
-                        className="h-9 font-black"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between pt-6">
-                      <div className="space-y-0.5">
-                        <div className="text-xs font-bold text-zinc-800">Grille tailles</div>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold uppercase text-zinc-500">Quantité Minimum (MOQ)</Label>
+                        <Input 
+                          type="number" 
+                          min="1"
+                          value={editingProduct.moq || 1} 
+                          onChange={(e) => setEditingProduct({...editingProduct, moq: e.target.value})}
+                          className="h-9 font-black"
+                        />
                       </div>
-                      <Switch 
-                        checked={editingProduct.hasSizeSelection || false} 
-                        onCheckedChange={(checked) => setEditingProduct({...editingProduct, hasSizeSelection: checked})} 
-                      />
+                      <div className="flex items-center justify-between pt-6">
+                        <div className="space-y-0.5">
+                          <div className="text-xs font-bold text-zinc-800">Grille tailles</div>
+                        </div>
+                        <Switch 
+                          checked={editingProduct.hasSizeSelection || false} 
+                          onCheckedChange={(checked) => setEditingProduct({...editingProduct, hasSizeSelection: checked})} 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase text-zinc-500 flex items-center gap-2">
+                        <Settings2 className="h-3 w-3" /> Type de disponibilité
+                      </Label>
+                      <Select 
+                        value={editingProduct.availability || 'both'} 
+                        onValueChange={(val) => setEditingProduct({...editingProduct, availability: val})}
+                      >
+                        <SelectTrigger className="h-9 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="both">Standard et Personnalisable</SelectItem>
+                          <SelectItem value="personalized_only">Uniquement Personnalisable</SelectItem>
+                          <SelectItem value="standard_only">Uniquement Standard</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[9px] text-zinc-400 italic">Définit si le client peut cocher l'option de personnalisation et si le MOQ s'applique.</p>
                     </div>
                   </div>
                 </div>
