@@ -4,7 +4,17 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, PlusCircle, Package, ArrowRight, TrendingUp, Clock, Loader2 } from 'lucide-react';
+import { 
+  ClipboardList, 
+  PlusCircle, 
+  Package, 
+  ArrowRight, 
+  TrendingUp, 
+  Clock, 
+  Loader2,
+  ShoppingBag,
+  Sparkles
+} from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
@@ -34,9 +44,35 @@ export default function ClientDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold text-zinc-900">Bienvenue dans votre espace</h1>
-        <p className="text-zinc-500 mt-2">Gérez vos demandes de sourcing et suivez vos projets en temps réel.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold text-zinc-900">Bienvenue dans votre espace</h1>
+          <p className="text-zinc-500 mt-2">Gérez vos demandes de sourcing et suivez vos projets en temps réel.</p>
+        </div>
+      </div>
+
+      {/* Quick Actions - Highly Visible */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Button 
+          asChild 
+          className="h-32 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border-none shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group"
+        >
+          <Link href="/client/orders">
+            <ShoppingBag className="h-8 w-8 text-primary group-hover:animate-bounce" />
+            <span className="text-lg font-black uppercase tracking-tight text-white">Passer une nouvelle commande</span>
+          </Link>
+        </Button>
+
+        <Button 
+          asChild 
+          variant="outline"
+          className="h-32 rounded-2xl border-2 border-primary bg-white hover:bg-primary/5 text-primary shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group"
+        >
+          <Link href="/client/product-lists">
+            <Sparkles className="h-8 w-8 group-hover:rotate-12 transition-transform" />
+            <span className="text-lg font-black uppercase tracking-tight">Sourcer un nouveau produit</span>
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
