@@ -14,7 +14,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
-export function QuoteClientPreview({ quote }: { quote: Quote }) {
+export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, products?: any[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const { user } = useUser();
     const db = useFirestore();
@@ -27,6 +27,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
 
     const quoteRate = quote.exchangeRate || 0.13;
     const currencyPref = profile?.currencyPreference || 'EUR';
+    const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
@@ -141,28 +142,34 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
-                                {quote.items.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td className="p-4">
-                                            {(item as any).photo ? (
-                                                <div className="relative w-12 h-12 rounded-lg border bg-white overflow-hidden shadow-sm">
-                                                    <img src={(item as any).photo} alt={item.description} className="object-contain w-full h-full" />
-                                                </div>
-                                            ) : (
-                                                <div className="w-12 h-12 rounded-lg border bg-zinc-50 flex items-center justify-center text-zinc-300">
-                                                    <Package className="h-6 w-6" />
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="p-4 font-medium text-zinc-900">
-                                            <p className="font-bold">{item.description}</p>
-                                            {item.sku && <p className="text-[10px] font-mono text-muted-foreground mt-1">{item.sku}</p>}
-                                        </td>
-                                        <td className="p-4 text-center font-medium">{item.quantity}</td>
-                                        <td className="p-4 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                        <td className="p-4 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
-                                    </tr>
-                                ))}
+                                {quote.items.map((item, idx) => {
+                                    const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
+                                    const displayImage = item.photo || catalogProduct?.imageUrl;
+
+                                    return (
+                                        <tr key={idx}>
+                                            <td className="p-4">
+                                                {displayImage ? (
+                                                    <div className="relative w-12 h-12 rounded-lg border bg-white overflow-hidden shadow-sm">
+                                                        <img src={displayImage} alt={item.description} className="object-contain w-full h-full" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-lg border bg-zinc-50 flex items-center justify-center text-zinc-300">
+                                                        <Package className="h-6 w-6" />
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="p-4 font-medium text-zinc-900">
+                                                <p className="font-bold">{catalogProduct?.name || item.description}</p>
+                                                <p className="text-[10px] text-muted-foreground mt-1">{item.description}</p>
+                                                {item.sku && <p className="text-[10px] font-mono text-zinc-400 mt-0.5">{item.sku}</p>}
+                                            </td>
+                                            <td className="p-4 text-center font-medium">{item.quantity}</td>
+                                            <td className="p-4 text-right font-medium">{renderPrice(item.unitPrice)}</td>
+                                            <td className="p-4 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                         
@@ -181,7 +188,7 @@ export function QuoteClientPreview({ quote }: { quote: Quote }) {
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
-                                    <span className="font-black text-zinc-900">TOTAL ESTIMÉ</span>
+                                    <span className="font-black text-zinc-900 uppercase">Total Estimé</span>
                                     <span className="text-2xl font-black text-primary">{renderPrice(quote.totalAmount, true)}</span>
                                 </div>
                             </div>

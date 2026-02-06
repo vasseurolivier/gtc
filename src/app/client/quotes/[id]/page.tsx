@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { getQuoteById, Quote } from '@/actions/quotes';
+import { getProducts, Product } from '@/actions/products';
 import { useUser } from '@/firebase';
 import { QuoteClientPreview } from './quote-client-preview';
 
@@ -13,6 +14,7 @@ export default function ClientQuotePage() {
     const { user, isUserLoading } = useUser();
     const id = params.id as string;
     const [quote, setQuote] = useState<Quote | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -22,15 +24,26 @@ export default function ClientQuotePage() {
         }
 
         if (id && user) {
-            // Client reads from their own subcollection
-            getQuoteById(id, user.uid).then(data => {
-                if (data && data.customerId === user.uid) {
-                    setQuote(data);
-                } else {
-                    setQuote(null);
+            async function fetchData() {
+                try {
+                    const [quoteData, productData] = await Promise.all([
+                        getQuoteById(id, user!.uid),
+                        getProducts()
+                    ]);
+                    
+                    if (quoteData && quoteData.customerId === user!.uid) {
+                        setQuote(quoteData);
+                    } else {
+                        setQuote(null);
+                    }
+                    setProducts(productData || []);
+                } catch (e) {
+                    console.error("Error fetching quote data:", e);
+                } finally {
+                    setIsLoading(false);
                 }
-                setIsLoading(false);
-            });
+            }
+            fetchData();
         }
     }, [id, user, isUserLoading, router]);
 
@@ -48,7 +61,7 @@ export default function ClientQuotePage() {
 
     return (
         <div className="container max-w-5xl py-8">
-            <QuoteClientPreview quote={quote} />
+            <QuoteClientPreview quote={quote} products={products} />
         </div>
     );
 }

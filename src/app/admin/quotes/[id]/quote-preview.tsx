@@ -4,7 +4,7 @@ import type { Quote } from '@/actions/quotes';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer, Phone, Mail } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
@@ -154,18 +154,24 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         {itemChunks.map((chunk, chunkIndex) => (
                             <tbody key={chunkIndex} className={chunkIndex > 0 ? 'pdf-page' : ''}>
                             {chunk.map((item, itemIndex) => {
-                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
+                                const displayImage = item.photo || catalogProduct?.imageUrl;
+                                
                                 return (
                                     <tr key={itemIndex} className="border-b">
                                         <td className="p-1 align-top border">
-                                            {product?.imageUrl && (
+                                            {displayImage ? (
                                                 <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                    <img src={product.imageUrl} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                    <img src={displayImage} alt={item.description} width={48} height={48} className="object-contain"/>
+                                                </div>
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-md bg-zinc-50 flex items-center justify-center border text-zinc-300">
+                                                    <Package className="h-6 w-6" />
                                                 </div>
                                             )}
                                         </td>
                                         <td className="p-1 align-top border">
-                                            <p className="font-medium leading-tight">{product?.name || item.description}</p>
+                                            <p className="font-medium leading-tight">{catalogProduct?.name || item.description}</p>
                                             <p className="text-[10px] text-muted-foreground leading-tight">{item.description}</p>
                                         </td>
                                         <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
