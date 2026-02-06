@@ -332,21 +332,9 @@ export default function ClientDetailPage() {
     }
   };
 
-  const handleGenerateQuote = async (orderId: string) => {
-    setIsGeneratingQuote(orderId);
-    try {
-      const result = await createQuoteFromOrder(orderId);
-      if (result.success) {
-        toast({ title: "Succès", description: result.message });
-        router.push('/admin/quotes');
-      } else {
-        toast({ variant: "destructive", title: "Erreur", description: result.message });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erreur", description: "Une erreur est survenue." });
-    } finally {
-      setIsGeneratingQuote(null);
-    }
+  const handleGenerateQuote = (orderId: string) => {
+    // Redirection vers le formulaire de proforma avec l'ID de commande pour pré-remplissage manuel
+    router.push(`/admin/quotes?fromOrder=${orderId}`);
   };
 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -649,6 +637,9 @@ export default function ClientDetailPage() {
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && order.status === 'processing';
+          
+          // Vérification si une PI est déjà liée à cette commande
+          const hasQuote = linkedQuotes?.some(q => q.orderId === order.id);
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -702,16 +693,37 @@ export default function ClientDetailPage() {
               <TableCell className="text-right pr-6">
                 <div className="flex justify-end gap-2">
                   {order.status !== 'cancelled' && (
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
-                      disabled={isGeneratingQuote === order.id}
-                      onClick={() => handleGenerateQuote(order.id)}
-                    >
-                      {isGeneratingQuote === order.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
-                      Générer PI
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {hasQuote ? (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 text-[10px] font-bold border-zinc-200 text-zinc-400 cursor-default hover:bg-transparent"
+                          >
+                            <CheckCircle2 className="mr-1 h-3 w-3 text-green-500" /> PI GÉNÉRÉE
+                          </Button>
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 font-bold h-8 text-[10px]"
+                            onClick={() => handleGenerateQuote(order.id)}
+                          >
+                            <Sparkles className="mr-1 h-3 w-3" /> RE-GÉNÉRER
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
+                          onClick={() => handleGenerateQuote(order.id)}
+                        >
+                          <Sparkles className="mr-2 h-3 w-3" />
+                          Générer PI
+                        </Button>
+                      )}
+                    </div>
                   )}
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenOrderPreview(order)}>
                     <Eye className="h-4 w-4" />
@@ -1546,10 +1558,9 @@ export default function ClientDetailPage() {
             {selectedOrderPreview?.status !== 'cancelled' && (
               <Button 
                 className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold"
-                disabled={isGeneratingQuote === selectedOrderPreview?.id}
                 onClick={() => handleGenerateQuote(selectedOrderPreview?.id)}
               >
-                {isGeneratingQuote === selectedOrderPreview?.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                <Sparkles className="mr-2 h-4 w-4" />
                 Générer Proforma
               </Button>
             )}
