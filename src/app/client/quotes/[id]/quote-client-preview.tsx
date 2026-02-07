@@ -10,6 +10,7 @@ import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
@@ -62,6 +63,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         let position = 0;
         pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
+
         while (heightLeft > 0) {
             position = heightLeft - imgHeight;
             pdf.addPage();
@@ -137,7 +139,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 )}
                             </div>
                             <div className="text-right">
-                                <h1 className="text-xl font-black text-zinc-900 tracking-tighter">PROFORMA</h1>
+                                <h1 className="text-xl font-black text-zinc-900 tracking-tighter uppercase">Proforma</h1>
                                 <p className="mt-0.5 text-xs font-bold text-primary">N° {quote.quoteNumber}</p>
                                 <p className="text-[10px] text-muted-foreground mt-0.5">Date: {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
