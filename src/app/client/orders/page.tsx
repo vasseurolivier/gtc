@@ -40,7 +40,8 @@ import {
   ShieldCheck,
   Building2,
   Settings2,
-  Pencil
+  Pencil,
+  Truck
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -225,7 +226,6 @@ export default function ClientOrdersPage() {
   };
 
   const handleStartEditOrder = (order: any) => {
-    // Map order items to cart format
     const initialCart = order.items.map((item: any, idx: number) => ({
       key: `edit-${order.id}-${idx}`,
       id: item.sku, 
@@ -236,14 +236,13 @@ export default function ClientOrdersPage() {
       total: item.total,
       photo: item.photo || '',
       size: item.size || null,
-      moq: item.isPersonalized ? 1 : 1, // Will be overridden if needed
+      moq: 1, 
       isPersonalized: item.isPersonalized || false
     }));
 
     setCart(initialCart);
     setShippingAddress(order.shippingAddress || '');
     
-    // Extract suffix (prefix is fixed for client)
     const prefix = profile?.orderPrefix || 'ORD';
     const suffix = order.orderNumber.replace(prefix, '');
     setOrderSuffix(suffix);
@@ -432,6 +431,7 @@ export default function ClientOrdersPage() {
                       <TableHead className="pl-6">N° Commande</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead className="text-center">Frais Port</TableHead>
                       <TableHead className="text-center">Paiement</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right pr-6">Action</TableHead>
@@ -450,6 +450,17 @@ export default function ClientOrdersPage() {
                           {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
                         </TableCell>
                         <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                        <TableCell className="text-center">
+                          {order.transportCost && order.transportCost > 0 ? (
+                            <div className="flex flex-col items-center">
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100 text-[10px] h-5">
+                                <Truck className="h-3 w-3 mr-1" /> ¥{order.transportCost.toFixed(2)}
+                              </Badge>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-zinc-300 italic">En attente</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-center">
                           {getPaymentStatusBadge(order.paymentStatus)}
                         </TableCell>
@@ -661,7 +672,7 @@ export default function ClientOrdersPage() {
                       placeholder="ex: 2024-001" 
                       value={orderSuffix}
                       onChange={(e) => setOrderSuffix(e.target.value)}
-                      disabled={isEditingOrder} // Cannot change order number when editing
+                      disabled={isEditingOrder} 
                     />
                   </div>
                 </div>
@@ -948,6 +959,25 @@ export default function ClientOrdersPage() {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              </div>
+
+              <div className="flex justify-end pr-4">
+                <div className="w-full max-w-[250px] space-y-2">
+                  <div className="flex justify-between text-xs text-zinc-500">
+                    <span>Sous-total articles:</span>
+                    <span>{renderPrice(selectedOrderPreview.items?.reduce((sum: number, i: any) => sum + i.total, 0) || 0, "font-medium")}</span>
+                  </div>
+                  {selectedOrderPreview.transportCost && selectedOrderPreview.transportCost > 0 && (
+                    <div className="flex justify-between text-xs font-bold text-blue-600">
+                      <span className="flex items-center gap-1"><Truck className="h-3 w-3" /> Frais de transport:</span>
+                      <span>{renderPrice(selectedOrderPreview.transportCost, "font-black")}</span>
+                    </div>
+                  )}
+                  <div className="border-t pt-2 flex justify-between text-sm font-black text-zinc-900 uppercase">
+                    <span>Total Final:</span>
+                    <span>{renderPrice(selectedOrderPreview.totalAmount, "font-black text-primary")}</span>
+                  </div>
                 </div>
               </div>
 
