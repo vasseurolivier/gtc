@@ -41,7 +41,8 @@ import {
   Building2,
   Settings2,
   Pencil,
-  Truck
+  Truck,
+  ArrowRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -478,49 +479,63 @@ export default function ClientOrdersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedOrders.map((order) => (
-                      <TableRow key={order.id} className={cn(order.paymentStatus !== 'paid' && "bg-primary/5")}>
-                        <TableCell className="pl-6 py-4 font-bold">
-                          <div className="flex items-center gap-2">
-                            {order.orderNumber}
-                            {order.paymentStatus !== 'paid' && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
-                        </TableCell>
-                        <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
-                        <TableCell className="text-center">
-                          {order.transportCost && order.transportCost > 0 ? (
-                            <div className="flex flex-col items-center">
-                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100 text-[10px] h-5">
-                                <Truck className="h-3 w-3 mr-1" /> ¥{order.transportCost.toFixed(2)}
-                              </Badge>
+                    {sortedOrders.map((order) => {
+                      const linkedQuote = sortedQuotes.find(q => q.orderId === order.id && q.status === 'sent');
+                      const orderCreatedDate = parseSafeDate(order.createdAt);
+                      const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
+                      const isNewNotification = isVeryRecent && order.status === 'processing';
+
+                      return (
+                        <TableRow key={order.id} className={cn(order.paymentStatus !== 'paid' && "bg-primary/5")}>
+                          <TableCell className="pl-6 py-4 font-bold">
+                            <div className="flex items-center gap-2">
+                              {order.orderNumber}
+                              {(order.paymentStatus !== 'paid' || isNewNotification) && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
                             </div>
-                          ) : (
-                            <span className="text-[10px] text-zinc-300 italic">En attente</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {getPaymentStatusBadge(order.paymentStatus)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {renderPrice(order.totalAmount, "font-black text-zinc-900")}
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                          <div className="flex justify-end gap-2">
-                            {order.status === 'processing' && (
-                              <Button variant="ghost" size="sm" onClick={() => handleStartEditOrder(order)} className="text-primary hover:bg-primary/10">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}
+                          </TableCell>
+                          <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-center">
+                            {order.transportCost && order.transportCost > 0 ? (
+                              <div className="flex flex-col items-center">
+                                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] font-black h-6 shadow-sm">
+                                  <Truck className="h-3.5 w-3.5 mr-1" /> ¥{order.transportCost.toFixed(2)}
+                                </Badge>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-zinc-300 italic">En attente</span>
                             )}
-                            <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {getPaymentStatusBadge(order.paymentStatus)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {renderPrice(order.totalAmount, "font-black text-zinc-900")}
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex justify-end gap-2">
+                              {linkedQuote && (
+                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-black h-8 text-[10px] animate-pulse px-4" asChild>
+                                  <Link href={`/client/quotes/${linkedQuote.id}`}>
+                                    VALIDER LE DEVIS <ArrowRight className="ml-1.5 h-3 w-3" />
+                                  </Link>
+                                </Button>
+                              )}
+                              {!linkedQuote && order.status === 'processing' && (
+                                <Button variant="ghost" size="sm" onClick={() => handleStartEditOrder(order)} className="text-primary hover:bg-primary/10">
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : <div className="p-20 text-center text-zinc-400">Aucune commande.</div>}
@@ -558,7 +573,11 @@ export default function ClientOrdersPage() {
                           <TableCell className="text-xs">
                             {q.issueDate ? format(parseSafeDate(q.issueDate), 'dd/MM/yyyy') : '-'}
                           </TableCell>
-                          <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
+                          <TableCell>
+                            <Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'}>
+                              {q.status}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-right">
                             {renderPrice(q.totalAmount, "font-black text-primary")}
                           </TableCell>

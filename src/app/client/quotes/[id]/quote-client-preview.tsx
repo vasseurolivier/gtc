@@ -4,7 +4,7 @@ import type { Quote } from '@/actions/quotes';
 import { updateQuoteStatus } from '@/actions/quotes';
 import { useContext, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock, Truck } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock, Truck, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
     const [isAccepting, setIsAccepting] = useState(false);
+    const [isRejecting, setIsRejecting] = useState(false);
 
     const clientRef = useMemoFirebase(() => {
         if (!db || !user) return null;
@@ -92,6 +93,26 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             toast({ variant: "destructive", title: "Erreur système", description: "Impossible de valider le devis." });
         } finally {
             setIsAccepting(false);
+        }
+    };
+
+    const handleRejectQuote = async () => {
+        setIsRejecting(true);
+        try {
+            const result = await updateQuoteStatus(quote.id, 'rejected');
+            if (result.success) {
+                toast({ 
+                    title: "Devis Refusé", 
+                    description: "Nous avons bien pris en compte votre refus. Un agent reviendra vers vous." 
+                });
+                router.refresh();
+            } else {
+                toast({ variant: "destructive", title: "Erreur", description: result.message });
+            }
+        } catch (e) {
+            toast({ variant: "destructive", title: "Erreur système", description: "Impossible de refuser le devis." });
+        } finally {
+            setIsRejecting(false);
         }
     };
 
@@ -180,22 +201,36 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 </label>
                             </div>
 
-                            <Button 
-                                onClick={handleAcceptQuote}
-                                disabled={!isTermsAccepted || isAccepting}
-                                className={cn(
-                                    "w-full h-20 text-2xl font-black rounded-2xl shadow-xl transition-all active:scale-95",
-                                    isTermsAccepted 
-                                        ? "bg-primary hover:bg-primary/90 text-white shadow-primary/20" 
-                                        : "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none"
-                                )}
-                            >
-                                {isAccepting ? (
-                                    <Loader2 className="h-8 w-8 animate-spin" />
-                                ) : (
-                                    <>ACCEPTER ET VALIDER LA COMMANDE</>
-                                )}
-                            </Button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <Button 
+                                    onClick={handleAcceptQuote}
+                                    disabled={!isTermsAccepted || isAccepting || isRejecting}
+                                    className={cn(
+                                        "flex-grow h-16 text-xl font-black rounded-2xl shadow-xl transition-all active:scale-95",
+                                        isTermsAccepted 
+                                            ? "bg-primary hover:bg-primary/90 text-white shadow-primary/20" 
+                                            : "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none"
+                                    )}
+                                >
+                                    {isAccepting ? (
+                                        <Loader2 className="h-6 w-6 animate-spin" />
+                                    ) : (
+                                        <>ACCEPTER LE DEVIS</>
+                                    )}
+                                </Button>
+                                <Button 
+                                    variant="outline"
+                                    onClick={handleRejectQuote}
+                                    disabled={isAccepting || isRejecting}
+                                    className="h-16 px-8 text-sm font-bold rounded-2xl text-red-600 border-red-200 hover:bg-red-50"
+                                >
+                                    {isRejecting ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : (
+                                        <>REFUSER</>
+                                    )}
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 ) : (quote.status === 'accepted' || quote.status === 'paid') ? (
@@ -210,6 +245,19 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             </div>
                         </div>
                         <Badge className="bg-green-500 h-12 px-8 text-lg font-black rounded-xl">STATUT: {quote.status.toUpperCase()}</Badge>
+                    </div>
+                ) : quote.status === 'rejected' ? (
+                    <div className="p-8 bg-red-50 border-2 border-red-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
+                        <div className="flex items-center gap-4 text-red-700">
+                            <div className="h-14 w-14 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">
+                                <XCircle className="h-8 w-8" />
+                            </div>
+                            <div>
+                                <p className="font-black uppercase text-xl leading-none">Devis Refusé</p>
+                                <p className="text-sm font-medium opacity-80 mt-1">Vous avez refusé ce devis. Notre équipe vous recontactera prochainement.</p>
+                            </div>
+                        </div>
+                        <Badge variant="destructive" className="h-12 px-8 text-lg font-black rounded-xl">REFUSÉ</Badge>
                     </div>
                 ) : (
                     <div className="p-6 bg-zinc-100 border border-zinc-200 rounded-2xl flex items-center gap-4 mb-8 text-zinc-500">
