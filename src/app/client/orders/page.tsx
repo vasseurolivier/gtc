@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -54,7 +53,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { updateOrder, PaymentStatus } from '@/actions/orders';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
-const WAREHOUSE_3PL_ADDRESS = "Entrepôt Central GTC - Service Logistique 3PL\n浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501\nYiwu, Zhejiang, China";
+const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
