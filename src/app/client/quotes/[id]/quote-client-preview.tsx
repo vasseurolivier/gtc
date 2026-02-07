@@ -2,7 +2,7 @@
 
 import type { Quote } from '@/actions/quotes';
 import { updateQuoteStatus } from '@/actions/quotes';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock, Truck, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -30,6 +30,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
     const [isAccepting, setIsAccepting] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
+    // Local status state to prevent multiple clicks and provide immediate feedback
+    const [currentStatus, setCurrentStatus] = useState(quote.status);
 
     const clientRef = useMemoFirebase(() => {
         if (!db || !user) return null;
@@ -76,7 +78,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     };
 
     const handleAcceptQuote = async () => {
-        if (!isTermsAccepted) return;
+        if (!isTermsAccepted || isAccepting) return;
         setIsAccepting(true);
         try {
             const result = await updateQuoteStatus(quote.id, 'accepted');
@@ -85,6 +87,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                     title: "Proforma Acceptée !", 
                     description: "Votre commande est désormais validée. Nous allons préparer votre facture." 
                 });
+                setCurrentStatus('accepted');
                 router.refresh();
             } else {
                 toast({ variant: "destructive", title: "Erreur", description: result.message });
@@ -97,6 +100,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     };
 
     const handleRejectQuote = async () => {
+        if (isRejecting) return;
         setIsRejecting(true);
         try {
             const result = await updateQuoteStatus(quote.id, 'rejected');
@@ -105,6 +109,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                     title: "Devis Refusé", 
                     description: "Nous avons bien pris en compte votre refus. Un agent reviendra vers vous." 
                 });
+                setCurrentStatus('rejected');
                 router.refresh();
             } else {
                 toast({ variant: "destructive", title: "Erreur", description: result.message });
@@ -123,6 +128,13 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
+    // Recalculate Subtotal and Commission for display
+    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(quote.commissionRate) || 0;
+    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+    const transportCny = Number(quote.transportCost) || 0;
+    const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
+
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * quoteRate;
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
@@ -134,12 +146,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             </div>
         );
     };
-
-    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-    const commissionRate = Number(quote.commissionRate) || 0;
-    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
-    const transportCny = Number(quote.transportCost) || 0;
-    const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
 
     return (
         <div className="space-y-6">
@@ -155,7 +161,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             </div>
             
             <div className="no-print">
-                {quote.status === 'sent' ? (
+                {currentStatus === 'sent' ? (
                     <Card className="border-4 border-primary bg-primary/5 shadow-2xl overflow-hidden mb-8">
                         <CardContent className="p-6 md:p-10 space-y-6">
                             <div className="flex items-center gap-4 text-primary">
@@ -233,7 +239,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             </div>
                         </CardContent>
                     </Card>
-                ) : (quote.status === 'accepted' || quote.status === 'paid') ? (
+                ) : (currentStatus === 'accepted' || currentStatus === 'paid') ? (
                     <div className="p-8 bg-green-50 border-2 border-green-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
                         <div className="flex items-center gap-4 text-green-700 text-center md:text-left">
                             <div className="h-14 w-14 bg-green-500 text-white rounded-full flex items-center justify-center shrink-0">
@@ -244,9 +250,9 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 <p className="text-sm font-medium opacity-80 mt-1">Ce document a été signé électroniquement. Votre commande est en cours de traitement.</p>
                             </div>
                         </div>
-                        <Badge className="bg-green-500 h-12 px-8 text-lg font-black rounded-xl">STATUT: {quote.status.toUpperCase()}</Badge>
+                        <Badge className="bg-green-500 h-12 px-8 text-lg font-black rounded-xl">STATUT: {currentStatus.toUpperCase()}</Badge>
                     </div>
-                ) : quote.status === 'rejected' ? (
+                ) : currentStatus === 'rejected' ? (
                     <div className="p-8 bg-red-50 border-2 border-red-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
                         <div className="flex items-center gap-4 text-red-700">
                             <div className="h-14 w-14 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">

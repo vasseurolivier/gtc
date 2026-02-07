@@ -67,6 +67,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
+    // Recalculate Subtotal and Commission for display
+    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(quote.commissionRate) || 0;
+    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+    const transportCny = Number(quote.transportCost) || 0;
+    const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
+
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * quoteRate;
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
@@ -78,12 +85,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             </div>
         );
     };
-
-    // Calculate subTotal from items to ensure accuracy in preview
-    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-    const commissionRate = Number(quote.commissionRate) || 0;
-    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
-    const transportCny = Number(quote.transportCost) || 0;
 
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
@@ -183,7 +184,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                             </div>
                             
-                            {commissionCny > 0 && (
+                            {commissionRate > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
@@ -199,7 +200,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
                             <div className="flex justify-between font-black text-sm mt-2 pt-2 border-t-2 border-black">
                                 <span>TOTAL :</span>
-                                <span className="text-right text-primary">{renderPrice(quote.totalAmount, true)}</span>
+                                <span className="text-right text-primary">{renderPrice(totalFinalCny, true)}</span>
                             </div>
                         </div>
                     </div>
@@ -236,11 +237,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             {quote.depositRequired ? (
                                 <div className="grid grid-cols-2 gap-4">
                                     <p className="text-muted-foreground leading-tight">
-                                        Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(quote.totalAmount * ((quote.depositPercentage || 30) / 100))}</strong>
+                                        Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100))}</strong>
                                         <br />Payable sous 3 jours.
                                     </p>
                                     <p className="text-muted-foreground leading-tight">
-                                        Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(quote.totalAmount * ((100 - (quote.depositPercentage || 30)) / 100))}</strong>
+                                        Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100))}</strong>
                                         <br />Payable après contrôle qualité (AQL).
                                     </p>
                                 </div>
