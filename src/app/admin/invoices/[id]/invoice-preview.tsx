@@ -160,14 +160,18 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <span className="text-muted-foreground">Sous-total :</span>
                                 <span className="font-bold">{renderPrice(subTotalCny)}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
-                                <span className="font-bold">{renderPrice(commissionCny)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Frais de port :</span>
-                                <span className="font-bold">{renderPrice(transportCny)}</span>
-                            </div>
+                            {commissionRate > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
+                                    <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                </div>
+                            )}
+                            {transportCny > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Frais de port :</span>
+                                    <span className="font-bold">{renderPrice(transportCny)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between font-bold text-sm pt-2 mt-2 border-t-2 border-black">
                                 <span>TOTAL FINAL :</span>
                                 <span className="text-primary">{renderPrice(invoice.totalAmount, true)}</span>

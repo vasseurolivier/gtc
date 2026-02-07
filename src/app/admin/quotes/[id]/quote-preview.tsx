@@ -195,15 +195,19 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <span className="text-right">{renderPrice(quote.subTotal)}</span>
                                 </div>
                                 
-                                <div className="flex justify-between leading-tight">
-                                    <span className="text-muted-foreground">Commission ({quote.commissionRate || 0}%) :</span>
-                                    <span className="text-right">{renderPrice(commissionCny)}</span>
-                                </div>
+                                {(quote.commissionRate || 0) > 0 && (
+                                    <div className="flex justify-between leading-tight">
+                                        <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
+                                        <span className="text-right">{renderPrice(commissionCny)}</span>
+                                    </div>
+                                )}
                                 
-                                <div className="flex justify-between leading-tight">
-                                    <span className="text-muted-foreground">Frais de port :</span>
-                                    <span className="text-right">{renderPrice(transportCny)}</span>
-                                </div>
+                                {transportCny > 0 && (
+                                    <div className="flex justify-between leading-tight">
+                                        <span className="text-muted-foreground">Frais de port :</span>
+                                        <span className="text-right">{renderPrice(transportCny)}</span>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t-2 border-black">
                                     <span>TOTAL :</span>

@@ -39,6 +39,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             allowTaint: true
         });
         const data = canvas.toDataURL('image/png');
+
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -179,14 +180,18 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     <span className="text-muted-foreground font-medium">Sous-total</span>
                                     <span className="font-bold">{renderPrice(quote.subTotal)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium">Commission ({quote.commissionRate}%)</span>
-                                    <span className="font-bold">{renderPrice(commissionCny)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium">Frais de port</span>
-                                    <span className="font-bold">{renderPrice(transportCny)}</span>
-                                </div>
+                                {(quote.commissionRate || 0) > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground font-medium">Commission ({quote.commissionRate}%)</span>
+                                        <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                    </div>
+                                )}
+                                {transportCny > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground font-medium">Frais de port</span>
+                                        <span className="font-bold">{renderPrice(transportCny)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase">Total Estimé</span>
                                     <span className="text-2xl font-black text-primary">{renderPrice(quote.totalAmount, true)}</span>

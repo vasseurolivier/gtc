@@ -1,9 +1,9 @@
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, CheckCircle2, Phone, Mail, Package } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, CheckCircle2, Phone, Mail, Package, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -14,17 +14,25 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { getOrderById, type Order } from '@/actions/orders';
 
 export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const { user } = useUser();
     const db = useFirestore();
+    const [order, setOrder] = useState<Order | null>(null);
 
     const clientRef = useMemoFirebase(() => {
         if (!db || !user) return null;
         return doc(db, 'clients', user.uid);
     }, [db, user]);
     const { data: profile } = useDoc(clientRef);
+
+    useEffect(() => {
+        if (invoice.orderId) {
+            getOrderById(invoice.orderId).then(setOrder);
+        }
+    }, [invoice.orderId]);
 
     const invoiceRate = invoice.exchangeRate || 0.13;
     const currencyPref = profile?.currencyPreference || 'EUR';
@@ -80,6 +88,9 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     };
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + item.total, 0);
+    const commissionRate = order?.commissionRate || 0;
+    const commissionCny = subTotalCny * (commissionRate / 100);
+    const transportCny = order?.transportCost || 0;
     
     return (
         <div className="space-y-6">
@@ -180,9 +191,21 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <div className="flex justify-end pt-10">
                             <div className="w-full max-w-[300px] space-y-3">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium">Sous-total</span>
+                                    <span className="text-muted-foreground font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(subTotalCny)}</span>
                                 </div>
+                                {commissionRate > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground font-medium">Commission ({commissionRate}%)</span>
+                                        <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                    </div>
+                                )}
+                                {transportCny > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground font-medium flex items-center gap-1"><Truck className="h-3 w-3"/> Frais de port</span>
+                                        <span className="font-bold">{renderPrice(transportCny)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center pt-4 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase">Montant Total Réglé</span>
                                     <span className="text-2xl font-black text-green-600">{renderPrice(invoice.totalAmount, true)}</span>
