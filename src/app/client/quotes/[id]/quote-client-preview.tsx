@@ -4,7 +4,7 @@ import type { Quote } from '@/actions/quotes';
 import { updateQuoteStatus } from '@/actions/quotes';
 import { useContext, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -114,8 +114,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         );
     };
 
-    const commissionCny = quote.subTotal * (quote.commissionRate || 0) / 100;
-    const transportCny = quote.transportCost || 0;
+    // Recalcul strict des montants
+    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(quote.commissionRate) || 0;
+    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+    const transportCny = Number(quote.transportCost) || 0;
+    const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
 
     return (
         <div className="space-y-6">
@@ -130,36 +134,49 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                 </Button>
             </div>
             
-            {/* Validation Module for Client (Placed above for visibility if sent) */}
+            {/* --- MODULE DE VALIDATION CLIENT --- */}
             <div className="no-print">
                 {quote.status === 'sent' ? (
-                    <Card className="border-2 border-primary bg-primary/5 shadow-2xl overflow-hidden mb-8">
-                        <CardContent className="p-6 md:p-8 space-y-6">
-                            <div className="flex items-center gap-3 text-primary">
-                                <ShieldCheck className="h-8 w-8" />
-                                <h3 className="text-2xl font-black uppercase tracking-tighter">Validation du Devis</h3>
+                    <Card className="border-4 border-primary bg-primary/5 shadow-2xl overflow-hidden mb-8">
+                        <CardContent className="p-6 md:p-10 space-y-6">
+                            <div className="flex items-center gap-4 text-primary">
+                                <div className="h-12 w-12 bg-primary text-white rounded-full flex items-center justify-center">
+                                    <FileCheck className="h-7 w-7" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">Validation du Devis</h3>
+                                    <p className="text-xs font-bold text-primary/70 mt-1 uppercase tracking-widest">Action requise pour lancer la production</p>
+                                </div>
                             </div>
                             
-                            <div className="bg-white p-4 rounded-xl border border-primary/10 text-xs text-zinc-600 leading-relaxed space-y-3 shadow-inner">
-                                <p className="font-bold text-zinc-900">En validant cette Proforma Invoice (PI), vous reconnaissez et acceptez :</p>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    <li>L'exactitude des spécifications techniques et quantités listées ci-dessus.</li>
-                                    <li>L'engagement de paiement de l'acompte de {(quote.depositPercentage || 30)}% sous 3 jours ouvrés.</li>
-                                    <li>Que les délais de production débutent à réception du paiement de l'acompte.</li>
-                                    <li>Les conditions de transport et d'incoterms spécifiés sur ce document.</li>
+                            <div className="bg-white p-6 rounded-2xl border border-primary/10 text-sm text-zinc-600 leading-relaxed space-y-4 shadow-inner">
+                                <p className="font-black text-zinc-900 text-base">En validant cette Proforma Invoice (PI), vous acceptez :</p>
+                                <ul className="space-y-2">
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                                        <span>L'exactitude des spécifications techniques et des quantités listées.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                                        <span>L'engagement de paiement de l'acompte de <strong>{quote.depositPercentage || 30}%</strong> sous 3 jours.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                                        <span>Les conditions de transport et d'incoterms spécifiés ci-dessous.</span>
+                                    </li>
                                 </ul>
                             </div>
 
-                            <div className="flex items-start gap-3 p-2">
+                            <div className="flex items-start gap-4 p-4 bg-white/50 rounded-xl border border-primary/5">
                                 <Checkbox 
-                                    id="terms" 
+                                    id="terms-checkbox" 
                                     checked={isTermsAccepted} 
                                     onCheckedChange={(checked) => setIsTermsAccepted(checked as boolean)}
-                                    className="mt-1 border-primary h-5 w-5 data-[state=checked]:bg-primary"
+                                    className="mt-1 border-primary h-6 w-6 data-[state=checked]:bg-primary"
                                 />
                                 <label 
-                                    htmlFor="terms" 
-                                    className="text-sm font-bold text-zinc-800 cursor-pointer leading-tight"
+                                    htmlFor="terms-checkbox" 
+                                    className="text-sm font-black text-zinc-800 cursor-pointer leading-snug select-none"
                                 >
                                     Je confirme avoir relu le devis et j'accepte les conditions de vente de Global Trading China pour cette commande.
                                 </label>
@@ -168,30 +185,45 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <Button 
                                 onClick={handleAcceptQuote}
                                 disabled={!isTermsAccepted || isAccepting}
-                                className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 text-white rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-95"
+                                className={cn(
+                                    "w-full h-20 text-2xl font-black rounded-2xl shadow-xl transition-all active:scale-95",
+                                    isTermsAccepted 
+                                        ? "bg-primary hover:bg-primary/90 text-white shadow-primary/20" 
+                                        : "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none"
+                                )}
                             >
                                 {isAccepting ? (
-                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                    <Loader2 className="h-8 w-8 animate-spin" />
                                 ) : (
                                     <>ACCEPTER ET VALIDER LA COMMANDE</>
                                 )}
                             </Button>
                         </CardContent>
                     </Card>
-                ) : (quote.status === 'accepted' || quote.status === 'paid') && (
-                    <div className="p-6 bg-green-50 border-2 border-green-100 rounded-2xl flex items-center justify-between gap-4 mb-8">
-                        <div className="flex items-center gap-3 text-green-700">
-                            <CheckCircle2 className="h-8 w-8" />
+                ) : (quote.status === 'accepted' || quote.status === 'paid') ? (
+                    <div className="p-8 bg-green-50 border-2 border-green-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
+                        <div className="flex items-center gap-4 text-green-700 text-center md:text-left">
+                            <div className="h-14 w-14 bg-green-500 text-white rounded-full flex items-center justify-center shrink-0">
+                                <ShieldCheck className="h-8 w-8" />
+                            </div>
                             <div>
-                                <p className="font-black uppercase text-sm">Devis Validé</p>
-                                <p className="text-xs opacity-80 font-medium">Ce document a été signé électroniquement et votre commande est en cours.</p>
+                                <p className="font-black uppercase text-xl leading-none">Devis Validé</p>
+                                <p className="text-sm font-medium opacity-80 mt-1">Ce document a été signé électroniquement. Votre commande est en cours de traitement.</p>
                             </div>
                         </div>
-                        <Badge className="bg-green-500 h-8 px-4 font-black">STATUT: {quote.status.toUpperCase()}</Badge>
+                        <Badge className="bg-green-500 h-12 px-8 text-lg font-black rounded-xl">STATUT: {quote.status.toUpperCase()}</Badge>
+                    </div>
+                ) : (
+                    <div className="p-6 bg-zinc-100 border border-zinc-200 rounded-2xl flex items-center gap-4 mb-8 text-zinc-500">
+                        <Clock className="h-6 w-6" />
+                        <div className="text-sm font-bold">
+                            Ce devis est en cours de préparation (Brouillon). Il ne peut pas encore être validé.
+                        </div>
                     </div>
                 )}
             </div>
 
+            {/* --- APERÇU DU DOCUMENT --- */}
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
                 <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
                     <div className="flex-grow">
@@ -273,12 +305,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         <div className="flex justify-end pt-6">
                             <div className="w-full max-w-[250px] space-y-2">
                                 <div className="flex justify-between text-[11px]">
-                                    <span className="text-muted-foreground font-medium">Sous-total</span>
-                                    <span className="font-bold">{renderPrice(quote.subTotal)}</span>
+                                    <span className="text-muted-foreground font-medium">Sous-total articles</span>
+                                    <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                                 </div>
-                                {(quote.commissionRate || 0) > 0 && (
+                                {commissionRate > 0 && (
                                     <div className="flex justify-between text-[11px]">
-                                        <span className="text-muted-foreground font-medium">Commission ({quote.commissionRate}%)</span>
+                                        <span className="text-muted-foreground font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>
                                     </div>
                                 )}
@@ -289,8 +321,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center pt-2 border-t-2 border-zinc-900">
-                                    <span className="font-black text-zinc-900 uppercase text-[11px]">Total Estimé</span>
-                                    <span className="text-lg font-black text-primary">{renderPrice(quote.totalAmount, true)}</span>
+                                    <span className="font-black text-zinc-900 uppercase text-[11px]">Montant Total PI</span>
+                                    <span className="text-lg font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
                                 </div>
                             </div>
                         </div>
@@ -300,13 +332,13 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <div className="text-[10px] text-zinc-600 space-y-4">
                                 {quote.depositRequired ? (
                                     <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-                                        <p className="font-bold text-primary mb-0.5">
-                                            Acompte à la commande ({quote.depositPercentage}%): {renderPrice(quote.totalAmount * (quote.depositPercentage || 30) / 100)}
+                                        <p className="font-bold text-primary mb-0.5 uppercase">
+                                            Acompte à la commande ({quote.depositPercentage}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}
                                         </p>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
                                 ) : (
-                                    <p className="font-bold text-primary">Paiement intégral de {renderPrice(quote.totalAmount)} à réception de la proforma.</p>
+                                    <p className="font-bold text-primary">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</p>
                                 )}
                                 
                                 <div className="grid grid-cols-2 gap-6 p-4 bg-zinc-50 rounded-xl border border-zinc-100">

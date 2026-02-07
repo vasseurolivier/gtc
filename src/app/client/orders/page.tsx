@@ -50,7 +50,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
-import { updateOrder, PaymentStatus } from '@/actions/orders';
+import { updateOrder, type PaymentStatus } from '@/actions/orders';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
@@ -565,7 +565,7 @@ export default function ClientOrdersPage() {
                           <TableCell className="text-right pr-6">
                             <div className="flex justify-end gap-2">
                               {q.status === 'sent' && (
-                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold h-8 text-[10px]" asChild>
+                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold h-8 text-[10px] animate-pulse" asChild>
                                   <Link href={`/client/quotes/${q.id}`}>
                                     <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> VALIDER
                                   </Link>
