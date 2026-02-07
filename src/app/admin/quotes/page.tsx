@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -147,23 +148,27 @@ function QuotesPageContent() {
     const subscription = form.watch((values, { name }) => {
         if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
             const items = values.items || [];
+            let currentSubTotal = 0;
+            
             items.forEach((item, index) => {
                 if (!item) return;
                 const quantity = Number(item.quantity) || 0;
                 const unitPrice = Number(item.unitPrice) || 0;
                 const newTotal = quantity * unitPrice;
+                currentSubTotal += newTotal;
+                
+                // Only update if changed to avoid unnecessary re-renders
                 if (item.total !== newTotal) {
-                     form.setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+                     form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
                 }
             });
 
-            const subTotal = items.reduce((sum, item) => sum + (item?.total || 0), 0);
             const transportCost = Number(values.transportCost) || 0;
             const commissionRate = Number(values.commissionRate) || 0;
-            const commissionAmount = subTotal * (commissionRate / 100);
-            const totalAmount = subTotal + transportCost + commissionAmount;
+            const commissionAmount = currentSubTotal * (commissionRate / 100);
+            const totalAmount = currentSubTotal + transportCost + commissionAmount;
             
-            form.setValue("subTotal", subTotal, { shouldValidate: true });
+            form.setValue("subTotal", currentSubTotal, { shouldValidate: true });
             form.setValue("totalAmount", totalAmount, { shouldValidate: true });
         }
     });
@@ -374,9 +379,10 @@ function QuotesPageContent() {
     }
   }
 
-  const subTotalValue = form.getValues('subTotal') || 0;
-  const commissionAmount = subTotalValue * ((form.getValues('commissionRate') || 0) / 100);
-  const totalAmountValue = form.getValues('totalAmount') || 0;
+  const subTotalValue = form.watch('subTotal') || 0;
+  const commissionRateValue = form.watch('commissionRate') || 0;
+  const calculatedCommissionAmount = subTotalValue * (commissionRateValue / 100);
+  const totalAmountValue = form.watch('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
   const archivedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'rejected' || q.status === 'paid');
@@ -603,9 +609,14 @@ function QuotesPageContent() {
                             )}/>
                         </div>
                         <div className="grid grid-cols-2 gap-4 items-center">
-                            <span className="text-zinc-400 text-sm">Commission (%)</span>
+                            <div className="flex flex-col">
+                                <span className="text-zinc-400 text-sm">Commission (%)</span>
+                                {calculatedCommissionAmount > 0 && (
+                                    <span className="text-[10px] text-primary font-bold italic">+ ¥{calculatedCommissionAmount.toFixed(2)}</span>
+                                )}
+                            </div>
                             <FormField control={form.control} name="commissionRate" render={({ field }) => (
-                                <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 border-white/20 text-right h-8" {...field} /></FormControl></FormItem>
+                                <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 border-white/20 text-right h-8 font-black text-primary" {...field} /></FormControl></FormItem>
                             )}/>
                         </div>
                         <Separator className="bg-white/10" />
