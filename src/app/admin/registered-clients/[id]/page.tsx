@@ -405,7 +405,7 @@ export default function ClientDetailPage() {
 
   const applyCalculatedCost = () => {
     const total = (calcWeight * calcRate) + calcFixed;
-    setOrderTransportInput(total.toFixed(2);
+    setOrderTransportInput(total.toFixed(2));
     setIsCalcOpen(false);
     toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer les nouveaux frais." });
   };
@@ -1475,7 +1475,7 @@ export default function ClientDetailPage() {
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Supprimer cette facture ?</AlertDialogTitle>
-                                  <AlertDialogDescription>Cette action est définitive.</AlertDialogDescription>
+                                  <AlertDialogDescription>Cette action est définitve.</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Annuler</AlertDialogCancel>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -52,7 +53,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         pdf.save(`proforma-${quote.quoteNumber}.pdf`);
     };
 
-    if (!currencyContext || !companyInfoContext?.isCompanyInfoLoaded) {
+    if (!currencyContext || !companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
         return (
              <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
