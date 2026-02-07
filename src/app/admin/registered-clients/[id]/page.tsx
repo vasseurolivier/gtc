@@ -80,7 +80,8 @@ import {
   Settings2,
   Lock,
   ShieldCheck,
-  KeyRound
+  KeyRound,
+  Calculator
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -114,6 +115,12 @@ export default function ClientDetailPage() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
+
+  // Calculator states
+  const [isCalcOpen, setIsCalcOpen] = useState(false);
+  const [calcWeight, setCalcWeight] = useState(0);
+  const [calcRate, setCalcRate] = useState(0);
+  const [calcFixed, setCalcFixed] = useState(0);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -386,6 +393,19 @@ export default function ClientDetailPage() {
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
+  };
+
+  const openCalculator = (order: any) => {
+    const totalWeight = (order.items || []).reduce((sum: number, item: any) => sum + ((Number(item.weight) || 0) * (Number(item.quantity) || 0)), 0);
+    setCalcWeight(totalWeight);
+    setIsCalcOpen(true);
+  };
+
+  const applyCalculatedCost = () => {
+    const total = (calcWeight * calcRate) + calcFixed;
+    setOrderTransportInput(total.toFixed(2));
+    setIsCalcOpen(false);
+    toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer les nouveaux frais." });
   };
 
   const handleGenerateQuote = (orderId: string) => {
@@ -1709,6 +1729,15 @@ export default function ClientDetailPage() {
                     <Truck className="h-4 w-4 text-zinc-400" /> Frais de Transport (CNY)
                   </h4>
                   <div className="flex gap-2">
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      className="h-10 w-10 text-zinc-400 hover:text-primary shrink-0"
+                      onClick={() => openCalculator(selectedOrderPreview)}
+                      title="Calculer les frais"
+                    >
+                      <Calculator className="h-5 w-5" />
+                    </Button>
                     <Input 
                       type="number" 
                       value={orderTransportInput} 
@@ -1752,6 +1781,57 @@ export default function ClientDetailPage() {
                 Générer Proforma
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCalcOpen} onOpenChange={setIsCalcOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Calculateur de Frais d'Envoi</DialogTitle>
+            <DialogDescription>
+              Calculez le coût basé sur le poids total de la commande.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Poids Total (kg)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcWeight} 
+                onChange={(e) => setCalcWeight(parseFloat(e.target.value) || 0)} 
+              />
+              <p className="text-[10px] text-muted-foreground italic">* Somme des poids unitaires × quantités</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Tarif fixe par kg (CNY)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcRate} 
+                onChange={(e) => setCalcRate(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Frais fixes de dossier/palette (CNY)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcFixed} 
+                onChange={(e) => setCalcFixed(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="pt-4 border-t mt-4">
+              <div className="flex justify-between items-center font-bold">
+                <span>Total calculé :</span>
+                <span className="text-xl text-primary">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCalcOpen(false)}>Annuler</Button>
+            <Button onClick={applyCalculatedCost}>Appliquer le montant</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
