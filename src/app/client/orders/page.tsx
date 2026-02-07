@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -53,7 +54,6 @@ import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
 import { updateOrder, type PaymentStatus } from '@/actions/orders';
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
 export default function ClientOrdersPage() {
@@ -123,7 +123,7 @@ export default function ClientOrdersPage() {
     if (!db || !user) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', user.uid));
   }, [db, user]);
-  const { data: quotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
+  const { data: linkedQuotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
 
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -899,17 +899,21 @@ export default function ClientOrdersPage() {
                     <Label className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                       <Ruler className="h-3 w-3" /> Sélectionner une taille
                     </Label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {SIZES.map((size) => (
-                        <Button 
-                          key={size} 
-                          variant={selectedSize === size ? "default" : "outline"}
-                          className={cn("h-10 font-bold transition-all", selectedSize === size ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "hover:border-primary/50")}
-                          onClick={() => setSelectedSize(size)}
-                        >
-                          {size}
-                        </Button>
-                      ))}
+                    <div className="flex flex-wrap gap-2">
+                      {(selectedProduct.availableSizes || []).length > 0 ? (
+                        selectedProduct.availableSizes.map((size: string) => (
+                          <Button 
+                            key={size} 
+                            variant={selectedSize === size ? "default" : "outline"}
+                            className={cn("h-10 min-w-[60px] font-bold transition-all", selectedSize === size ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "hover:border-primary/50")}
+                            onClick={() => setSelectedSize(size)}
+                          >
+                            {size}
+                          </Button>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">Aucune taille disponible pour le moment.</p>
+                      )}
                     </div>
                   </div>
                 )}

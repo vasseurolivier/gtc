@@ -92,6 +92,8 @@ import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
 
+const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+
 export default function ClientDetailPage() {
   const params = useParams();
   const clientId = params.id as string;
@@ -403,7 +405,7 @@ export default function ClientDetailPage() {
 
   const applyCalculatedCost = () => {
     const total = (calcWeight * calcRate) + calcFixed;
-    setOrderTransportInput(total.toFixed(2));
+    setOrderTransportInput(total.toFixed(2);
     setIsCalcOpen(false);
     toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer les nouveaux frais." });
   };
@@ -460,6 +462,7 @@ export default function ClientDetailPage() {
       length: product.length || 0,
       moq: product.moq || 1,
       hasSizeSelection: product.hasSizeSelection || false,
+      availableSizes: product.availableSizes || STANDARD_SIZES,
       availability: product.availability || 'both',
     });
     setIsProductDialogOpen(true);
@@ -480,6 +483,7 @@ export default function ClientDetailPage() {
       length: prod.length || 0,
       moq: 1,
       hasSizeSelection: false,
+      availableSizes: STANDARD_SIZES,
       availability: 'both',
       isNew: true 
     });
@@ -502,10 +506,20 @@ export default function ClientDetailPage() {
       length: 0,
       moq: 1,
       hasSizeSelection: false,
+      availableSizes: STANDARD_SIZES,
       availability: 'both',
       isNew: true
     });
     setIsProductDialogOpen(true);
+  };
+
+  const handleToggleSize = (size: string) => {
+    const current = editingProduct.availableSizes || [];
+    if (current.includes(size)) {
+      setEditingProduct({ ...editingProduct, availableSizes: current.filter((s: string) => s !== size) });
+    } else {
+      setEditingProduct({ ...editingProduct, availableSizes: [...current, size] });
+    }
   };
 
   const handleSaveProduct = async () => {
@@ -1375,7 +1389,7 @@ export default function ClientDetailPage() {
                         <TableCell className="pl-6 font-bold">{quote.quoteNumber || 'N/A'}</TableCell>
                         <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell>
-                          <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : 'secondary'}>{quote.status || 'draft'}</Badge>
+                          <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : quote.status === 'rejected' ? 'destructive' : 'outline'}>{quote.status || 'draft'}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-semibold">¥{Number(quote.totalAmount || 0).toFixed(2)}</TableCell>
                         <TableCell className="text-right pr-6">
@@ -1958,6 +1972,31 @@ export default function ClientDetailPage() {
                         />
                       </div>
                     </div>
+
+                    {editingProduct.hasSizeSelection && (
+                      <div className="space-y-3 p-3 bg-white rounded-lg border border-primary/10">
+                        <Label className="text-[10px] font-bold uppercase text-zinc-500 flex items-center gap-2">
+                          <Ruler className="h-3 w-3" /> Tailles disponibles au client
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                          {STANDARD_SIZES.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => handleToggleSize(size)}
+                              className={cn(
+                                "px-3 py-1.5 rounded-md text-[10px] font-black transition-all border-2",
+                                (editingProduct.availableSizes || []).includes(size)
+                                  ? "bg-primary text-white border-primary shadow-sm"
+                                  : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-200"
+                              )}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[9px] text-zinc-400 italic">Cochez les tailles que le client pourra sélectionner dans son panier.</p>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold uppercase text-zinc-500 flex items-center gap-2">
