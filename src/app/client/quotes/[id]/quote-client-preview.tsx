@@ -252,7 +252,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         <Badge className="bg-green-500 h-12 px-8 text-lg font-black rounded-xl">STATUT: {currentStatus.toUpperCase()}</Badge>
                     </div>
                 ) : currentStatus === 'rejected' ? (
-                    <div className="p-8 bg-red-50 border-2 border-red-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
+                    <div className="p-8 bg-red-50 border-2 border-green-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 shadow-sm">
                         <div className="flex items-center gap-4 text-red-700">
                             <div className="h-14 w-14 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">
                                 <XCircle className="h-8 w-8" />
@@ -341,7 +341,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                             <td className="p-2 font-medium text-zinc-900">
                                                 <p className="font-bold text-[11px]">{catalogProduct?.name || item.description}</p>
                                                 <p className="text-[9px] text-muted-foreground mt-0.5">{item.description}</p>
-                                                {item.sku && <p className="text-[9px] font-mono text-zinc-400">{item.sku}</p>}
                                             </td>
                                             <td className="p-2 text-center font-medium">{item.quantity}</td>
                                             <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>

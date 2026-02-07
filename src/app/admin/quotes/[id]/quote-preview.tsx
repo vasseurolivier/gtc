@@ -61,12 +61,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo;
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
+    // Recalculate Subtotal and Commission for absolute accuracy
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);

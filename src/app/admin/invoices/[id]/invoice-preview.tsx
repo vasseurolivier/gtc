@@ -62,9 +62,10 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo;
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
+    // Dynamic recalculation for absolute precision
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
@@ -96,7 +97,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
                         <div>
-                            {displayLogo && <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=1`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block"/>}
+                            {displayLogo && <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=1`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
                             <h1 className="text-lg font-black text-black uppercase">FACTURE</h1>
@@ -142,7 +143,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <td className="p-1 border text-center">
                                             <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                 {displayImage ? (
-                                                    <img src={`${displayImage}${displayImage.includes('?') ? '&' : '?'}cors=1`} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm"/>
+                                                    <img src={`${displayImage}${displayImage.includes('?') ? '&' : '?'}cors=1`} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                                 ) : (
                                                     <div className="w-8 h-8 rounded border bg-zinc-50 mx-auto flex items-center justify-center text-zinc-300">
                                                         <Package className="h-4 w-4" />
