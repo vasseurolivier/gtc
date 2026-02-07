@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, ReactNode, useState } from 'react';
-import { doc } from 'firebase/firestore';
+import { useEffect, ReactNode, useState, useMemo } from 'react';
+import { doc, collection, query, where, collectionGroup } from 'firebase/firestore';
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -36,13 +36,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-function ClientMobileNav() {
+function ClientMobileNav({ counts }: { counts: any }) {
   const pathname = usePathname();
   
   const navItems = [
     { href: '/client', icon: <Home className="h-6 w-6" />, label: 'Accueil' },
-    { href: '/client/product-lists', icon: <ClipboardList className="h-6 w-6" />, label: 'Sourcing' },
-    { href: '/client/orders', icon: <ShoppingBag className="h-6 w-6" />, label: 'Commandes' },
+    { href: '/client/product-lists', icon: <ClipboardList className="h-6 w-6" />, label: 'Sourcing', badge: counts.sourcing },
+    { href: '/client/orders', icon: <ShoppingBag className="h-6 w-6" />, label: 'Commandes', badge: counts.orders + counts.quotes + counts.invoices },
     { href: '/client/profile', icon: <User className="h-6 w-6" />, label: 'Profil' },
   ];
 
@@ -50,10 +50,15 @@ function ClientMobileNav() {
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-zinc-100 h-16 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
       {navItems.map((item) => (
         <Link key={item.href} href={item.href} className={cn(
-          "flex flex-col items-center justify-center gap-1 min-w-[60px] transition-all duration-300",
+          "flex flex-col items-center justify-center gap-1 min-w-[60px] transition-all duration-300 relative",
           pathname === item.href ? "text-primary scale-110" : "text-zinc-400"
         )}>
           {item.icon}
+          {item.badge > 0 && (
+            <span className="absolute top-0 right-4 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] font-black text-white ring-2 ring-white">
+              {item.badge}
+            </span>
+          )}
           <span className="text-[10px] font-bold uppercase tracking-tight">{item.label}</span>
         </Link>
       ))}
@@ -80,6 +85,38 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }, [db, user]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  // --- Notification Logic ---
+  const quotesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'quotes'), where('customerId', '==', user.uid), where('status', '==', 'sent'));
+  }, [db, user]);
+  const { data: pendingQuotes } = useCollection(quotesQuery);
+
+  const invoicesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'unpaid'));
+  }, [db, user]);
+  const { data: unpaidInvoices } = useCollection(invoicesQuery);
+
+  // For sourcing, we need to check products with status 'published' in all lists
+  // Since we can't easily query across subcollections without collectionGroup (which might need indexes),
+  // we'll rely on the aggregate sourcing products logic used in the dashboard or simply count active lists for the menu.
+  // For the badge, we'll try a simple collectionGroup query if possible, or just use a placeholder for now.
+  const sourcingProductsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collectionGroup(db, 'products'), where('clientId', '==', user.uid), where('status', '==', 'published'));
+  }, [db, user]);
+  const { data: publishedProducts } = useCollection(sourcingProductsQuery);
+
+  const counts = useMemo(() => ({
+    quotes: pendingQuotes?.length || 0,
+    invoices: unpaidInvoices?.length || 0,
+    orders: 0, // Could be status updates
+    sourcing: publishedProducts?.length || 0
+  }), [pendingQuotes, unpaidInvoices, publishedProducts]);
+
+  const totalNotifications = counts.quotes + counts.invoices + counts.sourcing;
 
   useEffect(() => {
     if (mounted && !isUserLoading && !user && pathname !== '/client/login') {
@@ -143,8 +180,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/client', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Tableau de bord' },
-    { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes listes de produits' },
-    { href: '/client/orders', icon: <Receipt className="h-5 w-5" />, label: 'Commandes & Factures' },
+    { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes listes de produits', badge: counts.sourcing },
+    { href: '/client/orders', icon: <Receipt className="h-5 w-5" />, label: 'Commandes & Factures', badge: counts.quotes + counts.invoices },
     { href: '/client/profile', icon: <User className="h-5 w-5" />, label: 'Mon Profil' },
   ];
 
@@ -153,7 +190,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       <Sidebar className="bg-zinc-950 text-white border-r border-zinc-800">
         <SidebarHeader className="p-6">
           <Link href="/" className="flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-xl">G</div>
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-xl text-white">G</div>
             <span className="font-headline font-bold text-lg tracking-tight">Client Hub</span>
           </Link>
         </SidebarHeader>
@@ -161,10 +198,15 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href} className="mb-1">
-                <SidebarMenuButton asChild isActive={pathname === item.href} className="hover:bg-zinc-900 h-11">
+                <SidebarMenuButton asChild isActive={pathname === item.href} className="hover:bg-zinc-900 h-11 relative">
                   <Link href={item.href}>
                     {item.icon}
                     <span className="text-base">{item.label}</span>
+                    {item.badge > 0 && (
+                      <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white animate-pulse">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -192,6 +234,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             <h2 className="font-bold text-zinc-800">Espace Client</h2>
           </div>
           <div className="flex items-center gap-4">
+            {totalNotifications > 0 && (
+              <Badge className="bg-red-600 hover:bg-red-700 animate-bounce cursor-pointer" onClick={() => router.push('/client/orders')}>
+                {totalNotifications} Notification{totalNotifications > 1 ? 's' : ''}
+              </Badge>
+            )}
             <span className="text-sm text-zinc-500 hidden md:inline">{user?.email}</span>
             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
               {user?.email?.charAt(0).toUpperCase()}
@@ -201,7 +248,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         <main className="p-4 md:p-8">
           {children}
         </main>
-        <ClientMobileNav />
+        <ClientMobileNav counts={counts} />
       </SidebarInset>
     </SidebarProvider>
   );

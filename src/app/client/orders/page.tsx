@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -188,6 +189,14 @@ export default function ClientOrdersPage() {
   const cartTotalCny = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.total, 0);
   }, [cart]);
+
+  // Counts for tabs
+  const counts = useMemo(() => ({
+    quotes: sortedQuotes.filter(q => q.status === 'sent').length,
+    invoices: sortedInvoices.filter(i => i.status === 'unpaid').length,
+    catalog: sourcedProducts.length,
+    orders: sortedOrders.filter(o => o.status === 'processing').length
+  }), [sortedQuotes, sortedInvoices, sourcedProducts, sortedOrders]);
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -415,10 +424,38 @@ export default function ClientOrdersPage() {
 
       <Tabs defaultValue="orders" className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border p-1 rounded-xl h-auto">
-          <TabsTrigger value="orders" className="py-2"><Package className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
-          <TabsTrigger value="quotes" className="py-2"><FileText className="h-4 w-4 mr-2" /> Proformas</TabsTrigger>
-          <TabsTrigger value="invoices" className="py-2"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
-          <TabsTrigger value="catalog" className="py-2"><Star className="h-4 w-4 mr-2" /> Catalogue</TabsTrigger>
+          <TabsTrigger value="orders" className="py-2 relative">
+            <Package className="h-4 w-4 mr-2" /> Commandes
+            {counts.orders > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
+                {counts.orders}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="quotes" className="py-2 relative">
+            <FileText className="h-4 w-4 mr-2" /> Proformas
+            {counts.quotes > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
+                {counts.quotes}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="invoices" className="py-2 relative">
+            <Receipt className="h-4 w-4 mr-2" /> Factures
+            {counts.invoices > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] text-white animate-pulse">
+                {counts.invoices}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="catalog" className="py-2 relative">
+            <Star className="h-4 w-4 mr-2" /> Catalogue
+            {counts.catalog > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[8px] text-primary">
+                {counts.catalog}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="mt-6">
@@ -504,13 +541,15 @@ export default function ClientOrdersPage() {
                   </TableHeader>
                   <TableBody>
                     {sortedQuotes.map((q) => {
-                      const isPending = q.status !== 'accepted' && q.status !== 'paid';
+                      const isPending = q.status === 'sent';
                       return (
-                        <TableRow key={q.id} className={cn(isPending && "bg-primary/5")}>
-                          <TableCell className="pl-6 font-bold">
+                        <TableRow key={q.id} className={cn(isPending && "bg-red-50/20")}>
+                          <TableCell className="pl-6 py-4 font-bold">
                             <div className="flex items-center gap-2">
                               {q.quoteNumber}
-                              {isPending && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
+                              {isPending && (
+                                <Badge className="bg-red-600 text-[8px] h-4 px-1 animate-bounce">À VALIDER</Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="text-xs">
@@ -554,7 +593,7 @@ export default function ClientOrdersPage() {
                   </TableHeader>
                   <TableBody>
                     {sortedInvoices.map((inv) => {
-                      const isPending = inv.status !== 'paid';
+                      const isPending = inv.status === 'unpaid';
                       return (
                         <TableRow key={inv.id} className={cn(isPending && "bg-red-50/30")}>
                           <TableCell className="pl-6 font-bold">

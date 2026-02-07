@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where, collectionGroup } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -22,7 +23,31 @@ export default function ClientDashboard() {
   const { user } = useUser();
   const db = useFirestore();
 
-  // Query pour les listes de produits (sans tri pour éviter le besoin d'index composite immédiat)
+  // Queries for notifications
+  const quotesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'quotes'), where('customerId', '==', user.uid), where('status', '==', 'sent'));
+  }, [db, user]);
+  const { data: pendingQuotes } = useCollection(quotesQuery);
+
+  const invoicesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'unpaid'));
+  }, [db, user]);
+  const { data: unpaidInvoices } = useCollection(invoicesQuery);
+
+  const sourcingProductsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collectionGroup(db, 'products'), where('clientId', '==', user.uid), where('status', '==', 'published'));
+  }, [db, user]);
+  const { data: publishedProducts } = useCollection(sourcingProductsQuery);
+
+  const notificationCounts = {
+    quotes: pendingQuotes?.length || 0,
+    invoices: unpaidInvoices?.length || 0,
+    sourcing: publishedProducts?.length || 0
+  };
+
   const productListsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'clients', user.uid, 'productLists');
@@ -30,7 +55,6 @@ export default function ClientDashboard() {
 
   const { data: lists, isLoading } = useCollection(productListsQuery);
 
-  // Tri manuel et limite à 3
   const recentLists = useMemo(() => {
     if (!lists) return [];
     return [...lists]
@@ -51,13 +75,18 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions - Highly Visible */}
+      {/* Quick Actions - Highly Visible with Badges */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Button 
           asChild 
-          className="h-32 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border-none shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group"
+          className="h-32 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border-none shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group relative"
         >
           <Link href="/client/orders">
+            {(notificationCounts.quotes > 0 || notificationCounts.invoices > 0) && (
+              <span className="absolute top-4 right-4 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs font-black text-white animate-pulse">
+                {notificationCounts.quotes + notificationCounts.invoices}
+              </span>
+            )}
             <ShoppingBag className="h-8 w-8 text-primary group-hover:animate-bounce" />
             <span className="text-lg font-black uppercase tracking-tight text-white">Passer une nouvelle commande</span>
           </Link>
@@ -66,9 +95,14 @@ export default function ClientDashboard() {
         <Button 
           asChild 
           variant="outline"
-          className="h-32 rounded-2xl border-2 border-primary bg-white hover:bg-primary/5 text-primary shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group"
+          className="h-32 rounded-2xl border-2 border-primary bg-white hover:bg-primary/5 text-primary shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group relative"
         >
           <Link href="/client/product-lists">
+            {notificationCounts.sourcing > 0 && (
+              <span className="absolute top-4 right-4 flex h-6 w-6 items-center justify-center rounded-full bg-orange-600 text-xs font-black text-white animate-pulse">
+                {notificationCounts.sourcing}
+              </span>
+            )}
             <Sparkles className="h-8 w-8 group-hover:rotate-12 transition-transform" />
             <span className="text-lg font-black uppercase tracking-tight">Sourcer un nouveau produit</span>
           </Link>
@@ -89,23 +123,27 @@ export default function ClientDashboard() {
         
         <Card className="border-none shadow-md bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Produits sourcés</CardTitle>
-            <Package className="h-5 w-5 text-blue-500" />
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Factures en attente</CardTitle>
+            <Receipt className={cn("h-5 w-5", notificationCounts.invoices > 0 ? "text-red-500" : "text-blue-500")} />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">--</div>
-            <p className="text-xs text-zinc-400 mt-1">En cours d'analyse par nos agents</p>
+            <div className={cn("text-3xl font-bold", notificationCounts.invoices > 0 && "text-red-600")}>
+              {notificationCounts.invoices}
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">Documents à régler</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-md bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Statut Projet</CardTitle>
-            <Clock className="h-5 w-5 text-orange-500" />
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Proformas à valider</CardTitle>
+            <Clock className={cn("h-5 w-5", notificationCounts.quotes > 0 ? "text-orange-500" : "text-zinc-300")} />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-orange-600">Initialisation</div>
-            <p className="text-xs text-zinc-400 mt-1">Prêt pour votre première liste</p>
+            <div className={cn("text-3xl font-bold", notificationCounts.quotes > 0 && "text-orange-600")}>
+              {notificationCounts.quotes}
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">En attente de votre signature</p>
           </CardContent>
         </Card>
       </div>
