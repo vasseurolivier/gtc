@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -210,11 +209,14 @@ function QuotesPageContent() {
                     photo: item.photo || "",
                     weight: item.weight || 0,
                 }));
+                const itemsTotal = newItems.reduce((sum, i) => sum + i.total, 0);
                 form.reset({
                     quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
                     issueDate: new Date(),
                     validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
                     items: newItems,
+                    subTotal: itemsTotal,
+                    totalAmount: itemsTotal,
                     status: "draft",
                     depositRequired: true,
                     depositPercentage: 30,
@@ -237,6 +239,7 @@ function QuotesPageContent() {
               photo: (item as any).photo || "",
               weight: (item as any).weight || 0,
             }));
+            const itemsTotal = newItems.reduce((sum, i) => sum + i.total, 0);
             form.reset({
               quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
               customerId: order.customerId,
@@ -245,7 +248,7 @@ function QuotesPageContent() {
               issueDate: new Date(),
               validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
               items: newItems,
-              subTotal: order.totalAmount,
+              subTotal: itemsTotal,
               transportCost: order.transportCost || 0,
               commissionRate: order.commissionRate || 0,
               totalAmount: order.totalAmount,

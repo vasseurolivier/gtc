@@ -125,6 +125,8 @@ export async function createQuoteFromOrder(orderId: string) {
         const currentRate = await getGlobalExchangeRate();
         const quoteId = `PI-AUTO-${Date.now()}`;
 
+        const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
+
         const newQuoteData = {
             id: quoteId,
             quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
@@ -143,7 +145,7 @@ export async function createQuoteFromOrder(orderId: string) {
                 photo: item.photo || "",
                 weight: item.weight || 0
             })),
-            subTotal: order.totalAmount || 0,
+            subTotal: itemsSubTotal,
             transportCost: order.transportCost || 0,
             commissionRate: order.commissionRate || 0,
             totalAmount: order.totalAmount || 0,

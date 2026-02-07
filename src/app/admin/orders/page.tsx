@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order, PaymentStatus } from '@/actions/orders';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator, AlertTriangle } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -252,6 +252,7 @@ export default function OrdersPage() {
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
+          const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -289,25 +290,27 @@ export default function OrdersPage() {
                       variant="ghost" 
                       className="h-8 w-8 text-zinc-400 hover:text-primary"
                       onClick={() => openCalculator(order)}
-                      title="Calculer les frais"
+                      title="Calculateur Frais Port"
                     >
                       <Calculator className="h-4 w-4" />
                     </Button>
                     <Input 
                       type="number" 
-                      className="w-20 h-8 text-xs text-center"
+                      className={cn("w-20 h-8 text-xs text-center font-bold", isTransportDirty && "border-primary ring-1 ring-primary")}
                       value={transportInputs[order.id] || ''}
                       onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: e.target.value })}
                     />
                     <Button 
                       size="icon" 
-                      variant="ghost" 
-                      className="h-8 w-8"
+                      variant={isTransportDirty ? "default" : "ghost"}
+                      className={cn("h-8 w-8 transition-all", isTransportDirty && "bg-primary text-white hover:bg-primary/90")}
                       disabled={isUpdatingTransport === order.id}
                       onClick={() => handleUpdateTransportCost(order.id)}
+                      title="Enregistrer les frais"
                     >
                       {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                     </Button>
+                    {isTransportDirty && <AlertTriangle className="h-3 w-3 text-primary animate-pulse" title="Modification non enregistrée" />}
                   </div>
                 ) : (
                   <span className="text-xs">¥{(order.transportCost || 0).toFixed(2)}</span>
