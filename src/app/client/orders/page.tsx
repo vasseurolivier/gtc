@@ -104,7 +104,7 @@ export default function ClientOrdersPage() {
     if (profile?.address && !shippingAddress && !is3PLSelected && !isEditingOrder) {
       setShippingAddress(profile.address);
     }
-  }, [profile, shippingAddress, i.is3PLSelected, isEditingOrder]);
+  }, [profile, shippingAddress, is3PLSelected, isEditingOrder]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
