@@ -51,7 +51,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
-import { updateOrder } from '@/actions/orders';
+import { updateOrder, PaymentStatus } from '@/actions/orders';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 const WAREHOUSE_3PL_ADDRESS = "Entrepôt Central GTC - Service Logistique 3PL\n浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501\nYiwu, Zhejiang, China";
@@ -246,7 +246,8 @@ export default function ClientOrdersPage() {
       photo: item.photo || '',
       size: item.size || null,
       moq: 1, 
-      isPersonalized: item.isPersonalized || false
+      isPersonalized: item.isPersonalized || false,
+      weight: item.weight || 0
     }));
 
     setCart(initialCart);
@@ -304,7 +305,8 @@ export default function ClientOrdersPage() {
         photo: selectedProduct.images?.[0] || '',
         size: selectedSize,
         moq: isPersonalized ? moq : 1,
-        isPersonalized
+        isPersonalized,
+        weight: Number(selectedProduct.weight || 0)
       }]);
     }
     toast({ title: "Produit ajouté au panier" });
@@ -356,17 +358,19 @@ export default function ClientOrdersPage() {
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          purchasePrice: 0, // Client does not see/set purchase price
           total: item.total,
           photo: item.photo,
           size: item.size || null,
-          isPersonalized: item.isPersonalized || false
+          isPersonalized: item.isPersonalized || false,
+          weight: item.weight || 0
         })),
         totalAmount: cartTotalCny,
-        status: 'processing',
+        status: 'processing' as const,
         shippingAddress,
         orderDate: new Date().toISOString(),
-        createdAt: serverTimestamp(),
-        paymentStatus: 'unpaid',
+        createdAt: serverTimestamp() as any,
+        paymentStatus: 'unpaid' as PaymentStatus,
       };
 
       if (isEditingOrder && editingOrderId) {
