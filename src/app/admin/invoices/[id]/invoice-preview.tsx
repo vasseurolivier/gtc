@@ -5,7 +5,7 @@ import { getOrderById, Order } from '@/actions/orders';
 import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer, Phone, Mail } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail, Package } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
@@ -72,7 +72,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         return (
             <div className="flex flex-col items-end">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[10px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+                <span className="text-[9px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
             </div>
         );
     };
@@ -82,80 +82,81 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const commissionCny = subTotalCny * (commissionRate / 100);
     const transportCny = order?.transportCost || 0;
 
-    const itemChunks = [];
-    for (let i = 0; i < invoice.items.length; i += 10) {
-      itemChunks.push(invoice.items.slice(i, i + 10));
-    }
-
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
     
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
-            <div className="p-8 flex justify-end no-print">
-                <Button onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> Exporter en PDF</Button>
+            <div className="p-4 flex justify-end no-print">
+                <Button size="sm" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> Exporter en PDF</Button>
             </div>
             
-            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-24">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
                 <div className="flex-grow">
-                    <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
+                    <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
                         <div>
-                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-12 w-auto object-contain block"/>}
+                            {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block"/>}
                         </div>
                         <div className="text-right">
-                            <h1 className="text-base font-bold text-black uppercase">FACTURE</h1>
-                            <p className="mt-1 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
+                            <h1 className="text-lg font-black text-black uppercase">FACTURE</h1>
+                            <p className="mt-0.5 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
                         </div>
                     </header>
 
-                    <section className="grid grid-cols-2 gap-8 my-4 text-xs">
+                    <section className="grid grid-cols-2 gap-8 my-6 text-xs">
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                             <p className="font-bold">{companyInfo?.name}</p>
-                            <p className="whitespace-pre-wrap">{companyInfo?.address}</p>
+                            <p className="whitespace-pre-wrap text-[10px]">{companyInfo?.address}</p>
                         </div>
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
                             {companyName && <p className="font-bold uppercase">{companyName}</p>}
                             <p className={companyName ? "text-muted-foreground" : "font-bold"}>{contactName}</p>
-                            <p className="whitespace-pre-wrap mt-1">{invoice.shippingAddress || customer?.address}</p>
-                            <div className="mt-2 space-y-0.5">
-                                {customer?.phone && <p className="flex items-center gap-1 text-[10px]"><Phone className="h-2.5 w-2.5" /> {customer.phone}</p>}
-                                {customer?.email && <p className="flex items-center gap-1 text-[10px]"><Mail className="h-2.5 w-2.5" /> {customer.email}</p>}
+                            <p className="whitespace-pre-wrap mt-1 text-[10px]">{invoice.shippingAddress || customer?.address}</p>
+                            <div className="mt-2 space-y-0.5 text-[10px]">
+                                {customer?.phone && <p className="flex items-center gap-1"><Phone className="h-2.5 w-2.5" /> {customer.phone}</p>}
+                                {customer?.email && <p className="flex items-center gap-1"><Mail className="h-2.5 w-2.5" /> {customer.email}</p>}
                             </div>
                         </div>
                     </section>
                     
                     <table className="w-full text-xs">
                         <thead>
-                            <tr className="text-left bg-blue-50 text-blue-900">
+                            <tr className="text-left bg-zinc-100 text-zinc-900">
                                 <th className="p-2 font-bold border">Image</th>
                                 <th className="w-1/2 p-2 font-bold border">Description</th>
-                                <th className="text-right p-2 font-bold border">Quantité</th>
-                                <th className="text-right p-2 font-bold border">Prix Unitaire ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="text-right p-2 font-bold border">Qté</th>
+                                <th className="text-right p-2 font-bold border">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 <th className="text-right p-2 font-bold border">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
-                        {itemChunks.map((chunk, chunkIndex) => (
-                            <tbody key={chunkIndex}>
-                                {chunk.map((item, itemIndex) => {
-                                    const product = item.sku ? productsBySku.get(item.sku) : undefined;
-                                    return (
-                                        <tr key={itemIndex} className="border-b">
-                                            <td className="p-1 border">{product?.imageUrl && <img src={product.imageUrl} width={40} height={40} className="object-contain mx-auto"/>}</td>
-                                            <td className="p-1 border"><p className="font-medium">{item.description}</p></td>
-                                            <td className="p-1 text-right border">{item.quantity}</td>
-                                            <td className="p-1 text-right border font-bold">{renderPrice(item.unitPrice)}</td>
-                                            <td className="p-1 text-right border font-bold">{renderPrice(item.total)}</td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        ))}
+                        <tbody>
+                            {invoice.items.map((item, index) => {
+                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                return (
+                                    <tr key={index} className="border-b">
+                                        <td className="p-1 border">
+                                            {product?.imageUrl ? (
+                                                <img src={product.imageUrl} crossOrigin="anonymous" width={32} height={32} className="object-contain mx-auto"/>
+                                            ) : (
+                                                <div className="w-8 h-8 rounded border bg-zinc-50 mx-auto flex items-center justify-center text-zinc-300">
+                                                    <Package className="h-4 w-4" />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-1 border"><p className="font-bold text-[11px]">{item.description}</p></td>
+                                        <td className="p-1 text-center border">{item.quantity}</td>
+                                        <td className="p-1 text-right border">{renderPrice(item.unitPrice)}</td>
+                                        <td className="p-1 text-right border font-bold">{renderPrice(item.total)}</td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
                     </table>
                     
-                    <div className="flex justify-end pt-4">
-                        <div className="w-1/2 space-y-1 text-xs">
+                    <div className="flex justify-end pt-6">
+                        <div className="w-full max-w-[250px] space-y-2 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
                                 <span className="font-bold">{renderPrice(subTotalCny)}</span>
@@ -172,31 +173,31 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between font-bold text-sm pt-2 mt-2 border-t-2 border-black">
+                            <div className="flex justify-between font-black text-sm pt-2 mt-2 border-t-2 border-black">
                                 <span>TOTAL FINAL :</span>
                                 <span className="text-primary">{renderPrice(invoice.totalAmount, true)}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 p-4 bg-zinc-50 rounded-lg border text-xs">
-                        <h3 className="font-bold mb-2">COORDONNÉES BANCAIRES</h3>
+                    <div className="mt-8 p-4 bg-zinc-50 rounded-lg border text-[10px]">
+                        <h3 className="font-bold mb-2 uppercase">COORDONNÉES BANCAIRES</h3>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
+                            <div className="space-y-0.5">
                                 <p><strong>Banque:</strong> Banking Circle S.A. - German Branch</p>
                                 <p><strong>Adresse:</strong> Maximilianstraße 54, 80538 München, Germany</p>
                                 <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
                                 <p><strong>SWIFT:</strong> SXPYDEHH</p>
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-0.5">
                                 <p><strong>Bénéficiaire:</strong> Yiwu Huanqiu Trading Co., Ltd.</p>
                                 <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
-                                <p className="mt-2 italic text-primary">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
+                                <p className="mt-2 italic text-primary font-bold">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-4 border-t pt-2 text-[10px] text-muted-foreground italic">
+                    <div className="mt-4 border-t pt-2 text-[9px] text-muted-foreground italic">
                         * Taux de change appliqué : 1 CNY = {invoiceRate.toFixed(4)} EUR
                     </div>
                 </div>
