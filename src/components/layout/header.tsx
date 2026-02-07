@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, ChevronDown, UserCircle } from 'lucide-react';
+import { Menu, ChevronDown, UserCircle, Circle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState, useEffect, useContext } from 'react';
@@ -161,9 +161,28 @@ export function Header() {
         </div>
         
         <div className="flex items-center gap-4">
-            <Button variant="outline" className="hidden sm:flex border-primary text-primary hover:bg-primary hover:text-white font-headline text-[11px] uppercase tracking-widest font-bold h-10 px-6 transition-all duration-300" asChild>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "hidden sm:flex items-center gap-2 px-6 h-11 rounded-full transition-all duration-500",
+                "font-headline text-[11px] font-black uppercase tracking-widest",
+                "border-2 hover:scale-105 active:scale-95",
+                mounted && user 
+                  ? "border-green-500/50 text-white bg-green-500/10 hover:bg-green-500/20 hover:border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]" 
+                  : "border-primary text-white bg-primary/5 hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(225,29,72,0.4)]"
+              )}
+              asChild
+            >
               <Link href="/client/login">
-                <UserCircle className="mr-2 h-4 w-4" />
+                <div className="relative">
+                  <UserCircle className="h-5 w-5" />
+                  {mounted && user && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 border border-zinc-950"></span>
+                    </span>
+                  )}
+                </div>
                 <span>
                   {mounted && user ? "Mon Espace" : dictionary.clientSpace}
                 </span>
@@ -251,9 +270,17 @@ export function Header() {
                         <Link
                         href="/client/login"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 text-sm font-headline font-black uppercase tracking-[0.2em] text-primary py-2"
+                        className={cn(
+                          "flex items-center gap-4 text-sm font-headline font-black uppercase tracking-[0.2em] py-4 px-6 rounded-2xl transition-all",
+                          mounted && user 
+                            ? "bg-green-500/10 text-green-500 border border-green-500/20" 
+                            : "bg-primary/10 text-primary border border-primary/20"
+                        )}
                         >
-                        <UserCircle className="h-6 w-6" />
+                        <div className="relative">
+                          <UserCircle className="h-7 w-7" />
+                          {mounted && user && <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 border-2 border-zinc-950 rounded-full"></span>}
+                        </div>
                         {mounted && user ? "Mon Espace" : "Connexion"}
                         </Link>
                     </div>
