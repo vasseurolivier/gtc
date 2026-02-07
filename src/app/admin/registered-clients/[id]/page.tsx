@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useContext } from 'react';
@@ -218,11 +217,11 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
-  const quotesQuery = useMemoFirebase(() => {
+  const linkedQuotesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));
   }, [db, clientId]);
-  const { data: linkedQuotes } = useCollection(quotesQuery);
+  const { data: linkedQuotes } = useCollection(linkedQuotesQuery);
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
@@ -1876,7 +1875,7 @@ export default function ClientDetailPage() {
                               <PlayCircle className="h-8 w-8 text-white opacity-50" />
                             </div>
                           ) : (
-                            <Image src={url} alt="Media" fill className="object-cover" />
+                            <img src={url} alt="Media" className="object-cover w-full h-full" crossOrigin="anonymous" />
                           )}
                           <button 
                             onClick={() => removeMedia(idx)}

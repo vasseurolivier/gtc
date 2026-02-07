@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -31,12 +30,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
         let imgWidth = pdfWidth;
         let imgHeight = imgWidth / ratio;
-        let pdfHeight = pdf.internal.pageSize.getHeight();
         let heightLeft = imgHeight;
         let position = 0;
 

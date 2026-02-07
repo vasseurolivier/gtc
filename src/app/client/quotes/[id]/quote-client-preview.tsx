@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -20,6 +19,7 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, products?: any[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
@@ -56,6 +56,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;

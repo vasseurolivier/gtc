@@ -221,7 +221,7 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
         const invoiceRef = doc(db, 'invoices', id);
         const invoiceSnap = await getDoc(invoiceRef);
 
-        if (!invoiceSnap.exists()) return { success: false, message: 'Invoice not found.' };
+        if (!invoiceSnap.exists()) return { success: false, message: "Invoice not found." };
 
         const invoiceData = invoiceSnap.data();
         const totalAmount = invoiceData.totalAmount;

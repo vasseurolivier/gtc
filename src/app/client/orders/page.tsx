@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -119,11 +118,11 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection(invoicesQuery);
 
-  const quotesQuery = useMemoFirebase(() => {
+  const linkedQuotesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', user.uid));
   }, [db, user]);
-  const { data: linkedQuotes, isLoading: isQuotesLoading } = useCollection(quotesQuery);
+  const { data: linkedQuotes, isLoading: isQuotesLoading } = useCollection(linkedQuotesQuery);
 
   const listsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
