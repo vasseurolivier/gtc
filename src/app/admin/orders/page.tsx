@@ -310,7 +310,11 @@ export default function OrdersPage() {
                     >
                       {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                     </Button>
-                    {isTransportDirty && <AlertTriangle className="h-3 w-3 text-primary animate-pulse" title="Modification non enregistrée" />}
+                    {isTransportDirty && (
+                      <span title="Modification non enregistrée">
+                        <AlertTriangle className="h-3 w-3 text-primary animate-pulse" />
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <span className="text-xs">¥{(order.transportCost || 0).toFixed(2)}</span>
