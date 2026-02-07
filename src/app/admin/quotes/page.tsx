@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -42,6 +41,7 @@ const quoteItemSchema = z.object({
   purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
   photo: z.string().optional(),
+  weight: z.coerce.number().optional().default(0),
 });
 
 const quoteStatusSchema = z.enum(["draft", "sent", "accepted", "rejected", "paid"]);
@@ -89,7 +89,7 @@ function QuotesPageContent() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" }],
+      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
       subTotal: 0,
       transportCost: 0,
       commissionRate: 0,
@@ -127,7 +127,7 @@ function QuotesPageContent() {
             purchasePrice: item.purchasePrice || 0,
             imageUrl: item.photo || '',
             stock: 0,
-            weight: 0,
+            weight: item.weight || 0,
             width: 0,
             height: 0,
             length: 0,
@@ -203,6 +203,7 @@ function QuotesPageContent() {
                     purchasePrice: item.unitPriceCny,
                     total: item.quantity * item.unitPriceCny,
                     photo: item.photo || "",
+                    weight: item.weight || 0,
                 }));
                 form.reset({
                     quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
@@ -229,6 +230,7 @@ function QuotesPageContent() {
               purchasePrice: (item as any).purchasePrice || 0,
               total: item.total,
               photo: (item as any).photo || "",
+              weight: (item as any).weight || 0,
             }));
             form.reset({
               quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
@@ -264,7 +266,7 @@ function QuotesPageContent() {
             ...quote,
             issueDate: new Date(quote.issueDate),
             validUntil: new Date(quote.validUntil),
-            items: quote.items.map(item => ({...item, photo: ''})),
+            items: quote.items.map(item => ({...item, photo: '', weight: item.weight || 0})),
             depositRequired: quote.depositRequired !== false,
             depositPercentage: quote.depositPercentage || 30,
         });
@@ -273,7 +275,7 @@ function QuotesPageContent() {
             quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
             issueDate: new Date(),
             validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" }],
+            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
             subTotal: 0,
             transportCost: 0,
             commissionRate: 0,
@@ -304,6 +306,7 @@ function QuotesPageContent() {
         form.setValue(`items.${index}.unitPrice`, product.price);
         form.setValue(`items.${index}.purchasePrice`, product.purchasePrice || 0);
         form.setValue(`items.${index}.photo`, product.imageUrl || "");
+        form.setValue(`items.${index}.weight`, product.weight || 0);
     }
   };
 
@@ -355,7 +358,7 @@ function QuotesPageContent() {
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       status: "draft",
-      items: quoteToDuplicate.items.map(item => ({...item, photo: ''}))
+      items: quoteToDuplicate.items.map(item => ({...item, photo: '', weight: item.weight || 0}))
     });
     setEditingQuote(null);
     setIsDialogOpen(true);
@@ -538,9 +541,10 @@ function QuotesPageContent() {
                                 <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
                                     <FormItem><FormLabel className="text-xs">Description</FormLabel><FormControl><Textarea placeholder="Spécifications..." {...f} rows={2} /></FormControl><FormMessage/></FormItem>
                                 )} />
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-4 gap-4">
                                     <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Qté</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
                                     <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Prix Unit. (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
+                                    <FormField control={form.control} name={`items.${index}.weight`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Poids Unit. (kg)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
                                     <div className="text-right space-y-1">
                                         <span className="text-[10px] text-zinc-400 uppercase font-bold">Total</span>
                                         <div className="font-black text-sm">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
@@ -562,7 +566,7 @@ function QuotesPageContent() {
                           </div>
                         </div>
                       ))}
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "" })}>
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>
                         <PlusCircle className="mr-2 h-4 w-4"/> Ajouter une ligne
                     </Button>
                   </CardContent>

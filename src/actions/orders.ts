@@ -18,6 +18,7 @@ const orderItemSchema = z.object({
   photo: z.string().optional(),
   size: z.string().optional().nullable(),
   isPersonalized: z.boolean().optional(),
+  weight: z.coerce.number().optional().default(0),
 });
 
 export type OrderItem = z.infer<typeof orderItemSchema>;
@@ -70,7 +71,8 @@ export async function addOrder(quote: Quote) {
             total: item.total,
             photo: item.photo || '',
             size: (item as any).size || null,
-            isPersonalized: (item as any).isPersonalized || false
+            isPersonalized: (item as any).isPersonalized || false,
+            weight: (item as any).weight || 0
           })),
           totalAmount: quote.totalAmount,
           status: "processing" as const,
@@ -136,7 +138,8 @@ export async function updateOrderFromQuote(quote: Quote) {
                 total: item.total,
                 photo: item.photo || '',
                 size: (item as any).size || null,
-                isPersonalized: (item as any).isPersonalized || false
+                isPersonalized: (item as any).isPersonalized || false,
+                weight: (item as any).weight || 0
             })),
             totalAmount: quote.totalAmount,
             shippingAddress: quote.shippingAddress || "",

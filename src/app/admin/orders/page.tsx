@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order, PaymentStatus } from '@/actions/orders';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   quoteId: z.string().min(1, "Please select a proforma invoice."),
@@ -42,6 +43,13 @@ export default function OrdersPage() {
   const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   
+  // Calculator state
+  const [isCalcOpen, setIsCalcOpen] = useState(false);
+  const [calcWeight, setCalcWeight] = useState(0);
+  const [calcRate, setCalcRate] = useState(0);
+  const [calcFixed, setCalcFixed] = useState(0);
+  const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
+
   const currencyContext = useContext(CurrencyContext);
   if (!currencyContext) {
     throw new Error("CurrencyContext must be used within a CurrencyProvider");
@@ -171,8 +179,22 @@ export default function OrdersPage() {
     }
   };
 
+  const openCalculator = (order: Order) => {
+    const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
+    setCalcWeight(totalWeight);
+    setCalcTargetId(order.id);
+    setIsCalcOpen(true);
+  };
+
+  const applyCalculatedCost = () => {
+    if (!calcTargetId) return;
+    const total = (calcWeight * calcRate) + calcFixed;
+    setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+    setIsCalcOpen(false);
+    toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer les nouveaux frais." });
+  };
+
   const handleNavigateToQuote = (orderId: string) => {
-    // Redirection vers la page des proformas avec l'ID de commande pour pré-remplissage et choix des options
     router.push(`/admin/quotes?fromOrder=${orderId}`);
   };
 
@@ -262,6 +284,15 @@ export default function OrdersPage() {
               <TableCell className="text-center">
                 {!isArchived ? (
                   <div className="flex items-center justify-center gap-1">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 text-zinc-400 hover:text-primary"
+                      onClick={() => openCalculator(order)}
+                      title="Calculer les frais"
+                    >
+                      <Calculator className="h-4 w-4" />
+                    </Button>
                     <Input 
                       type="number" 
                       className="w-20 h-8 text-xs text-center"
@@ -381,6 +412,58 @@ export default function OrdersPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={isCalcOpen} onOpenChange={setIsCalcOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Calculateur de Frais d'Envoi</DialogTitle>
+            <DialogDescription>
+              Calculez le coût basé sur le poids total de la commande.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Poids Total (kg)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcWeight} 
+                onChange={(e) => setCalcWeight(parseFloat(e.target.value) || 0)} 
+              />
+              <p className="text-[10px] text-muted-foreground italic">* Somme des poids unitaires × quantités</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Tarif fixe par kg (CNY)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcRate} 
+                onChange={(e) => setCalcRate(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Frais fixes de dossier/palette (CNY)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcFixed} 
+                onChange={(e) => setCalcFixed(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="pt-4 border-t mt-4">
+              <div className="flex justify-between items-center font-bold">
+                <span>Total calculé :</span>
+                <span className="text-xl text-primary">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCalcOpen(false)}>Annuler</Button>
+            <Button onClick={applyCalculatedCost}>Appliquer le montant</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
        <Tabs defaultValue="ongoing">
         <TabsList className="mb-4">
             <TabsTrigger value="ongoing">En cours</TabsTrigger>

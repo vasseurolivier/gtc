@@ -14,6 +14,7 @@ export interface QuoteItem {
   purchasePrice?: number;
   total: number;
   photo?: string;
+  weight?: number;
 }
 
 export interface Quote {
@@ -139,7 +140,8 @@ export async function createQuoteFromOrder(orderId: string) {
                 unitPrice: item.unitPrice || 0,
                 purchasePrice: (item as any).purchasePrice || 0,
                 total: item.total || 0,
-                photo: item.photo || ""
+                photo: item.photo || "",
+                weight: item.weight || 0
             })),
             subTotal: order.totalAmount || 0,
             transportCost: order.transportCost || 0,
