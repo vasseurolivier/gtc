@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, Order, PaymentStatus } from '@/actions/orders';
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
+import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
 import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator, AlertTriangle } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [registeredClients, setRegisteredClients] = useState<RegisteredClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddOrderOpen, setAddOrderOpen] = useState(false);
@@ -80,15 +82,17 @@ export default function OrdersPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [fetchedOrders, fetchedQuotes, fetchedCustomers] = await Promise.all([
+        const [fetchedOrders, fetchedQuotes, fetchedCustomers, fetchedRegistered] = await Promise.all([
             getOrders(),
             getQuotes(),
-            getCustomers()
+            getCustomers(),
+            getRegisteredClients()
         ]);
         setOrders(fetchedOrders);
         const acceptedQuotes = fetchedQuotes.filter(q => q.status === 'accepted' || q.status === 'paid');
         setQuotes(acceptedQuotes);
         setCustomers(fetchedCustomers);
+        setRegisteredClients(fetchedRegistered);
         
         const inputs: Record<string, string> = {};
         fetchedOrders.forEach(o => {
@@ -306,7 +310,6 @@ export default function OrdersPage() {
                       className={cn("h-8 w-8 transition-all", isTransportDirty && "bg-primary text-white hover:bg-primary/90")}
                       disabled={isUpdatingTransport === order.id}
                       onClick={() => handleUpdateTransportCost(order.id)}
-                      title="Enregistrer les frais"
                     >
                       {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                     </Button>
@@ -499,12 +502,18 @@ export default function OrdersPage() {
                 ) : (
                    <Accordion type="multiple" className="w-full">
                       {Object.entries(archivedOrdersByCustomer).map(([customerId, customerOrders]) => {
-                        const customer = customers.find(c => c.id === customerId);
+                        const lead = customers.find(c => c.id === customerId);
+                        const regClient = registeredClients.find(c => c.id === customerId);
+                        
+                        const displayName = regClient 
+                          ? `${regClient.firstName} ${regClient.lastName} ${regClient.clientNumber ? `(${regClient.clientNumber})` : ''}`
+                          : (lead?.name || 'Client inconnu');
+
                         return (
                           <AccordionItem value={customerId} key={customerId}>
                             <AccordionTrigger className="px-6 py-4 hover:no-underline">
                               <div className='flex justify-between w-full pr-4'>
-                                <span>{customer?.name || 'Unknown Customer'}</span>
+                                <span>{displayName}</span>
                                 <span className='text-muted-foreground'>{customerOrders.length} document(s)</span>
                               </div>
                             </AccordionTrigger>

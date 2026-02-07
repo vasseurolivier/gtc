@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addInvoiceFromOrder, getInvoices, deleteInvoice, updateInvoiceStatus, updateInvoiceAmountPaid, updateInvoiceSupplierCostPaid, Invoice, updateInvoiceSupplierCostTotal, updateInvoiceTransportCostPaid } from '@/actions/invoices';
 import { getCustomers, Customer } from '@/actions/customers';
+import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
 import { getOrders, Order } from '@/actions/orders';
 import { Loader2, PlusCircle, Trash2, Eye, Check, Minus, Factory, Truck, Copy } from 'lucide-react';
 import { format } from 'date-fns';
@@ -36,6 +37,7 @@ export default function InvoicesPage() {
   const { toast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [registeredClients, setRegisteredClients] = useState<RegisteredClient[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,14 +62,16 @@ export default function InvoicesPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [fetchedInvoices, fetchedOrders, fetchedCustomers] = await Promise.all([
+        const [fetchedInvoices, fetchedOrders, fetchedCustomers, fetchedRegistered] = await Promise.all([
             getInvoices(),
             getOrders(),
             getCustomers(),
+            getRegisteredClients()
         ]);
         setInvoices(fetchedInvoices);
         setOrders(fetchedOrders);
         setCustomers(fetchedCustomers);
+        setRegisteredClients(fetchedRegistered);
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
     }
@@ -585,12 +589,18 @@ export default function InvoicesPage() {
                         ) : (
                             <Accordion type="multiple" className="w-full">
                               {Object.entries(archivedInvoicesByCustomer).map(([customerId, customerInvoices]) => {
-                                const customer = customers.find(c => c.id === customerId);
+                                const lead = customers.find(c => c.id === customerId);
+                                const regClient = registeredClients.find(c => c.id === customerId);
+                                
+                                const displayName = regClient 
+                                  ? `${regClient.firstName} ${regClient.lastName} ${regClient.clientNumber ? `(${regClient.clientNumber})` : ''}`
+                                  : (lead?.name || 'Client inconnu');
+
                                 return (
                                   <AccordionItem value={customerId} key={customerId}>
                                     <AccordionTrigger className="px-6 py-4 hover:no-underline">
                                       <div className='flex justify-between w-full pr-4'>
-                                        <span>{customer?.name || 'Unknown Customer'}</span>
+                                        <span>{displayName}</span>
                                         <span className='text-muted-foreground'>{customerInvoices.length} document(s)</span>
                                       </div>
                                     </AccordionTrigger>

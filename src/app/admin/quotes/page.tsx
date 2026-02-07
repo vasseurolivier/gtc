@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
+import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
 import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
 import { getOrderById } from '@/actions/orders';
@@ -71,6 +72,7 @@ function QuotesPageContent() {
   const { toast } = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [registeredClients, setRegisteredClients] = useState<RegisteredClient[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -187,14 +189,16 @@ function QuotesPageContent() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [fetchedQuotes, fetchedCustomers, fetchedProducts] = await Promise.all([
+        const [fetchedQuotes, fetchedCustomers, fetchedProducts, fetchedRegistered] = await Promise.all([
           getQuotes(), 
           getCustomers(),
-          getProducts()
+          getProducts(),
+          getRegisteredClients()
         ]);
         setQuotes(fetchedQuotes);
         setCustomers(fetchedCustomers);
         setProducts(fetchedProducts);
+        setRegisteredClients(fetchedRegistered);
 
         if (packingListId) {
             const packingList = await getPackingListById(packingListId);
@@ -274,7 +278,7 @@ function QuotesPageContent() {
             ...quote,
             issueDate: new Date(quote.issueDate),
             validUntil: new Date(quote.validUntil),
-            items: quote.items.map(item => ({...item, photo: '', weight: item.weight || 0})),
+            items: quote.items.map(item => ({...item, photo: item.photo || '', weight: item.weight || 0})),
             depositRequired: quote.depositRequired !== false,
             depositPercentage: quote.depositPercentage || 30,
         });
@@ -299,10 +303,15 @@ function QuotesPageContent() {
   };
   
   const handleCustomerChange = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-        form.setValue("customerId", customer.id);
-        form.setValue("customerName", customer.name);
+    const lead = customers.find(c => c.id === customerId);
+    const registered = registeredClients.find(c => c.id === customerId);
+    
+    if (registered) {
+        form.setValue("customerId", registered.id);
+        form.setValue("customerName", `${registered.firstName} ${registered.lastName}`);
+    } else if (lead) {
+        form.setValue("customerId", lead.id);
+        form.setValue("customerName", lead.name);
     }
   };
 
@@ -366,7 +375,7 @@ function QuotesPageContent() {
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       status: "draft",
-      items: quoteToDuplicate.items.map(item => ({...item, photo: '', weight: item.weight || 0}))
+      items: quoteToDuplicate.items.map(item => ({...item, photo: item.photo || '', weight: item.weight || 0}))
     });
     setEditingQuote(null);
     setIsDialogOpen(true);
@@ -505,7 +514,12 @@ function QuotesPageContent() {
                       <FormLabel>Client</FormLabel>
                       <Select onValueChange={handleCustomerChange} value={field.value}>
                           <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger></FormControl>
-                          <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}</SelectContent>
+                          <SelectContent>
+                            <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50">COMPTES CLIENTS</div>
+                            {registeredClients.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName} {c.clientNumber ? `(${c.clientNumber})` : ''}</SelectItem>)}
+                            <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50 mt-2">PROSPECTS CRM</div>
+                            {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}
+                          </SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="issueDate" render={({ field }) => (
@@ -676,12 +690,18 @@ function QuotesPageContent() {
                 ) : (
                     <Accordion type="multiple" className="w-full">
                       {Object.entries(archivedQuotesByCustomer).map(([customerId, customerQuotes]) => {
-                        const customer = customers.find(c => c.id === customerId);
+                        const lead = customers.find(c => c.id === customerId);
+                        const regClient = registeredClients.find(c => c.id === customerId);
+                        
+                        const displayName = regClient 
+                          ? `${regClient.firstName} ${regClient.lastName} ${regClient.clientNumber ? `(${regClient.clientNumber})` : ''}`
+                          : (lead?.name || 'Client inconnu');
+
                         return (
                           <AccordionItem value={customerId} key={customerId}>
                             <AccordionTrigger className="px-6 py-4 hover:no-underline">
                               <div className='flex justify-between w-full pr-4 font-bold'>
-                                <span>{customer?.name || 'Client inconnu'}</span>
+                                <span>{displayName}</span>
                                 <Badge variant="outline">{customerQuotes.length} document(s)</Badge>
                               </div>
                             </AccordionTrigger>
