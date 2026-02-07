@@ -54,7 +54,7 @@ function ClientMobileNav({ counts }: { counts: any }) {
           pathname === item.href ? "text-primary scale-110" : "text-zinc-400"
         )}>
           {item.icon}
-          {item.badge > 0 && (
+          {item.badge !== undefined && item.badge > 0 && (
             <span className="absolute top-0 right-4 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] font-black text-white ring-2 ring-white">
               {item.badge}
             </span>
@@ -99,10 +99,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }, [db, user]);
   const { data: unpaidInvoices } = useCollection(invoicesQuery);
 
-  // For sourcing, we need to check products with status 'published' in all lists
-  // Since we can't easily query across subcollections without collectionGroup (which might need indexes),
-  // we'll rely on the aggregate sourcing products logic used in the dashboard or simply count active lists for the menu.
-  // For the badge, we'll try a simple collectionGroup query if possible, or just use a placeholder for now.
   const sourcingProductsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collectionGroup(db, 'products'), where('clientId', '==', user.uid), where('status', '==', 'published'));
@@ -115,8 +111,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     orders: 0, // Could be status updates
     sourcing: publishedProducts?.length || 0
   }), [pendingQuotes, unpaidInvoices, publishedProducts]);
-
-  const totalNotifications = counts.quotes + counts.invoices + counts.sourcing;
 
   useEffect(() => {
     if (mounted && !isUserLoading && !user && pathname !== '/client/login') {
@@ -202,7 +196,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                   <Link href={item.href}>
                     {item.icon}
                     <span className="text-base">{item.label}</span>
-                    {item.badge > 0 && (
+                    {item.badge !== undefined && item.badge > 0 && (
                       <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white animate-pulse">
                         {item.badge}
                       </span>
@@ -234,11 +228,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             <h2 className="font-bold text-zinc-800">Espace Client</h2>
           </div>
           <div className="flex items-center gap-4">
-            {totalNotifications > 0 && (
-              <Badge className="bg-red-600 hover:bg-red-700 animate-bounce cursor-pointer" onClick={() => router.push('/client/orders')}>
-                {totalNotifications} Notification{totalNotifications > 1 ? 's' : ''}
-              </Badge>
-            )}
             <span className="text-sm text-zinc-500 hidden md:inline">{user?.email}</span>
             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
               {user?.email?.charAt(0).toUpperCase()}
