@@ -73,7 +73,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo;
+    // Priorité au logo public pour les documents officiels clients
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * invoiceRate;
@@ -87,7 +88,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         );
     };
 
-    // Recalculate subtotal and commission from invoice data
+    // Recalcul strict des montants
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);

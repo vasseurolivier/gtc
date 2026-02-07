@@ -1,3 +1,5 @@
+'use server';
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -100,7 +102,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo;
+    // Priorité au logo public pour les documents clients
+    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * quoteRate;
@@ -134,7 +137,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                 </Button>
             </div>
             
-            {/* --- MODULE DE VALIDATION CLIENT --- */}
             <div className="no-print">
                 {quote.status === 'sent' ? (
                     <Card className="border-4 border-primary bg-primary/5 shadow-2xl overflow-hidden mb-8">
@@ -223,7 +225,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                 )}
             </div>
 
-            {/* --- APERÇU DU DOCUMENT --- */}
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
                 <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
                     <div className="flex-grow">
@@ -316,7 +317,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 )}
                                 {transportCny > 0 && (
                                     <div className="flex justify-between text-[11px]">
-                                        <span className="text-muted-foreground font-medium">Frais de port</span>
+                                        <span className="text-muted-foreground font-medium flex items-center gap-1">Frais de port</span>
                                         <span className="font-bold">{renderPrice(transportCny)}</span>
                                     </div>
                                 )}
