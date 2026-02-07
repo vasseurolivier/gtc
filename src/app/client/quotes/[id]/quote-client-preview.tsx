@@ -1,12 +1,10 @@
-'use server';
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
 import { updateQuoteStatus } from '@/actions/quotes';
 import { useContext, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -102,7 +100,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     }
     
     const { companyInfo } = companyInfoContext;
-    // Priorité au logo public pour les documents clients
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
     const renderPrice = (cnyValue: number, isMain = false) => {
@@ -117,7 +114,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         );
     };
 
-    // Recalcul strict des montants
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
