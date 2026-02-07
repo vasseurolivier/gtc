@@ -9,6 +9,7 @@ import {
   updateRegisteredClientNumber,
   updateRegisteredClientPrefix,
   updateRegisteredClientCurrencyPreference,
+  updateClientCredentials,
   deleteRegisteredClient,
   deleteProductList,
   deleteClientProduct,
@@ -76,7 +77,10 @@ import {
   Ruler, 
   Coins,
   ShieldAlert,
-  Settings2
+  Settings2,
+  Lock,
+  ShieldCheck,
+  KeyRound
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -101,11 +105,16 @@ export default function ClientDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [isDeletingClient, setIsDeletingClient] = useState(false);
-  const [isGeneratingQuote, setIsGeneratingQuote] = useState<string | null>(null);
+  
   const [clientNumber, setClientNumber] = useState('');
   const [orderPrefix, setOrderPrefix] = useState('');
   const [currencyPreference, setCurrencyPreference] = useState<'EUR' | 'CNY' | 'BOTH'>('EUR');
   
+  // Security states
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
+
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -155,6 +164,8 @@ export default function ClientDetailPage() {
           setClientNumber(clientData.clientNumber || '');
           setOrderPrefix(clientData.orderPrefix || '');
           setCurrencyPreference(clientData.currencyPreference || 'EUR');
+          setLoginEmail(clientData.email || '');
+          setLoginPassword(clientData.password || '');
         }
         setGlobalProducts(prods || []);
         setAllInvoices(invs || []);
@@ -167,6 +178,24 @@ export default function ClientDetailPage() {
     }
     fetchData();
   }, [clientId]);
+
+  const handleUpdateCredentials = async () => {
+    if (!loginEmail) {
+      toast({ variant: "destructive", title: "Erreur", description: "L'email est requis." });
+      return;
+    }
+    setIsUpdatingCredentials(true);
+    try {
+      const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
+      if (result.success) {
+        toast({ title: "Succès", description: "Identifiants de connexion mis à jour." });
+      } else {
+        toast({ variant: "destructive", title: "Erreur", description: result.message });
+      }
+    } finally {
+      setIsUpdatingCredentials(false);
+    }
+  };
 
   const listsQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
@@ -971,6 +1000,7 @@ export default function ClientDetailPage() {
               </TabsTrigger>
               <TabsTrigger value="quotes" className="rounded-lg h-full px-4"><FileText className="h-4 w-4 mr-2" /> Proformas</TabsTrigger>
               <TabsTrigger value="invoices" className="rounded-lg h-full px-4"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
+              <TabsTrigger value="security" className="rounded-lg h-full px-4"><Lock className="h-4 w-4 mr-2" /> Accès & Sécurité</TabsTrigger>
             </TabsList>
 
             <TabsContent value="catalogue">
@@ -1430,6 +1460,73 @@ export default function ClientDetailPage() {
                   </TableBody>
                 </Table>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="security">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 text-primary">
+                  <ShieldCheck className="h-5 w-5" />
+                  <h3 className="font-bold text-lg">Sécurité & Accès Client</h3>
+                </div>
+                
+                <Card className="border-none shadow-md bg-white">
+                  <CardContent className="pt-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="font-bold flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-zinc-400" /> Email de connexion
+                        </Label>
+                        <Input 
+                          value={loginEmail} 
+                          onChange={(e) => setLoginEmail(e.target.value)} 
+                          placeholder="client@email.com"
+                        />
+                        <p className="text-[10px] text-zinc-500 italic">L'identifiant utilisé pour se connecter à l'espace client.</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="font-bold flex items-center gap-2">
+                          <KeyRound className="h-4 w-4 text-zinc-400" /> Mot de passe (Visible Admin)
+                        </Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                          <input 
+                            type="text"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            value={loginPassword} 
+                            onChange={(e) => setLoginPassword(e.target.value)} 
+                            placeholder="Min. 6 caractères"
+                          />
+                        </div>
+                        <p className="text-[10px] text-zinc-500 italic">Modifier ce champ mettra à jour l'accès du client.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
+                      <div className="text-xs text-orange-800 leading-relaxed">
+                        <p className="font-bold mb-1">Attention aux modifications</p>
+                        <p>Changer ces informations modifiera instantanément les accès du client. Si vous changez l'email ou le mot de passe, vous devrez les lui communiquer manuellement (WhatsApp/Email) pour qu'il puisse à nouveau accéder à son espace.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <Button 
+                        onClick={handleUpdateCredentials} 
+                        disabled={isUpdatingCredentials}
+                        className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold"
+                      >
+                        {isUpdatingCredentials ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="mr-2 h-4 w-4" />
+                        )}
+                        Enregistrer les nouveaux accès
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

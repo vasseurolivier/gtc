@@ -10,6 +10,7 @@ export interface RegisteredClient {
     firstName: string;
     lastName: string;
     email: string;
+    password?: string; // Added for visibility in admin
     clientNumber?: string;
     orderPrefix?: string; // Prefix for custom order numbers
     currencyPreference?: 'EUR' | 'CNY' | 'BOTH'; // Display preference
@@ -49,6 +50,38 @@ export async function getRegisteredClientById(id: string): Promise<RegisteredCli
     } catch (e) {
         console.error("Error fetching client by id:", e);
         return null;
+    }
+}
+
+/**
+ * Update client credentials (Email & Password) in Auth and Firestore.
+ */
+export async function updateClientCredentials(id: string, email: string, password?: string) {
+    try {
+        const admin = await import('firebase-admin');
+        if (!admin.apps.length) {
+            admin.initializeApp({
+                projectId: firebaseConfig.projectId
+            });
+        }
+
+        const updateData: any = { email };
+        if (password) updateData.password = password;
+
+        // 1. Update Firebase Auth
+        await admin.auth().updateUser(id, updateData);
+
+        // 2. Update Firestore
+        const clientRef = doc(db, 'clients', id);
+        const firestoreUpdate: any = { email };
+        if (password) firestoreUpdate.password = password;
+        
+        await updateDoc(clientRef, firestoreUpdate);
+
+        return { success: true, message: 'Identifiants mis à jour avec succès.' };
+    } catch (e: any) {
+        console.error("Error updating credentials:", e);
+        return { success: false, message: e.message || 'Erreur lors de la mise à jour des identifiants.' };
     }
 }
 

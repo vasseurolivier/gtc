@@ -93,12 +93,13 @@ export default function CustomerProfilePage() {
             const uid = userCredential.user.uid;
 
             if (db) {
-                // 2. Create the client document
+                // 2. Create the client document with stored password for admin visibility
                 const clientDoc = {
                     id: uid,
                     firstName: customer.name.split(' ')[0] || '',
                     lastName: customer.name.split(' ').slice(1).join(' ') || '',
                     email: customer.email,
+                    password: initialPassword, // Stored for admin visibility
                     phone: customer.phone || '',
                     companyName: customer.company || '',
                     address: customer.address || '',
@@ -353,16 +354,16 @@ export default function CustomerProfilePage() {
                             <Label htmlFor="password">Mot de passe initial pour le client</Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                                <Input 
+                                <input 
                                     id="password" 
-                                    type="password" 
-                                    className="pl-10" 
+                                    type="text" 
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
                                     placeholder="Min. 6 caractères"
                                     value={initialPassword}
                                     onChange={(e) => setInitialPassword(e.target.value)}
                                 />
                             </div>
-                            <p className="text-[10px] text-muted-foreground italic">Vous devrez communiquer ce mot de passe au client par email ou WhatsApp.</p>
+                            <p className="text-[10px] text-muted-foreground italic">Note: Le mot de passe sera visible par vous dans l'onglet "Sécurité" du dossier client.</p>
                         </div>
                     </div>
                     <DialogFooter>
