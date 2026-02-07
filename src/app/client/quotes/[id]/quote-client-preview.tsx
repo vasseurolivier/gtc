@@ -61,6 +61,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         let imgHeight = imgWidth / ratio;
         let heightLeft = imgHeight;
         let position = 0;
+
         pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
 
@@ -129,6 +130,68 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                 </Button>
             </div>
             
+            {/* Validation Module for Client (Placed above for visibility if sent) */}
+            <div className="no-print">
+                {quote.status === 'sent' ? (
+                    <Card className="border-2 border-primary bg-primary/5 shadow-2xl overflow-hidden mb-8">
+                        <CardContent className="p-6 md:p-8 space-y-6">
+                            <div className="flex items-center gap-3 text-primary">
+                                <ShieldCheck className="h-8 w-8" />
+                                <h3 className="text-2xl font-black uppercase tracking-tighter">Validation du Devis</h3>
+                            </div>
+                            
+                            <div className="bg-white p-4 rounded-xl border border-primary/10 text-xs text-zinc-600 leading-relaxed space-y-3 shadow-inner">
+                                <p className="font-bold text-zinc-900">En validant cette Proforma Invoice (PI), vous reconnaissez et acceptez :</p>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    <li>L'exactitude des spécifications techniques et quantités listées ci-dessus.</li>
+                                    <li>L'engagement de paiement de l'acompte de {(quote.depositPercentage || 30)}% sous 3 jours ouvrés.</li>
+                                    <li>Que les délais de production débutent à réception du paiement de l'acompte.</li>
+                                    <li>Les conditions de transport et d'incoterms spécifiés sur ce document.</li>
+                                </ul>
+                            </div>
+
+                            <div className="flex items-start gap-3 p-2">
+                                <Checkbox 
+                                    id="terms" 
+                                    checked={isTermsAccepted} 
+                                    onCheckedChange={(checked) => setIsTermsAccepted(checked as boolean)}
+                                    className="mt-1 border-primary h-5 w-5 data-[state=checked]:bg-primary"
+                                />
+                                <label 
+                                    htmlFor="terms" 
+                                    className="text-sm font-bold text-zinc-800 cursor-pointer leading-tight"
+                                >
+                                    Je confirme avoir relu le devis et j'accepte les conditions de vente de Global Trading China pour cette commande.
+                                </label>
+                            </div>
+
+                            <Button 
+                                onClick={handleAcceptQuote}
+                                disabled={!isTermsAccepted || isAccepting}
+                                className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 text-white rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-95"
+                            >
+                                {isAccepting ? (
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : (
+                                    <>ACCEPTER ET VALIDER LA COMMANDE</>
+                                )}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : (quote.status === 'accepted' || quote.status === 'paid') && (
+                    <div className="p-6 bg-green-50 border-2 border-green-100 rounded-2xl flex items-center justify-between gap-4 mb-8">
+                        <div className="flex items-center gap-3 text-green-700">
+                            <CheckCircle2 className="h-8 w-8" />
+                            <div>
+                                <p className="font-black uppercase text-sm">Devis Validé</p>
+                                <p className="text-xs opacity-80 font-medium">Ce document a été signé électroniquement et votre commande est en cours.</p>
+                            </div>
+                        </div>
+                        <Badge className="bg-green-500 h-8 px-4 font-black">STATUT: {quote.status.toUpperCase()}</Badge>
+                    </div>
+                )}
+            </div>
+
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
                 <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
                     <div className="flex-grow">
@@ -265,73 +328,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                     <PrintFooter />
                 </div>
             </main>
-
-            {/* Validation Module for Client */}
-            <div className="no-print pt-4">
-                {quote.status === 'sent' ? (
-                    <Card className="border-2 border-primary/20 bg-primary/5 shadow-lg overflow-hidden">
-                        <CardContent className="p-6 md:p-8 space-y-6">
-                            <div className="flex items-center gap-3 text-primary">
-                                <ShieldCheck className="h-6 w-6" />
-                                <h3 className="text-xl font-black uppercase tracking-tighter">Validation du Devis</h3>
-                            </div>
-                            
-                            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-primary/10 text-xs text-zinc-600 leading-relaxed space-y-3">
-                                <p className="font-bold text-zinc-900">En validant cette Proforma Invoice (PI), vous reconnaissez et acceptez :</p>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    <li>L'exactitude des spécifications techniques et quantités listées ci-dessus.</li>
-                                    <li>L'engagement de paiement de l'acompte de {(quote.depositPercentage || 30)}% sous 3 jours ouvrés.</li>
-                                    <li>Que les délais de production débutent à réception du paiement de l'acompte.</li>
-                                    <li>Les conditions de transport et d'incoterms spécifiés sur ce document.</li>
-                                </ul>
-                            </div>
-
-                            <div className="flex items-start gap-3 p-2">
-                                <Checkbox 
-                                    id="terms" 
-                                    checked={isTermsAccepted} 
-                                    onCheckedChange={(checked) => setIsTermsAccepted(checked as boolean)}
-                                    className="mt-1 border-primary data-[state=checked]:bg-primary"
-                                />
-                                <label 
-                                    htmlFor="terms" 
-                                    className="text-sm font-bold text-zinc-800 cursor-pointer leading-tight"
-                                >
-                                    Je confirme avoir relu le devis et j'accepte les conditions de vente de Global Trading China pour cette commande.
-                                </label>
-                            </div>
-
-                            <Button 
-                                onClick={handleAcceptQuote}
-                                disabled={!isTermsAccepted || isAccepting}
-                                className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-95"
-                            >
-                                {isAccepting ? (
-                                    <Loader2 className="h-6 w-6 animate-spin" />
-                                ) : (
-                                    <>ACCEPTER ET VALIDER LA COMMANDE</>
-                                )}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ) : quote.status === 'accepted' || quote.status === 'paid' ? (
-                    <div className="p-6 bg-green-50 border-2 border-green-100 rounded-2xl flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 text-green-700">
-                            <CheckCircle2 className="h-8 w-8" />
-                            <div>
-                                <p className="font-black uppercase text-sm">Devis Accepté</p>
-                                <p className="text-xs opacity-80 font-medium">Ce document a été validé et la commande est en cours de traitement.</p>
-                            </div>
-                        </div>
-                        <Badge className="bg-green-500 h-8 px-4 font-black">VALIDÉ</Badge>
-                    </div>
-                ) : (
-                    <div className="p-6 bg-zinc-100 rounded-2xl flex items-center gap-3 text-zinc-500">
-                        <AlertCircle className="h-6 w-6" />
-                        <p className="text-sm font-medium italic">Ce document n'est pas en attente de validation (Statut: {quote.status}).</p>
-                    </div>
-                )}
-            </div>
         </div>
     );
 }

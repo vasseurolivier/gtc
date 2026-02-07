@@ -104,7 +104,7 @@ export default function ClientOrdersPage() {
     if (profile?.address && !shippingAddress && !is3PLSelected && !isEditingOrder) {
       setShippingAddress(profile.address);
     }
-  }, [profile, shippingAddress, is3PLSelected, isEditingOrder]);
+  }, [profile, shippingAddress, i.is3PLSelected, isEditingOrder]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -357,7 +357,7 @@ export default function ClientOrdersPage() {
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          purchasePrice: 0, // Client does not see/set purchase price
+          purchasePrice: 0, 
           total: item.total,
           photo: item.photo,
           size: item.size || null,
@@ -539,7 +539,7 @@ export default function ClientOrdersPage() {
                       <TableHead>Date d'émission</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-right pr-6">Documents</TableHead>
+                      <TableHead className="text-right pr-6">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -563,11 +563,20 @@ export default function ClientOrdersPage() {
                             {renderPrice(q.totalAmount, "font-black text-primary")}
                           </TableCell>
                           <TableCell className="text-right pr-6">
-                            <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/client/quotes/${q.id}`}>
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              {q.status === 'sent' && (
+                                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold h-8 text-[10px]" asChild>
+                                  <Link href={`/client/quotes/${q.id}`}>
+                                    <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> VALIDER
+                                  </Link>
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/client/quotes/${q.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
