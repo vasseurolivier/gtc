@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -14,10 +13,12 @@ import {
   Clock, 
   Loader2,
   ShoppingBag,
-  Sparkles
+  Sparkles,
+  Receipt
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function ClientDashboard() {
   const { user } = useUser();
