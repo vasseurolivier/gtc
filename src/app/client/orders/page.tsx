@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -40,7 +39,8 @@ import {
   Coins,
   ShieldCheck,
   Building2,
-  Settings2
+  Settings2,
+  Pencil
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -49,6 +49,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
+import { updateOrder } from '@/actions/orders';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 const WAREHOUSE_3PL_ADDRESS = "Entrepôt Central GTC - Service Logistique 3PL\n浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501\nYiwu, Zhejiang, China";
@@ -78,6 +79,10 @@ export default function ClientOrdersPage() {
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
+  // Editing state
+  const [isEditingOrder, setIsEditingOrder] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -95,10 +100,10 @@ export default function ClientOrdersPage() {
   const currencyPreference = profile?.currencyPreference || 'EUR';
 
   useEffect(() => {
-    if (profile?.address && !shippingAddress && !is3PLSelected) {
+    if (profile?.address && !shippingAddress && !is3PLSelected && !isEditingOrder) {
       setShippingAddress(profile.address);
     }
-  }, [profile, shippingAddress, is3PLSelected]);
+  }, [profile, shippingAddress, is3PLSelected, isEditingOrder]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -205,15 +210,10 @@ export default function ClientOrdersPage() {
 
   const handleOpenProduct = (product: any) => {
     setSelectedProduct(product);
-    
-    // Set personalization based on availability
     const initialPersonalized = product.availability === 'personalized_only';
     setIsPersonalized(initialPersonalized);
-    
-    // Set initial quantity: if personalized, respect MOQ. Otherwise default to 1.
     const moq = Number(product.moq || 1);
     setProductQuantity(initialPersonalized ? moq : 1);
-    
     setSelectedSize(null);
     setCurrentImageIdx(0);
     setIsProductDialogOpen(true);
@@ -224,23 +224,55 @@ export default function ClientOrdersPage() {
     setIsOrderPreviewOpen(true);
   };
 
+  const handleStartEditOrder = (order: any) => {
+    // Map order items to cart format
+    const initialCart = order.items.map((item: any, idx: number) => ({
+      key: `edit-${order.id}-${idx}`,
+      id: item.sku, 
+      name: item.description.split(' (Taille:')[0].split(' (Personnalisé)')[0],
+      sku: item.sku || '',
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      total: item.total,
+      photo: item.photo || '',
+      size: item.size || null,
+      moq: item.isPersonalized ? 1 : 1, // Will be overridden if needed
+      isPersonalized: item.isPersonalized || false
+    }));
+
+    setCart(initialCart);
+    setShippingAddress(order.shippingAddress || '');
+    
+    // Extract suffix (prefix is fixed for client)
+    const prefix = profile?.orderPrefix || 'ORD';
+    const suffix = order.orderNumber.replace(prefix, '');
+    setOrderSuffix(suffix);
+    
+    setEditingOrderId(order.id);
+    setIsEditingOrder(true);
+    setIs3PLSelected(order.shippingAddress === WAREHOUSE_3PL_ADDRESS);
+    setIsCartDialogOpen(true);
+  };
+
+  const handleCancelEdit = () => {
+    setCart([]);
+    setOrderSuffix('');
+    setShippingAddress(profile?.address || '');
+    setIsEditingOrder(false);
+    setEditingOrderId(null);
+    setIs3PLSelected(false);
+    setIsCartDialogOpen(false);
+  };
+
   const handleAddToCart = () => {
     if (!selectedProduct) return;
-    
     const moq = Number(selectedProduct.moq || 1);
-    
-    // VALIDATION MOQ: Only applies if personalized
     if (isPersonalized && productQuantity < moq) {
-      toast({ 
-        variant: "destructive", 
-        title: "Quantité insuffisante", 
-        description: `La personnalisation de ce produit nécessite une commande minimum de ${moq} unités.` 
-      });
+      toast({ variant: "destructive", title: "Quantité insuffisante", description: `La personnalisation nécessite un minimum de ${moq} unités.` });
       return;
     }
-
     if (selectedProduct.hasSizeSelection && !selectedSize) {
-      toast({ variant: "destructive", title: "Taille requise", description: "Veuillez sélectionner une taille pour cet article." });
+      toast({ variant: "destructive", title: "Taille requise", description: "Veuillez sélectionner une taille." });
       return;
     }
 
@@ -256,7 +288,7 @@ export default function ClientOrdersPage() {
       setCart([...cart, {
         key: itemKey,
         id: selectedProduct.id,
-        name: selectedProduct.name + (isPersonalized ? " (Personnalisé)" : ""),
+        name: selectedProduct.name,
         sku: selectedProduct.sku || '',
         quantity: productQuantity,
         unitPrice: Number(selectedProduct.price || 0),
@@ -267,7 +299,7 @@ export default function ClientOrdersPage() {
         isPersonalized
       }]);
     }
-    toast({ title: "Produit ajouté", description: `${selectedProduct.name} est dans votre panier.` });
+    toast({ title: "Produit ajouté au panier" });
     setIsProductDialogOpen(false);
   };
 
@@ -312,7 +344,7 @@ export default function ClientOrdersPage() {
         customerId: user.uid,
         customerName: `${profile?.firstName} ${profile?.lastName}`,
         items: cart.map(item => ({
-          description: item.name + (item.size ? ` (Taille: ${item.size})` : ''),
+          description: item.name + (item.isPersonalized ? " (Personnalisé)" : "") + (item.size ? ` (Taille: ${item.size})` : ''),
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
@@ -321,18 +353,29 @@ export default function ClientOrdersPage() {
           size: item.size || null,
           isPersonalized: item.isPersonalized || false
         })),
-        totalAmount: cart.reduce((sum, item) => sum + item.total, 0),
+        totalAmount: cartTotalCny,
         status: 'processing',
         shippingAddress,
         orderDate: new Date().toISOString(),
         createdAt: serverTimestamp(),
         paymentStatus: 'unpaid',
       };
-      await addDoc(collection(db, 'orders'), orderData);
-      toast({ title: "Commande transmise !", description: `Votre commande ${orderNumber} a été envoyée.` });
-      setCart([]);
-      setOrderSuffix('');
-      setIsCartDialogOpen(false);
+
+      if (isEditingOrder && editingOrderId) {
+        const result = await updateOrder(editingOrderId, orderData);
+        if (result.success) {
+          toast({ title: "Commande mise à jour !" });
+          handleCancelEdit();
+        } else {
+          toast({ variant: "destructive", title: "Erreur", description: result.message });
+        }
+      } else {
+        await addDoc(collection(db, 'orders'), orderData);
+        toast({ title: "Commande transmise !", description: `Votre commande ${orderNumber} a été envoyée.` });
+        setCart([]);
+        setOrderSuffix('');
+        setIsCartDialogOpen(false);
+      }
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: "Impossible de valider la commande." });
     } finally {
@@ -365,7 +408,8 @@ export default function ClientOrdersPage() {
         </div>
         {cart.length > 0 && (
           <Button className="h-12 px-6 bg-primary text-white font-bold rounded-xl shadow-lg" onClick={() => setIsCartDialogOpen(true)}>
-            <ShoppingCart className="mr-2 h-5 w-5" /> Panier ({currencyPreference === 'CNY' ? `¥${cartTotalCny.toFixed(2)}` : `€${(cartTotalCny * rate).toFixed(2)}`})
+            <ShoppingCart className="mr-2 h-5 w-5" /> 
+            {isEditingOrder ? "Edition en cours" : "Panier"} ({currencyPreference === 'CNY' ? `¥${cartTotalCny.toFixed(2)}` : `€${(cartTotalCny * rate).toFixed(2)}`})
           </Button>
         )}
       </div>
@@ -413,9 +457,16 @@ export default function ClientOrdersPage() {
                           {renderPrice(order.totalAmount, "font-black text-zinc-900")}
                         </TableCell>
                         <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            {order.status === 'processing' && (
+                              <Button variant="ghost" size="sm" onClick={() => handleStartEditOrder(order)} className="text-primary hover:bg-primary/10">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -553,9 +604,15 @@ export default function ClientOrdersPage() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
+      <Dialog open={isCartDialogOpen} onOpenChange={(open) => { if(!open && isEditingOrder) { handleCancelEdit(); } else { setIsCartDialogOpen(open); } }}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader><DialogTitle className="text-2xl font-bold flex items-center gap-2"><ShoppingCart className="text-primary" /> Mon Panier</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <ShoppingCart className="text-primary" /> 
+              {isEditingOrder ? "Modifier ma commande" : "Mon Panier"}
+            </DialogTitle>
+            {isEditingOrder && <DialogDescription>Vous modifiez la commande {profile?.orderPrefix || ''}{orderSuffix}.</DialogDescription>}
+          </DialogHeader>
           <div className="py-4 space-y-6">
             <div className="border rounded-xl overflow-hidden">
               <Table>
@@ -604,9 +661,9 @@ export default function ClientOrdersPage() {
                       placeholder="ex: 2024-001" 
                       value={orderSuffix}
                       onChange={(e) => setOrderSuffix(e.target.value)}
+                      disabled={isEditingOrder} // Cannot change order number when editing
                     />
                   </div>
-                  <p className="text-[10px] text-zinc-400 italic">Le numéro final sera : {(profile?.orderPrefix || 'ORD') + (orderSuffix || '...')}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -634,7 +691,7 @@ export default function ClientOrdersPage() {
                           Service 3PL (Entrepôt GTC)
                         </Label>
                         <p className="text-[10px] text-zinc-500 leading-tight">
-                          Livrez vos marchandises directement dans notre centre de logistique à Yiwu pour consolidation ou expédition ultérieure.
+                          Livrez vos marchandises directement dans notre centre de logistique à Yiwu.
                         </p>
                       </div>
                     </div>
@@ -668,12 +725,14 @@ export default function ClientOrdersPage() {
                     </>
                   )}
                 </div>
-                <div className="text-[10px] text-zinc-400 mt-4 leading-relaxed">
-                  Note : Les frais de transport seront ajustés par votre agent après réception de la commande.
-                </div>
                 <Button className="w-full mt-6 h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
-                  {isSubmittingOrder ? <Loader2 className="animate-spin" /> : "TRANSMETTRE LA COMMANDE"}
+                  {isSubmittingOrder ? <Loader2 className="animate-spin" /> : isEditingOrder ? "ENREGISTRER LES MODIFICATIONS" : "TRANSMETTRE LA COMMANDE"}
                 </Button>
+                {isEditingOrder && (
+                  <Button variant="ghost" className="w-full mt-2 text-zinc-400 hover:text-white" onClick={handleCancelEdit}>
+                    Annuler l'édition
+                  </Button>
+                )}
               </Card>
             </div>
           </div>
@@ -718,7 +777,6 @@ export default function ClientOrdersPage() {
                   {selectedProduct.description || "Aucune description technique."}
                 </div>
 
-                {/* PERSONALIZATION OPTION */}
                 {selectedProduct.availability !== 'standard_only' && (
                   <div className={cn(
                     "p-4 rounded-2xl border-2 transition-all duration-300",
@@ -816,7 +874,7 @@ export default function ClientOrdersPage() {
                     </span>
                   </div>
                   <Button className="w-full h-14 bg-zinc-950 text-white font-black hover:bg-primary transition-all rounded-xl shadow-xl shadow-zinc-900/10" onClick={handleAddToCart}>
-                    <ShoppingCart className="mr-2 h-5 w-5" /> AJOUTER AU PANIER
+                    <ShoppingCart className="mr-2 h-5 w-5" /> {isEditingOrder ? "AJOUTER À LA MODIFICATION" : "AJOUTER AU PANIER"}
                   </Button>
                 </div>
               </div>
@@ -927,8 +985,13 @@ export default function ClientOrdersPage() {
             </div>
           )}
           
-          <DialogFooter>
-            <Button variant="outline" className="w-full font-bold h-12 rounded-xl" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            {selectedOrderPreview?.status === 'processing' && (
+              <Button className="flex-1 bg-primary text-white font-bold h-12 rounded-xl" onClick={() => { setIsOrderPreviewOpen(false); handleStartEditOrder(selectedOrderPreview); }}>
+                <Pencil className="mr-2 h-4 w-4" /> Modifier ma commande
+              </Button>
+            )}
+            <Button variant="outline" className="flex-1 font-bold h-12 rounded-xl" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

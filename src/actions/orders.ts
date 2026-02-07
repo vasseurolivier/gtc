@@ -16,6 +16,8 @@ const orderItemSchema = z.object({
   purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
   total: z.coerce.number().nonnegative("Total cannot be negative."),
   photo: z.string().optional(),
+  size: z.string().optional().nullable(),
+  isPersonalized: z.boolean().optional(),
 });
 
 export type OrderItem = z.infer<typeof orderItemSchema>;
@@ -34,6 +36,7 @@ export interface Order {
     shippingAddress?: string;
     orderDate: string;
     createdAt: string;
+    updatedAt?: string;
     transportCost?: number;
     commissionRate?: number;
     paymentStatus: PaymentStatus;
@@ -65,7 +68,9 @@ export async function addOrder(quote: Quote) {
             unitPrice: item.unitPrice,
             purchasePrice: item.purchasePrice || 0,
             total: item.total,
-            photo: (item as any).photo || ''
+            photo: item.photo || '',
+            size: (item as any).size || null,
+            isPersonalized: (item as any).isPersonalized || false
           })),
           totalAmount: quote.totalAmount,
           status: "processing" as const,
@@ -81,7 +86,6 @@ export async function addOrder(quote: Quote) {
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
         
-        // Automatisme : générer facture si déjà payé intégralement
         if (newOrderData.paymentStatus === 'paid') {
             const finalOrder = { ...newOrderData, id: docRef.id } as unknown as Order;
             await addInvoiceFromOrder(finalOrder);
@@ -91,6 +95,20 @@ export async function addOrder(quote: Quote) {
     } catch (error: any) {
         console.error('Error adding order:', error);
         return { success: false, message: 'An unexpected error occurred while creating the order.' };
+    }
+}
+
+export async function updateOrder(id: string, values: Partial<Order>) {
+    try {
+        const orderRef = doc(db, 'orders', id);
+        await updateDoc(orderRef, {
+            ...values,
+            updatedAt: serverTimestamp(),
+        });
+        return { success: true, message: 'Order updated successfully!' };
+    } catch (error: any) {
+        console.error('Error updating order:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
@@ -116,7 +134,9 @@ export async function updateOrderFromQuote(quote: Quote) {
                 unitPrice: item.unitPrice,
                 purchasePrice: item.purchasePrice || 0,
                 total: item.total,
-                photo: (item as any).photo || ''
+                photo: item.photo || '',
+                size: (item as any).size || null,
+                isPersonalized: (item as any).isPersonalized || false
             })),
             totalAmount: quote.totalAmount,
             shippingAddress: quote.shippingAddress || "",
@@ -216,18 +236,15 @@ export async function updateOrderPaymentStatus(id: string, paymentStatus: Paymen
         const currentData = orderSnap.data();
         const updatePayload: any = { paymentStatus };
 
-        // Si on passe à "payé", on valide automatiquement la commande si elle est encore "en traitement"
         if (paymentStatus === 'paid' && currentData.status === 'processing') {
             updatePayload.status = 'validated';
         }
 
         await updateDoc(orderRef, updatePayload);
 
-        // AUTOMATISME : Si le solde est payé intégralement, générer la facture si elle n'existe pas
         if (paymentStatus === 'paid') {
             const orderData = { ...currentData, ...updatePayload, id: orderSnap.id } as unknown as Order;
             
-            // On vérifie d'abord si une facture n'existe pas déjà pour cet OrderID
             const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
             const invoiceSnap = await getDocs(invoiceQuery);
             
