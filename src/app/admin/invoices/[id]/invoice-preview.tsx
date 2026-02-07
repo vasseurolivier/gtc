@@ -77,7 +77,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         );
     };
 
-    // Calculate subTotal from items
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
@@ -134,17 +133,21 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </thead>
                         <tbody>
                             {invoice.items.map((item, index) => {
-                                const product = item.sku ? productsBySku.get(item.sku) : undefined;
+                                const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
+                                const displayImage = item.photo || catalogProduct?.imageUrl;
+                                
                                 return (
                                     <tr key={index} className="border-b">
-                                        <td className="p-1 border">
-                                            {product?.imageUrl ? (
-                                                <img src={product.imageUrl} crossOrigin="anonymous" width={32} height={32} className="object-contain mx-auto"/>
-                                            ) : (
-                                                <div className="w-8 h-8 rounded border bg-zinc-50 mx-auto flex items-center justify-center text-zinc-300">
-                                                    <Package className="h-4 w-4" />
-                                                </div>
-                                            )}
+                                        <td className="p-1 border text-center">
+                                            <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                                                {displayImage ? (
+                                                    <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm"/>
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded border bg-zinc-50 mx-auto flex items-center justify-center text-zinc-300">
+                                                        <Package className="h-4 w-4" />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="p-1 border"><p className="font-bold text-[11px]">{item.description}</p></td>
                                         <td className="p-1 text-center border">{item.quantity}</td>

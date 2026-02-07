@@ -67,7 +67,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
-    // Recalculate Subtotal and Commission for display
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
@@ -149,16 +148,16 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             
                             return (
                                 <tr key={itemIndex} className="border-b">
-                                    <td className="p-1 align-top border">
-                                        {displayImage ? (
-                                            <div className="w-8 h-8 rounded border bg-white mx-auto overflow-hidden">
-                                                <img src={displayImage} alt={item.description} crossOrigin="anonymous" width={32} height={32} className="object-contain"/>
-                                            </div>
-                                        ) : (
-                                            <div className="w-8 h-8 rounded bg-zinc-50 mx-auto flex items-center justify-center border text-zinc-300">
-                                                <Package className="h-4 w-4" />
-                                            </div>
-                                        )}
+                                    <td className="p-1 align-top border text-center">
+                                        <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                                            {displayImage ? (
+                                                <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded bg-zinc-50 flex items-center justify-center border text-zinc-300">
+                                                    <Package className="h-4 w-4" />
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="p-1 align-top border">
                                         <p className="font-bold text-[11px] leading-tight">{catalogProduct?.name || item.description}</p>

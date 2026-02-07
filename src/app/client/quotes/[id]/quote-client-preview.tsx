@@ -30,7 +30,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
     const [isAccepting, setIsAccepting] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
-    // Local status state to prevent multiple clicks and provide immediate feedback
     const [currentStatus, setCurrentStatus] = useState(quote.status);
 
     const clientRef = useMemoFirebase(() => {
@@ -128,7 +127,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
-    // Recalculate Subtotal and Commission for display
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
@@ -328,16 +326,16 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
                                     return (
                                         <tr key={idx}>
-                                            <td className="p-2">
-                                                {displayImage ? (
-                                                    <div className="relative w-8 h-8 rounded border bg-white overflow-hidden shadow-sm">
-                                                        <img src={displayImage} alt={item.description} crossOrigin="anonymous" className="object-contain w-full h-full" />
-                                                    </div>
-                                                ) : (
-                                                    <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
-                                                        <Package className="h-4 w-4" />
-                                                    </div>
-                                                )}
+                                            <td className="p-2 text-center">
+                                                <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                                                    {displayImage ? (
+                                                        <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                    ) : (
+                                                        <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
+                                                            <Package className="h-4 w-4" />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="p-2 font-medium text-zinc-900">
                                                 <p className="font-bold text-[11px]">{catalogProduct?.name || item.description}</p>
