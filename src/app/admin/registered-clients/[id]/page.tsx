@@ -112,12 +112,10 @@ export default function ClientDetailPage() {
   const [orderPrefix, setOrderPrefix] = useState('');
   const [currencyPreference, setCurrencyPreference] = useState<'EUR' | 'CNY' | 'BOTH'>('EUR');
   
-  // Security states
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
 
-  // Calculator states
   const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [calcWeight, setCalcWeight] = useState(0);
   const [calcRate, setCalcRate] = useState(0);
@@ -152,7 +150,6 @@ export default function ClientDetailPage() {
   const [orderTransportInput, setOrderTransportInput] = useState('');
   const [isUpdatingOrderTransport, setIsUpdatingOrderTransport] = useState(false);
 
-  // MOQ inline editing states
   const [editingMoqId, setEditingMoqId] = useState<string | null>(null);
   const [tempMoq, setTempMoq] = useState<string>('');
 
@@ -1875,7 +1872,7 @@ export default function ClientDetailPage() {
                               <PlayCircle className="h-8 w-8 text-white opacity-50" />
                             </div>
                           ) : (
-                            <img src={url} alt="Media" className="object-cover w-full h-full" crossOrigin="anonymous" />
+                            <img src={`${url}${url.includes('?') ? '&' : '?'}cors=1`} alt="Media" className="object-cover w-full h-full" crossOrigin="anonymous" />
                           )}
                           <button 
                             onClick={() => removeMedia(idx)}
@@ -1981,6 +1978,7 @@ export default function ClientDetailPage() {
                           {STANDARD_SIZES.map((size) => (
                             <button
                               key={size}
+                              type="button"
                               onClick={() => handleToggleSize(size)}
                               className={cn(
                                 "px-3 py-1.5 rounded-md text-[10px] font-black transition-all border-2",

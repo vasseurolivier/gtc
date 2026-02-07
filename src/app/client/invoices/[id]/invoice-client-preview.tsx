@@ -75,6 +75,12 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
+    const commissionCny = subTotalCny * (commissionRate / 100);
+    const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
+    const totalFinalCny = subTotalCny + commissionCny + transportCny;
+
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * invoiceRate;
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
@@ -86,11 +92,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             </div>
         );
     };
-
-    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-    const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
-    const commissionCny = subTotalCny * (commissionRate / 100);
-    const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
     
     return (
         <div className="space-y-4">
@@ -115,7 +116,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && (
-                                    <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />
+                                    <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=1`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
@@ -168,7 +169,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                         <td className="p-2 text-center">
                                             <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                 {item.photo ? (
-                                                    <img src={item.photo} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                    <img src={`${item.photo}${item.photo.includes('?') ? '&' : '?'}cors=1`} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                                 ) : (
                                                     <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
                                                         <Package className="h-4 w-4" />
@@ -208,7 +209,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 )}
                                 <div className="flex justify-between items-center pt-2 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">Montant Total Réglé</span>
-                                    <span className="text-lg font-black text-green-600">{renderPrice(invoice.totalAmount, true)}</span>
+                                    <span className="text-lg font-black text-green-600">{renderPrice(totalFinalCny, true)}</span>
                                 </div>
                             </div>
                         </div>

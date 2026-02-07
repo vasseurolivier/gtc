@@ -80,7 +80,6 @@ export default function ClientOrdersPage() {
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
-  // Editing state
   const [isEditingOrder, setIsEditingOrder] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
 
@@ -189,7 +188,6 @@ export default function ClientOrdersPage() {
     return cart.reduce((sum, item) => sum + item.total, 0);
   }, [cart]);
 
-  // Counts for tabs
   const counts = useMemo(() => ({
     quotes: sortedQuotes.filter(q => q.status === 'sent').length,
     invoices: sortedInvoices.filter(i => i.status === 'unpaid').length,
