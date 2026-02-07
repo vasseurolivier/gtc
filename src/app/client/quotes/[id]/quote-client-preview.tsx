@@ -1,23 +1,32 @@
 'use client';
 
 import type { Quote } from '@/actions/quotes';
-import { useContext } from 'react';
+import { updateQuoteStatus } from '@/actions/quotes';
+import { useContext, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, Phone, Mail, Package } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, products?: any[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const { user } = useUser();
     const db = useFirestore();
+    const { toast } = useToast();
+    const router = useRouter();
+
+    const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+    const [isAccepting, setIsAccepting] = useState(false);
 
     const clientRef = useMemoFirebase(() => {
         if (!db || !user) return null;
@@ -61,6 +70,27 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         pdf.save(`proforma-${quote.quoteNumber}.pdf`);
     };
 
+    const handleAcceptQuote = async () => {
+        if (!isTermsAccepted) return;
+        setIsAccepting(true);
+        try {
+            const result = await updateQuoteStatus(quote.id, 'accepted');
+            if (result.success) {
+                toast({ 
+                    title: "Proforma Acceptée !", 
+                    description: "Votre commande est désormais validée. Nous allons préparer votre facture." 
+                });
+                router.refresh();
+            } else {
+                toast({ variant: "destructive", title: "Erreur", description: result.message });
+            }
+        } catch (e) {
+            toast({ variant: "destructive", title: "Erreur système", description: "Impossible de valider le devis." });
+        } finally {
+            setIsAccepting(false);
+        }
+    };
+
     if (!companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
         return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     }
@@ -84,7 +114,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const transportCny = quote.transportCost || 0;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex justify-between items-center no-print">
                 <Button variant="ghost" size="sm" asChild>
                     <Link href="/client/orders">
@@ -232,6 +262,73 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                     <PrintFooter />
                 </div>
             </main>
+
+            {/* Validation Module for Client */}
+            <div className="no-print pt-4">
+                {quote.status === 'sent' ? (
+                    <Card className="border-2 border-primary/20 bg-primary/5 shadow-lg overflow-hidden">
+                        <CardContent className="p-6 md:p-8 space-y-6">
+                            <div className="flex items-center gap-3 text-primary">
+                                <ShieldCheck className="h-6 w-6" />
+                                <h3 className="text-xl font-black uppercase tracking-tighter">Validation du Devis</h3>
+                            </div>
+                            
+                            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-primary/10 text-xs text-zinc-600 leading-relaxed space-y-3">
+                                <p className="font-bold text-zinc-900">En validant cette Proforma Invoice (PI), vous reconnaissez et acceptez :</p>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    <li>L'exactitude des spécifications techniques et quantités listées ci-dessus.</li>
+                                    <li>L'engagement de paiement de l'acompte de {(quote.depositPercentage || 30)}% sous 3 jours ouvrés.</li>
+                                    <li>Que les délais de production débutent à réception du paiement de l'acompte.</li>
+                                    <li>Les conditions de transport et d'incoterms spécifiés sur ce document.</li>
+                                </ul>
+                            </div>
+
+                            <div className="flex items-start gap-3 p-2">
+                                <Checkbox 
+                                    id="terms" 
+                                    checked={isTermsAccepted} 
+                                    onCheckedChange={(checked) => setIsTermsAccepted(checked as boolean)}
+                                    className="mt-1 border-primary data-[state=checked]:bg-primary"
+                                />
+                                <label 
+                                    htmlFor="terms" 
+                                    className="text-sm font-bold text-zinc-800 cursor-pointer leading-tight"
+                                >
+                                    Je confirme avoir relu le devis et j'accepte les conditions de vente de Global Trading China pour cette commande.
+                                </label>
+                            </div>
+
+                            <Button 
+                                onClick={handleAcceptQuote}
+                                disabled={!isTermsAccepted || isAccepting}
+                                className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-95"
+                            >
+                                {isAccepting ? (
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : (
+                                    <>ACCEPTER ET VALIDER LA COMMANDE</>
+                                )}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : quote.status === 'accepted' || quote.status === 'paid' ? (
+                    <div className="p-6 bg-green-50 border-2 border-green-100 rounded-2xl flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 text-green-700">
+                            <CheckCircle2 className="h-8 w-8" />
+                            <div>
+                                <p className="font-black uppercase text-sm">Devis Accepté</p>
+                                <p className="text-xs opacity-80 font-medium">Ce document a été validé et la commande est en cours de traitement.</p>
+                            </div>
+                        </div>
+                        <Badge className="bg-green-500 h-8 px-4 font-black">VALIDÉ</Badge>
+                    </div>
+                ) : (
+                    <div className="p-6 bg-zinc-100 rounded-2xl flex items-center gap-3 text-zinc-500">
+                        <AlertCircle className="h-6 w-6" />
+                        <p className="text-sm font-medium italic">Ce document n'est pas en attente de validation (Statut: {quote.status}).</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
