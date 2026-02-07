@@ -42,11 +42,11 @@ export interface Quote {
 const parseDate = (val: any) => {
     if (!val) return new Date().toISOString();
     if (typeof val.toDate === 'function') return val.toDate().toISOString();
-    if (typeof val === 'string') return val;
     if (val && typeof val === 'object' && 'seconds' in val) {
         return new Date(val.seconds * 1000).toISOString();
     }
-    return new Date().toISOString();
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 };
 
 async function getGlobalExchangeRate(): Promise<number> {
@@ -126,6 +126,10 @@ export async function createQuoteFromOrder(orderId: string) {
         const quoteId = `PI-AUTO-${Date.now()}`;
 
         const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
+        const transport = Number(order.transportCost) || 0;
+        const commRate = Number(order.commissionRate) || 0;
+        const commAmount = itemsSubTotal * (commRate / 100);
+        const calculatedTotal = itemsSubTotal + transport + commAmount;
 
         const newQuoteData = {
             id: quoteId,
@@ -146,9 +150,9 @@ export async function createQuoteFromOrder(orderId: string) {
                 weight: item.weight || 0
             })),
             subTotal: itemsSubTotal,
-            transportCost: order.transportCost || 0,
-            commissionRate: order.commissionRate || 0,
-            totalAmount: order.totalAmount || 0,
+            transportCost: transport,
+            commissionRate: commRate,
+            totalAmount: calculatedTotal,
             status: "draft" as const,
             shippingAddress: order.shippingAddress || "",
             notes: "Généré automatiquement depuis la commande " + order.orderNumber,

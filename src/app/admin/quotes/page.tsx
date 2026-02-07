@@ -158,7 +158,6 @@ function QuotesPageContent() {
                 const newTotal = quantity * unitPrice;
                 currentSubTotal += newTotal;
                 
-                // Only update if changed to avoid unnecessary re-renders
                 if (item.total !== newTotal) {
                      form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
                 }
@@ -243,7 +242,14 @@ function QuotesPageContent() {
               photo: (item as any).photo || "",
               weight: (item as any).weight || 0,
             }));
+            
+            // STRICT RECALCULATION UPON INITIALIZATION
             const itemsTotal = newItems.reduce((sum, i) => sum + i.total, 0);
+            const transport = Number(order.transportCost) || 0;
+            const commRate = Number(order.commissionRate) || 0;
+            const commAmount = itemsTotal * (commRate / 100);
+            const calculatedTotal = itemsTotal + transport + commAmount;
+
             form.reset({
               quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
               customerId: order.customerId,
@@ -253,9 +259,9 @@ function QuotesPageContent() {
               validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
               items: newItems,
               subTotal: itemsTotal,
-              transportCost: order.transportCost || 0,
-              commissionRate: order.commissionRate || 0,
-              totalAmount: order.totalAmount,
+              transportCost: transport,
+              commissionRate: commRate,
+              totalAmount: calculatedTotal,
               status: "draft",
               shippingAddress: order.shippingAddress || "",
               depositRequired: true,
