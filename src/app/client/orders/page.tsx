@@ -167,14 +167,14 @@ export default function ClientOrdersPage() {
   }, [orders]);
 
   const sortedQuotes = useMemo(() => {
-    if (!quotes) return [];
-    return [...quotes].sort((a, b) => {
+    if (!linkedQuotes) return [];
+    return [...linkedQuotes].sort((a, b) => {
       const isPendingA = (a.status !== 'accepted' && a.status !== 'paid') ? 1 : 0;
       const isPendingB = (b.status !== 'accepted' && b.status !== 'paid') ? 1 : 0;
       if (isPendingA !== isPendingB) return isPendingB - isPendingA;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
-  }, [quotes]);
+  }, [linkedQuotes]);
 
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];

@@ -1610,7 +1610,7 @@ export default function ClientDetailPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Lier une facture existante</DialogTitle>
-            <DialogDescription>Sélectionnez une facture pour l'attribuer à ce client.</DialogDescription>
+            <DialogDescription>Sélectionnez une facture pour l'architecte à ce client.</DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>
