@@ -25,6 +25,7 @@ export interface Invoice {
     customerId: string;
     customerName: string;
     items: any[];
+    subTotal?: number;
     totalAmount: number;
     amountPaid?: number;
     status: "unpaid" | "paid" | "overdue" | "cancelled" | "partially_paid";
@@ -36,6 +37,7 @@ export interface Invoice {
     supplierCostPaid?: number;
     transportCost?: number;
     transportCostPaid?: number;
+    commissionRate?: number;
     exchangeRate: number; // Stored at creation to freeze EUR price
     shippingAddress?: string;
 }
@@ -67,6 +69,7 @@ export async function addInvoiceFromOrder(order: Order) {
     try {
         const currentRate = await getGlobalExchangeRate();
         const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
+        const subTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
         const invoiceId = `INV-DOC-${Date.now()}`;
 
         // Si la commande est déjà notée comme payée, on génère une facture acquittée
@@ -85,6 +88,7 @@ export async function addInvoiceFromOrder(order: Order) {
             ...item,
             purchasePrice: item.purchasePrice || 0
           })),
+          subTotal: subTotal,
           totalAmount: order.totalAmount,
           status: isPaid ? 'paid' : 'unpaid',
           amountPaid: isPaid ? order.totalAmount : 0,
@@ -93,6 +97,7 @@ export async function addInvoiceFromOrder(order: Order) {
           supplierCostPaid: 0,
           transportCost: order.transportCost || 0,
           transportCostPaid: 0,
+          commissionRate: order.commissionRate || 0,
           exchangeRate: currentRate,
           shippingAddress: order.shippingAddress || "",
           createdAt: serverTimestamp(),

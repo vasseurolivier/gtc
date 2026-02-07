@@ -77,10 +77,11 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         );
     };
 
-    const subTotalCny = invoice.items.reduce((sum, item) => sum + item.total, 0);
-    const commissionRate = order?.commissionRate || 0;
+    // Calculate subTotal from items
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
-    const transportCny = order?.transportCost || 0;
+    const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
 
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
@@ -161,7 +162,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <span className="text-muted-foreground">Sous-total :</span>
                                 <span className="font-bold">{renderPrice(subTotalCny)}</span>
                             </div>
-                            {commissionRate > 0 && (
+                            {commissionCny > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>

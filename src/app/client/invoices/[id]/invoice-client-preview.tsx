@@ -87,10 +87,11 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         );
     };
 
-    const subTotalCny = invoice.items.reduce((sum, item) => sum + item.total, 0);
-    const commissionRate = order?.commissionRate || 0;
+    // Recalculate subtotal and commission from invoice data
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
-    const transportCny = order?.transportCost || 0;
+    const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
     
     return (
         <div className="space-y-4">
@@ -194,7 +195,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     <span className="text-muted-foreground font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(subTotalCny)}</span>
                                 </div>
-                                {commissionRate > 0 && (
+                                {commissionCny > 0 && (
                                     <div className="flex justify-between text-[11px]">
                                         <span className="text-muted-foreground font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>

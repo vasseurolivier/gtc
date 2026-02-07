@@ -79,8 +79,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         );
     };
 
-    const commissionCny = quote.subTotal * ((quote.commissionRate || 0) / 100);
-    const transportCny = quote.transportCost || 0;
+    // Calculate subTotal from items to ensure accuracy in preview
+    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const commissionRate = Number(quote.commissionRate) || 0;
+    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+    const transportCny = Number(quote.transportCost) || 0;
 
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
@@ -177,12 +180,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <div className="w-full max-w-[250px] space-y-2 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Sous-total :</span>
-                                <span className="font-bold">{renderPrice(quote.subTotal)}</span>
+                                <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                             </div>
                             
                             {commissionCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Commission ({quote.commissionRate}%) :</span>
+                                    <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
