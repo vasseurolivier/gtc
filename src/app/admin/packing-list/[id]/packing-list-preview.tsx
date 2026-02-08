@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useContext } from 'react';
@@ -84,8 +83,8 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
               <div className="flex-grow">
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
-                        {companyInfo.logo && 
-                            <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain"/>
+                        {companyInfo.logoDocument && 
+                            <img src={companyInfo.logoDocument} alt="Company Logo" className="h-12 w-auto object-contain"/>
                         }
                     </div>
                     <div className="text-right w-1/3">
@@ -134,10 +133,10 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                   const totalCny = item.quantity * item.unitPriceCny;
                                   return (
                                       <tr key={index} className="border-b">
-                                          <td className="p-1 align-top border">
+                                          <td className="p-1 align-top border text-center">
                                               {item.photo && 
-                                                  <div className="w-12 h-12 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                      <img src={item.photo} alt={item.description} crossOrigin="anonymous" width={48} height={48} className="object-contain" />
+                                                  <div className="w-12 h-12 mx-auto rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                      <img src={item.photo} alt={item.description} width={48} height={48} className="object-contain" />
                                                   </div>
                                               }
                                           </td>

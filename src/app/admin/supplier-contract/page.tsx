@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -329,7 +328,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
             <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm]">
               <div className="fixed-print-header">
                 <header className="flex justify-between items-start mb-4">
-                  <div>{companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" crossOrigin="anonymous" className="h-12 object-contain" />}</div>
+                  <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Company Logo" className="h-12 object-contain" />}</div>
                   <div className="text-right">
                     <h1 className="text-lg font-bold text-primary">PURCHASE CONTRACT</h1>
                     <p className="text-xs text-muted-foreground mt-1">合同编号 (Contract No.): {watchedValues.contractNumber}</p>
@@ -366,7 +365,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                                 const total = quantity * unitPrice;
                                 return (
                                     <tr key={index}>
-                                        <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} crossOrigin="anonymous" className="w-10 h-10 object-contain"/>}</td>
+                                        <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} className="w-10 h-10 object-contain"/>}</td>
                                         <td className="p-1 border align-top">{item.description}</td>
                                         <td className="p-1 border text-right align-top">{quantity}</td>
                                         <td className="p-1 border text-right align-top">¥{unitPrice.toFixed(2)}</td>
