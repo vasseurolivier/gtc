@@ -18,7 +18,7 @@ import {
 import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder, type PaymentStatus } from '@/actions/orders';
 import { createQuoteFromOrder, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
 import { deleteInvoice, getInvoices, Invoice } from '@/actions/invoices';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1197,7 +1197,7 @@ export default function ClientDetailPage() {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
                                       <AlertDialogDescription>Cette action retirera l'article de la liste du client.</AlertDialogDescription>
-                                    </AccordionHeader>
+                                    </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Annuler</AlertDialogCancel>
                                       <AlertDialogAction onClick={() => handleDeleteProductActual(product)}>Supprimer</AlertDialogAction>
