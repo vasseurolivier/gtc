@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -116,7 +115,16 @@ export function Header() {
         <div className="flex flex-1 items-center gap-10">
             <Link href={'/'} className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
                 {mounted && logoUrl ? (
-                <Image src={logoUrl} alt="Logo" width={75} height={25} className="object-contain" unoptimized priority />
+                <div className="relative h-10 w-32 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
+                  <Image 
+                    src={logoUrl} 
+                    alt="Logo" 
+                    fill
+                    className="object-contain object-left scale-[0.33] sm:scale-100" 
+                    unoptimized 
+                    priority 
+                  />
+                </div>
                 ) : (
                 <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}

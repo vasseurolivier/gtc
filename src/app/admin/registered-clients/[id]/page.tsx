@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useContext } from 'react';
@@ -160,8 +159,6 @@ export default function ClientDetailPage() {
       try {
         const clientData = await getRegisteredClientById(clientId);
         const prods = await getProducts();
-        const invs = await getDocs(collection(db!, 'invoices'));
-        const qts = await getDocs(collection(db!, 'quotes'));
         
         if (clientData) {
           setClient(clientData);
@@ -172,8 +169,13 @@ export default function ClientDetailPage() {
           setLoginPassword(clientData.password || '');
         }
         setGlobalProducts(prods || []);
-        setAllInvoices(invs.docs.map(d => ({ id: d.id, ...d.data() } as Invoice)));
-        setAllQuotes(qts.docs.map(d => ({ id: d.id, ...d.data() } as Quote)));
+        
+        if (db) {
+          const invs = await getDocs(collection(db, 'invoices'));
+          const qts = await getDocs(collection(db, 'quotes'));
+          setAllInvoices(invs.docs.map(d => ({ id: d.id, ...d.data() } as Invoice)));
+          setAllQuotes(qts.docs.map(d => ({ id: d.id, ...d.data() } as Quote)));
+        }
       } catch (error) {
         console.error("Fetch client error:", error);
       } finally {
@@ -439,21 +441,40 @@ export default function ClientDetailPage() {
             </TabsList>
 
             <TabsContent value="catalogue">
-              <Card><Table>
-                <TableHeader><TableRow><TableHead>Produit</TableHead><TableHead>Prix</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {publishedProducts.map(p => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.name}</TableCell>
-                      <TableCell>¥{Number(p.price || 0).toFixed(2)}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProductActual(p)}><Trash2 className="h-4 w-4" /></Button>
-                      </TableCell>
+              <Card>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[80px]">Photo</TableHead>
+                      <TableHead>Produit</TableHead>
+                      <TableHead>Prix</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table></Card>
+                  </TableHeader>
+                  <TableBody>
+                    {publishedProducts.map(p => (
+                      <TableRow key={p.id}>
+                        <TableCell>
+                          <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
+                            {p.images?.[0] ? <img src={p.images[0]} alt="p" className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-300" />}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span>{p.name}</span>
+                            <span className="text-[10px] text-zinc-400 font-mono">{p.sku}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>¥{Number(p.price || 0).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProductActual(p)}><Trash2 className="h-4 w-4" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
             </TabsContent>
 
             <TabsContent value="orders">
