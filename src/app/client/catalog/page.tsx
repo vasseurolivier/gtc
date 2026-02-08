@@ -284,7 +284,9 @@ export default function ClientCatalogPage() {
           <div className="col-span-full p-20 text-center bg-white rounded-2xl border-2 border-dashed">
             <Star className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
             <p className="text-zinc-500">Votre catalogue est vide. Créez une liste de sourcing pour commencer.</p>
-            <Button variant="link" asChild className="mt-2"><Link href="/client/product-lists">Gérer mes listes</Link></Button>
+            <Button variant="link" asChild className="mt-2">
+              <Link href="/client/product-lists">Gérer mes listes</Link>
+            </Button>
           </div>
         )}
       </div>

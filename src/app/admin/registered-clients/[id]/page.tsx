@@ -1786,7 +1786,7 @@ export default function ClientDetailPage() {
               </div>
               
               <div className="text-xs text-muted-foreground italic px-4 border-t pt-4">
-                Passée le {selectedOrderPreview.orderDate ? format(parseSafeDate(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm') : '-'}
+                Passée le {selectedOrderPreview.orderDate ? format(parseSafeDate(selectedOrderPreview.orderDate), 'dd MMMM yyyy à HH:mm', { locale: fr }) : '-'}
               </div>
             </div>
           )}

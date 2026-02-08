@@ -435,7 +435,7 @@ function QuotesPageContent() {
                 <div className="flex items-center gap-2">
                   {quote.quoteNumber}
                   {quote.orderId && <span title="Lié à une commande client"><LinkIcon className="h-3 w-3 text-primary" /></span>}
-                  {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" title="Verrouillé car accepté" />}
+                  {isLocked && <span title="Verrouillé car accepté"><ShieldCheck className="h-3 w-3 text-green-600" /></span>}
                 </div>
               </TableCell>
               <TableCell>{quote.customerName}</TableCell>
