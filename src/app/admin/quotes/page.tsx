@@ -149,7 +149,7 @@ function QuotesPageContent() {
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
         if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
-            const items = values.items || [];
+            const items = (values.items || []) as any[];
             let currentSubTotal = 0;
             
             items.forEach((item, index) => {
@@ -594,7 +594,7 @@ function QuotesPageContent() {
                                 </div>
                                 <div className="flex items-center gap-4 pt-2">
                                     <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
-                                        {watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain h-full w-full" /> : <UploadCloud className="h-4 w-4 text-zinc-300" />}
+                                        {watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain h-full w-full" alt="Item preview" /> : <UploadCloud className="h-4 w-4 text-zinc-300" />}
                                     </div>
                                     <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
                                         <FormItem className="flex-grow"><FormControl><Input placeholder="URL photo..." {...photoField} className="h-8 text-xs" /></FormControl></FormItem>
