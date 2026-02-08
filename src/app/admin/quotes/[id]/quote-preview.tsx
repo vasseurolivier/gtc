@@ -61,7 +61,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    const displayLogo = companyInfo.logo; // User requested Admin Logo
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;

@@ -72,7 +72,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    const displayLogo = companyInfo.logo; // User requested Admin Logo
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);

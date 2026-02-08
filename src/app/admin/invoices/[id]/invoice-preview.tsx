@@ -62,7 +62,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    const displayLogo = companyInfo.logo; // User requested Admin Logo
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);

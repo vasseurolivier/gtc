@@ -126,7 +126,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.publicLogo || companyInfo.logo;
+    const displayLogo = companyInfo.logo; // User requested Admin Logo
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
