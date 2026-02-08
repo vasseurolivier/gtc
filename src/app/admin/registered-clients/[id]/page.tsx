@@ -394,17 +394,17 @@ export default function ClientDetailPage() {
     }
   };
 
+  const openCalculator = (order: any) => {
+    const totalWeight = (order.items || []).reduce((sum: number, item: any) => sum + ((item.weight || 0) * item.quantity), 0);
+    setCalcWeight(totalWeight);
+    setIsCalcOpen(true);
+  };
+
   const applyCalculatedCost = () => {
     const total = (calcWeight * calcRate) + calcFixed;
     setOrderTransportInput(total.toFixed(2));
     setIsCalcOpen(false);
     toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer les nouveaux frais." });
-  };
-
-  const openCalculator = (order: any) => {
-    const totalWeight = (order.items || []).reduce((sum: number, item: any) => sum + ((item.weight || 0) * item.quantity), 0);
-    setCalcWeight(totalWeight);
-    setIsCalcOpen(true);
   };
 
   const handleGenerateQuote = (orderId: string) => {
@@ -1084,10 +1084,10 @@ export default function ClientDetailPage() {
                         <TableCell className="text-center">
                           {editingMoqId === product.id ? (
                             <div className="flex items-center justify-center gap-1">
-                              <Input 
+                              <input 
                                 type="number" 
                                 min="1" 
-                                className="w-16 h-8 text-center text-xs font-black" 
+                                className="w-16 h-8 text-center text-xs font-black border rounded" 
                                 value={tempMoq} 
                                 onChange={(e) => setTempMoq(e.target.value)} 
                                 autoFocus
@@ -1197,7 +1197,7 @@ export default function ClientDetailPage() {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
                                       <AlertDialogDescription>Cette action retirera l'article de la liste du client.</AlertDialogDescription>
-                                    </AlertDialogHeader>
+                                    </AccordionHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Annuler</AlertDialogCancel>
                                       <AlertDialogAction onClick={() => handleDeleteProductActual(product)}>Supprimer</AlertDialogAction>
