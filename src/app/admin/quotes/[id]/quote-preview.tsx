@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -68,7 +67,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
-    // Recalculate Subtotal and Commission for absolute accuracy
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
@@ -182,20 +180,20 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     <div className="flex justify-end pt-6">
                         <div className="w-full max-w-[250px] space-y-2 text-xs">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Sous-total :</span>
+                                <span className="text-muted-foreground font-medium">Sous-total articles :</span>
                                 <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                             </div>
                             
                             {commissionRate > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
+                                    <span className="text-muted-foreground font-medium">Commission ({commissionRate}%) :</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
                             
                             {transportCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Frais de port :</span>
+                                    <span className="text-muted-foreground font-medium">Frais de port :</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}

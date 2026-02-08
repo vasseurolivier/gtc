@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -66,7 +65,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
-    // Dynamic recalculation for absolute precision
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
@@ -166,18 +164,18 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                     <div className="flex justify-end pt-6">
                         <div className="w-full max-w-[250px] space-y-2 text-xs">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Sous-total :</span>
+                                <span className="text-muted-foreground font-medium">Sous-total articles :</span>
                                 <span className="font-bold">{renderPrice(subTotalCny)}</span>
                             </div>
                             {commissionCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Commission ({commissionRate}%) :</span>
+                                    <span className="text-muted-foreground font-medium">Commission ({commissionRate}%) :</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
                             {transportCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Frais de port :</span>
+                                    <span className="text-muted-foreground font-medium">Frais de port :</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}

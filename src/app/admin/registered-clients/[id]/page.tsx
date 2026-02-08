@@ -1064,7 +1064,7 @@ export default function ClientDetailPage() {
                           <div className="flex items-center gap-3">
                             {product.images?.[0] && (
                               <div className="relative w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
-                                <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=true`} alt={product.name || 'Produit'} className="object-cover w-full h-full" />
+                                <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=true`} alt={product.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                               </div>
                             )}
                             <div className="space-y-0.5">
@@ -1171,7 +1171,7 @@ export default function ClientDetailPage() {
                               <div className="flex items-center gap-3">
                                 {product.images?.[0] && (
                                   <div className="relative w-14 h-14 rounded-lg border bg-zinc-50 overflow-hidden shrink-0 shadow-sm">
-                                    <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=true`} alt={product.name || 'Produit'} className="object-cover w-full h-full" />
+                                    <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=true`} alt={product.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                                   </div>
                                 )}
                                 <div className="space-y-1">
@@ -1285,7 +1285,7 @@ export default function ClientDetailPage() {
                                 <div className="flex items-center gap-3">
                                   {product.images?.[0] && (
                                     <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
-                                      <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=true`} alt={product.name || 'Produit'} className="object-cover w-full h-full" />
+                                      <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=true`} alt={product.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                                     </div>
                                   )}
                                   <div className="font-medium text-sm">{product.name || 'N/A'}</div>
@@ -1582,7 +1582,7 @@ export default function ClientDetailPage() {
                   <TableRow key={p.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><img src={`${p.imageUrl}${p.imageUrl.includes('?') ? '&' : '?'}cors=true`} alt={p.name || 'Produit'} className="object-cover w-full h-full" /></div>}
+                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><img src={`${p.imageUrl}${p.imageUrl.includes('?') ? '&' : '?'}cors=true`} alt={p.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" /></div>}
                         <span className="text-xs font-bold">{p.name || 'Sans nom'}</span>
                       </div>
                     </TableCell>
@@ -1712,7 +1712,7 @@ export default function ClientDetailPage() {
                           <TableCell className="py-2">
                             {item.photo && (
                               <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
-                                <img src={`${item.photo}${item.photo.includes('?') ? '&' : '?'}cors=true`} alt={item.description || 'Produit'} className="object-cover w-full h-full" />
+                                <img src={`${item.photo}${item.photo.includes('?') ? '&' : '?'}cors=true`} alt={item.description || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                               </div>
                             )}
                           </TableCell>
@@ -1871,7 +1871,7 @@ export default function ClientDetailPage() {
                               <PlayCircle className="h-8 w-8 text-white opacity-50" />
                             </div>
                           ) : (
-                            <img src={`${url}${url.includes('?') ? '&' : '?'}cors=true`} alt="Media" className="object-cover w-full h-full" />
+                            <img src={`${url}${url.includes('?') ? '&' : '?'}cors=true`} alt="Media" className="object-cover w-full h-full" crossOrigin="anonymous" />
                           )}
                           <button 
                             onClick={() => removeMedia(idx)}

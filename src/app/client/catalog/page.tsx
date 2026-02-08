@@ -29,6 +29,7 @@ import { useState, useMemo, useEffect, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
