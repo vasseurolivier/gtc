@@ -4,7 +4,7 @@ import type { Quote } from '@/actions/quotes';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer, Phone, Mail, Package } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
@@ -61,7 +61,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo; // User requested Admin Logo
+    const displayLogo = companyInfo.logo; // Admin Logo
     const productsBySku = new Map(products.map(p => [p.sku, p]));
     
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
@@ -192,7 +192,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             
                             {transportCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground font-medium">Frais de port :</span>
+                                    <span className="text-muted-foreground font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Frais de port :</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}

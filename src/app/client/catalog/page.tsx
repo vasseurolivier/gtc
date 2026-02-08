@@ -410,7 +410,14 @@ export default function ClientCatalogPage() {
           <div className="py-4 space-y-6">
             <div className="border rounded-xl overflow-hidden">
               <Table>
-                <TableHeader className="bg-zinc-50"><TableRow><TableHead>Produit</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total</TableHead><TableHead></TableHead></TableRow></TableHeader>
+                <TableHeader className="bg-zinc-50">
+                  <TableRow>
+                    <TableHead>Produit</TableHead>
+                    <TableHead className="text-center">Qté</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {cart.map((item) => (
                     <TableRow key={item.key}>

@@ -126,7 +126,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo; // User requested Admin Logo
+    const displayLogo = companyInfo.logo; // Admin Logo priority
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
@@ -365,7 +365,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 )}
                                 {transportCny > 0 && (
                                     <div className="flex justify-between text-[11px]">
-                                        <span className="text-muted-foreground font-medium flex items-center gap-1">Frais de port</span>
+                                        <span className="text-muted-foreground font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Frais de port</span>
                                         <span className="font-bold">{renderPrice(transportCny)}</span>
                                     </div>
                                 )}

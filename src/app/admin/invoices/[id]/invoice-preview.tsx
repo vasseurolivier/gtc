@@ -5,7 +5,7 @@ import { getOrderById, Order } from '@/actions/orders';
 import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer, Phone, Mail, Package } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
@@ -62,7 +62,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     }
     
     const { companyInfo } = companyInfoContext;
-    const displayLogo = companyInfo.logo; // User requested Admin Logo
+    const displayLogo = companyInfo.logo; // Use Admin Logo as requested
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
@@ -174,7 +174,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             )}
                             {transportCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground font-medium">Frais de port :</span>
+                                    <span className="text-muted-foreground font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Frais de port :</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
