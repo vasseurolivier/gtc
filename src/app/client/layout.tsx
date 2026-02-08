@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useAuth, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
@@ -26,7 +25,8 @@ import {
   Receipt,
   Clock,
   ShieldAlert,
-  ShoppingBag
+  ShoppingBag,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ function ClientMobileNav({ counts }: { counts: any }) {
   
   const navItems = [
     { href: '/client', icon: <Home className="h-6 w-6" />, label: 'Accueil' },
+    { href: '/client/catalog', icon: <Star className="h-6 w-6" />, label: 'Catalogue', badge: counts.catalog },
     { href: '/client/product-lists', icon: <ClipboardList className="h-6 w-6" />, label: 'Sourcing', badge: counts.sourcing },
     { href: '/client/orders', icon: <ShoppingBag className="h-6 w-6" />, label: 'Commandes', badge: counts.orders + counts.quotes + counts.invoices },
     { href: '/client/profile', icon: <User className="h-6 w-6" />, label: 'Profil' },
@@ -78,7 +79,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Fetch client profile to check status
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'clients', user.uid);
@@ -86,7 +86,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
-  // --- Notification Logic ---
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', user.uid), where('status', '==', 'sent'));
@@ -95,9 +94,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'unpaid'));
+    return collection(db, 'clients', user.uid, 'invoices');
   }, [db, user]);
-  const { data: unpaidInvoices } = useCollection(invoicesQuery);
+  const { data: linkedInvoices } = useCollection(invoicesQuery);
 
   const sourcingProductsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -107,10 +106,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const counts = useMemo(() => ({
     quotes: pendingQuotes?.length || 0,
-    invoices: unpaidInvoices?.length || 0,
-    orders: 0, // Could be status updates
-    sourcing: publishedProducts?.length || 0
-  }), [pendingQuotes, unpaidInvoices, publishedProducts]);
+    invoices: (linkedInvoices || []).filter((i: any) => i.status === 'unpaid').length,
+    orders: 0,
+    sourcing: (publishedProducts || []).length,
+    catalog: (publishedProducts || []).length
+  }), [pendingQuotes, linkedInvoices, publishedProducts]);
 
   useEffect(() => {
     if (mounted && !isUserLoading && !user && pathname !== '/client/login') {
@@ -139,7 +139,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  // --- Account Validation Screen (Strict Security) ---
   if (profile && profile.status !== 'validated') {
     return (
       <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
@@ -174,7 +173,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/client', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Tableau de bord' },
-    { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes listes de produits', badge: counts.sourcing },
+    { href: '/client/catalog', icon: <Star className="h-5 w-5" />, label: 'Mon Catalogue', badge: counts.catalog },
+    { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes Projets Sourcing' },
     { href: '/client/orders', icon: <Receipt className="h-5 w-5" />, label: 'Commandes & Factures', badge: counts.quotes + counts.invoices },
     { href: '/client/profile', icon: <User className="h-5 w-5" />, label: 'Mon Profil' },
   ];
