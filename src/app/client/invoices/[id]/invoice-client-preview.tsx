@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -116,7 +117,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && (
-                                    <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=1`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />
+                                    <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=true`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
@@ -164,28 +165,32 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
-                                {invoice.items.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
-                                        <td className="p-2 text-center">
-                                            <div className="w-10 h-10 mx-auto flex items-center justify-center">
-                                                {item.photo ? (
-                                                    <img src={`${item.photo}${item.photo.includes('?') ? '&' : '?'}cors=1`} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
-                                                ) : (
-                                                    <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
-                                                        <Package className="h-4 w-4" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="p-2">
-                                            <p className="font-bold text-zinc-900 text-[11px]">{item.description}</p>
-                                            {item.sku && <p className="text-[9px] font-mono text-muted-foreground">{item.sku}</p>}
-                                        </td>
-                                        <td className="p-2 text-center font-medium">{item.quantity}</td>
-                                        <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                        <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
-                                    </tr>
-                                ))}
+                                {invoice.items.map((item, idx) => {
+                                    const rawPhoto = item.photo;
+                                    const displayImage = rawPhoto ? `${rawPhoto}${rawPhoto.includes('?') ? '&' : '?'}cors=true` : null;
+                                    return (
+                                        <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
+                                            <td className="p-2 text-center">
+                                                <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                                                    {displayImage ? (
+                                                        <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                    ) : (
+                                                        <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
+                                                            <Package className="h-4 w-4" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-2">
+                                                <p className="font-bold text-zinc-900 text-[11px]">{item.description}</p>
+                                                {item.sku && <p className="text-[9px] font-mono text-muted-foreground">{item.sku}</p>}
+                                            </td>
+                                            <td className="p-2 text-center font-medium">{item.quantity}</td>
+                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
+                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                         

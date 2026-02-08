@@ -98,7 +98,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
                         <div>
-                            {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
+                            {displayLogo && <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=true`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
                             <h1 className="text-lg font-black text-black uppercase">FACTURE</h1>
@@ -137,7 +137,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <tbody>
                             {invoice.items.map((item, index) => {
                                 const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
-                                const displayImage = item.photo || catalogProduct?.imageUrl;
+                                const rawPhoto = item.photo || catalogProduct?.imageUrl;
+                                const displayImage = rawPhoto ? `${rawPhoto}${rawPhoto.includes('?') ? '&' : '?'}cors=true` : null;
                                 
                                 return (
                                     <tr key={index} className="border-b">
