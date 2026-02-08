@@ -393,12 +393,6 @@ export default function ClientDetailPage() {
     }
   };
 
-  const openCalculator = (order: any) => {
-    const totalWeight = (order.items || []).reduce((sum: number, item: any) => sum + ((Number(item.weight) || 0) * (Number(item.quantity) || 0)), 0);
-    setCalcWeight(totalWeight);
-    setIsCalcOpen(true);
-  };
-
   const applyCalculatedCost = () => {
     const total = (calcWeight * calcRate) + calcFixed;
     setOrderTransportInput(total.toFixed(2));
@@ -1065,7 +1059,7 @@ export default function ClientDetailPage() {
                           <div className="flex items-center gap-3">
                             {product.images?.[0] && (
                               <div className="relative w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
-                                <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
+                                <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=1`} alt={product.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                               </div>
                             )}
                             <div className="space-y-0.5">
@@ -1172,7 +1166,7 @@ export default function ClientDetailPage() {
                               <div className="flex items-center gap-3">
                                 {product.images?.[0] && (
                                   <div className="relative w-14 h-14 rounded-lg border bg-zinc-50 overflow-hidden shrink-0 shadow-sm">
-                                    <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
+                                    <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=1`} alt={product.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                                   </div>
                                 )}
                                 <div className="space-y-1">
@@ -1286,7 +1280,7 @@ export default function ClientDetailPage() {
                                 <div className="flex items-center gap-3">
                                   {product.images?.[0] && (
                                     <div className="relative w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
-                                      <Image src={product.images[0]} alt={product.name || 'Produit'} fill className="object-cover" />
+                                      <img src={`${product.images[0]}${product.images[0].includes('?') ? '&' : '?'}cors=1`} alt={product.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                                     </div>
                                   )}
                                   <div className="font-medium text-sm">{product.name || 'N/A'}</div>
@@ -1583,7 +1577,7 @@ export default function ClientDetailPage() {
                   <TableRow key={p.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><Image src={p.imageUrl} alt={p.name || 'Produit'} fill className="object-cover" /></div>}
+                        {p.imageUrl && <div className="relative w-8 h-8 rounded bg-zinc-100 overflow-hidden"><img src={`${p.imageUrl}${p.imageUrl.includes('?') ? '&' : '?'}cors=1`} alt={p.name || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" /></div>}
                         <span className="text-xs font-bold">{p.name || 'Sans nom'}</span>
                       </div>
                     </TableCell>
@@ -1713,7 +1707,7 @@ export default function ClientDetailPage() {
                           <TableCell className="py-2">
                             {item.photo && (
                               <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
-                                <Image src={item.photo} alt={item.description || 'Produit'} fill className="object-cover" />
+                                <img src={`${item.photo}${item.photo.includes('?') ? '&' : '?'}cors=1`} alt={item.description || 'Produit'} className="object-cover w-full h-full" crossOrigin="anonymous" />
                               </div>
                             )}
                           </TableCell>
@@ -1744,7 +1738,6 @@ export default function ClientDetailPage() {
                       variant="outline" 
                       className="h-10 w-10 text-zinc-400 hover:text-primary shrink-0"
                       onClick={() => openCalculator(selectedOrderPreview)}
-                      title="Calculer les frais"
                     >
                       <Calculator className="h-5 w-5" />
                     </Button>

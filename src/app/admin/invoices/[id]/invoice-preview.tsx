@@ -145,7 +145,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                                 {displayImage ? (
                                                     <img src={`${displayImage}${displayImage.includes('?') ? '&' : '?'}cors=1`} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded border bg-zinc-50 mx-auto flex items-center justify-center text-zinc-300">
+                                                    <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
                                                         <Package className="h-4 w-4" />
                                                     </div>
                                                 )}

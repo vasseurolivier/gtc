@@ -294,7 +294,6 @@ export default function OrdersPage() {
                       variant="ghost" 
                       className="h-8 w-8 text-zinc-400 hover:text-primary"
                       onClick={() => openCalculator(order)}
-                      title="Calculateur Frais Port"
                     >
                       <Calculator className="h-4 w-4" />
                     </Button>
@@ -314,7 +313,7 @@ export default function OrdersPage() {
                       {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                     </Button>
                     {isTransportDirty && (
-                      <span title="Modification non enregistrée">
+                      <span className="flex items-center justify-center">
                         <AlertTriangle className="h-3 w-3 text-primary animate-pulse" />
                       </span>
                     )}
