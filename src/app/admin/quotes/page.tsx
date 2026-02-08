@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -463,7 +464,14 @@ function QuotesPageContent() {
                           <Eye className="h-4 w-4" />
                       </Link>
                   </Button>
-                   <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Modifier" disabled={isLocked} className={cn(isLocked && "opacity-20 cursor-not-allowed")}>
+                   <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleOpenDialog(quote)} 
+                    title="Modifier" 
+                    disabled={isLocked}
+                    className={cn(isLocked && "opacity-20 cursor-not-allowed")}
+                  >
                       <Pencil className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Dupliquer">
@@ -612,10 +620,16 @@ function QuotesPageContent() {
                             <FormItem><FormLabel>Notes internes / Conditions</FormLabel><FormControl><Textarea placeholder="Détails bancaires, délais..." {...field} rows={4} /></FormControl></FormItem>
                         )} />
                         <Card className="p-4 bg-zinc-50 border-none">
-                            <FormField control={form.control} name="depositRequired" render={({ field }) => (
+                            <FormField 
+                              control={form.control} 
+                              name="depositRequired" 
+                              render={({ field }) => (
                                 <FormItem className="flex items-center justify-between">
                                     <FormLabel className="m-0">Acompte requis ?</FormLabel>
-                                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormItem>
+                                    <FormControl>
+                                      <Switch checked={field.value} onCheckedChange={field.onChange}/>
+                                    </FormControl>
+                                </FormItem>
                             )}/>
                             {watchDepositRequired && (
                                 <FormField control={form.control} name="depositPercentage" render={({ field }) => (

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -45,7 +46,6 @@ export default function OrdersPage() {
   const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   
-  // Calculator state
   const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [calcWeight, setCalcWeight] = useState(0);
   const [calcRate, setCalcRate] = useState(0);
@@ -89,8 +89,7 @@ export default function OrdersPage() {
             getRegisteredClients()
         ]);
         setOrders(fetchedOrders);
-        const acceptedQuotes = fetchedQuotes.filter(q => q.status === 'accepted' || q.status === 'paid');
-        setQuotes(fetchedQuotes); // We keep all to check status for locking
+        setQuotes(fetchedQuotes);
         setCustomers(fetchedCustomers);
         setRegisteredClients(fetchedRegistered);
         
@@ -257,8 +256,6 @@ export default function OrdersPage() {
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
           const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
-          
-          // Check if associated quote is accepted/paid
           const linkedQuote = quotes.find(q => q.orderId === order.id);
           const isLocked = linkedQuote?.status === 'accepted' || linkedQuote?.status === 'paid';
 
@@ -268,7 +265,7 @@ export default function OrdersPage() {
                 <div className="flex items-center gap-2">
                   {order.orderNumber}
                   {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
-                  {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" title="Verrouillé car PI acceptée" />}
+                  {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" />}
                 </div>
               </TableCell>
               <TableCell>
