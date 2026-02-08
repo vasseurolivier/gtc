@@ -2,9 +2,9 @@
 
 import type { Quote } from '@/actions/quotes';
 import { updateQuoteStatus } from '@/actions/quotes';
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, AlertCircle, FileCheck, Clock, Truck, XCircle } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Phone, Mail, Package, CheckCircle2, ShieldCheck, FileCheck, Clock, Truck, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,6 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
 export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, products?: any[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
