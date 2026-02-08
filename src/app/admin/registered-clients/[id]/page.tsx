@@ -222,9 +222,9 @@ export default function ClientDetailPage() {
   const { data: linkedQuotes } = useCollection(linkedQuotesQuery);
 
   const invoicesQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return collection(db, 'clients', user.uid, 'invoices');
-  }, [db, user]);
+    if (!db || !clientId) return null;
+    return collection(db, 'clients', clientId, 'invoices');
+  }, [db, clientId]);
   const { data: linkedInvoices } = useCollection(invoicesQuery);
 
   const { activeOrders, archivedOrders, pendingOrdersCount } = useMemo(() => {
@@ -1520,7 +1520,6 @@ export default function ClientDetailPage() {
                           <KeyRound className="h-4 w-4 text-zinc-400" /> Mot de passe (Visible Admin)
                         </Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                           <input 
                             type="text"
                             className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1528,6 +1527,7 @@ export default function ClientDetailPage() {
                             onChange={(e) => setLoginPassword(e.target.value)} 
                             placeholder="Min. 6 caractères"
                           />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                         </div>
                         <p className="text-[10px] text-zinc-500 italic">Modifier ce champ mettra à jour l'accès du client.</p>
                       </div>

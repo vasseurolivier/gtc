@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -101,7 +102,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
                         <div>
-                            {displayLogo && <img src={`${displayLogo}${displayLogo.includes('?') ? '&' : '?'}cors=1`} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
+                            {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
                             <h1 className="text-lg font-black text-black uppercase leading-tight">Proforma</h1>
@@ -152,7 +153,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <td className="p-1 align-top border text-center">
                                         <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                             {displayImage ? (
-                                                <img src={`${displayImage}${displayImage.includes('?') ? '&' : '?'}cors=1`} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                             ) : (
                                                 <div className="w-8 h-8 rounded bg-zinc-50 flex items-center justify-center border text-zinc-300">
                                                     <Package className="h-4 w-4" />
@@ -162,7 +163,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     </td>
                                     <td className="p-1 align-top border">
                                         <p className="font-bold text-[11px] leading-tight">{catalogProduct?.name || item.description}</p>
-                                        <p className="text-[9px] text-muted-foreground leading-tight mt-0.5">{item.description}</p>
+                                        <p className="text-[9px] text-muted-foreground mt-0.5">{item.description}</p>
                                     </td>
                                     <td className="p-1 align-top text-center border">{item.quantity}</td>
                                     <td className="p-1 align-top text-right border">
