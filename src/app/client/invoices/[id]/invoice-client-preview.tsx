@@ -200,7 +200,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     <span className="text-muted-foreground font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(subTotalCny)}</span>
                                 </div>
-                                {commissionCny > 0 && (
+                                {commissionRate > 0 && (
                                     <div className="flex justify-between text-[11px]">
                                         <span className="text-muted-foreground font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>

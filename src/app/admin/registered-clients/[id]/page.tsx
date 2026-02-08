@@ -85,8 +85,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 import { getProducts, Product } from '@/actions/products';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
