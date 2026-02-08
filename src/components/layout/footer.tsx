@@ -32,7 +32,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Logo" width={120} height={40} className="object-contain" unoptimized />
+                  <Image src={logoUrl} alt="Logo" width={60} height={20} className="object-contain" unoptimized />
                 ) : (
                   <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>
                 )}

@@ -403,7 +403,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent>
           <SidebarHeader className="p-4">
              <Link href="/" className="flex items-center justify-center py-4">
-                {displayLogo ? <img src={displayLogo} alt="Logo Admin" className="max-h-16 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
+                {displayLogo ? <img src={displayLogo} alt="Logo Admin" className="max-h-8 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
             </Link>
           </SidebarHeader>
           <SidebarMenu>
