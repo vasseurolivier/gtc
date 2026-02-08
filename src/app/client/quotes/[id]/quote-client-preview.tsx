@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -141,7 +142,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         return (
             <div className="flex flex-col items-end">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[9px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+                <span className="text-[9px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
             </div>
         );
     };

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -668,7 +669,7 @@ export default function ClientOrdersPage() {
                     <Badge className="absolute top-2 right-2 z-10 bg-primary/90 text-[10px] font-black">MOQ PERSO: {p.moq}</Badge>
                   )}
                   <div className="relative aspect-square bg-zinc-50">
-                    {p.images?.[0] ? <img src={`${p.images[0]}${p.images[0].includes('?') ? '&' : '?'}cors=1`} alt={p.name} className="object-contain p-4 w-full h-full" crossOrigin="anonymous" /> : <Package className="h-12 w-12 mx-auto mt-20 text-zinc-200" />}
+                    {p.images?.[0] ? <img src={p.images[0]} alt={p.name} className="object-contain p-4 w-full h-full" /> : <Package className="h-12 w-12 mx-auto mt-20 text-zinc-200" />}
                   </div>
                   <div className="p-4">
                     <div className="text-[10px] text-zinc-400 font-bold uppercase">{p.sku}</div>
@@ -823,13 +824,13 @@ export default function ClientOrdersPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6">
               <div className="space-y-4">
                 <div className="relative aspect-square rounded-2xl border bg-zinc-50 overflow-hidden shadow-inner">
-                  {selectedProduct.images?.[currentImageIdx] && <img src={`${selectedProduct.images[currentImageIdx]}${selectedProduct.images[currentImageIdx].includes('?') ? '&' : '?'}cors=1`} alt="Product" className="object-contain p-4 w-full h-full" crossOrigin="anonymous" />}
+                  {selectedProduct.images?.[currentImageIdx] && <img src={selectedProduct.images[currentImageIdx]} alt="Product" className="object-contain p-4 w-full h-full" />}
                 </div>
                 {selectedProduct.images && selectedProduct.images.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {selectedProduct.images.map((img: string, idx: number) => (
                       <button key={idx} onClick={() => setCurrentImageIdx(idx)} className={cn("relative w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 transition-all", currentImageIdx === idx ? "border-primary" : "border-transparent opacity-60")}>
-                        <img src={`${img}${img.includes('?') ? '&' : '?'}cors=1`} alt="thumb" className="object-cover w-full h-full" crossOrigin="anonymous" />
+                        <img src={img} alt="thumb" className="object-cover w-full h-full" />
                       </button>
                     ))}
                   </div>
@@ -1010,7 +1011,7 @@ export default function ClientOrdersPage() {
                           <TableCell className="py-2">
                             {item.photo && (
                               <div className="relative w-10 h-10 rounded border bg-white overflow-hidden">
-                                <img src={`${item.photo}${item.photo.includes('?') ? '&' : '?'}cors=1`} alt={item.description} className="object-cover w-full h-full" crossOrigin="anonymous" />
+                                <img src={item.photo} alt={item.description} className="object-cover w-full h-full" />
                               </div>
                             )}
                           </TableCell>
