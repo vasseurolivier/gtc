@@ -1,10 +1,9 @@
-
 "use client";
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, ChevronDown, UserCircle, Circle } from 'lucide-react';
+import { Menu, ChevronDown, UserCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState, useEffect, useContext } from 'react';
@@ -43,7 +42,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
+  const publicLogo = companyInfoContext?.companyInfo.publicLogo || companyInfoContext?.companyInfo.logo || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useUser();
 
@@ -116,7 +115,7 @@ export function Header() {
         <div className="flex flex-1 items-center gap-10">
             <Link href={'/'} className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
                 {mounted && publicLogo ? (
-                <Image src={publicLogo} alt="Company Logo" width={50} height={50} className="object-contain invert brightness-0" />
+                <Image src={publicLogo} alt="Company Logo" width={150} height={50} className="object-contain" />
                 ) : (
                 <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}
