@@ -53,7 +53,6 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
         setCompanyInfoState({
             ...defaultCompanyInfo,
             ...data,
-            // Fallbacks for migration
             logoAdmin: data.logoAdmin || data.logo || DEFAULT_LOGO,
             logoDocument: data.logoDocument || data.publicLogo || data.logo || DEFAULT_LOGO,
             logoCommercial: data.logoCommercial || data.publicLogo || data.logo || DEFAULT_LOGO

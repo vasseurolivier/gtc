@@ -353,7 +353,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
             
             let sourcingCount = 0;
             try {
-              const q = query(collectionGroup(db!), 'products', where('status', '==', 'pending'));
+              const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
               const snap = await getDocs(q);
               sourcingCount = snap.size;
             } catch (e) {}
