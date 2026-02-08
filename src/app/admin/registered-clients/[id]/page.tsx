@@ -15,7 +15,7 @@ import {
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder, type PaymentStatus } from '@/actions/orders';
-import { getQuotes, deleteQuote, Quote } from '@/actions/quotes';
+import { getQuotes, deleteQuote, Quote, updateQuoteStatus } from '@/actions/quotes';
 import { deleteInvoice, getInvoices, Invoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
@@ -747,7 +747,8 @@ export default function ClientDetailPage() {
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && order.status === 'processing';
-          const hasQuote = linkedQuotes?.some(q => q.orderId === order.id);
+          const linkedQuote = linkedQuotes?.find(q => q.orderId === order.id);
+          const isLocked = linkedQuote?.status === 'accepted' || linkedQuote?.status === 'paid';
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -764,6 +765,7 @@ export default function ClientDetailPage() {
                 <Select 
                   defaultValue={order.status} 
                   onValueChange={(value) => handleStatusChange(order.id, value)}
+                  disabled={isLocked && order.status !== 'processing'}
                 >
                   <SelectTrigger className="w-32 h-8 text-xs">
                     {getOrderStatusBadge(order.status)}
@@ -800,23 +802,26 @@ export default function ClientDetailPage() {
                 <div className="flex justify-end gap-2">
                   {order.status !== 'cancelled' && (
                     <div className="flex items-center gap-1">
-                      {hasQuote ? (
+                      {linkedQuote ? (
                         <>
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="h-8 text-[10px] font-bold border-zinc-200 text-zinc-400 cursor-default hover:bg-transparent"
+                            className={cn("h-8 text-[10px] font-bold border-zinc-200", isLocked ? "text-green-600 bg-green-50" : "text-zinc-400")}
                           >
-                            <CheckCircle2 className="mr-1 h-3 w-3 text-green-500" /> PI GÉNÉRÉE
+                            {isLocked ? <ShieldCheck className="mr-1 h-3 w-3" /> : <CheckCircle2 className="mr-1 h-3 w-3" />}
+                            {isLocked ? "PI ACCEPTÉE" : "PI GÉNÉRÉE"}
                           </Button>
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 font-bold h-8 text-[10px]"
-                            onClick={() => handleGenerateQuote(order.id)}
-                          >
-                            <Sparkles className="mr-1 h-3 w-3" /> RE-GÉNÉRER
-                          </Button>
+                          {!isLocked && (
+                            <Button 
+                              variant="secondary" 
+                              size="sm" 
+                              className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 font-bold h-8 text-[10px]"
+                              onClick={() => handleGenerateQuote(order.id)}
+                            >
+                              <Sparkles className="mr-1 h-3 w-3" /> RE-GÉNÉRER
+                            </Button>
+                          )}
                         </>
                       ) : (
                         <Button 
@@ -834,23 +839,25 @@ export default function ClientDetailPage() {
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenOrderPreview(order)}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer cette commande ?</AlertDialogTitle>
-                        <AlertDialogDescription>Cette action est irréversible et supprimera la commande de votre espace et de celui du client.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteOrderActual(order.id)}>Supprimer</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {!isLocked && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cette commande ?</AlertDialogTitle>
+                          <AlertDialogDescription>Cette action est irréversible et supprimera la commande de votre espace et de celui du client.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteOrderActual(order.id)}>Supprimer</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
@@ -1379,42 +1386,47 @@ export default function ClientDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedLinkedQuotes && sortedLinkedQuotes.length > 0 ? sortedLinkedQuotes.map((quote) => (
-                      <TableRow key={quote.id}>
-                        <TableCell className="pl-6 font-bold">{quote.quoteNumber || 'N/A'}</TableCell>
-                        <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : quote.status === 'rejected' ? 'destructive' : 'outline'}>{quote.status || 'draft'}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">¥{Number(quote.totalAmount || 0).toFixed(2)}</TableCell>
-                        <TableCell className="text-right pr-6">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="sm" asChild>
-                              <Link href={`/admin/quotes/${quote.id}`}>
-                                <Eye className="h-4 w-4 mr-2" /> Voir
-                              </Link>
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Supprimer cette proforma ?</AlertDialogTitle>
-                                  <AlertDialogDescription>Elle ne sera plus visible ni par vous ni par le client.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteQuoteActual(quote.id)}>Supprimer</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )) : (
+                    {sortedLinkedQuotes && sortedLinkedQuotes.length > 0 ? sortedLinkedQuotes.map((quote) => {
+                      const isLocked = quote.status === 'accepted' || quote.status === 'paid';
+                      return (
+                        <TableRow key={quote.id}>
+                          <TableCell className="pl-6 font-bold">{quote.quoteNumber || 'N/A'}</TableCell>
+                          <TableCell>{quote.issueDate ? format(parseSafeDate(quote.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : quote.status === 'rejected' ? 'destructive' : 'outline'}>{quote.status || 'draft'}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">¥{Number(quote.totalAmount || 0).toFixed(2)}</TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/admin/quotes/${quote.id}`}>
+                                  <Eye className="h-4 w-4 mr-2" /> Voir
+                                </Link>
+                              </Button>
+                              {!isLocked && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Supprimer cette proforma ?</AlertDialogTitle>
+                                      <AlertDialogDescription>Elle ne sera plus visible ni par vous ni par le client.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteQuoteActual(quote.id)}>Supprimer</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }) : (
                       <TableRow>
                         <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">Aucune proforma liée.</TableCell>
                       </TableRow>

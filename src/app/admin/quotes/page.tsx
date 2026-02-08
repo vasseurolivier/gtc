@@ -24,7 +24,7 @@ import { getRegisteredClients, RegisteredClient } from '@/actions/registered-cli
 import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon, Package } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon, Package, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -243,7 +243,6 @@ function QuotesPageContent() {
               weight: (item as any).weight || 0,
             }));
             
-            // STRICT RECALCULATION UPON INITIALIZATION
             const itemsTotal = newItems.reduce((sum, i) => sum + i.total, 0);
             const transport = Number(order.transportCost) || 0;
             const commRate = Number(order.commissionRate) || 0;
@@ -427,61 +426,67 @@ function QuotesPageContent() {
         </TableHeader>
       )}
       <TableBody>
-        {quoteList.map((quote) => (
-          <TableRow key={quote.id}>
-            <TableCell className="font-medium">
-              <div className="flex items-center gap-2">
-                {quote.quoteNumber}
-                {quote.orderId && <span title="Lié à une commande client"><LinkIcon className="h-3 w-3 text-primary" /></span>}
-              </div>
-            </TableCell>
-            <TableCell>{quote.customerName}</TableCell>
-            <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
-            <TableCell>
-              <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
-                <SelectTrigger className="w-32">
-                   <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="sent">Sent</SelectItem>
-                    <SelectItem value="accepted">Accepted</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
-            <TableCell className="text-right">
-                <div>¥{quote.totalAmount.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
-            </TableCell>
-            <TableCell className="text-right">
-                <Button variant="ghost" size="icon" asChild title="Voir PDF">
-                    <Link href={`/admin/quotes/${quote.id}`}>
-                        <Eye className="h-4 w-4" />
-                    </Link>
-                </Button>
-                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Modifier">
-                    <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Dupliquer">
-                    <Copy className="h-4 w-4" />
-                </Button>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
-                            Cette action supprimera définitivement cette Proforma.
-                        </AlertDialogDescription></AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </TableCell>
-          </TableRow>
-        ))}
+        {quoteList.map((quote) => {
+          const isLocked = quote.status === 'accepted' || quote.status === 'paid';
+          return (
+            <TableRow key={quote.id}>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  {quote.quoteNumber}
+                  {quote.orderId && <span title="Lié à une commande client"><LinkIcon className="h-3 w-3 text-primary" /></span>}
+                  {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" title="Verrouillé car accepté" />}
+                </div>
+              </TableCell>
+              <TableCell>{quote.customerName}</TableCell>
+              <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
+              <TableCell>
+                <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
+                  <SelectTrigger className="w-32">
+                     <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="accepted">Accepted</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+              <TableCell className="text-right">
+                  <div>¥{quote.totalAmount.toFixed(2)}</div>
+                  <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
+              </TableCell>
+              <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" asChild title="Voir PDF">
+                      <Link href={`/admin/quotes/${quote.id}`}>
+                          <Eye className="h-4 w-4" />
+                      </Link>
+                  </Button>
+                   <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Modifier" disabled={isLocked} className={cn(isLocked && "opacity-20 cursor-not-allowed")}>
+                      <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Dupliquer">
+                      <Copy className="h-4 w-4" />
+                  </Button>
+                  {!isLocked && (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
+                                Cette action supprimera définitivement cette Proforma.
+                            </AlertDialogDescription></AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -610,8 +615,7 @@ function QuotesPageContent() {
                             <FormField control={form.control} name="depositRequired" render={({ field }) => (
                                 <FormItem className="flex items-center justify-between">
                                     <FormLabel className="m-0">Acompte requis ?</FormLabel>
-                                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl>
-                                </FormItem>
+                                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormItem>
                             )}/>
                             {watchDepositRequired && (
                                 <FormField control={form.control} name="depositPercentage" render={({ field }) => (

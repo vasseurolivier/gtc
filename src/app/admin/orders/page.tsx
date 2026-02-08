@@ -18,7 +18,7 @@ import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPayment
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator, AlertTriangle } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -90,7 +90,7 @@ export default function OrdersPage() {
         ]);
         setOrders(fetchedOrders);
         const acceptedQuotes = fetchedQuotes.filter(q => q.status === 'accepted' || q.status === 'paid');
-        setQuotes(acceptedQuotes);
+        setQuotes(fetchedQuotes); // We keep all to check status for locking
         setCustomers(fetchedCustomers);
         setRegisteredClients(fetchedRegistered);
         
@@ -257,6 +257,10 @@ export default function OrdersPage() {
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
           const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
+          
+          // Check if associated quote is accepted/paid
+          const linkedQuote = quotes.find(q => q.orderId === order.id);
+          const isLocked = linkedQuote?.status === 'accepted' || linkedQuote?.status === 'paid';
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -264,6 +268,7 @@ export default function OrdersPage() {
                 <div className="flex items-center gap-2">
                   {order.orderNumber}
                   {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
+                  {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" title="Verrouillé car PI acceptée" />}
                 </div>
               </TableCell>
               <TableCell>
@@ -273,7 +278,11 @@ export default function OrdersPage() {
               </TableCell>
               <TableCell>{formatInTimeZone(parseSafeDate(order.orderDate), 'UTC', 'dd MMM yyyy')}</TableCell>
               <TableCell>
-                <Select onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} defaultValue={order.status}>
+                <Select 
+                  onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)} 
+                  defaultValue={order.status}
+                  disabled={isLocked && order.status !== 'processing'}
+                >
                   <SelectTrigger className="w-32 h-8 text-xs">
                     {getStatusBadgeVariant(order.status) === 'default' ? <Badge>{order.status}</Badge> : <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>}
                   </SelectTrigger>
@@ -287,7 +296,7 @@ export default function OrdersPage() {
                 </Select>
               </TableCell>
               <TableCell className="text-center">
-                {!isArchived ? (
+                {!isArchived && !isLocked ? (
                   <div className="flex items-center justify-center gap-1">
                     <Button 
                       size="icon" 
@@ -312,14 +321,9 @@ export default function OrdersPage() {
                     >
                       {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                     </Button>
-                    {isTransportDirty && (
-                      <span className="flex items-center justify-center">
-                        <AlertTriangle className="h-3 w-3 text-primary animate-pulse" />
-                      </span>
-                    )}
                   </div>
                 ) : (
-                  <span className="text-xs">¥{(order.transportCost || 0).toFixed(2)}</span>
+                  <span className={cn("text-xs font-bold", isLocked && "text-zinc-400")}>¥{(order.transportCost || 0).toFixed(2)}</span>
                 )}
               </TableCell>
               <TableCell className="text-center">
@@ -347,25 +351,27 @@ export default function OrdersPage() {
                       <Button 
                         variant="secondary" 
                         size="sm" 
-                        className="bg-primary hover:bg-primary/90 text-white font-bold h-8"
+                        className={cn("font-bold h-8", !isLocked ? "bg-primary hover:bg-primary/90 text-white" : "bg-zinc-100 text-zinc-400")}
                         onClick={() => handleNavigateToQuote(order.id)}
                       >
                         <Sparkles className="mr-2 h-3 w-3" />
-                        Générer PI
+                        {linkedQuote ? "Gérer PI" : "Générer PI"}
                       </Button>
                     )}
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
-                                Cette action est irréversible et supprimera la commande définitivement.
-                            </AlertDialogDescription></AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Supprimer</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    {!isLocked && (
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                          <AlertDialogContent>
+                              <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
+                                  Cette action est irréversible et supprimera la commande définitivement.
+                              </AlertDialogDescription></AlertDialogHeader>
+                              <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Supprimer</AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
               </TableCell>
             </TableRow>
@@ -406,7 +412,7 @@ export default function OrdersPage() {
                             <SelectValue placeholder="Select an accepted proforma" />
                           </SelectTrigger></FormControl>
                           <SelectContent>
-                            {quotes.length > 0 ? quotes.map(q => <SelectItem key={q.id} value={q.id}>
+                            {quotes.filter(q => q.status === 'accepted' || q.status === 'paid').length > 0 ? quotes.filter(q => q.status === 'accepted' || q.status === 'paid').map(q => <SelectItem key={q.id} value={q.id}>
                                 {q.quoteNumber} - {q.customerName} - ¥{q.totalAmount.toFixed(2)}
                             </SelectItem>) : <p className="p-4 text-sm text-muted-foreground">No accepted proformas found.</p>}
                           </SelectContent>
