@@ -10,7 +10,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { 
   Loader2, 
   Package, 
@@ -263,7 +270,7 @@ export default function ClientCatalogPage() {
                 <Badge className="absolute top-2 right-2 z-10 bg-primary/90 text-[10px] font-black">MOQ PERSO: {p.moq}</Badge>
               )}
               <div className="relative aspect-square bg-zinc-50">
-                {p.images?.[0] ? <img src={`${p.images[0]}${p.images[0].includes('?') ? '&' : '?'}cors=true`} alt={p.name} className="object-contain p-4 w-full h-full" /> : <Package className="h-12 w-12 mx-auto mt-20 text-zinc-200" />}
+                {p.images?.[0] ? <img src={p.images[0]} alt={p.name} className="object-contain p-4 w-full h-full" /> : <Package className="h-12 w-12 mx-auto mt-20 text-zinc-200" />}
               </div>
               <div className="p-4">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">{p.sku}</div>
@@ -287,13 +294,13 @@ export default function ClientCatalogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6">
               <div className="space-y-4">
                 <div className="relative aspect-square rounded-2xl border bg-zinc-50 overflow-hidden shadow-inner">
-                  {selectedProduct.images?.[currentImageIdx] && <img src={`${selectedProduct.images[currentImageIdx]}${selectedProduct.images[currentImageIdx].includes('?') ? '&' : '?'}cors=true`} alt="Product" className="object-contain p-4 w-full h-full" />}
+                  {selectedProduct.images?.[currentImageIdx] && <img src={selectedProduct.images[currentImageIdx]} alt="Product" className="object-contain p-4 w-full h-full" />}
                 </div>
                 {selectedProduct.images && selectedProduct.images.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {selectedProduct.images.map((img: string, idx: number) => (
                       <button key={idx} onClick={() => setCurrentImageIdx(idx)} className={cn("relative w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 transition-all", currentImageIdx === idx ? "border-primary" : "border-transparent opacity-60")}>
-                        <img src={`${img}${img.includes('?') ? '&' : '?'}cors=true`} alt="thumb" className="object-cover w-full h-full" />
+                        <img src={img} alt="thumb" className="object-cover w-full h-full" />
                       </button>
                     ))}
                   </div>
