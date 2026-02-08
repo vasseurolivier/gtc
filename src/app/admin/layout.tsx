@@ -389,7 +389,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) return null;
 
-  const displayLogo = companyInfoContext?.companyInfo.publicLogo || companyInfoContext?.companyInfo.logo;
+  const displayLogo = companyInfoContext?.companyInfo.logo || companyInfoContext?.companyInfo.publicLogo;
 
   return (
     <SidebarProvider>
@@ -397,7 +397,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent>
           <SidebarHeader className="p-4">
              <Link href="/" className="flex items-center justify-center py-4">
-                {displayLogo && <img src={displayLogo} alt="Company Logo" className="max-h-16 w-auto object-contain" />}
+                {displayLogo ? <img src={displayLogo} alt="Company Logo" className="max-h-16 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
             </Link>
           </SidebarHeader>
           <SidebarMenu>
