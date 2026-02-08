@@ -115,12 +115,12 @@ export function Header() {
         <div className="flex flex-1 items-center gap-10">
             <Link href={'/'} className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
                 {mounted && logoUrl ? (
-                <div className="relative h-10 w-32 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
+                <div className="relative h-10 w-24 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
                   <Image 
                     src={logoUrl} 
                     alt="Logo" 
                     fill
-                    className="object-contain object-left scale-[0.33] sm:scale-100" 
+                    className="object-contain object-left" 
                     unoptimized 
                     priority 
                   />

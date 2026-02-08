@@ -90,8 +90,6 @@ import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
 
-const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
-
 export default function ClientDetailPage() {
   const params = useParams();
   const clientId = params.id as string;
@@ -104,7 +102,6 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
   const [isDeletingClient, setIsDeletingClient] = useState(false);
   
   const [clientNumber, setClientNumber] = useState('');
@@ -129,28 +126,11 @@ export default function ClientDetailPage() {
   };
 
   const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
-  const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
   const [pendingSourcingProducts, setPendingSourcingProducts] = useState<any[]>([]);
-  const [isAggregationLoading, setIsAggregationLoading] = useState(false);
   
-  const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
-  const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
-  const [isInvoiceLinkDialogOpen, setIsInvoiceLinkDialogOpen] = useState(false);
-  const [isQuoteLinkDialogOpen, setIsQuoteLinkDialogOpen] = useState(false);
-
-  const [selectedList, setSelectedList] = useState<any | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
-  const [isMediaUploading, setIsMediaUploading] = useState(false);
-
-  const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
-  const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
-  const [orderTransportInput, setOrderTransportInput] = useState('');
-  const [isUpdatingOrderTransport, setIsUpdatingOrderTransport] = useState(false);
-
-  const [editingMoqId, setEditingMoqId] = useState<string | null>(null);
-  const [tempMoq, setTempMoq] = useState<string>('');
 
   useEffect(() => {
     if (!clientId) return;
@@ -169,13 +149,6 @@ export default function ClientDetailPage() {
           setLoginPassword(clientData.password || '');
         }
         setGlobalProducts(prods || []);
-        
-        if (db) {
-          const invs = await getDocs(collection(db, 'invoices'));
-          const qts = await getDocs(collection(db, 'quotes'));
-          setAllInvoices(invs.docs.map(d => ({ id: d.id, ...d.data() } as Invoice)));
-          setAllQuotes(qts.docs.map(d => ({ id: d.id, ...d.data() } as Quote)));
-        }
       } catch (error) {
         console.error("Fetch client error:", error);
       } finally {
@@ -227,28 +200,15 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: linkedInvoices } = useCollection(invoicesQuery);
 
-  const { activeOrders, archivedOrders, pendingOrdersCount } = useMemo(() => {
-    if (!orders) return { activeOrders: [], archivedOrders: [], pendingOrdersCount: 0 };
+  const { activeOrders } = useMemo(() => {
+    if (!orders) return { activeOrders: [] };
     const active = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
-    const archived = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled');
-    const pending = orders.filter(o => o.status === 'processing').length;
-    return { activeOrders: active, archivedOrders: archived, pendingOrdersCount: pending };
+    return { activeOrders: active };
   }, [orders]);
-
-  const sortedLinkedInvoices = useMemo(() => {
-    if (!linkedInvoices) return [];
-    return [...linkedInvoices].sort((a, b) => parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime());
-  }, [linkedInvoices]);
-
-  const sortedLinkedQuotes = useMemo(() => {
-    if (!linkedQuotes) return [];
-    return [...linkedQuotes].sort((a, b) => parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime());
-  }, [linkedQuotes]);
 
   useEffect(() => {
     if (!db || !clientId || !productLists) return;
     async function aggregate() {
-      setIsAggregationLoading(true);
       try {
         const published: any[] = [];
         const pending: any[] = [];
@@ -266,8 +226,6 @@ export default function ClientDetailPage() {
         setPendingSourcingProducts(pending);
       } catch (e) {
         console.error("Aggregation error:", e);
-      } finally {
-        setIsAggregationLoading(false);
       }
     }
     aggregate();
@@ -301,64 +259,6 @@ export default function ClientDetailPage() {
     const result = await updateRegisteredClientNumber(clientId, clientNumber);
     if (result.success) toast({ title: "Mis à jour" });
     setIsSaving(false);
-  };
-
-  const handleUpdatePrefix = async () => {
-    setIsSaving(true);
-    const result = await updateRegisteredClientPrefix(clientId, orderPrefix);
-    if (result.success) toast({ title: "Préfixe mis à jour" });
-    setIsSaving(false);
-  };
-
-  const handleUpdateCurrencyPreference = async (pref: any) => {
-    setIsSaving(true);
-    const result = await updateRegisteredClientCurrencyPreference(clientId, pref);
-    if (result.success) {
-      setCurrencyPreference(pref);
-      toast({ title: "Préférence devise enregistrée" });
-    }
-    setIsSaving(false);
-  };
-
-  const openCalculator = (order: any) => {
-    const totalWeight = (order.items || []).reduce((sum: number, item: any) => sum + ((item.weight || 0) * item.quantity), 0);
-    setCalcWeight(totalWeight);
-    setIsCalcOpen(true);
-  };
-
-  const applyCalculatedCost = () => {
-    const total = (calcWeight * calcRate) + calcFixed;
-    setOrderTransportInput(total.toFixed(2));
-    setIsCalcOpen(false);
-  };
-
-  const handleUpdateTransport = async () => {
-    if (!selectedOrderPreview) return;
-    const cost = parseFloat(orderTransportInput);
-    if (isNaN(cost)) return;
-    setIsUpdatingOrderTransport(true);
-    const result = await updateOrderTransportCost(selectedOrderPreview.id, cost);
-    setIsUpdatingOrderTransport(false);
-    if (result.success) {
-      toast({ title: "Transport mis à jour" });
-      setSelectedOrderPreview({ ...selectedOrderPreview, transportCost: cost, totalAmount: result.newTotal });
-    }
-  };
-
-  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setIsMediaUploading(true);
-    const newImages = [...(editingProduct?.images || [])];
-    for (let i = 0; i < files.length; i++) {
-      const formData = new FormData();
-      formData.append('file', files[i]);
-      formData.append('folder', `branding`);
-      const result = await uploadFile(formData);
-      if (result.success && result.url) newImages.push(result.url);
-    }
-    setEditingProduct({ ...editingProduct, images: newImages });
-    setIsMediaUploading(false);
   };
 
   const handleEditProduct = (product: any) => {
@@ -435,7 +335,6 @@ export default function ClientDetailPage() {
           <Tabs defaultValue="catalogue">
             <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6">
               <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
-              <TabsTrigger value="lists">Sourcing</TabsTrigger>
               <TabsTrigger value="orders">Commandes</TabsTrigger>
               <TabsTrigger value="security">Sécurité</TabsTrigger>
             </TabsList>
