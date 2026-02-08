@@ -43,7 +43,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo.publicLogo || companyInfoContext?.companyInfo.logo || '';
+  const logoUrl = companyInfoContext?.companyInfo.logoCommercial || companyInfoContext?.companyInfo.logoAdmin || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useUser();
 
@@ -115,8 +115,8 @@ export function Header() {
       <div className="container flex h-20 items-center">
         <div className="flex flex-1 items-center gap-10">
             <Link href={'/'} className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
-                {mounted && publicLogo ? (
-                <Image src={publicLogo} alt="Company Logo" width={150} height={50} className="object-contain" unoptimized priority />
+                {mounted && logoUrl ? (
+                <Image src={logoUrl} alt="Logo" width={150} height={50} className="object-contain" unoptimized priority />
                 ) : (
                 <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}

@@ -10,8 +10,9 @@ export interface CompanyInfo {
   address: string;
   email: string;
   phone: string;
-  logo: string;
-  publicLogo?: string;
+  logoAdmin: string;
+  logoDocument: string;
+  logoCommercial: string;
   brochureUrl?: string;
 }
 
@@ -23,7 +24,6 @@ interface CompanyInfoContextType {
 
 export const CompanyInfoContext = createContext<CompanyInfoContextType | undefined>(undefined);
 
-// Logo par défaut plus robuste
 const DEFAULT_LOGO = "https://placehold.co/600x200/e11d48/white?text=Global+Trading+China";
 
 const defaultCompanyInfo: CompanyInfo = {
@@ -31,8 +31,9 @@ const defaultCompanyInfo: CompanyInfo = {
   address: '浙江省, 金华市, 义乌市, 小三里唐3区, 6栋二单元1501',
   email: 'info@globaltradingchina.com',
   phone: '+86 135 6477 0717',
-  logo: DEFAULT_LOGO,
-  publicLogo: DEFAULT_LOGO,
+  logoAdmin: DEFAULT_LOGO,
+  logoDocument: DEFAULT_LOGO,
+  logoCommercial: DEFAULT_LOGO,
   brochureUrl: '',
 };
 
@@ -52,8 +53,10 @@ export const CompanyInfoProvider: React.FC<{ children: ReactNode }> = ({ childre
         setCompanyInfoState({
             ...defaultCompanyInfo,
             ...data,
-            logo: data.logo || DEFAULT_LOGO,
-            publicLogo: data.publicLogo || data.logo || DEFAULT_LOGO
+            // Fallbacks for migration
+            logoAdmin: data.logoAdmin || data.logo || DEFAULT_LOGO,
+            logoDocument: data.logoDocument || data.publicLogo || data.logo || DEFAULT_LOGO,
+            logoCommercial: data.logoCommercial || data.publicLogo || data.logo || DEFAULT_LOGO
         } as CompanyInfo);
       } else {
         setDoc(docRef, defaultCompanyInfo).catch(console.error);

@@ -1,10 +1,9 @@
 
 "use client";
 
-import { Mail, MapPin, Phone, Globe } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
 import { useContext } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 
@@ -24,7 +23,7 @@ export function Footer() {
       rightsReserved: "Tous droits réservés."
   };
   const companyInfoContext = useContext(CompanyInfoContext);
-  const publicLogo = companyInfoContext?.companyInfo.publicLogo || '';
+  const logoUrl = companyInfoContext?.companyInfo.logoCommercial || companyInfoContext?.companyInfo.logoAdmin || '';
   
   return (
     <footer className="bg-secondary">
@@ -32,10 +31,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-secondary-foreground">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-                {publicLogo ? (
-                  <Image src={publicLogo} alt="Company Logo" width={120} height={120} className="object-contain" />
+                {logoUrl ? (
+                  <Image src={logoUrl} alt="Logo" width={120} height={40} className="object-contain" unoptimized />
                 ) : (
-                  <div style={{width: '50px', height: '12px'}} />
+                  <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>
                 )}
                 <h3 className="text-xl font-headline font-semibold">Global Trading China</h3>
             </div>

@@ -69,40 +69,35 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
     const [companyAddress, setCompanyAddress] = useState('');
     const [companyEmail, setCompanyEmail] = useState('');
     const [companyPhone, setCompanyPhone] = useState('');
-    const [companyLogo, setCompanyLogo] = useState('');
-    const [publicLogo, setPublicLogo] = useState('');
+    const [logoAdmin, setLogoAdmin] = useState('');
+    const [logoDocument, setLogoDocument] = useState('');
+    const [logoCommercial, setLogoCommercial] = useState('');
     const [brochureUrl, setBrochureUrl] = useState('');
     
-    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-    const [isUploadingPublicLogo, setIsUploadingPublicLogo] = useState(false);
-    const [isUploadingBrochure, setIsUploadingBrochure] = useState(false);
+    const [uploadingType, setUploadingType] = useState<'admin' | 'doc' | 'comm' | 'brochure' | null>(null);
 
     useEffect(() => {
-        if (isDialogOpen) {
-            if (currencyContext) {
-                setSelectedCurrency(currencyContext.currency.code);
-                setLocalRate(currencyContext.exchangeRate.toString());
-            }
-            if (companyInfoContext) {
-                setCompanyName(companyInfoContext.companyInfo.name);
-                setCompanyAddress(companyInfoContext.companyInfo.address);
-                setCompanyEmail(companyInfoContext.companyInfo.email);
-                setCompanyPhone(companyInfoContext.companyInfo.phone);
-                setCompanyLogo(companyInfoContext.companyInfo.logo);
-                setPublicLogo(companyInfoContext.companyInfo.publicLogo || '');
-                setBrochureUrl(companyInfoContext.companyInfo.brochureUrl || '');
-            }
+        if (isDialogOpen && companyInfoContext && currencyContext) {
+            setSelectedCurrency(currencyContext.currency.code);
+            setLocalRate(currencyContext.exchangeRate.toString());
+            
+            const info = companyInfoContext.companyInfo;
+            setCompanyName(info.name);
+            setCompanyAddress(info.address);
+            setCompanyEmail(info.email);
+            setCompanyPhone(info.phone);
+            setLogoAdmin(info.logoAdmin || '');
+            setLogoDocument(info.logoDocument || '');
+            setLogoCommercial(info.logoCommercial || '');
+            setBrochureUrl(info.brochureUrl || '');
         }
     }, [isDialogOpen, currencyContext, companyInfoContext]);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'publicLogo' | 'brochure') => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'admin' | 'doc' | 'comm' | 'brochure') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (type === 'logo') setIsUploadingLogo(true);
-        if (type === 'publicLogo') setIsUploadingPublicLogo(true);
-        if (type === 'brochure') setIsUploadingBrochure(true);
-
+        setUploadingType(type);
         const formData = new FormData();
         formData.append('file', file);
         formData.append('folder', 'branding');
@@ -110,19 +105,18 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
         try {
             const result = await uploadFile(formData);
             if (result.success && result.url) {
-                if (type === 'logo') setCompanyLogo(result.url);
-                if (type === 'publicLogo') setPublicLogo(result.url);
+                if (type === 'admin') setLogoAdmin(result.url);
+                if (type === 'doc') setLogoDocument(result.url);
+                if (type === 'comm') setLogoCommercial(result.url);
                 if (type === 'brochure') setBrochureUrl(result.url);
-                toast({ title: 'Fichier téléchargé avec succès' });
+                toast({ title: 'Fichier téléchargé' });
             } else {
                 toast({ variant: 'destructive', title: 'Erreur', description: result.message });
             }
         } catch (err) {
-            toast({ variant: 'destructive', title: 'Erreur système', description: "Le service d'upload est indisponible." });
+            toast({ variant: 'destructive', title: 'Erreur système' });
         } finally {
-            if (type === 'logo') setIsUploadingLogo(false);
-            if (type === 'publicLogo') setIsUploadingPublicLogo(false);
-            if (type === 'brochure') setIsUploadingBrochure(false);
+            setUploadingType(null);
             e.target.value = '';
         }
     };
@@ -135,7 +129,7 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
     const handleSave = () => {
         const newRate = parseFloat(localRate);
         if (isNaN(newRate) || newRate <= 0) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid exchange rate.'});
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Taux invalide.'});
             return;
         }
 
@@ -148,9 +142,10 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
             address: companyAddress,
             email: companyEmail,
             phone: companyPhone,
-            logo: companyLogo,
-            publicLogo: publicLogo,
-            brochureUrl: brochureUrl,
+            logoAdmin,
+            logoDocument,
+            logoCommercial,
+            brochureUrl,
         });
 
         toast({ title: 'Configuration mise à jour' });
@@ -170,66 +165,77 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Paramètres Globaux</DialogTitle>
-                        <DialogDescription>Gérez les informations de l'entreprise et les documents officiels.</DialogDescription>
+                        <DialogDescription>Gérez l'identité visuelle et les informations de l'entreprise.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto px-1">
+                        <div>
+                            <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Logos & Identité</h3>
+                            <div className="space-y-6">
+                                {/* Logo Commercial (Site) */}
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right pt-2 font-bold text-blue-600">Logo Site (Commercial)</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                {uploadingType === 'comm' ? <Loader2 className="h-4 w-4 animate-spin" /> : logoCommercial ? (
+                                                    <img src={logoCommercial} alt="Commercial" className="object-contain h-full w-full" />
+                                                ) : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'comm')} className="h-8 text-xs cursor-pointer" />
+                                                <Input placeholder="URL..." value={logoCommercial} onChange={(e) => setLogoCommercial(e.target.value)} className="h-8 text-xs" />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground">Logo affiché sur le site public (Header/Footer).</p>
+                                    </div>
+                                </div>
+
+                                {/* Logo Documents (PI/Invoice) */}
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right pt-2 font-bold text-primary">Logo Documents (PI/Inv)</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                {uploadingType === 'doc' ? <Loader2 className="h-4 w-4 animate-spin" /> : logoDocument ? (
+                                                    <img src={logoDocument} alt="Document" className="object-contain h-full w-full" />
+                                                ) : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'doc')} className="h-8 text-xs cursor-pointer" />
+                                                <Input placeholder="URL..." value={logoDocument} onChange={(e) => setLogoDocument(e.target.value)} className="h-8 text-xs" />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground">Logo affiché sur les Proformas et Factures.</p>
+                                    </div>
+                                </div>
+
+                                {/* Logo Admin (Sidebar) */}
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right pt-2 font-bold text-zinc-600">Logo Admin (Espace)</Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                {uploadingType === 'admin' ? <Loader2 className="h-4 w-4 animate-spin" /> : logoAdmin ? (
+                                                    <img src={logoAdmin} alt="Admin" className="object-contain h-full w-full" />
+                                                ) : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
+                                            </div>
+                                            <div className="flex-grow space-y-1">
+                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'admin')} className="h-8 text-xs cursor-pointer" />
+                                                <Input placeholder="URL..." value={logoAdmin} onChange={(e) => setLogoAdmin(e.target.value)} className="h-8 text-xs" />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground">Logo affiché dans la barre latérale de l'administration.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <Separator />
                         <div>
                             <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Informations Entreprise</h3>
                             <div className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="company-name" className="text-right">Raison Sociale</Label>
                                     <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label className="text-right pt-2 font-bold text-primary">Logo Documents</Label>
-                                    <div className="col-span-3 space-y-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                                {isUploadingPublicLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : publicLogo ? (
-                                                    <img src={publicLogo} alt="Public Logo" className="object-contain h-full w-full" />
-                                                ) : (
-                                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
-                                                )}
-                                            </div>
-                                            <div className="flex-grow space-y-1">
-                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'publicLogo')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL directe logo pro..." value={publicLogo} onChange={(e) => setPublicLogo(e.target.value)} className="h-8 text-xs" />
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] text-muted-foreground italic">C'est le logo qui apparaîtra sur les Proformas et Invoices des clients.</p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label className="text-right pt-2">Logo Admin</Label>
-                                    <div className="col-span-3 space-y-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                                {isUploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : companyLogo ? (
-                                                    <img src={companyLogo} alt="Logo" className="object-contain h-full w-full" />
-                                                ) : (
-                                                    <UploadCloud className="h-6 w-6 text-muted-foreground" />
-                                                )}
-                                            </div>
-                                            <div className="flex-grow space-y-1">
-                                                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL logo secondaire..." value={companyLogo} onChange={(e) => setCompanyLogo(e.target.value)} className="h-8 text-xs" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label className="text-right pt-2">Brochure PDF</Label>
-                                    <div className="col-span-3 space-y-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted">
-                                                {isUploadingBrochure ? <Loader2 className="h-4 w-4 animate-spin" /> : brochureUrl ? <FileDown className="h-6 w-6 text-primary" /> : <FileDown className="h-6 w-6 text-muted-foreground" />}
-                                            </div>
-                                            <div className="flex-grow space-y-1">
-                                                <Input type="file" accept=".pdf" onChange={(e) => handleFileUpload(e, 'brochure')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL brochure..." value={brochureUrl} onChange={(e) => setBrochureUrl(e.target.value)} className="h-8 text-xs" />
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label htmlFor="company-address" className="text-right pt-2">Adresse</Label>
@@ -347,7 +353,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
             
             let sourcingCount = 0;
             try {
-              const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
+              const q = query(collectionGroup(db!), 'products', where('status', '==', 'pending'));
               const snap = await getDocs(q);
               sourcingCount = snap.size;
             } catch (e) {}
@@ -389,7 +395,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) return null;
 
-  const displayLogo = companyInfoContext?.companyInfo.logo || companyInfoContext?.companyInfo.publicLogo;
+  const displayLogo = companyInfoContext?.companyInfo.logoAdmin || companyInfoContext?.companyInfo.logoDocument;
 
   return (
     <SidebarProvider>
@@ -397,7 +403,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent>
           <SidebarHeader className="p-4">
              <Link href="/" className="flex items-center justify-center py-4">
-                {displayLogo ? <img src={displayLogo} alt="Company Logo" className="max-h-16 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
+                {displayLogo ? <img src={displayLogo} alt="Logo Admin" className="max-h-16 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
             </Link>
           </SidebarHeader>
           <SidebarMenu>

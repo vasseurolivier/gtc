@@ -329,57 +329,6 @@ export default function ClientCatalogPage() {
                   {selectedProduct.description || "Aucune description technique."}
                 </div>
 
-                {selectedProduct.availability !== 'standard_only' && (
-                  <div className={cn(
-                    "p-4 rounded-2xl border-2 transition-all duration-300",
-                    isPersonalized ? "border-orange-500 bg-orange-50" : "border-zinc-100 bg-zinc-50"
-                  )}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn("p-2 rounded-lg", isPersonalized ? "bg-orange-500 text-white" : "bg-zinc-200 text-zinc-500")}>
-                          <Sparkles className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <Label className="font-black text-sm cursor-pointer" htmlFor="perso-switch">Produit Personnalisé</Label>
-                          <p className="text-[10px] text-zinc-500 leading-tight">Logo, packaging ou design sur mesure.</p>
-                        </div>
-                      </div>
-                      <Switch 
-                        id="perso-switch"
-                        checked={isPersonalized}
-                        disabled={selectedProduct.availability === 'personalized_only'}
-                        onCheckedChange={(checked) => {
-                          setIsPersonalized(checked);
-                          const moq = Number(selectedProduct.moq || 1);
-                          if (checked && productQuantity < moq) {
-                            setProductQuantity(moq);
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {selectedProduct.hasSizeSelection && (
-                  <div className="space-y-3">
-                    <Label className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                      <Ruler className="h-3 w-3" /> Sélectionner une taille
-                    </Label>
-                    <div className="flex flex-wrap gap-2">
-                      {(selectedProduct.availableSizes || []).map((size: string) => (
-                        <Button 
-                          key={size} 
-                          variant={selectedSize === size ? "default" : "outline"}
-                          className={cn("h-10 min-w-[60px] font-bold transition-all", selectedSize === size ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "hover:border-primary/50")}
-                          onClick={() => setSelectedSize(size)}
-                        >
-                          {size}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
                   <div className="flex items-center justify-between">
                     <Label className="font-black text-xs uppercase tracking-widest text-zinc-400">Quantité souhaitée</Label>

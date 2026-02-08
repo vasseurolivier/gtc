@@ -20,6 +20,7 @@ export function PrintFooter() {
             <p>Merci de votre confiance</p>
             <p>Email: {companyInfo?.email} | WhatsApp: {companyInfo?.phone}</p>
             <p>{companyInfo?.address}</p>
+            <div className="mt-1 text-[6px] opacity-30">© Global Trading China - Document Officiel</div>
         </div>
     );
 }
