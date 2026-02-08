@@ -75,7 +75,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
-    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
     const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
@@ -183,7 +183,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                         </td>
                                         <td className="p-2 text-center font-medium">{item.quantity}</td>
                                         <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                        <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
+                                        <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
                                     </tr>
                                 ))}
                             </tbody>

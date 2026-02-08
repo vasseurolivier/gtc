@@ -66,7 +66,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     // Dynamic recalculation for absolute precision
-    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const commissionCny = subTotalCny * (commissionRate / 100);
     const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
@@ -154,7 +154,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <td className="p-1 border"><p className="font-bold text-[11px]">{item.description}</p></td>
                                         <td className="p-1 text-center border">{item.quantity}</td>
                                         <td className="p-1 text-right border">{renderPrice(item.unitPrice)}</td>
-                                        <td className="p-1 text-right border font-bold">{renderPrice(item.total)}</td>
+                                        <td className="p-1 text-right border font-bold">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
                                     </tr>
                                 )
                             })}

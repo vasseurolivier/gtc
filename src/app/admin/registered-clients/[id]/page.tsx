@@ -400,6 +400,12 @@ export default function ClientDetailPage() {
     toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer les nouveaux frais." });
   };
 
+  const openCalculator = (order: any) => {
+    const totalWeight = (order.items || []).reduce((sum: number, item: any) => sum + ((item.weight || 0) * item.quantity), 0);
+    setCalcWeight(totalWeight);
+    setIsCalcOpen(true);
+  };
+
   const handleGenerateQuote = (orderId: string) => {
     router.push(`/admin/quotes?fromOrder=${orderId}`);
   };

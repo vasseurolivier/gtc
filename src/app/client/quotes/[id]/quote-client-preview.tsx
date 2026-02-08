@@ -128,7 +128,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.publicLogo || companyInfo.logo;
 
-    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
     const transportCny = Number(quote.transportCost) || 0;
@@ -344,7 +344,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                             </td>
                                             <td className="p-2 text-center font-medium">{item.quantity}</td>
                                             <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(item.total)}</td>
+                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
                                         </tr>
                                     );
                                 })}

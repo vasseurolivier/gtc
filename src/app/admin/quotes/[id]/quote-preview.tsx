@@ -68,7 +68,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
     // Recalculate Subtotal and Commission for absolute accuracy
-    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(quote.commissionRate) || 0;
     const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
     const transportCny = Number(quote.transportCost) || 0;
@@ -169,7 +169,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                         {renderPrice(item.unitPrice)}
                                     </td>
                                     <td className="p-1 align-top text-right font-bold border">
-                                        {renderPrice(item.total)}
+                                        {renderPrice(Number(item.quantity) * Number(item.unitPrice))}
                                     </td>
                                 </tr>
                             )
