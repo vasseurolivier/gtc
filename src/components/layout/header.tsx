@@ -116,10 +116,10 @@ export function Header() {
         <div className="flex items-center gap-4 flex-1">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {logoUrl ? (
-                  <div className="relative h-10 w-32 md:h-14 md:w-44">
+                  <div className="relative h-10 w-24 md:h-14 md:w-36">
                     <Image 
                       src={logoUrl} 
-                      alt="Logo" 
+                      alt="Logo Commercial" 
                       fill
                       className="object-contain object-left" 
                       priority
@@ -147,7 +147,7 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[220px]">
                     {servicesItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-[10px] uppercase tracking-wider py-3">
+                    <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-[10px] uppercase tracking-wider py-3 cursor-pointer">
                         <Link href={item.href}>{item.label}</Link>
                     </DropdownMenuItem>
                     ))}
