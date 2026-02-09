@@ -113,17 +113,14 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex flex-1 items-center gap-6 lg:gap-12">
+        <div className="flex flex-1 items-center gap-6 lg:gap-10">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {mounted && logoUrl ? (
-                <div className="relative h-12 w-32 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
-                  <Image 
+                <div className="relative h-12 w-24 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
+                  <img 
                     src={logoUrl} 
                     alt="Logo" 
-                    fill
-                    className="object-contain object-left" 
-                    unoptimized 
-                    priority 
+                    className="h-12 sm:h-12 lg:h-14 w-auto object-contain object-left" 
                   />
                 </div>
                 ) : (

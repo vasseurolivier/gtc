@@ -116,7 +116,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && (
-                                    <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" />
+                                    <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" crossOrigin="anonymous" />
                                 )}
                             </div>
                             <div className="text-right">
@@ -171,7 +171,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                             <td className="p-2 text-center">
                                                 <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                     {displayImage ? (
-                                                        <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                        <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" crossOrigin="anonymous" />
                                                     ) : (
                                                         <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
                                                             <Package className="h-4 w-4" />

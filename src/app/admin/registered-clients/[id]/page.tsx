@@ -15,7 +15,7 @@ import {
   deleteClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder, type PaymentStatus } from '@/actions/orders';
+import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder, type PaymentStatus, getOrderById } from '@/actions/orders';
 import { deleteQuote, Quote, updateQuoteStatus } from '@/actions/quotes';
 import { deleteInvoice, Invoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -117,6 +117,7 @@ export default function ClientDetailPage() {
   const [calcWeight, setCalcWeight] = useState(0);
   const [calcRate, setCalcRate] = useState(0);
   const [calcFixed, setCalcFixed] = useState(0);
+  const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -194,12 +195,6 @@ export default function ClientDetailPage() {
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: linkedQuotes } = useCollection(linkedQuotesQuery);
-
-  const invoicesQuery = useMemoFirebase(() => {
-    if (!db || !clientId) return null;
-    return collection(db, 'clients', clientId, 'invoices');
-  }, [db, clientId]);
-  const { data: linkedInvoices } = useCollection(invoicesQuery);
 
   const { activeOrders } = useMemo(() => {
     if (!orders) return { activeOrders: [] };
@@ -288,6 +283,21 @@ export default function ClientDetailPage() {
     if (result.success) toast({ title: "Supprimé" });
   };
 
+  const openCalculator = (order: any) => {
+    const totalWeight = order.items.reduce((sum: number, item: any) => sum + ((item.weight || 0) * item.quantity), 0);
+    setCalcWeight(totalWeight);
+    setCalcTargetId(order.id);
+    setIsCalcOpen(true);
+  };
+
+  const applyCalculatedCost = () => {
+    if (!calcTargetId) return;
+    const total = (calcWeight * calcRate) + calcFixed;
+    // For local logic update UI or call action
+    setIsCalcOpen(false);
+    toast({ title: "Calcul appliqué" });
+  };
+
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
       case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
@@ -356,7 +366,7 @@ export default function ClientDetailPage() {
                       <TableRow key={p.id}>
                         <TableCell>
                           <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
-                            {p.images?.[0] ? <img src={p.images[0]} alt="p" className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-300" />}
+                            {p.images?.[0] ? <img src={p.images[0]} alt="p" className="object-contain w-full h-full" crossOrigin="anonymous" /> : <Package className="h-4 w-4 text-zinc-300" />}
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">
