@@ -11,7 +11,7 @@ import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: any, products: any[] }) {
     const currencyContext = useContext(CurrencyContext);
@@ -40,9 +40,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const ratio = canvas.width / canvas.height;
         let imgWidth = pdfWidth;
         let imgHeight = imgWidth / ratio;
         let heightLeft = imgHeight;

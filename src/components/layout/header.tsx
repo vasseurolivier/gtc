@@ -14,13 +14,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { useUser } from '@/firebase';
 
@@ -69,7 +69,7 @@ export function Header() {
     { href: '/services/trading-logistics', label: dictionary.tradingAndLogistics },
     { href: '/services/ecommerce-solutions', label: dictionary.ecommerceSolutions },
     { href: '/services/custom-services', label: dictionary.customServices },
-  ]
+  ];
   
   const citiesItem = { href: '/trade-cities', label: dictionary.tradeHubs };
   const contactItem = { href: '/contact', label: dictionary.contact };
@@ -113,13 +113,17 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4">
-            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
+        <div className="flex items-center gap-2">
+            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0 mr-2">
                 {logoUrl ? (
-                  <div className="relative h-10 md:h-12 w-fit min-w-[40px]">
-                    <img 
+                  <div className="relative h-10 md:h-12 w-auto min-w-[40px]">
+                    <Image 
                       src={logoUrl} 
                       alt="Logo" 
+                      width={120}
+                      height={48}
+                      priority
+                      unoptimized
                       className="h-full w-auto object-contain object-left" 
                     />
                   </div>
@@ -128,7 +132,7 @@ export function Header() {
                 )}
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-6 ml-4">
+            <nav className="hidden lg:flex items-center gap-4">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
