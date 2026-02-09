@@ -349,6 +349,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
             
             let sourcingCount = 0;
             try {
+              // CORRECT SYNTAX: collectionGroup requires 2 arguments: db and collectionId
               const q = query(collectionGroup(db!, 'products'), where('status', '==', 'pending'));
               const snap = await getDocs(q);
               sourcingCount = snap.size;

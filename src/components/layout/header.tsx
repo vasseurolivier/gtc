@@ -113,10 +113,10 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {logoUrl ? (
-                  <div className="relative h-10 md:h-12 w-auto">
+                  <div className="relative h-12 w-auto">
                     <Image 
                       src={logoUrl} 
                       alt="Logo" 
@@ -159,14 +159,14 @@ export function Header() {
                     href={citiesItem.href}
                     className={linkClasses(citiesItem.href)}
                 >
-                    {citiesItem.label}
+                    {dictionary.tradeHubs}
                 </Link>
                 <Link
                     key={contactItem.href}
                     href={contactItem.href}
                     className={linkClasses(contactItem.href)}
                 >
-                    {contactItem.label}
+                    {dictionary.contact}
                 </Link>
             </nav>
         </div>
@@ -266,7 +266,7 @@ export function Header() {
                             pathname.startsWith(citiesItem.href) ? "text-primary" : "text-white/80"
                         )}
                         >
-                        {citiesItem.label}
+                        {dictionary.tradeHubs}
                         </Link>
                         <Link
                         key={contactItem.href}
@@ -277,7 +277,7 @@ export function Header() {
                             pathname.startsWith(contactItem.href) ? "text-primary" : "text-white/80"
                         )}
                         >
-                        {contactItem.label}
+                        {dictionary.contact}
                         </Link>
                         <hr className="my-6 border-zinc-800" />
                         <Link
