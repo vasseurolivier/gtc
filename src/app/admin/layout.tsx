@@ -164,7 +164,7 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Paramètres Globaux</DialogTitle>
-                        <DialogDescription>Gérez l'identité visuelle et les informations de l'entreprise.</DialogDescription>
+                        <DialogDescription>Gérez l'identié visuelle et les informations de l'entreprise.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto px-1">
                         <div>
