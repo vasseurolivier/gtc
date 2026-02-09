@@ -89,7 +89,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 <header className="w-full flex justify-between items-start pt-2 pb-2 border-b">
                     <div>
                         {companyInfo.logoDocument && 
-                            <img src={companyInfo.logoDocument} alt="Company Logo" crossOrigin="anonymous" className="h-12 w-auto object-contain" />
+                            <img src={companyInfo.logoDocument} alt="Company Logo" className="h-12 w-auto object-contain" />
                         }
                     </div>
                     <div className="text-right w-1/3">
@@ -141,7 +141,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                           <td className="p-1 align-top border text-center">
                                               {item.photo && 
                                                   <div className="w-12 h-12 mx-auto rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                      <img src={item.photo} alt={item.description} crossOrigin="anonymous" className="max-w-full max-h-full object-contain" />
+                                                      <img src={item.photo} alt={item.description} className="max-w-full max-h-full object-contain" />
                                                   </div>
                                               }
                                           </td>
