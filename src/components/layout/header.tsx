@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -91,14 +92,14 @@ export function Header() {
     }
 
     return cn(
-      "relative transition-all duration-300 font-headline font-bold text-[13px] uppercase tracking-[0.2em] text-white/80 hover:text-white",
+      "relative transition-all duration-300 font-headline font-bold text-[11px] uppercase tracking-[0.15em] text-white/80 hover:text-white",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
       isActive ? "text-primary after:w-full" : ""
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[13px] uppercase tracking-[0.2em] text-white/80 hover:text-white",
+    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[11px] uppercase tracking-[0.15em] text-white/80 hover:text-white",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     pathname.startsWith('/services')
       ? "text-primary after:w-full"
@@ -111,11 +112,11 @@ export function Header() {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-20 items-center">
-        <div className="flex flex-1 items-center gap-10">
-            <Link href={'/'} className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
+      <div className="container flex h-20 items-center px-4 md:px-8">
+        <div className="flex flex-1 items-center gap-6 lg:gap-12">
+            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {mounted && logoUrl ? (
-                <div className="relative h-10 w-24 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
+                <div className="relative h-12 w-32 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
                   <Image 
                     src={logoUrl} 
                     alt="Logo" 
@@ -129,7 +130,7 @@ export function Header() {
                 <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}
             </Link>
-             <nav className="hidden lg:flex items-center space-x-8">
+             <nav className="hidden lg:flex items-center space-x-6">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
