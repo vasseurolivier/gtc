@@ -20,7 +20,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import Image from 'next/image';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { useUser } from '@/firebase';
 
@@ -113,21 +112,21 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex flex-1 items-center gap-6 lg:gap-10">
+        <div className="flex flex-1 items-center gap-4">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {mounted && logoUrl ? (
-                <div className="relative h-12 w-24 sm:h-12 sm:w-48 lg:h-14 lg:w-60">
+                <div className="relative h-12 w-auto flex items-center">
                   <img 
                     src={logoUrl} 
                     alt="Logo" 
-                    className="h-12 sm:h-12 lg:h-14 w-auto object-contain object-left" 
+                    className="h-10 sm:h-12 w-auto object-contain object-left" 
                   />
                 </div>
                 ) : (
                 <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}
             </Link>
-             <nav className="hidden lg:flex items-center space-x-6">
+             <nav className="hidden lg:flex items-center space-x-6 ml-4">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}

@@ -7,88 +7,37 @@ import {
   getRegisteredClientById, 
   updateRegisteredClientStatus, 
   updateRegisteredClientNumber,
-  updateRegisteredClientPrefix,
-  updateRegisteredClientCurrencyPreference,
   updateClientCredentials,
   deleteRegisteredClient,
-  deleteProductList,
   deleteClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { updateOrderStatus, updateOrderPaymentStatus, updateOrderTransportCost, deleteOrder, type PaymentStatus, getOrderById } from '@/actions/orders';
-import { deleteQuote, Quote, updateQuoteStatus } from '@/actions/quotes';
-import { deleteInvoice, Invoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { 
   ArrowLeft, 
   Loader2, 
-  User, 
-  Mail, 
-  Phone, 
-  Building, 
-  ClipboardList, 
-  Receipt, 
-  ShoppingCart, 
-  Eye, 
-  Save, 
-  CheckCircle2, 
-  Package, 
-  Plus, 
-  Link as LinkIcon, 
-  Star, 
-  ChevronRight, 
   Trash2, 
   Pencil, 
-  Scale, 
-  Maximize, 
-  UploadCloud, 
-  X, 
-  PlayCircle, 
-  ImageIcon, 
-  Sparkles, 
-  MapPin, 
-  FileText, 
-  History, 
-  Clock, 
-  AlertCircle, 
-  Truck, 
-  Check, 
-  Tag, 
-  Ruler, 
-  Coins,
-  ShieldAlert,
-  Settings2,
-  Lock,
+  Package, 
+  Save, 
   ShieldCheck,
-  KeyRound,
   Calculator
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts, Product } from '@/actions/products';
-import { uploadFile } from '@/actions/upload';
-import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
 
 export default function ClientDetailPage() {
@@ -98,17 +47,12 @@ export default function ClientDetailPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const currencyContext = useContext(CurrencyContext);
-  const { exchangeRate } = currencyContext || { exchangeRate: 0.13 };
 
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeletingClient, setIsDeletingClient] = useState(false);
   
   const [clientNumber, setClientNumber] = useState('');
-  const [orderPrefix, setOrderPrefix] = useState('');
-  const [currencyPreference, setCurrencyPreference] = useState<'EUR' | 'CNY' | 'BOTH'>('EUR');
-  
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
@@ -119,6 +63,11 @@ export default function ClientDetailPage() {
   const [calcFixed, setCalcFixed] = useState(0);
   const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
 
+  const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
+  
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -127,30 +76,18 @@ export default function ClientDetailPage() {
     return isNaN(d.getTime()) ? new Date() : d;
   };
 
-  const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
-  const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
-  const [pendingSourcingProducts, setPendingSourcingProducts] = useState<any[]>([]);
-  
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
-  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
-
   useEffect(() => {
     if (!clientId) return;
     async function fetchData() {
       setIsLoading(true);
       try {
         const clientData = await getRegisteredClientById(clientId);
-        const prods = await getProducts();
-        
         if (clientData) {
           setClient(clientData);
           setClientNumber(clientData.clientNumber || '');
-          setOrderPrefix(clientData.orderPrefix || '');
-          setCurrencyPreference(clientData.currencyPreference || 'EUR');
           setLoginEmail(clientData.email || '');
           setLoginPassword(clientData.password || '');
         }
-        setGlobalProducts(prods || []);
       } catch (error) {
         console.error("Fetch client error:", error);
       } finally {
@@ -190,16 +127,9 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
-  const linkedQuotesQuery = useMemoFirebase(() => {
-    if (!db || !clientId) return null;
-    return query(collection(db, 'quotes'), where('customerId', '==', clientId));
-  }, [db, clientId]);
-  const { data: linkedQuotes } = useCollection(linkedQuotesQuery);
-
-  const { activeOrders } = useMemo(() => {
-    if (!orders) return { activeOrders: [] };
-    const active = orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
-    return { activeOrders: active };
+  const activeOrders = useMemo(() => {
+    if (!orders) return [];
+    return orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
   }, [orders]);
 
   useEffect(() => {
@@ -207,19 +137,16 @@ export default function ClientDetailPage() {
     async function aggregate() {
       try {
         const published: any[] = [];
-        const pending: any[] = [];
         for (const list of productLists!) {
           const prodCol = collection(db!, 'clients', clientId, 'productLists', list.id, 'products');
-          const snap = await getDocs(prodCol);
+          const q = query(prodCol, where('status', '==', 'published'));
+          const snap = await getDocs(q);
           snap.forEach(doc => {
             const data = doc.data();
-            const item = { ...data, id: doc.id, listName: list.name, listId: list.id };
-            if (data.status === 'published') published.push(item);
-            else pending.push(item);
+            published.push({ ...data, id: doc.id, listName: list.name, listId: list.id });
           });
         }
         setPublishedProducts(published);
-        setPendingSourcingProducts(pending);
       } catch (e) {
         console.error("Aggregation error:", e);
       }
@@ -239,14 +166,10 @@ export default function ClientDetailPage() {
 
   const handleDeleteClientActual = async () => {
     if (!client) return;
-    setIsDeletingClient(true);
     const result = await deleteRegisteredClient(clientId);
     if (result.success) {
       toast({ title: "Supprimé" });
       router.push('/admin/registered-clients');
-    } else {
-      toast({ variant: "destructive", title: "Erreur", description: result.message });
-      setIsDeletingClient(false);
     }
   };
 
@@ -283,21 +206,6 @@ export default function ClientDetailPage() {
     if (result.success) toast({ title: "Supprimé" });
   };
 
-  const openCalculator = (order: any) => {
-    const totalWeight = order.items.reduce((sum: number, item: any) => sum + ((item.weight || 0) * item.quantity), 0);
-    setCalcWeight(totalWeight);
-    setCalcTargetId(order.id);
-    setIsCalcOpen(true);
-  };
-
-  const applyCalculatedCost = () => {
-    if (!calcTargetId) return;
-    const total = (calcWeight * calcRate) + calcFixed;
-    // For local logic update UI or call action
-    setIsCalcOpen(false);
-    toast({ title: "Calcul appliqué" });
-  };
-
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
       case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
@@ -321,7 +229,10 @@ export default function ClientDetailPage() {
             <AlertDialogTrigger asChild><Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</Button></AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader><AlertDialogTitle>Supprimer le compte ?</AlertDialogTitle><AlertDialogDescription>Cette action est définitive.</AlertDialogDescription></AlertDialogHeader>
-              <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={handleDeleteClientActual}>Confirmer</AlertDialogAction></AlertDialogFooter>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteClientActual}>Confirmer</AlertDialogAction>
+              </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
@@ -366,7 +277,7 @@ export default function ClientDetailPage() {
                       <TableRow key={p.id}>
                         <TableCell>
                           <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
-                            {p.images?.[0] ? <img src={p.images[0]} alt="p" className="object-contain w-full h-full" crossOrigin="anonymous" /> : <Package className="h-4 w-4 text-zinc-300" />}
+                            {p.images?.[0] ? <img src={p.images[0]} alt="p" className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-300" />}
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">

@@ -29,7 +29,6 @@ import {
   FileSignature,
   ClipboardList,
   UserCheck,
-  FileDown,
   Settings,
   Factory,
 } from 'lucide-react';
@@ -171,7 +170,6 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                         <div>
                             <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Logos & Identité</h3>
                             <div className="space-y-6">
-                                {/* Logo Commercial (Site) */}
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2 font-bold text-blue-600">Logo Site (Commercial)</Label>
                                     <div className="col-span-3 space-y-2">
@@ -190,7 +188,6 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                                     </div>
                                 </div>
 
-                                {/* Logo Documents (PI/Invoice) */}
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2 font-bold text-primary">Logo Documents (PI/Inv)</Label>
                                     <div className="col-span-3 space-y-2">
@@ -209,7 +206,6 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                                     </div>
                                 </div>
 
-                                {/* Logo Admin (Sidebar) */}
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label className="text-right pt-2 font-bold text-zinc-600">Logo Admin (Espace)</Label>
                                     <div className="col-span-3 space-y-2">
