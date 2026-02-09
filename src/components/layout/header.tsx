@@ -113,10 +113,10 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4 md:gap-8 flex-1">
+        <div className="flex items-center gap-4 flex-1">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {logoUrl ? (
-                  <div className="relative h-8 w-24 sm:h-10 sm:w-32 md:h-12 md:w-40">
+                  <div className="relative h-10 w-32 md:h-14 md:w-44">
                     <Image 
                       src={logoUrl} 
                       alt="Logo" 
@@ -131,7 +131,7 @@ export function Header() {
                 )}
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
+            <nav className="hidden lg:flex items-center gap-4 xl:gap-6 ml-2">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
