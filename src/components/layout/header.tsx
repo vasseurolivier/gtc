@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Menu, ChevronDown, UserCircle } from 'lucide-react';
@@ -91,14 +92,14 @@ export function Header() {
     }
 
     return cn(
-      "relative transition-all duration-300 font-headline font-bold text-[11px] uppercase tracking-[0.15em] text-white/80 hover:text-white",
+      "relative transition-all duration-300 font-headline font-bold text-[10px] uppercase tracking-[0.1em] text-white/80 hover:text-white whitespace-nowrap",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
       isActive ? "text-primary after:w-full" : ""
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[11px] uppercase tracking-[0.15em] text-white/80 hover:text-white",
+    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[10px] uppercase tracking-[0.1em] text-white/80 hover:text-white whitespace-nowrap",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     pathname.startsWith('/services')
       ? "text-primary after:w-full"
@@ -112,24 +113,25 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex flex-1 items-center">
-            {/* Logo area - No right margin to keep links close */}
-            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0 mr-6">
+        <div className="flex items-center gap-4 md:gap-8 flex-1">
+            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {logoUrl ? (
-                  <img 
-                    src={logoUrl} 
-                    alt="Logo" 
-                    className="h-10 sm:h-12 w-auto object-contain object-left" 
-                    loading="eager"
-                    decoding="async"
-                  />
+                  <div className="relative h-8 w-24 sm:h-10 sm:w-32 md:h-12 md:w-40">
+                    <Image 
+                      src={logoUrl} 
+                      alt="Logo" 
+                      fill
+                      className="object-contain object-left" 
+                      priority
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}
             </Link>
 
-            {/* Navigation - Gap reduced to keep links tight to the logo */}
-            <nav className="hidden lg:flex items-center space-x-6">
+            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
@@ -168,7 +170,7 @@ export function Header() {
             </nav>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
             <Button 
               variant="outline" 
               className={cn(

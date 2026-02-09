@@ -40,9 +40,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const ratio = canvas.width / canvas.height;
         let imgWidth = pdfWidth;
         let imgHeight = imgWidth / ratio;
         let heightLeft = imgHeight;
@@ -97,7 +95,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
                         <div>
-                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" crossOrigin="anonymous" />}
+                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
                             <h1 className="text-lg font-black text-black uppercase">FACTURE</h1>
@@ -143,7 +141,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                         <td className="p-1 border text-center">
                                             <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                 {displayImage ? (
-                                                    <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" crossOrigin="anonymous" />
+                                                    <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                                 ) : (
                                                     <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
                                                         <Package className="h-4 w-4" />
