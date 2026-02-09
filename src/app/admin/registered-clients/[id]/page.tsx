@@ -57,14 +57,7 @@ export default function ClientDetailPage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
 
-  const [isCalcOpen, setIsCalcOpen] = useState(false);
-  const [calcWeight, setCalcWeight] = useState(0);
-  const [calcRate, setCalcRate] = useState(0);
-  const [calcFixed, setCalcFixed] = useState(0);
-  const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
-
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
-  
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
 
@@ -95,7 +88,7 @@ export default function ClientDetailPage() {
       }
     }
     fetchData();
-  }, [clientId, db]);
+  }, [clientId]);
 
   const handleUpdateCredentials = async () => {
     if (!loginEmail) {

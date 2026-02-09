@@ -42,7 +42,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
-  const logoUrl = companyInfoContext?.companyInfo.logoCommercial || companyInfoContext?.companyInfo.logoAdmin || '';
+  const logoUrl = companyInfoContext?.companyInfo.logoCommercial || '';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useUser();
 
@@ -112,21 +112,24 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex flex-1 items-center gap-4">
-            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
-                {mounted && logoUrl ? (
-                <div className="relative h-12 w-auto flex items-center">
+        <div className="flex flex-1 items-center">
+            {/* Logo area - No right margin to keep links close */}
+            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0 mr-6">
+                {logoUrl ? (
                   <img 
                     src={logoUrl} 
                     alt="Logo" 
                     className="h-10 sm:h-12 w-auto object-contain object-left" 
+                    loading="eager"
+                    decoding="async"
                   />
-                </div>
                 ) : (
-                <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
+                  <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
                 )}
             </Link>
-             <nav className="hidden lg:flex items-center space-x-6 ml-4">
+
+            {/* Navigation - Gap reduced to keep links tight to the logo */}
+            <nav className="hidden lg:flex items-center space-x-6">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
