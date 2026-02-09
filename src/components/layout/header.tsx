@@ -113,13 +113,13 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-6">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {logoUrl ? (
-                  <div className="relative h-10 w-24 md:h-14 md:w-36">
+                  <div className="relative h-10 w-24 md:h-12 md:w-32">
                     <Image 
                       src={logoUrl} 
-                      alt="Logo Commercial" 
+                      alt="Logo" 
                       fill
                       className="object-contain object-left" 
                       priority
@@ -131,7 +131,7 @@ export function Header() {
                 )}
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-4 xl:gap-6 ml-2">
+            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
@@ -170,6 +170,8 @@ export function Header() {
             </nav>
         </div>
         
+        <div className="flex-1" />
+
         <div className="flex items-center gap-4 shrink-0">
             <Button 
               variant="outline" 

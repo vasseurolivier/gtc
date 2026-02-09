@@ -263,7 +263,7 @@ export default function ClientOrdersPage() {
       </Tabs>
 
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" /> Détails Commande {selectedOrderPreview?.orderNumber}
@@ -279,13 +279,29 @@ export default function ClientOrdersPage() {
                 <h4 className="font-bold flex items-center gap-2"><Package className="h-4 w-4 text-zinc-400" /> Articles</h4>
                 <div className="border rounded-xl overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-zinc-50"><TableRow><TableHead>Description</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead className="w-16">Photo</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
                     <TableBody>
                       {selectedOrderPreview.items?.map((item: any, idx: number) => (
                         <TableRow key={idx}>
                           <TableCell className="py-2">
+                            <div className="w-10 h-10 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
+                              {item.photo ? (
+                                <img src={item.photo} alt="Produit" className="w-full h-full object-contain" />
+                              ) : (
+                                <Package className="h-4 w-4 text-zinc-300" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2">
                             <div className="font-medium text-sm">{item.description}</div>
-                            <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>
+                            {item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
                           <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900")}</TableCell>
@@ -296,7 +312,7 @@ export default function ClientOrdersPage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2"><h4 className="font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-zinc-400" /> Livraison</h4><div className="p-4 bg-white border rounded-xl text-sm min-h-[80px]">{selectedOrderPreview.shippingAddress}</div></div>
+                <div className="space-y-2"><h4 className="font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-zinc-400" /> Livraison</h4><div className="p-4 bg-white border rounded-xl text-sm min-h-[80px] whitespace-pre-wrap">{selectedOrderPreview.shippingAddress}</div></div>
                 <div className="space-y-2"><h4 className="font-bold flex items-center gap-2"><CreditCard className="h-4 w-4 text-zinc-400" /> Paiement</h4><div className="p-4 bg-white border rounded-xl flex items-center gap-3">{getPaymentStatusBadge(selectedOrderPreview.paymentStatus)}</div></div>
               </div>
             </div>
