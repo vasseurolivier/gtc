@@ -12,15 +12,24 @@ import {
   deleteClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { 
+  updateOrderStatus, 
+  updateOrderPaymentStatus, 
+  updateOrderTransportCost,
+  deleteOrder,
+  Order,
+  PaymentStatus
+} from '@/actions/orders';
+import { updateQuoteStatus, getQuotes, Quote } from '@/actions/quotes';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -41,7 +50,13 @@ import {
   Plus,
   UploadCloud,
   X,
-  Search
+  Search,
+  Calculator,
+  Check,
+  Sparkles,
+  MapPin,
+  CreditCard,
+  ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -49,6 +64,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
 import { getProducts, Product } from '@/actions/products';
+import { cn } from '@/lib/utils';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
@@ -59,6 +75,7 @@ export default function ClientDetailPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const currencyContext = useContext(CurrencyContext);
+  const rate = currencyContext?.exchangeRate || 0.13;
 
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
@@ -71,6 +88,18 @@ export default function ClientDetailPage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
 
+  // States for Orders Management
+  const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
+  const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
+  const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
+  const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
+  const [isCalcOpen, setIsCalcOpen] = useState(false);
+  const [calcWeight, setCalcWeight] = useState(0);
+  const [calcRate, setCalcRate] = useState(0);
+  const [calcFixed, setCalcFixed] = useState(0);
+  const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
+
+  // States for Catalogue
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -109,6 +138,7 @@ export default function ClientDetailPage() {
     fetchData();
   }, [clientId]);
 
+  // Queries
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));
@@ -133,6 +163,57 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
+  useEffect(() => {
+    if (orders) {
+      const inputs: Record<string, string> = {};
+      orders.forEach(o => {
+        inputs[o.id] = (o.transportCost || 0).toString();
+      });
+      setTransportInputs(inputs);
+    }
+  }, [orders]);
+
+  // Order Handlers
+  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+    const result = await updateOrderStatus(orderId, newStatus);
+    if (result.success) toast({ title: 'Statut mis à jour' });
+  };
+
+  const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
+    const result = await updateOrderPaymentStatus(orderId, newStatus);
+    if (result.success) {
+      toast({ title: "Paiement mis à jour" });
+      if (newStatus === 'paid') toast({ title: "Facture générée" });
+    }
+  };
+
+  const handleUpdateTransportCost = async (orderId: string) => {
+    const cost = parseFloat(transportInputs[orderId] || '0');
+    setIsUpdatingTransport(orderId);
+    const result = await updateOrderTransportCost(orderId, cost);
+    setIsUpdatingTransport(null);
+    if (result.success) toast({ title: "Transport mis à jour" });
+  };
+
+  const openCalculator = (order: Order) => {
+    const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
+    setCalcWeight(totalWeight);
+    setCalcTargetId(order.id);
+    setIsCalcOpen(true);
+  };
+
+  const applyCalculatedCost = () => {
+    if (!calcTargetId) return;
+    const total = (calcWeight * calcRate) + calcFixed;
+    setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+    setIsCalcOpen(false);
+  };
+
+  const handleNavigateToQuote = (orderId: string) => {
+    router.push(`/admin/quotes?fromOrder=${orderId}`);
+  };
+
+  // Catalogue Handlers
   const aggregateProducts = async () => {
     if (!db || !clientId || !productLists) return;
     try {
@@ -156,50 +237,6 @@ export default function ClientDetailPage() {
     aggregateProducts();
   }, [db, clientId, productLists]);
 
-  const handleUpdateCredentials = async () => {
-    if (!loginEmail) {
-      toast({ variant: "destructive", title: "Erreur", description: "L'email est requis." });
-      return;
-    }
-    setIsUpdatingCredentials(true);
-    try {
-      const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
-      if (result.success) {
-        toast({ title: "Succès", description: "Accès mis à jour." });
-      } else {
-        toast({ variant: "destructive", title: "Erreur", description: result.message });
-      }
-    } finally {
-      setIsUpdatingCredentials(false);
-    }
-  };
-
-  const handleToggleStatus = async () => {
-    if (!client) return;
-    const newStatus = client.status === 'validated' ? 'pending' : 'validated';
-    const result = await updateRegisteredClientStatus(clientId, newStatus);
-    if (result.success) {
-      setClient({ ...client, status: newStatus } as RegisteredClient);
-      toast({ title: result.message });
-    }
-  };
-
-  const handleDeleteClientActual = async () => {
-    if (!client) return;
-    const result = await deleteRegisteredClient(clientId);
-    if (result.success) {
-      toast({ title: "Supprimé" });
-      router.push('/admin/registered-clients');
-    }
-  };
-
-  const handleUpdateNumber = async () => {
-    setIsSaving(true);
-    const result = await updateRegisteredClientNumber(clientId, clientNumber);
-    if (result.success) toast({ title: "Mis à jour" });
-    setIsSaving(false);
-  };
-
   const handleEditProduct = (product: any) => {
     setEditingProduct({ 
       ...product, 
@@ -214,7 +251,7 @@ export default function ClientDetailPage() {
 
   const handleAddNewProduct = () => {
     if (!productLists || productLists.length === 0) {
-      toast({ variant: "destructive", title: "Liste requise", description: "Le client doit avoir au moins une liste de produits pour ajouter un catalogue." });
+      toast({ variant: "destructive", title: "Liste requise", description: "Veuillez créer une liste de produits pour ce client." });
       return;
     }
     setEditingProduct({
@@ -247,7 +284,6 @@ export default function ClientDetailPage() {
         images: p.imageUrl ? [p.imageUrl] : [],
         weight: p.weight || 0,
       });
-      toast({ title: "Produit importé", description: "Les données du catalogue global ont été chargées." });
     }
   };
 
@@ -262,9 +298,7 @@ export default function ClientDetailPage() {
         formData.append('file', files[i]);
         formData.append('folder', `clients/${clientId}/catalogue`);
         const result = await uploadImage(formData);
-        if (result.success && result.url) {
-          newUrls.push(result.url);
-        }
+        if (result.success && result.url) newUrls.push(result.url);
       }
       setEditingProduct({ ...editingProduct, images: newUrls });
     } finally {
@@ -283,10 +317,9 @@ export default function ClientDetailPage() {
         status: 'published', 
         validatedAt: new Date().toISOString() 
       }, { merge: true });
-      
-      toast({ title: "Catalogue mis à jour" });
       setIsProductDialogOpen(false);
       aggregateProducts();
+      toast({ title: "Catalogue mis à jour" });
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
     } finally {
@@ -294,13 +327,37 @@ export default function ClientDetailPage() {
     }
   };
 
-  const handleDeleteProductActual = async (product: any) => {
-    const listId = product.listId || product.productListId;
-    const result = await deleteClientProduct(clientId, listId, product.id);
-    if (result.success) {
-      toast({ title: "Supprimé" });
-      aggregateProducts();
-    }
+  // Profile Handlers
+  const handleUpdateCredentials = async () => {
+    setIsUpdatingCredentials(true);
+    const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
+    if (result.success) toast({ title: "Identifiants mis à jour" });
+    else toast({ variant: "destructive", title: "Erreur", description: result.message });
+    setIsUpdatingCredentials(false);
+  };
+
+  const handleToggleStatus = async () => {
+    if (!client) return;
+    const newStatus = client.status === 'validated' ? 'pending' : 'validated';
+    const result = await updateRegisteredClientStatus(clientId, newStatus);
+    if (result.success) setClient({ ...client, status: newStatus } as RegisteredClient);
+  };
+
+  const handleUpdateNumber = async () => {
+    setIsSaving(true);
+    const result = await updateRegisteredClientNumber(clientId, clientNumber);
+    if (result.success) toast({ title: "Numéro client sauvé" });
+    setIsSaving(false);
+  };
+
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
+    const priceEur = priceCny * rate;
+    return (
+      <div className="flex flex-col">
+        <div className={mainClass}>€{priceEur.toFixed(2)}</div>
+        <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
+      </div>
+    );
   };
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -310,16 +367,13 @@ export default function ClientDetailPage() {
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild><Link href="/admin/registered-clients"><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Link></Button>
         <div className="flex items-center gap-3">
-          {client?.status === 'validated' ? <Badge className="bg-green-500">Validé</Badge> : <Badge variant="outline">En attente</Badge>}
+          {client?.status === 'validated' ? <Badge className="bg-green-500">Compte Validé</Badge> : <Badge variant="outline">En attente de validation</Badge>}
           <Button size="sm" variant="outline" onClick={handleToggleStatus}>{client?.status === 'validated' ? 'Suspendre' : 'Valider'}</Button>
           <AlertDialog>
-            <AlertDialogTrigger asChild><Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</Button></AlertDialogTrigger>
+            <AlertDialogTrigger asChild><Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-2" /> Supprimer Compte</Button></AlertDialogTrigger>
             <AlertDialogContent>
-              <AlertDialogHeader><AlertDialogTitle>Supprimer le compte ?</AlertDialogTitle></AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteClientActual}>Confirmer</AlertDialogAction>
-              </AlertDialogFooter>
+              <AlertDialogHeader><AlertDialogTitle>Confirmer la suppression ?</AlertDialogTitle><AlertDialogDescription>Cette action est irréversible et supprimera l'accès du client.</AlertDialogDescription></AlertDialogHeader>
+              <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={async () => { await deleteRegisteredClient(clientId); router.push('/admin/registered-clients'); }}>Supprimer</AlertDialogAction></AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
@@ -328,20 +382,20 @@ export default function ClientDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Profil Client</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Dossier Client</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div><Label>Nom</Label><div className="font-bold">{client?.firstName} {client?.lastName}</div></div>
-              <div><Label>Email</Label><div>{client?.email}</div></div>
+              <div><Label className="text-zinc-400 uppercase text-[10px] font-black">Nom complet</Label><div className="font-bold text-lg">{client?.firstName} {client?.lastName}</div></div>
+              <div><Label className="text-zinc-400 uppercase text-[10px] font-black">Email</Label><div>{client?.email}</div></div>
               <div className="pt-4 border-t space-y-3">
-                <Label>Numéro Client</Label>
-                <div className="flex gap-2"><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} /><Button size="sm" onClick={handleUpdateNumber}><Save className="h-4 w-4" /></Button></div>
+                <Label className="text-zinc-400 uppercase text-[10px] font-black">Numéro Client</Label>
+                <div className="flex gap-2"><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} /><Button size="sm" onClick={handleUpdateNumber} disabled={isSaving}><Save className="h-4 w-4" /></Button></div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="catalogue">
+          <Tabs defaultValue="orders">
             <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start overflow-x-auto">
               <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
               <TabsTrigger value="orders">Commandes</TabsTrigger>
@@ -350,66 +404,86 @@ export default function ClientDetailPage() {
               <TabsTrigger value="security">Sécurité</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="catalogue">
-              <div className="flex justify-end mb-4">
-                <Button onClick={handleAddNewProduct} className="bg-primary hover:bg-primary/90 font-bold">
-                  <Plus className="h-4 w-4 mr-2" /> Ajouter au catalogue
-                </Button>
-              </div>
-              <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[80px]">Photo</TableHead>
-                      <TableHead>Produit</TableHead>
-                      <TableHead>Prix</TableHead>
-                      <TableHead>Options</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {publishedProducts.map(p => (
-                      <TableRow key={p.id}>
-                        <TableCell>
-                          <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
-                            {p.images?.[0] ? <img src={p.images[0]} alt="p" className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-300" />}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col">
-                            <span>{p.name}</span>
-                            <span className="text-[10px] text-zinc-400 font-mono">{p.sku}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>¥{Number(p.price || 0).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            {p.hasSizeSelection && <Badge variant="secondary" className="text-[8px] h-4">TAILLES: {p.availableSizes?.join(', ')}</Badge>}
-                            <Badge variant="outline" className="text-[8px] h-4 uppercase">{p.availability || 'BOTH'}</Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProductActual(p)}><Trash2 className="h-4 w-4" /></Button>
-                        </TableCell>
+            <TabsContent value="orders">
+              <Card className="border-none shadow-md bg-white">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead>Order #</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead className="text-center">Port (CNY)</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {orders?.map(order => {
+                        const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
+                        const isLocked = quotes?.some(q => q.orderId === order.id && (q.status === 'accepted' || q.status === 'paid'));
+                        
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-bold">
+                              <div className="flex items-center gap-2">
+                                {order.orderNumber}
+                                {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" />}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Select onValueChange={(val: any) => handleStatusChange(order.id, val)} defaultValue={order.status}>
+                                <SelectTrigger className="h-8 w-28 text-xs"><Badge variant="outline">{order.status}</Badge></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="processing">Processing</SelectItem>
+                                  <SelectItem value="validated">Validated</SelectItem>
+                                  <SelectItem value="shipped">Shipped</SelectItem>
+                                  <SelectItem value="delivered">Delivered</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {!isLocked ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400" onClick={() => openCalculator(order)}><Calculator className="h-3.5 w-3.5" /></Button>
+                                  <Input type="number" className="w-16 h-7 text-xs text-center" value={transportInputs[order.id] || ''} onChange={e => setTransportInputs({...transportInputs, [order.id]: e.target.value})} />
+                                  <Button size="icon" variant={isTransportDirty ? "default" : "ghost"} className="h-7 w-7" onClick={() => handleUpdateTransportCost(order.id)} disabled={isUpdatingTransport === order.id}>
+                                    {isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                  </Button>
+                                </div>
+                              ) : <span className="font-bold text-xs">¥{order.transportCost?.toFixed(2)}</span>}
+                            </TableCell>
+                            <TableCell className="text-right">{renderPrice(order.totalAmount, "font-black text-zinc-900")}</TableCell>
+                            <TableCell className="text-right space-x-1">
+                              <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                              <Button variant="secondary" size="sm" className="h-8 text-[10px] font-bold" onClick={() => handleNavigateToQuote(order.id)}>
+                                <Sparkles className="h-3 w-3 mr-1" /> {isLocked ? "Gérer PI" : "Générer PI"}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="orders">
+            <TabsContent value="catalogue">
+              <div className="flex justify-end mb-4">
+                <Button onClick={handleAddNewProduct} className="bg-primary hover:bg-primary/90 font-bold"><Plus className="h-4 w-4 mr-2" /> Ajouter manuel</Button>
+              </div>
               <Card>
                 <Table>
-                  <TableHeader><TableRow><TableHead>N°</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead className="w-16">Photo</TableHead><TableHead>Produit</TableHead><TableHead>Prix</TableHead><TableHead>Tailles</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {orders?.map(o => (
-                      <TableRow key={o.id}>
-                        <TableCell className="font-bold">{o.orderNumber}</TableCell>
-                        <TableCell>{o.orderDate ? format(parseSafeDate(o.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
-                        <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
-                        <TableCell className="text-right font-bold">¥{o.totalAmount.toFixed(2)}</TableCell>
+                    {publishedProducts.map(p => (
+                      <TableRow key={p.id}>
+                        <TableCell><div className="w-10 h-10 rounded border overflow-hidden">{p.images?.[0] ? <img src={p.images[0]} className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-200" />}</div></TableCell>
+                        <TableCell className="font-bold"><div className="flex flex-col"><span>{p.name}</span><span className="text-[9px] text-zinc-400 font-mono">{p.sku}</span></div></TableCell>
+                        <TableCell>¥{Number(p.price || 0).toFixed(2)}</TableCell>
+                        <TableCell>{p.hasSizeSelection ? <div className="flex flex-wrap gap-1">{p.availableSizes?.map((s:string) => <Badge key={s} variant="secondary" className="text-[8px] h-4">{s}</Badge>)}</div> : '-'}</TableCell>
+                        <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}><Trash2 className="h-4 w-4" /></Button></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -420,16 +494,15 @@ export default function ClientDetailPage() {
             <TabsContent value="quotes">
               <Card>
                 <Table>
-                  <TableHeader><TableRow><TableHead>N° Proforma</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>N° PI</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {quotes?.map(q => (
                       <TableRow key={q.id}>
                         <TableCell className="font-bold">{q.quoteNumber}</TableCell>
-                        <TableCell>{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
-                        <TableCell><Badge>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button>
-                        </TableCell>
+                        <TableCell className="text-xs">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell><Badge variant="outline">{q.status}</Badge></TableCell>
+                        <TableCell className="text-right font-black">¥{q.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right"><Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -440,16 +513,15 @@ export default function ClientDetailPage() {
             <TabsContent value="invoices">
               <Card>
                 <Table>
-                  <TableHeader><TableRow><TableHead>N° Facture</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>N° INV</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {invoices?.map(i => (
                       <TableRow key={i.id}>
                         <TableCell className="font-bold">{i.invoiceNumber}</TableCell>
-                        <TableCell>{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
-                        <TableCell><Badge variant={i.status === 'paid' ? 'default' : 'destructive'}>{i.status}</Badge></TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button>
-                        </TableCell>
+                        <TableCell className="text-xs">{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell><Badge className={i.status === 'paid' ? 'bg-green-500' : 'bg-red-500'}>{i.status}</Badge></TableCell>
+                        <TableCell className="text-right font-black">¥{i.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right"><Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -460,149 +532,116 @@ export default function ClientDetailPage() {
             <TabsContent value="security">
               <Card><CardContent className="pt-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>Email connexion</Label><Input value={loginEmail} onChange={e => setLoginEmail(e.target.value)} /></div>
+                  <div className="space-y-2"><Label>Email</Label><Input value={loginEmail} onChange={e => setLoginEmail(e.target.value)} /></div>
                   <div className="space-y-2"><Label>Mot de passe</Label><Input value={loginPassword} onChange={e => setLoginPassword(e.target.value)} /></div>
                 </div>
-                <Button onClick={handleUpdateCredentials} disabled={isUpdatingCredentials}>{isUpdatingCredentials ? <Loader2 className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />} Enregistrer</Button>
+                <Button onClick={handleUpdateCredentials} disabled={isUpdatingCredentials}>{isUpdatingCredentials ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />} Enregistrer</Button>
               </CardContent></Card>
             </TabsContent>
           </Tabs>
         </div>
       </div>
 
+      {/* Calculator Dialog */}
+      <Dialog open={isCalcOpen} onOpenChange={setIsCalcOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader><DialogTitle>Calculateur de Transport</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4 text-sm">
+            <div className="space-y-2"><Label>Poids Total (kg)</Label><Input type="number" value={calcWeight} onChange={e => setCalcWeight(parseFloat(e.target.value) || 0)} /></div>
+            <div className="space-y-2"><Label>Tarif par kg (CNY)</Label><Input type="number" value={calcRate} onChange={e => setCalcRate(parseFloat(e.target.value) || 0)} /></div>
+            <div className="space-y-2"><Label>Frais fixes (CNY)</Label><Input type="number" value={calcFixed} onChange={e => setCalcFixed(parseFloat(e.target.value) || 0)} /></div>
+            <div className="pt-4 border-t font-black flex justify-between"><span>TOTAL :</span><span className="text-primary text-lg">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span></div>
+          </div>
+          <DialogFooter><Button onClick={applyCalculatedCost} className="w-full font-bold">Appliquer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order Preview Dialog */}
+      <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><FileText className="text-primary" /> Détail Commande {selectedOrderPreview?.orderNumber}</DialogTitle></DialogHeader>
+          {selectedOrderPreview && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-zinc-50 rounded-xl border">
+                <div><Label className="text-[10px] font-black uppercase text-zinc-400">Client</Label><div className="font-bold">{selectedOrderPreview.customerName}</div></div>
+                <div className="text-right"><Label className="text-[10px] font-black uppercase text-zinc-400">Total Final</Label><div className="text-xl font-black text-primary">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div></div>
+              </div>
+              <Table>
+                <TableHeader className="bg-white"><TableRow><TableHead className="w-16">Photo</TableHead><TableHead>Article</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                    <TableRow key={idx}>
+                      <TableCell><div className="w-10 h-10 border rounded flex items-center justify-center bg-white">{item.photo ? <img src={item.photo} className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-200" />}</div></TableCell>
+                      <TableCell className="font-medium text-sm"><div>{item.description}</div>{item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}</TableCell>
+                      <TableCell className="text-center font-bold">{item.quantity}</TableCell>
+                      <TableCell className="text-right font-black">¥{item.total.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="space-y-2"><Label className="font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Adresse Livraison</Label><div className="p-4 bg-white border rounded-xl text-sm whitespace-pre-wrap">{selectedOrderPreview.shippingAddress}</div></div>
+            </div>
+          )}
+          <DialogFooter><Button variant="outline" className="w-full" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Edit Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Configuration Produit Catalogue</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Édition Catalogue Client</DialogTitle></DialogHeader>
           {editingProduct && (
             <div className="space-y-8">
               <div className="p-4 bg-primary/5 border rounded-2xl flex flex-col sm:flex-row items-center gap-4">
-                <div className="flex items-center gap-2 font-bold text-primary"><Search className="h-5 w-5" /> Importer depuis ma liste :</div>
+                <Label className="font-black text-primary whitespace-nowrap">IMPORTER GLOBAL :</Label>
                 <Select onValueChange={handleImportFromGlobal}>
-                  <SelectTrigger className="flex-grow bg-white"><SelectValue placeholder="Choisir un produit global..." /></SelectTrigger>
-                  <SelectContent>
-                    {globalProducts.map(gp => <SelectItem key={gp.id} value={gp.id}>{gp.name} ({gp.sku})</SelectItem>)}
-                  </SelectContent>
+                  <SelectTrigger className="bg-white"><SelectValue placeholder="Choisir un produit de l'inventaire..." /></SelectTrigger>
+                  <SelectContent>{globalProducts.map(gp => <SelectItem key={gp.id} value={gp.id}>{gp.name} ({gp.sku})</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Nom commercial</Label>
-                    <Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div><Label>Nom Commercial</Label><Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} /></div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Référence SKU</Label>
-                      <Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Liste de destination</Label>
-                      <Select value={editingProduct.listId || editingProduct.productListId} onValueChange={val => setEditingProduct({...editingProduct, listId: val, productListId: val})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {productLists?.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <div><Label>SKU</Label><Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} /></div>
+                    <div><Label>Prix (CNY)</Label><Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} /></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Prix unitaire (CNY)</Label>
-                      <Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>MOQ Personnalisation</Label>
-                      <Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: Number(e.target.value)})} />
-                    </div>
-                  </div>
-                  
                   <div className="space-y-4 pt-4 border-t">
-                    <div className="flex items-center justify-between">
-                      <Label>Activer choix des tailles ?</Label>
-                      <Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} />
-                    </div>
+                    <div className="flex items-center justify-between"><Label>Activer tailles ?</Label><Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} /></div>
                     {editingProduct.hasSizeSelection && (
-                      <div className="space-y-3">
-                        <Label className="text-xs font-bold uppercase text-zinc-400">Tailles disponibles</Label>
-                        <div className="flex flex-wrap gap-4">
-                          {SIZES.map(size => (
-                            <div key={size} className="flex items-center gap-2">
-                              <Checkbox 
-                                id={`size-${size}`} 
-                                checked={editingProduct.availableSizes?.includes(size)}
-                                onCheckedChange={(checked) => {
-                                  const sizes = [...(editingProduct.availableSizes || [])];
-                                  if (checked) {
-                                    if (!sizes.includes(size)) sizes.push(size);
-                                  } else {
-                                    const idx = sizes.indexOf(size);
-                                    if (idx > -1) sizes.splice(idx, 1);
-                                  }
-                                  setEditingProduct({ ...editingProduct, availableSizes: sizes });
-                                }}
-                              />
-                              <Label htmlFor={`size-${size}`} className="font-bold">{size}</Label>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="flex flex-wrap gap-3">
+                        {SIZES.map(s => (
+                          <div key={s} className="flex items-center gap-1.5"><Checkbox id={`sz-${s}`} checked={editingProduct.availableSizes?.includes(s)} onCheckedChange={checked => {
+                            const sizes = [...(editingProduct.availableSizes || [])];
+                            if (checked) { if (!sizes.includes(s)) sizes.push(s); }
+                            else { const i = sizes.indexOf(s); if (i > -1) sizes.splice(i, 1); }
+                            setEditingProduct({...editingProduct, availableSizes: sizes});
+                          }} /><Label htmlFor={`sz-${s}`} className="font-bold text-xs">{s}</Label></div>
+                        ))}
                       </div>
                     )}
-                    <div className="space-y-2">
-                      <Label>Type de vente autorisée</Label>
-                      <Select value={editingProduct.availability || 'both'} onValueChange={val => setEditingProduct({...editingProduct, availability: val})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="standard_only">Standard uniquement</SelectItem>
-                          <SelectItem value="personalized_only">Personnalisé uniquement</SelectItem>
-                          <SelectItem value="both">Les deux (Standard & Perso)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Photos du produit</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {editingProduct.images?.map((url: string, idx: number) => (
-                        <div key={idx} className="relative aspect-square rounded border bg-zinc-50 overflow-hidden group">
-                          <img src={url} alt="p" className="object-contain w-full h-full" />
-                          <button 
-                            onClick={() => {
-                              const newImgs = [...editingProduct.images];
-                              newImgs.splice(idx, 1);
-                              setEditingProduct({ ...editingProduct, images: newImgs });
-                            }}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                      <label className="aspect-square rounded border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 transition-colors">
-                        <UploadCloud className="h-6 w-6 text-zinc-400" />
-                        <span className="text-[8px] font-bold text-zinc-400 mt-1 uppercase">Ajouter</span>
-                        <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} />
-                      </label>
-                    </div>
+                <div className="space-y-4">
+                  <Label>Photos</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {editingProduct.images?.map((url: string, i: number) => (
+                      <div key={i} className="relative aspect-square border rounded bg-zinc-50 group">
+                        <img src={url} className="w-full h-full object-contain" />
+                        <button onClick={() => { const ni = [...editingProduct.images]; ni.splice(i, 1); setEditingProduct({...editingProduct, images: ni}); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100"><X className="h-3 w-3" /></button>
+                      </div>
+                    ))}
+                    <label className="aspect-square border-2 border-dashed rounded flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50">
+                      <UploadCloud className="h-6 w-6 text-zinc-300" /><span className="text-[8px] font-black uppercase mt-1">Upload</span>
+                      <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} />
+                    </label>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Description Technique</Label>
-                    <Textarea rows={8} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} placeholder="Spécifications, matériaux, couleurs..." />
-                  </div>
+                  <div><Label>Description Technique</Label><Textarea rows={6} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} /></div>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-4">
-            <Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Annuler</Button>
-            <Button onClick={handleSaveProduct} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-bold">
-              {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-              Publier au catalogue client
-            </Button>
-          </DialogFooter>
+          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t"><Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Annuler</Button><Button onClick={handleSaveProduct} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-bold">{isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />} Publier au Catalogue</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -99,11 +99,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
     defaultValues: getInitialValues(),
   });
   
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'items',
-  });
-
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
   const watchedValues = form.watch();
 
   useEffect(() => {
@@ -134,82 +130,42 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
   const handleDownloadPdf = async () => {
       const element = document.getElementById('pdf-content');
       if (!element) return;
-  
       const imgs = Array.from(element.getElementsByTagName('img'));
       for (const img of imgs) {
-          const originalSrc = img.src;
-          if (originalSrc && !originalSrc.startsWith('data:')) {
+          const src = img.src;
+          if (src && !src.startsWith('data:')) {
               try {
-                  const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(originalSrc)}`;
-                  const response = await fetch(proxyUrl);
-                  if (!response.ok) throw new Error('Proxy fetch failed');
-                  const blob = await response.blob();
-                  const base64 = await new Promise<string>((resolve) => {
-                      const reader = new FileReader();
-                      reader.onloadend = () => resolve(reader.result as string);
-                      reader.readAsDataURL(blob);
-                  });
-                  img.src = base64;
-                  await new Promise((resolve) => {
-                      if (img.complete) resolve(true);
-                      else img.onload = () => resolve(true);
-                  });
-              } catch (e) {
-                  console.error("PDF Image conversion failed", originalSrc);
-              }
+                  const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(src)}`;
+                  const res = await fetch(proxyUrl);
+                  const blob = await res.blob();
+                  const b64 = await new Promise<string>(r => { const reader = new FileReader(); reader.onloadend = () => r(reader.result as string); reader.readAsDataURL(blob); });
+                  img.src = b64;
+                  await new Promise(r => { if (img.complete) r(1); else img.onload = () => r(1); });
+              } catch (e) {}
           }
       }
-
-      const canvas = await html2canvas(element, { 
-          scale: 2, 
-          useCORS: true,
-          logging: false,
-          allowTaint: true,
-          backgroundColor: '#ffffff'
-      });
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
       const data = canvas.toDataURL('image/png');
-  
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-  
       const ratio = canvas.width / canvas.height;
       let imgWidth = pdfWidth;
       let imgHeight = imgWidth / ratio;
       let heightLeft = imgHeight;
-      let position = 0;
-  
-      pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+      let pos = 0;
+      pdf.addImage(data, 'PNG', 0, pos, imgWidth, imgHeight);
       heightLeft -= pdfHeight;
-  
-      while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pdfHeight;
-      }
-  
+      while (heightLeft > 0) { pos = heightLeft - imgHeight; pdf.addPage(); pdf.addImage(data, 'PNG', 0, pos, imgWidth, imgHeight); heightLeft -= pdfHeight; }
       pdf.save(`contract-${watchedValues.contractNumber}.pdf`);
   };
 
   const onSubmit = async (values: ContractFormValues) => {
     setIsSubmitting(true);
-    const result = editingContract
-        ? await updateSupplierContract(editingContract.id, values)
-        : await addSupplierContract(values);
-    
-    if (result.success) {
-      toast({ title: 'Success', description: result.message });
-      onFinished();
-    } else {
-      toast({ variant: 'destructive', title: 'Error', description: result.message });
-    }
+    const result = editingContract ? await updateSupplierContract(editingContract.id, values) : await addSupplierContract(values);
+    if (result.success) { toast({ title: 'Success' }); onFinished(); }
     setIsSubmitting(false);
   };
-  
-  if (!companyInfoContext || !currencyContext) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
-  }
   
   const totalAmount = watchedValues.items?.reduce((sum, item) => sum + ((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0)), 0) || 0;
   const depositPercentage = Number(watchedValues.depositPercentage) || 0;
@@ -222,134 +178,45 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
           <CardContent className="p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-semibold">Détails Contrat</h3>
-                    <div className="flex gap-2">
-                        <Button type="button" variant="outline" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> PDF</Button>
-                        <Button type="submit" disabled={isSubmitting}><Save className="mr-2 h-4 w-4" /> Sauver</Button>
-                    </div>
+                <div className="flex justify-between items-center"><h3 className="text-xl font-semibold">Contrat</h3><div className="flex gap-2"><Button type="button" variant="outline" onClick={handleDownloadPdf}><Printer className="h-4 w-4" /></Button><Button type="submit" disabled={isSubmitting}><Save className="h-4 w-4" /></Button></div></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
+                  <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl></FormItem> )} />
+                </div>
+                <div className="space-y-2">
+                    <Label>Fournisseur</Label>
+                    <Select onValueChange={handleSupplierSelect}><SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger><SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent></Select>
+                    <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Nom" {...field} /></FormControl></FormItem> )} />
+                    <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse" {...field} rows={2} /></FormControl></FormItem> )} />
                 </div>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                    <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl></FormItem> )} />
-                  </div>
+                    <Label>Articles</Label>
+                    {fields.map((field, index) => (
+                      <Card key={field.id} className="p-2 relative"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                        <div className="space-y-2">
+                            <Select onValueChange={(v) => handleProductSelect(v, index)}><SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Produit" /></SelectTrigger><SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}</SelectContent></Select>
+                            <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Input className="h-8 text-xs" {...f} /></FormControl></FormItem> )} />
+                            <div className="grid grid-cols-2 gap-2"><FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormControl><Input type="number" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} /><FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} /></div>
+                        </div>
+                      </Card>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' })}>+ Article</Button>
                 </div>
-                <Separator />
-                <div className="space-y-4">
-                    <FormLabel>Fournisseur</Label>
-                    <Select onValueChange={handleSupplierSelect}>
-                        <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
-                        <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
-                    </Select>
-                    <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Nom Usine" {...field} /></FormControl></FormItem> )} />
-                    <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse Usine" {...field} rows={2} /></FormControl></FormItem> )} />
-                </div>
-                 <Separator />
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Articles</h3>
-                    <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                        {fields.map((field, index) => (
-                          <Card key={field.id} className="p-2 relative">
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                            <div className="space-y-2">
-                                <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Lier produit" /></SelectTrigger>
-                                    <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}</SelectContent>
-                                </Select>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Input className="h-8 text-xs" placeholder="Description" {...f} /></FormControl></FormItem> )} />
-                                <div className="grid grid-cols-2 gap-2">
-                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormControl><Input type="number" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} />
-                                </div>
-                            </div>
-                          </Card>
-                        ))}
-                    </div>
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' })}>+ Ajouter ligne</Button>
-                  </div>
               </form>
             </Form>
           </CardContent>
         </Card>
-
         <div className="lg:col-span-2">
             <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12 text-[10px]">
                 <div className="flex-grow">
-                    <header className="flex justify-between items-start pb-2 border-b">
-                      <div>{companyInfoContext.companyInfo.logoDocument && <img src={companyInfoContext.companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div>
-                      <div className="text-right">
-                        <h1 className="text-[14px] font-bold text-primary leading-tight uppercase">Purchase Contract</h1>
-                        <p className="text-[10px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>
-                        <p className="text-[10px] text-muted-foreground">Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p>
-                      </div>
-                    </header>
-
-                    <section className="grid grid-cols-2 gap-8 my-4 text-[10px]">
-                      <div>
-                        <h2 className="font-bold border-b mb-2 uppercase text-zinc-400">The Buyer:</h2>
-                        <p className="font-bold text-zinc-900">{watchedValues.buyerName}</p>
-                        <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.buyerAddress}</p>
-                      </div>
-                      <div>
-                        <h2 className="font-bold border-b mb-2 uppercase text-zinc-400">The Seller:</h2>
-                        <p className="font-bold text-zinc-900">{watchedValues.supplierName}</p>
-                        <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.supplierAddress}</p>
-                      </div>
-                    </section>
-
-                    <section>
-                        <h2 className="font-bold text-center mb-2 text-[11px] uppercase tracking-widest border-y py-1">1. COMMODITY</h2>
-                        <table className="w-full text-[10px] border-collapse">
-                            <thead>
-                                <tr className="bg-zinc-100 text-zinc-900">
-                                    <th className="p-2 border text-left w-12">Photo</th>
-                                    <th className="p-2 border text-left">Description</th>
-                                    <th className="p-2 border text-right w-10">Qty</th>
-                                    <th className="p-2 border text-right w-24">Unit (CNY)</th>
-                                    <th className="p-2 border text-right w-28">Total (CNY)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {watchedValues.items?.map((item, index) => (
-                                    <tr key={index}>
-                                        <td className="p-1 border text-center">{item.photo && <img src={item.photo} alt="p" className="w-10 h-10 object-contain mx-auto"/>}</td>
-                                        <td className="p-2 border font-medium leading-tight">{item.description}</td>
-                                        <td className="p-2 border text-right">{item.quantity}</td>
-                                        <td className="p-2 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td>
-                                        <td className="p-2 border text-right font-bold">¥{(Number(item.quantity || 0) * Number(item.unitPrice || 0)).toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <div className="flex justify-end mt-2">
-                            <div className="w-1/2 flex justify-between font-black text-[11px] border-t-2 border-zinc-900 pt-1">
-                                <span>TOTAL CONTRACT VALUE:</span>
-                                <span>¥{totalAmount.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </section>
-                    
-                    <section className="mt-4 space-y-1 text-[10px]">
-                        <h2 className="font-bold text-center mb-2 uppercase tracking-widest border-y py-1">2. TERMS</h2>
-                        <p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p>
-                        <p><strong>- Payment:</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
-                        <p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p>
-                        {watchedValues.specificClauses && <p><strong>- Clauses:</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
-                    </section>
-                    
-                    <section className="mt-12 text-[10px]">
-                      <div className="grid grid-cols-2 gap-16">
-                          <div className="pt-6 border-t border-zinc-200">
-                              <p className="font-bold uppercase mb-1">The Buyer Signature</p>
-                              <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
-                          </div>
-                          <div className="pt-6 border-t border-zinc-200">
-                              <p className="font-bold uppercase mb-1">The Seller Signature</p>
-                              <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
-                          </div>
-                      </div>
-                    </section>
+                    <header className="flex justify-between items-start pb-2 border-b"><div>{companyInfoContext.companyInfo.logoDocument && <img src={companyInfoContext.companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div><div className="text-right"><h1 className="text-[14px] font-bold text-primary uppercase">Purchase Contract</h1><p>No.: {watchedValues.contractNumber}</p><p>Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p></div></header>
+                    <div className="grid grid-cols-2 gap-8 my-4"><div><h2 className="font-bold border-b mb-2 uppercase text-zinc-400">Buyer:</h2><p className="font-bold">{watchedValues.buyerName}</p><p className="text-zinc-500">{watchedValues.buyerAddress}</p></div><div><h2 className="font-bold border-b mb-2 uppercase text-zinc-400">Seller:</h2><p className="font-bold">{watchedValues.supplierName}</p><p className="text-zinc-500">{watchedValues.supplierAddress}</p></div></div>
+                    <table className="w-full border-collapse"><thead><tr className="bg-zinc-100 text-zinc-900"><th className="p-2 border text-left w-12">Photo</th><th className="p-2 border text-left">Description</th><th className="p-2 border text-right">Qty</th><th className="p-2 border text-right">Unit (CNY)</th><th className="p-2 border text-right">Total (CNY)</th></tr></thead><tbody>
+                        {watchedValues.items?.map((item, index) => (<tr key={index}><td className="p-1 border text-center">{item.photo && <img src={item.photo} className="w-10 h-10 object-contain mx-auto"/>}</td><td className="p-2 border leading-tight">{item.description}</td><td className="p-2 border text-right">{item.quantity}</td><td className="p-2 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td><td className="p-2 border text-right font-bold">¥{(Number(item.quantity || 0) * Number(item.unitPrice || 0)).toFixed(2)}</td></tr>))}
+                    </tbody></table>
+                    <div className="flex justify-end mt-2"><div className="w-1/2 flex justify-between font-black border-t-2 border-zinc-900 pt-1"><span>TOTAL VALUE:</span><span>¥{totalAmount.toFixed(2)}</span></div></div>
+                    <div className="mt-4 space-y-1"><h2 className="font-bold text-center border-y py-1 uppercase tracking-widest">Terms</h2><p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p><p><strong>- Payment:</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p><p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p></div>
+                    <div className="mt-12 grid grid-cols-2 gap-16"><div className="pt-6 border-t"><p className="font-bold uppercase">Buyer Signature</p></div><div className="pt-6 border-t"><p className="font-bold uppercase">Seller Signature</p></div></div>
                 </div>
                 <PrintFooter />
             </div>
@@ -362,65 +229,15 @@ function History({ onEdit, refreshKey }: { onEdit: (contract: SupplierContract) 
   const [contracts, setContracts] = useState<SupplierContract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    async function fetchContracts() {
-      setIsLoading(true);
-      try {
-        const data = await getSupplierContracts();
-        setContracts(data);
-      } catch (error) {
-        console.error("Failed to fetch contracts", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchContracts();
-  }, [refreshKey]);
-  
-  const handleDelete = async (id: string) => {
-    const result = await deleteSupplierContract(id);
-    if (result.success) {
-      toast({ title: 'Success', description: result.message });
-      setContracts(prev => prev.filter(c => c.id !== id));
-    }
-  };
-
-  if (isLoading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
-
+  useEffect(() => { async function fetch() { setIsLoading(true); try { const data = await getSupplierContracts(); setContracts(data); } finally { setIsLoading(false); } } fetch(); }, [refreshKey]);
   return (
-    <Card>
-      <CardContent className="p-0">
-        {contracts.length === 0 ? (
-          <div className="text-center p-16 text-muted-foreground"><p>Aucun contrat enregistré.</p></div>
-        ) : (
-          <Table>
-            <TableHeader><TableRow><TableHead>Contract #</TableHead><TableHead>Date</TableHead><TableHead>Supplier</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {contracts.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.contractNumber}</TableCell>
-                  <TableCell>{format(new Date(c.date), 'dd MMM yyyy')}</TableCell>
-                  <TableCell>{c.supplierName}</TableCell>
-                  <TableCell className="text-right font-bold">¥{c.totalAmount.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader><AlertDialogTitle>Supprimer le contrat ?</AlertDialogTitle></AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(c.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <Card><CardContent className="p-0">
+        {contracts.length === 0 ? <div className="text-center p-16 text-muted-foreground">Aucun contrat.</div> : (
+          <Table><TableHeader><TableRow><TableHead>Contract #</TableHead><TableHead>Date</TableHead><TableHead>Supplier</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>
+              {contracts.map((c) => (<TableRow key={c.id}><TableCell className="font-medium">{c.contractNumber}</TableCell><TableCell>{format(new Date(c.date), 'dd MMM yyyy')}</TableCell><TableCell>{c.supplierName}</TableCell><TableCell className="text-right font-bold">¥{c.totalAmount.toFixed(2)}</TableCell><TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => onEdit(c)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteSupplierContract(c.id); setContracts(contracts.filter(ct => ct.id !== c.id)); }}><Trash2 className="h-4 w-4" /></Button></TableCell></TableRow>))}
+          </TableBody></Table>
         )}
-      </CardContent>
-    </Card>
+    </CardContent></Card>
   );
 }
 
@@ -430,41 +247,11 @@ export default function SupplierContractPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [products, setProducts] = useState<Product[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-
-  useEffect(() => {
-    async function fetchData() {
-        const [p, s] = await Promise.all([getProducts(), getSuppliers()]);
-        setProducts(p);
-        setSuppliers(s);
-    }
-    fetchData();
-  }, []);
-
+  useEffect(() => { async function fetchData() { const [p, s] = await Promise.all([getProducts(), getSuppliers()]); setProducts(p); setSuppliers(s); } fetchData(); }, []);
   return (
     <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Supplier Contract</h1>
-        <Button variant={view === 'history' ? 'default' : 'outline'} onClick={() => { setEditingContract(null); setView(view === 'history' ? 'form' : 'history'); }}>
-          {view === 'history' ? <PlusCircle className="mr-2 h-4 w-4" /> : <ArrowLeftIcon className="mr-2 h-4 w-4" />}
-          {view === 'history' ? 'Nouveau Contrat' : 'Retour à la liste'}
-        </Button>
-      </div>
-      {view === 'form' ? (
-        <ContractGenerator 
-            editingContract={editingContract} 
-            onFinished={() => { setView('history'); setRefreshKey(k => k + 1); }} 
-            products={products}
-            suppliers={suppliers}
-        />
-      ) : (
-        <History onEdit={(c) => { setEditingContract(c); setView('form'); }} refreshKey={refreshKey} />
-      )}
+      <div className="flex justify-between items-center mb-8"><h1 className="text-3xl font-bold">Supplier Contract</h1><Button variant={view === 'history' ? 'default' : 'outline'} onClick={() => { setEditingContract(null); setView(view === 'history' ? 'form' : 'history'); }}>{view === 'history' ? <PlusCircle className="mr-2 h-4 w-4" /> : <ArrowLeft className="mr-2 h-4 w-4" />}{view === 'history' ? 'Nouveau Contrat' : 'Retour'}</Button></div>
+      {view === 'form' ? (<ContractGenerator editingContract={editingContract} onFinished={() => { setView('history'); setRefreshKey(k => k + 1); }} products={products} suppliers={suppliers} />) : (<History onEdit={(c) => { setEditingContract(c); setView('form'); }} refreshKey={refreshKey} />)}
     </div>
   );
-}
-
-function ArrowLeftIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-  )
 }
