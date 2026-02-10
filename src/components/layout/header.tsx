@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Menu, ChevronDown, UserCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -60,7 +60,6 @@ export function Header() {
     return null;
   }
 
-  // Robust logo recovery with fallbacks
   const logoUrl = companyInfoContext?.companyInfo?.logoCommercial || 
                   companyInfoContext?.companyInfo?.logoDocument || 
                   companyInfoContext?.companyInfo?.logoAdmin || 
@@ -108,6 +107,7 @@ export function Header() {
                 alt="Logo" 
                 width={180}
                 height={56}
+                key={logoUrl}
                 className="h-14 w-auto object-contain" 
                 priority
                 unoptimized

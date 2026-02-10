@@ -12,7 +12,7 @@ import {
   deleteClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
 
-const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL'];
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -498,8 +498,9 @@ export default function ClientDetailPage() {
                               checked={editingProduct.availableSizes?.includes(size)}
                               onCheckedChange={(checked) => {
                                 const sizes = [...(editingProduct.availableSizes || [])];
-                                if (checked) sizes.push(size);
-                                else {
+                                if (checked) {
+                                  if (!sizes.includes(size)) sizes.push(size);
+                                } else {
                                   const idx = sizes.indexOf(size);
                                   if (idx > -1) sizes.splice(idx, 1);
                                 }
