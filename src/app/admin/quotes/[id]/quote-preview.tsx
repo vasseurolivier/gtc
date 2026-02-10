@@ -32,13 +32,16 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // NEW ROBUST BASE64 CONVERSION TO ENSURE IMAGES APPEAR IN PDF
+        // Bypassing CORS with a proxy API before generating the PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
             if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
-                    const response = await fetch(originalSrc);
+                    // We use our internal proxy to fetch and convert the image
+                    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(originalSrc)}`;
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error('Proxy fetch failed');
                     const blob = await response.blob();
                     const base64 = await new Promise<string>((resolve) => {
                         const reader = new FileReader();
@@ -47,7 +50,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     });
                     img.src = base64;
                 } catch (e) {
-                    console.error("PDF Image conversion failed", originalSrc);
+                    console.error("PDF Image conversion failed", originalSrc, e);
                 }
             }
         });

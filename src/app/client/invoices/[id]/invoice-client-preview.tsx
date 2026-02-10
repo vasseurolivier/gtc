@@ -44,13 +44,15 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         const element = document.getElementById('pdf-content');
         if (!element) return;
         
-        // NEW ROBUST BASE64 CONVERSION TO ENSURE IMAGES APPEAR IN PDF
+        // Proxy Relay for images to avoid CORS failures in PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
             if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
-                    const response = await fetch(originalSrc);
+                    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(originalSrc)}`;
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error('Proxy fetch failed');
                     const blob = await response.blob();
                     const base64 = await new Promise<string>((resolve) => {
                         const reader = new FileReader();
@@ -59,7 +61,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                     });
                     img.src = base64;
                 } catch (e) {
-                    console.error("PDF Image conversion failed", originalSrc);
+                    console.error("PDF Image conversion failed", originalSrc, e);
                 }
             }
         });
@@ -122,6 +124,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
 
+    // Full Beneficiary Name for bank reliability
     const beneficiaryName = "Yiwu Huanqiu Trading Co., Ltd.";
     
     return (
