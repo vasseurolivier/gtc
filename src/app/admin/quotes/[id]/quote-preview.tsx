@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -9,7 +8,7 @@ import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
-import jsPDF from 'jsPDF';
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils"
 
@@ -21,9 +20,9 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Force convert images to Base64 to ensure they are captured by canvas without CORS issues
-        const imgs = element.getElementsByTagName('img');
-        const fetchPromises = Array.from(imgs).map(async (img) => {
+        // NEW METHOD: Convert images to Base64 manually before capture to avoid CORS disappearances
+        const imgs = Array.from(element.getElementsByTagName('img'));
+        const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
                 try {
                     const response = await fetch(img.src);
