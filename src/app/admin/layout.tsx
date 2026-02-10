@@ -89,7 +89,7 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
             setLogoCommercial(info.logoCommercial || '');
             setBrochureUrl(info.brochureUrl || '');
         }
-    }, [isDialogOpen, currencyContext, companyInfoContext]);
+    }, [isDialogOpen, companyInfoContext, currencyContext]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'admin' | 'doc' | 'comm' | 'brochure') => {
         const file = e.target.files?.[0];
@@ -198,7 +198,7 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                                             </div>
                                             <div className="flex-grow space-y-1">
                                                 <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'doc')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL..." value={logoDocument} onChange={(e) => setLogoDocument(e.target.value)} className="h-8 text-xs" />
+                                                <Input placeholder="URL..." value={logoDocument} onChange={(e) => logoDocument ? setLogoDocument(e.target.value) : undefined} className="h-8 text-xs" />
                                             </div>
                                         </div>
                                         <p className="text-[10px] text-muted-foreground">Logo affiché sur les Proformas et Factures.</p>

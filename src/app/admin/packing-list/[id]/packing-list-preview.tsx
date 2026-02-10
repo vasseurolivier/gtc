@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useContext } from 'react';
 import { format } from 'date-fns';
-import jsPDF from 'jspdf';
+import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
 
 import type { PackingList } from '@/actions/packing-lists';
@@ -21,15 +20,39 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
+        // Force convert images to Base64 to bypass CORS during capture
+        const imgs = Array.from(element.getElementsByTagName('img'));
+        const fetchPromises = imgs.map(async (img) => {
+            if (img.src && !img.src.startsWith('data:')) {
+                try {
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            img.src = reader.result as string;
+                            resolve(true);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("PDF Image Convert Error:", e);
+                }
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,
             logging: false,
-            allowTaint: true
+            allowTaint: true,
+            backgroundColor: '#ffffff'
         });
         const data = canvas.toDataURL('image/png');
 
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jspdf('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
 
