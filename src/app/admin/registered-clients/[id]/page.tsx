@@ -32,12 +32,13 @@ import {
   Package, 
   Save, 
   ShieldCheck,
-  Calculator
+  FileText,
+  Receipt,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getProducts, Product } from '@/actions/products';
 import { CurrencyContext } from '@/context/currency-context';
 
 export default function ClientDetailPage() {
@@ -108,6 +109,19 @@ export default function ClientDetailPage() {
     }
   };
 
+  // Documents Queries
+  const quotesQuery = useMemoFirebase(() => {
+    if (!db || !clientId) return null;
+    return query(collection(db, 'quotes'), where('customerId', '==', clientId));
+  }, [db, clientId]);
+  const { data: quotes } = useCollection(quotesQuery);
+
+  const invoicesQuery = useMemoFirebase(() => {
+    if (!db || !clientId) return null;
+    return query(collection(db, 'invoices'), where('customerId', '==', clientId));
+  }, [db, clientId]);
+  const { data: invoices } = useCollection(invoicesQuery);
+
   const listsQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return collection(db, 'clients', clientId, 'productLists');
@@ -119,11 +133,6 @@ export default function ClientDetailPage() {
     return query(collection(db, 'orders'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
-
-  const activeOrders = useMemo(() => {
-    if (!orders) return [];
-    return orders.filter(o => o.status === 'processing' || o.status === 'validated' || o.status === 'shipped');
-  }, [orders]);
 
   useEffect(() => {
     if (!db || !clientId || !productLists) return;
@@ -199,16 +208,6 @@ export default function ClientDetailPage() {
     if (result.success) toast({ title: "Supprimé" });
   };
 
-  const getOrderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
-      case 'shipped': return <Badge className="bg-blue-500">Expédié</Badge>;
-      case 'processing': return <Badge variant="outline">En cours</Badge>;
-      case 'cancelled': return <Badge variant="destructive">Annulé</Badge>;
-      default: return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
 
   return (
@@ -247,12 +246,72 @@ export default function ClientDetailPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="catalogue">
-            <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6">
-              <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
+          <Tabs defaultValue="orders">
+            <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start overflow-x-auto">
               <TabsTrigger value="orders">Commandes</TabsTrigger>
+              <TabsTrigger value="quotes">Proformas</TabsTrigger>
+              <TabsTrigger value="invoices">Factures</TabsTrigger>
+              <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
               <TabsTrigger value="security">Sécurité</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="orders">
+              <Card>
+                <Table>
+                  <TableHeader><TableRow><TableHead>N°</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {orders?.map(o => (
+                      <TableRow key={o.id}>
+                        <TableCell className="font-bold">{o.orderNumber}</TableCell>
+                        <TableCell>{o.orderDate ? format(parseSafeDate(o.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
+                        <TableCell className="text-right font-bold">¥{o.totalAmount.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="quotes">
+              <Card>
+                <Table>
+                  <TableHeader><TableRow><TableHead>N° Proforma</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {quotes?.map(q => (
+                      <TableRow key={q.id}>
+                        <TableCell className="font-bold">{q.quoteNumber}</TableCell>
+                        <TableCell>{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell><Badge>{q.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="invoices">
+              <Card>
+                <Table>
+                  <TableHeader><TableRow><TableHead>N° Facture</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {invoices?.map(i => (
+                      <TableRow key={i.id}>
+                        <TableCell className="font-bold">{i.invoiceNumber}</TableCell>
+                        <TableCell>{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell><Badge variant={i.status === 'paid' ? 'default' : 'destructive'}>{i.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="catalogue">
               <Card>
@@ -284,24 +343,6 @@ export default function ClientDetailPage() {
                           <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProductActual(p)}><Trash2 className="h-4 w-4" /></Button>
                         </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="orders">
-              <Card>
-                <Table>
-                  <TableHeader><TableRow><TableHead>N°</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {activeOrders.map(o => (
-                      <TableRow key={o.id}>
-                        <TableCell className="font-bold">{o.orderNumber}</TableCell>
-                        <TableCell>{o.orderDate ? format(parseSafeDate(o.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
-                        <TableCell>{getOrderStatusBadge(o.status)}</TableCell>
-                        <TableCell className="text-right font-bold">¥{o.totalAmount.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
