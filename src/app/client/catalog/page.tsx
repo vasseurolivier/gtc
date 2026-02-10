@@ -323,7 +323,6 @@ export default function ClientCatalogPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Options de personnalisation */}
                   {selectedProduct.availability !== 'standard_only' && (
                     <div className="space-y-3">
                       <Label className="font-black text-[10px] uppercase tracking-widest text-zinc-400">Type de commande</Label>
@@ -352,7 +351,6 @@ export default function ClientCatalogPage() {
                     </div>
                   )}
 
-                  {/* Sélection de Taille */}
                   {selectedProduct.hasSizeSelection && selectedProduct.availableSizes?.length > 0 && (
                     <div className="space-y-3">
                       <Label className="font-black text-[10px] uppercase tracking-widest text-zinc-400">Sélectionner la taille</Label>

@@ -236,7 +236,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                 </div>
                 <Separator />
                 <div className="space-y-4">
-                    <FormLabel>Fournisseur</FormLabel>
+                    <FormLabel>Fournisseur</Label>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
                         <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>

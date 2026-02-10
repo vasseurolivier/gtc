@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   getRegisteredClientById, 
@@ -40,13 +40,15 @@ import {
   Eye,
   Plus,
   UploadCloud,
-  X
+  X,
+  Search
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
+import { getProducts, Product } from '@/actions/products';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
@@ -59,6 +61,7 @@ export default function ClientDetailPage() {
   const currencyContext = useContext(CurrencyContext);
 
   const [client, setClient] = useState<RegisteredClient | null>(null);
+  const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -85,13 +88,18 @@ export default function ClientDetailPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const clientData = await getRegisteredClientById(clientId);
+        const [clientData, productsData] = await Promise.all([
+          getRegisteredClientById(clientId),
+          getProducts()
+        ]);
+        
         if (clientData) {
           setClient(clientData);
           setClientNumber(clientData.clientNumber || '');
           setLoginEmail(clientData.email || '');
           setLoginPassword(clientData.password || '');
         }
+        setGlobalProducts(productsData || []);
       } catch (error) {
         console.error("Fetch client error:", error);
       } finally {
@@ -225,6 +233,22 @@ export default function ClientDetailPage() {
       clientId: clientId
     });
     setIsProductDialogOpen(true);
+  };
+
+  const handleImportFromGlobal = (productId: string) => {
+    const p = globalProducts.find(gp => gp.id === productId);
+    if (p && editingProduct) {
+      setEditingProduct({
+        ...editingProduct,
+        name: p.name,
+        sku: p.sku,
+        price: p.price,
+        description: p.description || '',
+        images: p.imageUrl ? [p.imageUrl] : [],
+        weight: p.weight || 0,
+      });
+      toast({ title: "Produit importé", description: "Les données du catalogue global ont été chargées." });
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -450,112 +474,124 @@ export default function ClientDetailPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Configuration Produit Catalogue</DialogTitle></DialogHeader>
           {editingProduct && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Nom commercial</Label>
-                  <Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Référence SKU</Label>
-                    <Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Liste de destination</Label>
-                    <Select value={editingProduct.listId || editingProduct.productListId} onValueChange={val => setEditingProduct({...editingProduct, listId: val, productListId: val})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {productLists?.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Prix unitaire (CNY)</Label>
-                    <Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>MOQ Personnalisation</Label>
-                    <Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: Number(e.target.value)})} />
-                  </div>
-                </div>
-                
-                <div className="space-y-4 pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <Label>Activer choix des tailles ?</Label>
-                    <Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} />
-                  </div>
-                  {editingProduct.hasSizeSelection && (
-                    <div className="space-y-3">
-                      <Label className="text-xs font-bold uppercase text-zinc-400">Tailles disponibles</Label>
-                      <div className="flex flex-wrap gap-4">
-                        {SIZES.map(size => (
-                          <div key={size} className="flex items-center gap-2">
-                            <Checkbox 
-                              id={`size-${size}`} 
-                              checked={editingProduct.availableSizes?.includes(size)}
-                              onCheckedChange={(checked) => {
-                                const sizes = [...(editingProduct.availableSizes || [])];
-                                if (checked) {
-                                  if (!sizes.includes(size)) sizes.push(size);
-                                } else {
-                                  const idx = sizes.indexOf(size);
-                                  if (idx > -1) sizes.splice(idx, 1);
-                                }
-                                setEditingProduct({ ...editingProduct, availableSizes: sizes });
-                              }}
-                            />
-                            <Label htmlFor={`size-${size}`} className="font-bold">{size}</Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label>Type de vente autorisée</Label>
-                    <Select value={editingProduct.availability || 'both'} onValueChange={val => setEditingProduct({...editingProduct, availability: val})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard_only">Standard uniquement</SelectItem>
-                        <SelectItem value="personalized_only">Personnalisé uniquement</SelectItem>
-                        <SelectItem value="both">Les deux (Standard & Perso)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+            <div className="space-y-8">
+              <div className="p-4 bg-primary/5 border rounded-2xl flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center gap-2 font-bold text-primary"><Search className="h-5 w-5" /> Importer depuis ma liste :</div>
+                <Select onValueChange={handleImportFromGlobal}>
+                  <SelectTrigger className="flex-grow bg-white"><SelectValue placeholder="Choisir un produit global..." /></SelectTrigger>
+                  <SelectContent>
+                    {globalProducts.map(gp => <SelectItem key={gp.id} value={gp.id}>{gp.name} ({gp.sku})</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Photos du produit</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {editingProduct.images?.map((url: string, idx: number) => (
-                      <div key={idx} className="relative aspect-square rounded border bg-zinc-50 overflow-hidden group">
-                        <img src={url} alt="p" className="object-contain w-full h-full" />
-                        <button 
-                          onClick={() => {
-                            const newImgs = [...editingProduct.images];
-                            newImgs.splice(idx, 1);
-                            setEditingProduct({ ...editingProduct, images: newImgs });
-                          }}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>Nom commercial</Label>
+                    <Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Référence SKU</Label>
+                      <Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Liste de destination</Label>
+                      <Select value={editingProduct.listId || editingProduct.productListId} onValueChange={val => setEditingProduct({...editingProduct, listId: val, productListId: val})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {productLists?.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Prix unitaire (CNY)</Label>
+                      <Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>MOQ Personnalisation</Label>
+                      <Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: Number(e.target.value)})} />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <Label>Activer choix des tailles ?</Label>
+                      <Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} />
+                    </div>
+                    {editingProduct.hasSizeSelection && (
+                      <div className="space-y-3">
+                        <Label className="text-xs font-bold uppercase text-zinc-400">Tailles disponibles</Label>
+                        <div className="flex flex-wrap gap-4">
+                          {SIZES.map(size => (
+                            <div key={size} className="flex items-center gap-2">
+                              <Checkbox 
+                                id={`size-${size}`} 
+                                checked={editingProduct.availableSizes?.includes(size)}
+                                onCheckedChange={(checked) => {
+                                  const sizes = [...(editingProduct.availableSizes || [])];
+                                  if (checked) {
+                                    if (!sizes.includes(size)) sizes.push(size);
+                                  } else {
+                                    const idx = sizes.indexOf(size);
+                                    if (idx > -1) sizes.splice(idx, 1);
+                                  }
+                                  setEditingProduct({ ...editingProduct, availableSizes: sizes });
+                                }}
+                              />
+                              <Label htmlFor={`size-${size}`} className="font-bold">{size}</Label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
-                    <label className="aspect-square rounded border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 transition-colors">
-                      <UploadCloud className="h-6 w-6 text-zinc-400" />
-                      <span className="text-[8px] font-bold text-zinc-400 mt-1 uppercase">Ajouter</span>
-                      <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} />
-                    </label>
+                    )}
+                    <div className="space-y-2">
+                      <Label>Type de vente autorisée</Label>
+                      <Select value={editingProduct.availability || 'both'} onValueChange={val => setEditingProduct({...editingProduct, availability: val})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard_only">Standard uniquement</SelectItem>
+                          <SelectItem value="personalized_only">Personnalisé uniquement</SelectItem>
+                          <SelectItem value="both">Les deux (Standard & Perso)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Description Technique</Label>
-                  <Textarea rows={8} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} placeholder="Spécifications, matériaux, couleurs..." />
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>Photos du produit</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {editingProduct.images?.map((url: string, idx: number) => (
+                        <div key={idx} className="relative aspect-square rounded border bg-zinc-50 overflow-hidden group">
+                          <img src={url} alt="p" className="object-contain w-full h-full" />
+                          <button 
+                            onClick={() => {
+                              const newImgs = [...editingProduct.images];
+                              newImgs.splice(idx, 1);
+                              setEditingProduct({ ...editingProduct, images: newImgs });
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      <label className="aspect-square rounded border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 transition-colors">
+                        <UploadCloud className="h-6 w-6 text-zinc-400" />
+                        <span className="text-[8px] font-bold text-zinc-400 mt-1 uppercase">Ajouter</span>
+                        <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description Technique</Label>
+                    <Textarea rows={8} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} placeholder="Spécifications, matériaux, couleurs..." />
+                  </div>
                 </div>
               </div>
             </div>
