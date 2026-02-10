@@ -236,7 +236,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                 </div>
                 <Separator />
                 <div className="space-y-4">
-                    <FormLabel>Fournisseur</Label>
+                    <FormLabel>Fournisseur</FormLabel>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
                         <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
@@ -355,4 +355,115 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         </div>
     </div>
   );
+}
+
+function History({ onEdit, refreshKey }: { onEdit: (contract: SupplierContract) => void, refreshKey: number }) {
+  const [contracts, setContracts] = useState<SupplierContract[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function fetchContracts() {
+      setIsLoading(true);
+      try {
+        const data = await getSupplierContracts();
+        setContracts(data);
+      } catch (error) {
+        console.error("Failed to fetch contracts", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchContracts();
+  }, [refreshKey]);
+  
+  const handleDelete = async (id: string) => {
+    const result = await deleteSupplierContract(id);
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      setContracts(prev => prev.filter(c => c.id !== id));
+    }
+  };
+
+  if (isLoading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
+
+  return (
+    <Card>
+      <CardContent className="p-0">
+        {contracts.length === 0 ? (
+          <div className="text-center p-16 text-muted-foreground"><p>Aucun contrat enregistré.</p></div>
+        ) : (
+          <Table>
+            <TableHeader><TableRow><TableHead>Contract #</TableHead><TableHead>Date</TableHead><TableHead>Supplier</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {contracts.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="font-medium">{c.contractNumber}</TableCell>
+                  <TableCell>{format(new Date(c.date), 'dd MMM yyyy')}</TableCell>
+                  <TableCell>{c.supplierName}</TableCell>
+                  <TableCell className="text-right font-bold">¥{c.totalAmount.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(c)}><Pencil className="h-4 w-4" /></Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader><AlertDialogTitle>Supprimer le contrat ?</AlertDialogTitle></AlertDialogHeader>
+                            <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(c.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function SupplierContractPage() {
+  const [view, setView] = useState<'history' | 'form'>('history');
+  const [editingContract, setEditingContract] = useState<SupplierContract | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+        const [p, s] = await Promise.all([getProducts(), getSuppliers()]);
+        setProducts(p);
+        setSuppliers(s);
+    }
+    fetchData();
+  }, []);
+
+  return (
+    <div className="container py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Supplier Contract</h1>
+        <Button variant={view === 'history' ? 'default' : 'outline'} onClick={() => { setEditingContract(null); setView(view === 'history' ? 'form' : 'history'); }}>
+          {view === 'history' ? <PlusCircle className="mr-2 h-4 w-4" /> : <ArrowLeft className="mr-2 h-4 w-4" />}
+          {view === 'history' ? 'Nouveau Contrat' : 'Retour à la liste'}
+        </Button>
+      </div>
+      {view === 'form' ? (
+        <ContractGenerator 
+            editingContract={editingContract} 
+            onFinished={() => { setView('history'); setRefreshKey(k => k + 1); }} 
+            products={products}
+            suppliers={suppliers}
+            onSupplierCreated={() => getSuppliers().then(setSuppliers)}
+        />
+      ) : (
+        <History onEdit={(c) => { setEditingContract(c); setView('form'); }} refreshKey={refreshKey} />
+      )}
+    </div>
+  );
+}
+
+function ArrowLeft(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+  )
 }
