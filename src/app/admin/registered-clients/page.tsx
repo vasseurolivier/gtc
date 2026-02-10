@@ -142,9 +142,9 @@ export default function RegisteredClientsPage() {
   const filteredClients = clients.filter(c => {
     const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
     const email = (c.email || '').toLowerCase();
-    const clientNumber = (c.clientNumber || '').toLowerCase();
+    const clientNum = (c.clientNumber || '').toLowerCase();
     const s = (search || '').toLowerCase();
-    return fullName.includes(s) || email.includes(s) || clientNumber.includes(s);
+    return fullName.includes(s) || email.includes(s) || clientNum.includes(s);
   });
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;

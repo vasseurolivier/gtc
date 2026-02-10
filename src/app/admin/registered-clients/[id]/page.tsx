@@ -50,7 +50,6 @@ import {
   Plus,
   UploadCloud,
   X,
-  Search,
   Calculator,
   Check,
   Sparkles,
@@ -188,9 +187,11 @@ export default function ClientDetailPage() {
   };
 
   const handleUpdateTransportCost = async (orderId: string) => {
-    const cost = parseFloat(transportInputs[orderId] || '0');
+    const costValue = parseFloat(transportInputs[orderId] || '0');
+    if (isNaN(costValue)) return;
+
     setIsUpdatingTransport(orderId);
-    const result = await updateOrderTransportCost(orderId, cost);
+    const result = await updateOrderTransportCost(orderId, costValue);
     setIsUpdatingTransport(null);
     if (result.success) toast({ title: "Transport mis à jour" });
   };
@@ -207,6 +208,7 @@ export default function ClientDetailPage() {
     const total = (calcWeight * calcRate) + calcFixed;
     setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
     setIsCalcOpen(false);
+    toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône (V) pour enregistrer." });
   };
 
   const handleNavigateToQuote = (orderId: string) => {
@@ -413,6 +415,7 @@ export default function ClientDetailPage() {
                         <TableHead>Order #</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead className="text-center">Port (CNY)</TableHead>
+                        <TableHead className="text-center">Paiement</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -452,6 +455,18 @@ export default function ClientDetailPage() {
                                   </Button>
                                 </div>
                               ) : <span className="font-bold text-xs">¥{order.transportCost?.toFixed(2)}</span>}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Select onValueChange={(val: PaymentStatus) => handlePaymentStatusChange(order.id, val)} defaultValue={order.paymentStatus}>
+                                <SelectTrigger className="h-8 w-32 text-[10px] font-bold">
+                                  {order.paymentStatus === 'paid' ? <Badge className="bg-green-500 text-[8px]">PAYÉ</Badge> : order.paymentStatus === 'deposit_paid' ? <Badge variant="outline" className="text-blue-600 text-[8px]">ACOMPTE</Badge> : <Badge variant="outline" className="text-zinc-400 text-[8px]">NON PAYÉ</Badge>}
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="unpaid">Non payé</SelectItem>
+                                  <SelectItem value="deposit_paid">Acompte payé</SelectItem>
+                                  <SelectItem value="paid">Total payé</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </TableCell>
                             <TableCell className="text-right">{renderPrice(order.totalAmount, "font-black text-zinc-900")}</TableCell>
                             <TableCell className="text-right space-x-1">

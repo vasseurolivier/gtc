@@ -1,14 +1,13 @@
 
 'use client';
 
-import { useEffect, useState, useContext, Suspense } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 import Link from 'next/link';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -18,12 +17,10 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle, Trash2, Printer, UploadCloud, Save, Eye, Pencil } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Printer, Save, Eye, Pencil, ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { PrintFooter } from '@/components/layout/print-footer';
 
@@ -65,7 +62,6 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
-  const currencyContext = useContext(CurrencyContext);
   
   const getInitialValues = () => {
     if (editingContract) {
@@ -168,8 +164,8 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
   };
   
   const totalAmount = watchedValues.items?.reduce((sum, item) => sum + ((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0)), 0) || 0;
-  const depositPercentage = Number(watchedValues.depositPercentage) || 0;
-  const depositAmount = totalAmount * (depositPercentage / 100);
+  const depPercentage = Number(watchedValues.depositPercentage) || 0;
+  const depositAmount = totalAmount * (depPercentage / 100);
   const balanceAmount = totalAmount - depositAmount;
 
   return (
@@ -185,7 +181,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                 </div>
                 <div className="space-y-2">
                     <Label>Fournisseur</Label>
-                    <Select onValueChange={handleSupplierSelect}><SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger><SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent></Select>
+                    <Select onValueChange={handleSupplierSelect}><SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger><SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent></Select>
                     <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Nom" {...field} /></FormControl></FormItem> )} />
                     <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse" {...field} rows={2} /></FormControl></FormItem> )} />
                 </div>
@@ -209,13 +205,13 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
         <div className="lg:col-span-2">
             <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12 text-[10px]">
                 <div className="flex-grow">
-                    <header className="flex justify-between items-start pb-2 border-b"><div>{companyInfoContext.companyInfo.logoDocument && <img src={companyInfoContext.companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div><div className="text-right"><h1 className="text-[14px] font-bold text-primary uppercase">Purchase Contract</h1><p>No.: {watchedValues.contractNumber}</p><p>Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p></div></header>
+                    <header className="flex justify-between items-start pb-2 border-b"><div>{companyInfoContext?.companyInfo.logoDocument && <img src={companyInfoContext.companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div><div className="text-right"><h1 className="text-[14px] font-bold text-primary uppercase">Purchase Contract</h1><p>No.: {watchedValues.contractNumber}</p><p>Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p></div></header>
                     <div className="grid grid-cols-2 gap-8 my-4"><div><h2 className="font-bold border-b mb-2 uppercase text-zinc-400">Buyer:</h2><p className="font-bold">{watchedValues.buyerName}</p><p className="text-zinc-500">{watchedValues.buyerAddress}</p></div><div><h2 className="font-bold border-b mb-2 uppercase text-zinc-400">Seller:</h2><p className="font-bold">{watchedValues.supplierName}</p><p className="text-zinc-500">{watchedValues.supplierAddress}</p></div></div>
                     <table className="w-full border-collapse"><thead><tr className="bg-zinc-100 text-zinc-900"><th className="p-2 border text-left w-12">Photo</th><th className="p-2 border text-left">Description</th><th className="p-2 border text-right">Qty</th><th className="p-2 border text-right">Unit (CNY)</th><th className="p-2 border text-right">Total (CNY)</th></tr></thead><tbody>
                         {watchedValues.items?.map((item, index) => (<tr key={index}><td className="p-1 border text-center">{item.photo && <img src={item.photo} className="w-10 h-10 object-contain mx-auto"/>}</td><td className="p-2 border leading-tight">{item.description}</td><td className="p-2 border text-right">{item.quantity}</td><td className="p-2 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td><td className="p-2 border text-right font-bold">¥{(Number(item.quantity || 0) * Number(item.unitPrice || 0)).toFixed(2)}</td></tr>))}
                     </tbody></table>
                     <div className="flex justify-end mt-2"><div className="w-1/2 flex justify-between font-black border-t-2 border-zinc-900 pt-1"><span>TOTAL VALUE:</span><span>¥{totalAmount.toFixed(2)}</span></div></div>
-                    <div className="mt-4 space-y-1"><h2 className="font-bold text-center border-y py-1 uppercase tracking-widest">Terms</h2><p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p><p><strong>- Payment:</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p><p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p></div>
+                    <div className="mt-4 space-y-1"><h2 className="font-bold text-center border-y py-1 uppercase tracking-widest">Terms</h2><p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p><p><strong>- Payment:</strong> {depPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p><p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p></div>
                     <div className="mt-12 grid grid-cols-2 gap-16"><div className="pt-6 border-t"><p className="font-bold uppercase">Buyer Signature</p></div><div className="pt-6 border-t"><p className="font-bold uppercase">Seller Signature</p></div></div>
                 </div>
                 <PrintFooter />
