@@ -163,7 +163,7 @@ export default function OrdersPage() {
         setOrders(originalOrders);
         toast({ variant: 'destructive', title: 'Error', description: result.message });
     } else {
-        toast({ title: 'Success', description: `Statut de paiement mis à jour.` });
+        toast({ title: "Succès", description: `Statut de paiement mis à jour.` });
         if (newStatus === 'paid') {
             toast({ title: "Facture générée", description: "La facture finale a été créée." });
         }
