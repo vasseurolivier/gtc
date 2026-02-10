@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -33,7 +34,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Force convert images to Base64 to bypass CORS during capture
+        // FORCE BASE64 CONVERSION OF ALL IMAGES BEFORE CAPTURE
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -112,6 +113,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
     
+    // CONFIDENTIALITY RULE: REMOVE YIWU IF 3PL SELECTED
     const cleanCompanyAddress = is3PL 
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;

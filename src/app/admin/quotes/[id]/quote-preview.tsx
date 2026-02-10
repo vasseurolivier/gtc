@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -24,7 +25,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // NEW METHOD: Convert all images to Base64 manually before capture to bypass CORS
+        // FORCE BASE64 CONVERSION OF ALL IMAGES BEFORE CAPTURE
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -114,6 +115,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
 
+    // CONFIDENTIALITY RULE: REMOVE YIWU IF 3PL SELECTED
     const cleanCompanyAddress = is3PL 
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;

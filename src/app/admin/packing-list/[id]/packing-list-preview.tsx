@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext } from 'react';
@@ -20,7 +21,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Force convert images to Base64 to bypass CORS during capture
+        // FORCE BASE64 CONVERSION OF ALL IMAGES BEFORE CAPTURE
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -45,7 +46,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
 
         const canvas = await html2canvas(element, { 
             scale: 2, 
-            useCORS: true,
+            useCORS: true, 
             logging: false,
             allowTaint: true,
             backgroundColor: '#ffffff'
@@ -172,10 +173,10 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                           <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
                                           <td className="p-1 align-top text-right leading-tight border">{item.quantity}</td>
                                           <td className="p-1 align-top text-right leading-tight border"><span className="font-bold">¥{item.unitPriceCny.toFixed(2)}</span></td>
-                                          <td className="p-1 align-top text-right leading-tight border">
+                                          <td className="p-1 align-top text-right whitespace-nowrap leading-tight border">
                                             {item.weight || item.length || item.width || item.height ? (
                                                 <>
-                                                    {item.weight && <div>{item.weight} kg</div>}
+                                                    {item.weight > 0 && <div>{item.weight} kg</div>}
                                                     {(item.length || item.width || item.height) && <div>{item.length || 0}x{item.width || 0}x{item.height || 0} cm</div>}
                                                 </>
                                             ) : 'N/A'}

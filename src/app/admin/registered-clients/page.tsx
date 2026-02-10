@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -234,7 +235,7 @@ export default function RegisteredClientsPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </CardContent>
-        </div>
+        </Card>
       </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-white">
