@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -163,8 +164,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * quoteRate;
-        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
-        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        if (currencyPref === 'EUR') return `€{eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥{cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
                 <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€{eurValue.toFixed(2)}</span>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -111,8 +112,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
 
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * invoiceRate;
-        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
-        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        if (currencyPref === 'EUR') return `€{eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥{cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
                 <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€{eurValue.toFixed(2)}</span>
