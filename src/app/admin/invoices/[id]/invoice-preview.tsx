@@ -9,7 +9,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
-import jspdf from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
@@ -34,28 +34,27 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // FORCE BASE64 CONVERSION OF ALL IMAGES BEFORE CAPTURE
+        // FORCE BASE64 CONVERSION OF ALL IMAGES TO BYPASS CORS ON CANVAS
         const imgs = Array.from(element.getElementsByTagName('img'));
-        const fetchPromises = imgs.map(async (img) => {
-            if (img.src && !img.src.startsWith('data:')) {
+        const convertPromises = imgs.map(async (img) => {
+            const originalSrc = img.src;
+            if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
-                    const response = await fetch(img.src);
+                    const response = await fetch(originalSrc);
                     const blob = await response.blob();
-                    return new Promise((resolve) => {
+                    const base64 = await new Promise<string>((resolve) => {
                         const reader = new FileReader();
-                        reader.onloadend = () => {
-                            img.src = reader.result as string;
-                            resolve(true);
-                        };
+                        reader.onloadend = () => resolve(reader.result as string);
                         reader.readAsDataURL(blob);
                     });
+                    img.src = base64; // Temporarily swap to local data
                 } catch (e) {
-                    console.error("PDF Image Convert Error:", e);
+                    console.error("Image to Base64 conversion failed:", originalSrc, e);
                 }
             }
         });
 
-        await Promise.all(fetchPromises);
+        await Promise.all(convertPromises);
 
         const canvas = await html2canvas(element, { 
             scale: 2, 
@@ -65,7 +64,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             backgroundColor: '#ffffff'
         });
         const data = canvas.toDataURL('image/png');
-        const pdf = new jspdf('p', 'mm', 'a4');
+        const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const ratio = canvas.width / canvas.height;
