@@ -30,7 +30,7 @@ import { PrintFooter } from '@/components/layout/print-footer';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
 import { getProducts, Product } from '@/actions/products';
-import { addSupplier, getSuppliers, Supplier } from '@/actions/suppliers';
+import { getSuppliers, Supplier } from '@/actions/suppliers';
 import { addSupplierContract, getSupplierContracts, updateSupplierContract, deleteSupplierContract, SupplierContract } from '@/actions/supplier-contracts';
 
 const contractItemSchema = z.object({
@@ -61,7 +61,7 @@ const formSchema = z.object({
 
 type ContractFormValues = z.infer<typeof formSchema>;
 
-function ContractGenerator({ editingContract, onFinished, products, suppliers, onSupplierCreated }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[], suppliers: Supplier[], onSupplierCreated: () => void }) {
+function ContractGenerator({ editingContract, onFinished, products, suppliers }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[], suppliers: Supplier[] }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
@@ -237,7 +237,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                 </div>
                 <Separator />
                 <div className="space-y-4">
-                    <Label className="font-bold">Fournisseur</Label>
+                    <FormLabel>Fournisseur</Label>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
                         <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
@@ -455,7 +455,6 @@ export default function SupplierContractPage() {
             onFinished={() => { setView('history'); setRefreshKey(k => k + 1); }} 
             products={products}
             suppliers={suppliers}
-            onSupplierCreated={() => getSuppliers().then(setSuppliers)}
         />
       ) : (
         <History onEdit={(c) => { setEditingContract(c); setView('form'); }} refreshKey={refreshKey} />
