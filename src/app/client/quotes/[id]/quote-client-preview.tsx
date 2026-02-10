@@ -44,12 +44,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
     const quoteRate = quote.exchangeRate || 0.13;
     const currencyPref = profile?.currencyPreference || 'EUR';
-    const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
+        // CONVERT IMAGES TO BASE64 FOR PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -174,7 +174,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
 
-    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
+    const beneficiaryName = "Yiwu Huanqiu Trading Co., Ltd.";
 
     return (
         <div className="space-y-6">

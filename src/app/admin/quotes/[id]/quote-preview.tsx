@@ -32,6 +32,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
+        // ROBUST CONVERSION TO BASE64
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -120,7 +121,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
 
-    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
+    const beneficiaryName = "Yiwu Huanqiu Trading Co., Ltd.";
 
     return (
         <main id="invoice-preview" className="w-full mx-auto bg-white">

@@ -44,6 +44,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         const element = document.getElementById('pdf-content');
         if (!element) return;
         
+        // CONVERT IMAGES TO BASE64 FOR PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -121,7 +122,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
 
-    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
+    const beneficiaryName = "Yiwu Huanqiu Trading Co., Ltd.";
     
     return (
         <div className="space-y-4">
@@ -228,7 +229,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     <span className="text-muted-foreground font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(subTotalCny)}</span>
                                 </div>
-                                {commissionRate > 0 && (
+                                {commissionCny > 0 && (
                                     <div className="flex justify-between text-[11px]">
                                         <span className="text-muted-foreground font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>

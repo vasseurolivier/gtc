@@ -33,6 +33,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
+        // NEW ROBUST BASE64 CONVERSION
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -110,11 +111,13 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
     
+    // Privacy check: No Yiwu if Warehouse address
     const cleanCompanyAddress = is3PL 
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
 
-    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
+    // Beneficiary name must remain full name always
+    const beneficiaryName = "Yiwu Huanqiu Trading Co., Ltd.";
 
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
