@@ -62,7 +62,6 @@ type ContractFormValues = z.infer<typeof formSchema>;
 function ContractGenerator({ editingContract, onFinished, products, suppliers, onSupplierCreated }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[], suppliers: Supplier[], onSupplierCreated: () => void }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSavingSupplier, setIsSavingSupplier] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
   const currencyContext = useContext(CurrencyContext);
   
@@ -154,7 +153,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                       else img.onload = () => resolve(true);
                   });
               } catch (e) {
-                  console.error("PDF Image conversion failed", originalSrc, e);
+                  console.error("PDF Image conversion failed", originalSrc);
               }
           }
       }
@@ -209,7 +208,6 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
   if (!companyInfoContext || !currencyContext) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
-  const { companyInfo } = companyInfoContext;
   
   const totalAmount = watchedValues.items?.reduce((sum, item) => sum + ((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0)), 0) || 0;
   const depositPercentage = Number(watchedValues.depositPercentage) || 0;
@@ -277,7 +275,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
             <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12">
                 <div className="flex-grow">
                     <header className="flex justify-between items-start pb-2 border-b">
-                      <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div>
+                      <div>{companyInfoContext.companyInfo.logoDocument && <img src={companyInfoContext.companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div>
                       <div className="text-right">
                         <h1 className="text-[14px] font-bold text-primary leading-tight uppercase">Purchase Contract</h1>
                         <p className="text-[10px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>

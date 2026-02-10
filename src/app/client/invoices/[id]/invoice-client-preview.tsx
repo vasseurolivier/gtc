@@ -169,9 +169,9 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <div>
                                 <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">DESTINATAIRE</h3>
                                 {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
-                                <p className={cn("text-zinc-900 leading-tight", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
+                                <div className={cn("text-zinc-900 leading-tight", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
-                                </p>
+                                </div>
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">
                                     {invoice.shippingAddress || profile?.address || "Adresse standard"}
                                 </p>
@@ -230,7 +230,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     <span className="text-zinc-500 font-medium">Articles</span>
                                     <span className="font-bold">{renderPrice(subTotalCny)}</span>
                                 </div>
-                                {commissionCny > 0 && (
+                                {commissionRate > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>

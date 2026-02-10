@@ -19,7 +19,6 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { getOrderById, type Order } from '@/actions/orders';
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
@@ -387,7 +386,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                                 </div>
-                                {commissionCny > 0 && (
+                                {commissionRate > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>
