@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -51,7 +50,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             scale: 2, 
             useCORS: true,
             logging: false,
-            allowTaint: true
+            allowTaint: true,
+            backgroundColor: '#ffffff'
         });
         const data = canvas.toDataURL('image/png');
 
@@ -323,8 +323,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
                                 {quote.items.map((item, idx) => {
-                                    const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
-                                    const displayImage = item.photo || catalogProduct?.imageUrl;
+                                    const displayImage = item.photo;
 
                                     return (
                                         <tr key={idx}>
@@ -340,8 +339,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                                 </div>
                                             </td>
                                             <td className="p-2 font-medium text-zinc-900">
-                                                <p className="font-bold text-[11px]">{catalogProduct?.name || item.description}</p>
-                                                <p className="text-[9px] text-muted-foreground mt-0.5">{item.description}</p>
+                                                <p className="font-bold text-[11px]">{item.description}</p>
+                                                {item.sku && <p className="text-[9px] font-mono text-muted-foreground">{item.sku}</p>}
                                             </td>
                                             <td className="p-2 text-center font-medium">{item.quantity}</td>
                                             <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>

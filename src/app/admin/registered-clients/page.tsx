@@ -29,9 +29,7 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from "@/components/ui/alert-dialog";
-import { Loader2, Save, Search, Eye, ShoppingCart, ClipboardList, Euro, UserPlus, ArrowRight, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { Loader2, Save, Search, Eye, Euro, UserPlus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -62,14 +60,6 @@ export default function RegisteredClientsPage() {
       setLocalRate(currencyContext.exchangeRate.toString());
     }
   }, [currencyContext]);
-
-  const parseSafeDate = (val: any): Date => {
-    if (!val) return new Date();
-    if (typeof val.toDate === 'function') return val.toDate();
-    if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? new Date() : d;
-  };
 
   const fetchData = async () => {
     if (!db) return;
@@ -296,7 +286,7 @@ export default function RegisteredClientsPage() {
                     </TableCell>
                     <TableCell className="text-right pr-6 space-x-2">
                       <Button variant="ghost" size="icon" asChild><Link href={`/admin/registered-clients/${client.id}`}><Eye className="h-4 w-4" /></Link></Button>
-                      <Button size="sm" variant={client.status === 'validated' ? "outline" : "default"} onClick={() => handleToggleStatus(client.id, client.status)}>
+                      <Button size="sm" variant={client.status === 'validated' ? "outline" : "default"} onClick={() => handleToggleStatus(client.id, client.status)} disabled={validatingId === client.id}>
                         {client.status === 'validated' ? 'Suspendre' : 'Valider'}
                       </Button>
                       <AlertDialog>
