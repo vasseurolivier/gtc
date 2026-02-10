@@ -8,7 +8,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
@@ -146,7 +146,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <div>
                             <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">FACTURÉ À</h3>
                             {companyName && <p className="font-bold uppercase text-zinc-900">{companyName}</p>}
-                            <p className={companyName ? "text-zinc-500" : "font-bold text-zinc-900"}>{contactName}</p>
+                            <div className={companyName ? "text-zinc-500" : "font-bold text-zinc-900"}>{contactName}</div>
                             <p className="whitespace-pre-wrap mt-0.5 text-zinc-500 leading-tight text-[6.5px]">{invoice.shippingAddress || customer?.address}</p>
                             <div className="mt-1 space-y-0.5 flex flex-col text-[6.5px]">
                                 {customer?.phone && <span className="flex items-center gap-1"><Phone className="h-2 w-2" /> {customer.phone}</span>}

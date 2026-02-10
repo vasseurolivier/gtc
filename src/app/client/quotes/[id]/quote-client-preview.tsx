@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -332,9 +332,9 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <div>
                                 <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">DESTINATAIRE</h3>
                                 {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
-                                <p className={cn("text-zinc-900", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
+                                <div className={cn("text-zinc-900", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
-                                </p>
+                                </div>
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap text-[6.5px]">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
                                 <div className="mt-1 space-y-0.5 text-[6.5px]">
                                     {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-2 w-2" /> {profile.phone}</div>}
