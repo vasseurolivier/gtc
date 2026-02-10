@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -20,6 +19,7 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { getOrderById, type Order } from '@/actions/orders';
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
@@ -318,9 +318,9 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 )}
                             </div>
                             <div className="text-right">
-                                <h1 className="text-[14px] font-black text-zinc-900 tracking-tighter uppercase">Proforma</h1>
-                                <p className="text-[10px] font-bold text-primary">N° {quote.quoteNumber}</p>
-                                <p className="text-[8px] text-muted-foreground mt-1">Date: {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
+                                <h1 className="text-[14px] font-black text-zinc-900 tracking-tighter uppercase leading-tight">Proforma</h1>
+                                <p className="text-[10px] font-bold text-primary leading-tight">N° {quote.quoteNumber}</p>
+                                <p className="text-[8px] text-muted-foreground mt-1 leading-tight">Date: {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
                         </header>
 
@@ -333,11 +333,11 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <div>
                                 <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">DESTINATAIRE</h3>
                                 {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
-                                <div className={cn("text-zinc-900", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
+                                <div className={cn("text-zinc-900 leading-tight", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
                                 </div>
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
-                                <div className="mt-2 space-y-1 text-[10px]">
+                                <div className="mt-2 space-y-1 flex flex-col">
                                     {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
                                     {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-3 w-3" /> {profile.email}</div>}
                                 </div>
@@ -387,7 +387,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                                 </div>
-                                {commissionRate > 0 && (
+                                {commissionCny > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>

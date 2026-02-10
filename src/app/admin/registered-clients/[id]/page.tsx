@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useContext } from 'react';
@@ -109,7 +108,7 @@ export default function ClientDetailPage() {
     }
   };
 
-  // Documents Queries
+  // Documents Queries - Admin side
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));

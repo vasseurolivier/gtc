@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -156,8 +155,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             </div>
                             <div className="text-right">
                                 <h1 className="text-[14px] font-black text-zinc-900 tracking-tighter uppercase leading-tight">Facture Acquittée</h1>
-                                <p className="text-[10px] font-bold text-primary">N° {invoice.invoiceNumber}</p>
-                                <p className="text-[8px] text-muted-foreground mt-1">Date: {format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
+                                <p className="text-[10px] font-bold text-primary leading-tight">N° {invoice.invoiceNumber}</p>
+                                <p className="text-[8px] text-muted-foreground mt-1 leading-tight">Date: {format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
                         </header>
 
@@ -170,7 +169,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <div>
                                 <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">DESTINATAIRE</h3>
                                 {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
-                                <p className={cn("text-zinc-900", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
+                                <p className={cn("text-zinc-900 leading-tight", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
                                 </p>
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">
