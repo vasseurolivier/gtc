@@ -134,7 +134,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 </Button>
             </div>
             
-            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12 text-[10px]">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pb-2 border-b">
                         <div>
@@ -226,7 +226,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                 <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL</span>
-                                <div className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
+                                <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
                             </div>
                         </div>
                     </div>

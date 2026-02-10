@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -112,7 +113,7 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-24 items-center px-4 md:px-8">
-        <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
+        <Link href="/" className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
             {logoUrl ? (
               <div className="relative h-14 w-auto">
                 <Image 

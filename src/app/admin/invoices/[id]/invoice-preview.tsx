@@ -126,7 +126,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                 <Button size="sm" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> Export PDF</Button>
             </div>
             
-            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12 text-[10px]">
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pb-2 border-b">
                         <div>
@@ -162,7 +162,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <th className="p-2 font-bold border w-12">Image</th>
                                 <th className="p-2 font-bold border">Description</th>
                                 <th className="p-2 text-center font-bold border w-10">Qté</th>
-                                <th className="p-2 text-right font-bold border w-24">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-2 text-right font-bold border w-24">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 <th className="p-2 text-right font-bold border w-28">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
@@ -210,7 +210,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                 <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL:</span>
-                                <div className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
+                                <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
                             </div>
                         </div>
                     </div>

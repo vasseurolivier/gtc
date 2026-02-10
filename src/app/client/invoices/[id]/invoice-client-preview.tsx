@@ -245,7 +245,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL RÉGLÉ</span>
-                                    <div className="text-xs font-black text-green-600">{renderPrice(totalFinalCny, true)}</div>
+                                    <div className="text-[12px] font-black text-green-600">{renderPrice(totalFinalCny, true)}</div>
                                 </div>
                             </div>
                         </div>

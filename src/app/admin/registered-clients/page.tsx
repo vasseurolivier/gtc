@@ -83,7 +83,7 @@ export default function RegisteredClientsPage() {
           }
         });
       } catch (e) {
-        console.warn("Sourcing notifications disabled until index creation");
+        console.warn("Sourcing notifications index waiting");
       }
 
       const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
@@ -234,7 +234,8 @@ export default function RegisteredClientsPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </CardContent>
-        </div>
+        </Card>
+      </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-white">
         <CardContent className="p-0">
