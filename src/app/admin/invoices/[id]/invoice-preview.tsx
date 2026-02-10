@@ -9,7 +9,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
-import jsPDF from 'jspdf';
+import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Force convert images to Base64 to ensure they are captured by canvas
+        // Force convert images to Base64 to bypass CORS during capture
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -65,7 +65,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
             backgroundColor: '#ffffff'
         });
         const data = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jspdf('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const ratio = canvas.width / canvas.height;

@@ -8,7 +8,7 @@ import { Loader2, Download, ArrowLeft, CheckCircle2, Phone, Mail, Package, Truck
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
-import jsPDF from 'jspdf';
+import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -45,7 +45,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         const element = document.getElementById('pdf-content');
         if (!element) return;
         
-        // Force convert images to Base64 to ensure they are captured by canvas
+        // Force convert images to Base64 to bypass CORS during capture
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -76,7 +76,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             backgroundColor: '#ffffff'
         });
         const data = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jspdf('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const ratio = canvas.width / canvas.height;

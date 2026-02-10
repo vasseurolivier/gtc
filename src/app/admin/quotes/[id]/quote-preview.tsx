@@ -9,7 +9,7 @@ import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
-import jsPDF from 'jspdf';
+import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Force convert images to Base64 to ensure they are captured by canvas
+        // Force convert images to Base64 to bypass CORS during capture
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -57,7 +57,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         });
         const data = canvas.toDataURL('image/png');
 
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jspdf('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const ratio = canvas.width / canvas.height;
