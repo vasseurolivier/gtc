@@ -179,7 +179,7 @@ export default function ClientDetailPage() {
     const newStatus = client.status === 'validated' ? 'pending' : 'validated';
     const result = await updateRegisteredClientStatus(clientId, newStatus);
     if (result.success) {
-      setClient({ ...client, status: newStatus });
+      setClient({ ...client, status: newStatus } as RegisteredClient);
       toast({ title: result.message });
     }
   };
