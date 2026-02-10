@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -29,6 +30,30 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
         if (!element) return;
+
+        // Force convert images to Base64 to ensure they are captured by canvas
+        const imgs = element.getElementsByTagName('img');
+        const fetchPromises = Array.from(imgs).map(async (img) => {
+            if (img.src && !img.src.startsWith('data:')) {
+                try {
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            img.src = reader.result as string;
+                            resolve(true);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("PDF Image Convert Error:", e);
+                }
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,

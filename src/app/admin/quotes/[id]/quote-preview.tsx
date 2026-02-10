@@ -9,7 +9,7 @@ import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
-import jsPDF from 'jspdf';
+import jsPDF from 'jsPDF';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils"
 
@@ -21,20 +21,42 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
+        // Force convert images to Base64 to ensure they are captured by canvas without CORS issues
+        const imgs = element.getElementsByTagName('img');
+        const fetchPromises = Array.from(imgs).map(async (img) => {
+            if (img.src && !img.src.startsWith('data:')) {
+                try {
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            img.src = reader.result as string;
+                            resolve(true);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("PDF Image Convert Error:", e);
+                }
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,
             logging: false,
-            allowTaint: true
+            allowTaint: true,
+            backgroundColor: '#ffffff'
         });
         const data = canvas.toDataURL('image/png');
 
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const ratio = canvas.width / canvas.height;
         let imgWidth = pdfWidth;
         let imgHeight = imgWidth / ratio;
         let heightLeft = imgHeight;
@@ -101,7 +123,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                 <div className="flex-grow">
                     <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
                         <div>
-                            {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
+                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
                             <h1 className="text-lg font-black text-black uppercase leading-tight">Proforma</h1>
@@ -152,7 +174,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <td className="p-1 align-top border text-center">
                                         <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                             {displayImage ? (
-                                                <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                             ) : (
                                                 <div className="w-8 h-8 rounded bg-zinc-50 flex items-center justify-center border text-zinc-300">
                                                     <Package className="h-4 w-4" />
