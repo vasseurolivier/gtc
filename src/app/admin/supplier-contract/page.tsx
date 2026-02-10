@@ -25,7 +25,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { PrintFooter } from '@/components/layout/print-footer';
 
 import { CompanyInfoContext } from '@/context/company-info-context';
-import { CurrencyContext } from '@/context/currency-context';
 import { getProducts, Product } from '@/actions/products';
 import { getSuppliers, Supplier } from '@/actions/suppliers';
 import { addSupplierContract, getSupplierContracts, updateSupplierContract, deleteSupplierContract, SupplierContract } from '@/actions/supplier-contracts';
@@ -181,7 +180,10 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                 </div>
                 <div className="space-y-2">
                     <Label>Fournisseur</Label>
-                    <Select onValueChange={handleSupplierSelect}><SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger><SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent></Select>
+                    <Select onValueChange={handleSupplierSelect}>
+                        <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
+                        <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                    </Select>
                     <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Nom" {...field} /></FormControl></FormItem> )} />
                     <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse" {...field} rows={2} /></FormControl></FormItem> )} />
                 </div>

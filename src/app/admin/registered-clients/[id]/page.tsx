@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   getRegisteredClientById, 
@@ -161,6 +161,43 @@ export default function ClientDetailPage() {
     return query(collection(db, 'orders'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
+
+  // Sorting Logic
+  const sortedOrders = useMemo(() => {
+    if (!orders) return [];
+    return [...orders].sort((a, b) => {
+      const priorityA = a.status === 'processing' ? 0 : 1;
+      const priorityB = b.status === 'processing' ? 0 : 1;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      const dateA = a.createdAt ? parseSafeDate(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? parseSafeDate(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [orders]);
+
+  const sortedQuotes = useMemo(() => {
+    if (!quotes) return [];
+    return [...quotes].sort((a, b) => {
+      const priorityA = (a.status === 'sent' || a.status === 'draft') ? 0 : 1;
+      const priorityB = (b.status === 'sent' || b.status === 'draft') ? 0 : 1;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      const dateA = a.createdAt ? parseSafeDate(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? parseSafeDate(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [quotes]);
+
+  const sortedInvoices = useMemo(() => {
+    if (!invoices) return [];
+    return [...invoices].sort((a, b) => {
+      const priorityA = a.status !== 'paid' ? 0 : 1;
+      const priorityB = b.status !== 'paid' ? 0 : 1;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      const dateA = a.createdAt ? parseSafeDate(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? parseSafeDate(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [invoices]);
 
   useEffect(() => {
     if (orders) {
@@ -329,7 +366,6 @@ export default function ClientDetailPage() {
     }
   };
 
-  // Profile Handlers
   const handleUpdateCredentials = async () => {
     setIsUpdatingCredentials(true);
     const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
@@ -421,9 +457,10 @@ export default function ClientDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders?.map(order => {
+                      {sortedOrders.map(order => {
                         const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
-                        const isLocked = quotes?.some(q => q.orderId === order.id && (q.status === 'accepted' || q.status === 'paid'));
+                        const linkedQuote = sortedQuotes.find(q => q.orderId === order.id);
+                        const isLocked = linkedQuote && (linkedQuote.status === 'accepted' || linkedQuote.status === 'paid');
                         
                         return (
                           <TableRow key={order.id}>
@@ -472,7 +509,7 @@ export default function ClientDetailPage() {
                             <TableCell className="text-right space-x-1">
                               <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
                               <Button variant="secondary" size="sm" className="h-8 text-[10px] font-bold" onClick={() => handleNavigateToQuote(order.id)}>
-                                <Sparkles className="h-3 w-3 mr-1" /> {isLocked ? "Gérer PI" : "Générer PI"}
+                                <Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "Générer PI"}
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -511,7 +548,7 @@ export default function ClientDetailPage() {
                 <Table>
                   <TableHeader><TableRow><TableHead>N° PI</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {quotes?.map(q => (
+                    {sortedQuotes.map(q => (
                       <TableRow key={q.id}>
                         <TableCell className="font-bold">{q.quoteNumber}</TableCell>
                         <TableCell className="text-xs">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
@@ -530,7 +567,7 @@ export default function ClientDetailPage() {
                 <Table>
                   <TableHeader><TableRow><TableHead>N° INV</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {invoices?.map(i => (
+                    {sortedInvoices.map(i => (
                       <TableRow key={i.id}>
                         <TableCell className="font-bold">{i.invoiceNumber}</TableCell>
                         <TableCell className="text-xs">{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
