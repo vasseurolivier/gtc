@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
+import { useToast } from '@/hooks/use-toast';
 
 export default function RegisteredClientsPage() {
   const [clients, setClients] = useState<RegisteredClient[]>([]);
@@ -261,9 +262,9 @@ export default function RegisteredClientsPage() {
             </TableHeader>
             <TableBody>
               {filteredClients.map((client) => {
-                const pendingOrders = getPendingOrdersCount(client.id);
+                const pendingOrdersCount = getPendingOrdersCount(client.id);
                 const isPendingSourcing = hasPendingSourcing(client.id);
-                const hasAlert = pendingOrders > 0 || client.status === 'pending' || isPendingSourcing;
+                const hasAlert = pendingOrdersCount > 0 || client.status === 'pending' || isPendingSourcing;
 
                 return (
                   <TableRow key={client.id} className={cn("hover:bg-muted/30", hasAlert && "bg-red-50/20")}>
@@ -275,7 +276,7 @@ export default function RegisteredClientsPage() {
                     <TableCell>{client.email}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        {pendingOrders > 0 && <Badge className="bg-red-600 text-[10px] w-fit">{pendingOrders} COMMANDE(S)</Badge>}
+                        {pendingOrdersCount > 0 && <Badge className="bg-red-600 text-[10px] w-fit">{pendingOrdersCount} COMMANDE(S)</Badge>}
                         {isPendingSourcing && <Badge className="bg-orange-600 text-[10px] w-fit">SOURCING</Badge>}
                       </div>
                     </TableCell>

@@ -199,7 +199,7 @@ function AdminSettings({ trigger }: { trigger?: React.ReactNode }) {
                                             </div>
                                             <div className="flex-grow space-y-1">
                                                 <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'doc')} className="h-8 text-xs cursor-pointer" />
-                                                <Input placeholder="URL..." value={logoDocument} onChange={(e) => setLogoDocument(target.value)} className="h-8 text-xs" />
+                                                <Input placeholder="URL..." value={logoDocument} onChange={(e) => setLogoDocument(e.target.value)} className="h-8 text-xs" />
                                             </div>
                                         </div>
                                         <p className="text-[10px] text-muted-foreground">Logo affiché sur les Proformas et Factures.</p>
@@ -398,18 +398,18 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
       <Sidebar className="no-print bg-muted/20">
         <SidebarContent>
           <SidebarHeader className="p-4">
-             <Link href="/" className="flex items-center justify-center py-4">
-                {displayLogo ? <img src={displayLogo} alt="Logo Admin" crossOrigin="anonymous" className="max-h-8 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
-            </Link>
+             <div className="flex items-center justify-center py-4">
+                {displayLogo ? <img src={displayLogo} alt="Logo Admin" className="max-h-8 w-auto object-contain" /> : <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white">G</div>}
+            </div>
           </SidebarHeader>
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
+                <Link href={item.href} passHref legacyBehavior>
                   <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}>
-                    <span>
+                    <a className="flex items-center w-full">
                       {item.icon}
-                      <span>{item.label}</span>
+                      <span className="ml-2">{item.label}</span>
                       {item.badge !== undefined && item.badge > 0 && (
                         <SidebarMenuBadge className={cn(
                           "bg-primary text-white",
@@ -418,7 +418,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
                           {item.badge}
                         </SidebarMenuBadge>
                       )}
-                    </span>
+                    </a>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
