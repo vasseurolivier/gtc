@@ -237,12 +237,10 @@ export default function ClientCatalogPage() {
 
   const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
     const priceEur = priceCny * rate;
-    if (currencyPreference === 'EUR') return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
-    if (currencyPreference === 'CNY') return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
     return (
       <div className="flex flex-col">
-        <div className={mainClass}>€{priceEur.toFixed(2)}</div>
-        <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
+        {currencyPreference !== 'CNY' && <div className={mainClass}>€{priceEur.toFixed(2)}</div>}
+        {currencyPreference !== 'EUR' && <div className={cn(mainClass, currencyPreference === 'BOTH' && "text-[10px] text-zinc-400 font-bold")}>¥{priceCny.toFixed(2)}</div>}
       </div>
     );
   };

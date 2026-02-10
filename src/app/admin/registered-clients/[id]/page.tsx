@@ -48,7 +48,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL'];
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
 export default function ClientDetailPage() {
   const params = useParams();
