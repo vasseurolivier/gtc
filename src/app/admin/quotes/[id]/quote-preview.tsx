@@ -99,7 +99,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
             
             <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
                 <div className="flex-grow">
-                    <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
+                    <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
                         <div>
                             {displayLogo && <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />}
                         </div>
@@ -136,7 +136,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <thead>
                             <tr className="text-left bg-zinc-100 text-zinc-900">
                                 <th className="p-2 font-bold border">Image</th>
-                                <th className="w-1/2 p-2 font-bold border">Description</th>
+                                <th className="w-1/2 p-2 font-bold border">Description des articles</th>
                                 <th className="text-right p-2 font-bold border">Qté</th>
                                 <th className="text-right p-2 font-bold border">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 <th className="text-right p-2 font-bold border">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
