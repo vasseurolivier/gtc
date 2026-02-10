@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -10,7 +9,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -154,20 +153,47 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
       const element = document.getElementById('pdf-content');
       if (!element) return;
   
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgs = Array.from(element.getElementsByTagName('img'));
+      for (const img of imgs) {
+          const originalSrc = img.src;
+          if (originalSrc && !originalSrc.startsWith('data:')) {
+              try {
+                  const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(originalSrc)}`;
+                  const response = await fetch(proxyUrl);
+                  if (!response.ok) throw new Error('Proxy fetch failed');
+                  const blob = await response.blob();
+                  const base64 = await new Promise<string>((resolve) => {
+                      const reader = new FileReader();
+                      reader.onloadend = () => resolve(reader.result as string);
+                      reader.readAsDataURL(blob);
+                  });
+                  img.src = base64;
+                  await new Promise((resolve) => {
+                      if (img.complete) resolve(true);
+                      else img.onload = () => resolve(true);
+                  });
+              } catch (e) {
+                  console.error("PDF Image conversion failed", originalSrc, e);
+              }
+          }
+      }
+
+      const canvas = await html2canvas(element, { 
+          scale: 2, 
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+          backgroundColor: '#ffffff'
+      });
       const data = canvas.toDataURL('image/png');
   
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
   
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = canvasWidth / canvasHeight;
-      
+      const ratio = canvas.width / canvas.height;
       let imgWidth = pdfWidth;
       let imgHeight = imgWidth / ratio;
-      
       let heightLeft = imgHeight;
       let position = 0;
   
@@ -185,24 +211,10 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
   };
 
   const onSubmit = async (values: ContractFormValues) => {
-    const items = values.items || [];
-    let totalAmount = 0;
-    items.forEach((item, index) => {
-        if (!item) return;
-        const quantity = Number(item.quantity) || 0;
-        const unitPrice = Number(item.unitPrice) || 0;
-        const newTotal = quantity * unitPrice;
-        form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
-        totalAmount += newTotal;
-    });
-    form.setValue("totalAmount", totalAmount, { shouldValidate: true });
-    
-    const finalValues = form.getValues();
-
     setIsSubmitting(true);
     const result = editingContract
-        ? await updateSupplierContract(editingContract.id, finalValues)
-        : await addSupplierContract(finalValues);
+        ? await updateSupplierContract(editingContract.id, values)
+        : await addSupplierContract(values);
     
     if (result.success) {
       toast({ title: 'Success', description: result.message });
@@ -281,31 +293,31 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         </Card>
 
         <div className="lg:col-span-2">
-            <div id="pdf-content" className="relative p-6 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-16">
-                <header className="flex justify-between items-start pb-2 border-b">
+            <div id="pdf-content" className="relative p-4 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12">
+                <header className="flex justify-between items-start pb-1 border-b">
                   <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Logo" className="h-8 object-contain" />}</div>
                   <div className="text-right">
-                    <h1 className="text-sm font-bold text-primary leading-tight">PURCHASE CONTRACT</h1>
+                    <h1 className="text-[10px] font-bold text-primary leading-tight">PURCHASE CONTRACT</h1>
                     <p className="text-[7px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>
                     <p className="text-[7px] text-muted-foreground">Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p>
                   </div>
                 </header>
 
-                <section className="grid grid-cols-2 gap-4 my-4 text-[7px]">
+                <section className="grid grid-cols-2 gap-4 my-2 text-[7px]">
                   <div>
                     <h2 className="font-bold border-b mb-1 uppercase text-zinc-400">The Buyer:</h2>
                     <p className="font-bold text-zinc-900">{watchedValues.buyerName}</p>
-                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.buyerAddress}</p>
+                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight text-[6.5px]">{watchedValues.buyerAddress}</p>
                   </div>
                   <div>
                     <h2 className="font-bold border-b mb-1 uppercase text-zinc-400">The Seller:</h2>
                     <p className="font-bold text-zinc-900">{watchedValues.supplierName}</p>
-                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.supplierAddress}</p>
+                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight text-[6.5px]">{watchedValues.supplierAddress}</p>
                   </div>
                 </section>
 
                 <section>
-                    <h2 className="font-bold text-center mb-2 text-[8px] uppercase tracking-widest border-y py-1">1. COMMODITY</h2>
+                    <h2 className="font-bold text-center mb-1 text-[8px] uppercase tracking-widest border-y py-0.5">1. COMMODITY</h2>
                     <table className="w-full text-[7px] border-collapse">
                         <thead>
                             <tr className="bg-zinc-100 text-zinc-900">
@@ -319,7 +331,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                         <tbody>
                             {watchedValues.items?.map((item, index) => (
                                 <tr key={index}>
-                                    <td className="p-0.5 border text-center">{item.photo && <img src={item.photo} alt="p" className="w-8 h-8 object-contain mx-auto"/>}</td>
+                                    <td className="p-0.5 border text-center">{item.photo && <img src={item.photo} alt="p" className="w-7 h-7 object-contain mx-auto"/>}</td>
                                     <td className="p-1 border font-medium leading-tight">{item.description}</td>
                                     <td className="p-1 border text-right">{item.quantity}</td>
                                     <td className="p-1 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td>
@@ -328,30 +340,30 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                             ))}
                         </tbody>
                     </table>
-                    <div className="flex justify-end mt-2">
-                        <div className="w-1/2 flex justify-between font-black text-[9px] border-t-2 border-zinc-900 pt-1">
+                    <div className="flex justify-end mt-1">
+                        <div className="w-1/2 flex justify-between font-black text-[8px] border-t-2 border-zinc-900 pt-0.5">
                             <span>TOTAL CONTRACT VALUE:</span>
                             <span>¥{totalAmount.toFixed(2)}</span>
                         </div>
                     </div>
                 </section>
                 
-                <section className="mt-4 space-y-1 text-[7px]">
-                    <h2 className="font-bold text-center mb-2 uppercase tracking-widest border-y py-1">2. TERMS</h2>
+                <section className="mt-2 space-y-0.5 text-[6.5px]">
+                    <h2 className="font-bold text-center mb-1 uppercase tracking-widest border-y py-0.5">2. TERMS</h2>
                     <p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p>
                     <p><strong>- Payment:</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
                     <p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p>
                     {watchedValues.specificClauses && <p><strong>- Clauses:</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
                 </section>
                 
-                <section className="mt-12 text-[7px]">
-                  <div className="grid grid-cols-2 gap-16">
-                      <div className="pt-8 border-t border-zinc-200">
-                          <p className="font-bold uppercase mb-1">The Buyer Signature</p>
+                <section className="mt-8 text-[7px]">
+                  <div className="grid grid-cols-2 gap-12">
+                      <div className="pt-4 border-t border-zinc-200">
+                          <p className="font-bold uppercase mb-0.5">The Buyer Signature</p>
                           <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
                       </div>
-                      <div className="pt-8 border-t border-zinc-200">
-                          <p className="font-bold uppercase mb-1">The Seller Signature</p>
+                      <div className="pt-4 border-t border-zinc-200">
+                          <p className="font-bold uppercase mb-0.5">The Seller Signature</p>
                           <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
                       </div>
                   </div>
