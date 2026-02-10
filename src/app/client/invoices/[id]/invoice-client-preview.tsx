@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -15,11 +16,15 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { getOrderById, type Order } from '@/actions/orders';
 
+const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
+
 export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const { user } = useUser();
     const db = useFirestore();
     const [order, setOrder] = useState<Order | null>(null);
+
+    const is3PL = invoice.shippingAddress === WAREHOUSE_3PL_ADDRESS;
 
     const clientRef = useMemoFirebase(() => {
         if (!db || !user) return null;
@@ -40,10 +45,33 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         const element = document.getElementById('pdf-content');
         if (!element) return;
         
+        // Force convert images to Base64 to ensure they are captured by canvas
+        const imgs = Array.from(element.getElementsByTagName('img'));
+        const fetchPromises = imgs.map(async (img) => {
+            if (img.src && !img.src.startsWith('data:')) {
+                try {
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            img.src = reader.result as string;
+                            resolve(true);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("PDF Image Convert Error:", e);
+                }
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,
-            logging: true,
+            logging: false,
             allowTaint: true,
             backgroundColor: '#ffffff'
         });
@@ -51,9 +79,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const ratio = canvas.width / canvas.height;
         let imgWidth = pdfWidth;
         let imgHeight = imgWidth / ratio;
         let heightLeft = imgHeight;
@@ -93,6 +119,12 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             </div>
         );
     };
+
+    const cleanCompanyAddress = is3PL 
+        ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
+        : companyInfo.address;
+
+    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
     
     return (
         <div className="space-y-4">
@@ -117,7 +149,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
                             <div>
                                 {displayLogo && (
-                                    <img src={displayLogo} alt="Logo" crossOrigin="anonymous" className="h-14 w-auto object-contain block" />
+                                    <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
@@ -131,7 +163,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <div>
                                 <h3 className="font-black text-[9px] uppercase text-muted-foreground mb-2 tracking-widest">ÉMIS PAR</h3>
                                 <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-0.5 text-[10px]">{companyInfo?.address}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-0.5 text-[10px]">{cleanCompanyAddress}</p>
                             </div>
                             <div>
                                 <h3 className="font-black text-[9px] uppercase text-muted-foreground mb-2 tracking-widest">DESTINATAIRE</h3>
@@ -172,7 +204,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                             <td className="p-2 text-center">
                                                 <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                     {displayImage ? (
-                                                        <img src={displayImage} alt="Product" crossOrigin="anonymous" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                        <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
                                                     ) : (
                                                         <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
                                                             <Package className="h-4 w-4" />
@@ -219,9 +251,17 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         </div>
 
                         <div className="mt-12 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                            <h3 className="font-black text-[9px] uppercase text-zinc-400 mb-2 tracking-widest text-center">Historique de paiement</h3>
-                            <div className="text-center text-[10px] text-zinc-500 italic">
-                                Le règlement de cette facture a été validé le {invoice.paymentDate ? format(new Date(invoice.paymentDate), 'dd MMMM yyyy') : format(new Date(), 'dd MMMM yyyy')}.
+                            <h3 className="font-black text-[9px] uppercase text-zinc-400 mb-2 tracking-widest text-center">Coordonnées Bancaires</h3>
+                            <div className="grid grid-cols-2 gap-6 text-[10px] text-zinc-600">
+                                <div>
+                                    <p><strong>Banque:</strong> Banking Circle S.A.</p>
+                                    <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
+                                    <p><strong>SWIFT:</strong> SXPYDEHH</p>
+                                </div>
+                                <div>
+                                    <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
+                                    <p className="mt-2 italic text-primary font-bold">Réf: {invoice.invoiceNumber}</p>
+                                </div>
                             </div>
                         </div>
                     </div>

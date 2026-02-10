@@ -13,11 +13,14 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
+const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
+
 export function InvoicePreview({ invoice, customer, products }: { invoice: Invoice, customer: any, products: any[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [order, setOrder] = useState<Order | null>(null);
 
+    const is3PL = invoice.shippingAddress === WAREHOUSE_3PL_ADDRESS;
     const invoiceRate = invoice.exchangeRate || currencyContext?.exchangeRate || 0.13;
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
@@ -32,8 +35,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         if (!element) return;
 
         // Force convert images to Base64 to ensure they are captured by canvas
-        const imgs = element.getElementsByTagName('img');
-        const fetchPromises = Array.from(imgs).map(async (img) => {
+        const imgs = Array.from(element.getElementsByTagName('img'));
+        const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
                 try {
                     const response = await fetch(img.src);
@@ -110,6 +113,12 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
     
+    const cleanCompanyAddress = is3PL 
+        ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
+        : companyInfo.address;
+
+    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
+
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
             <div className="p-4 flex justify-end no-print">
@@ -132,7 +141,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
                             <p className="font-bold">{companyInfo?.name}</p>
-                            <p className="whitespace-pre-wrap text-[10px]">{companyInfo?.address}</p>
+                            <p className="whitespace-pre-wrap text-[10px]">{cleanCompanyAddress}</p>
                         </div>
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
@@ -219,7 +228,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                 <p><strong>SWIFT:</strong> SXPYDEHH</p>
                             </div>
                             <div className="space-y-0.5">
-                                <p><strong>Bénéficiaire:</strong> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
                                 <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
                                 <p className="mt-2 italic text-primary font-bold">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
                             </div>

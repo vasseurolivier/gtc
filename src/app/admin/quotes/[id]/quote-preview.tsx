@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -10,17 +11,21 @@ import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+
+const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
 export function QuotePreview({ quote, customer, products }: { quote: Quote, customer: any, products: any[] }) {
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
 
+    const is3PL = quote.shippingAddress === WAREHOUSE_3PL_ADDRESS;
+
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // NEW METHOD: Convert images to Base64 manually before capture to avoid CORS disappearances
+        // Force convert images to Base64 to ensure they are captured by canvas
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
@@ -110,6 +115,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
 
+    const cleanCompanyAddress = is3PL 
+        ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
+        : companyInfo.address;
+
+    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
+
     return (
         <main id="invoice-preview" className="w-full mx-auto bg-white">
             <div className="p-4 flex justify-end no-print">
@@ -134,7 +145,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">ÉMIS PAR</h3>
                             <p className="font-bold leading-tight">{companyInfo?.name}</p>
-                            <p className="whitespace-pre-wrap leading-tight text-[10px]">{companyInfo?.address}</p>
+                            <p className="whitespace-pre-wrap leading-tight text-[10px]">{cleanCompanyAddress}</p>
                         </div>
                         <div>
                             <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">FACTURÉ À</h3>
@@ -237,7 +248,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                     <p><strong>SWIFT:</strong> SXPYDEHH</p>
                                 </div>
                                 <div className="space-y-0.5">
-                                    <p><strong>Bénéficiaire:</strong> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                    <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
                                     <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
                                     <p className="mt-2 italic text-primary font-black text-[11px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
                                 </div>

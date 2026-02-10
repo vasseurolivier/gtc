@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -112,63 +113,61 @@ export function Header() {
   return (
     <header className={headerClasses}>
       <div className="container flex h-24 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4">
-            <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0 mr-4">
-                {logoUrl ? (
-                  <div className="relative h-14 w-auto">
-                    <Image 
-                      src={logoUrl} 
-                      alt="Logo" 
-                      width={180}
-                      height={56}
-                      className="h-14 w-auto object-contain" 
-                      priority
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg text-xl">G</div>
-                )}
-            </Link>
+        <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0 mr-8">
+            {logoUrl ? (
+              <div className="relative h-14 w-auto">
+                <Image 
+                  src={logoUrl} 
+                  alt="Logo" 
+                  width={180}
+                  height={56}
+                  className="h-14 w-auto object-contain" 
+                  priority
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg text-xl">G</div>
+            )}
+        </Link>
 
-            <nav className="hidden lg:flex items-center gap-6">
-                {navItems.map((item) => (
-                <Link
-                    key={item.href}
-                    href={item.href}
-                    className={linkClasses(item.href)}
-                >
-                    {item.label}
-                </Link>
+        <nav className="hidden lg:flex items-center gap-8">
+            {navItems.map((item) => (
+            <Link
+                key={item.href}
+                href={item.href}
+                className={linkClasses(item.href)}
+            >
+                {item.label}
+            </Link>
+            ))}
+            <DropdownMenu>
+            <DropdownMenuTrigger className={dropdownTriggerClasses}>
+                {dictionary.services} <ChevronDown className="h-4 w-4 ml-1" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[250px]">
+                {servicesItems.map((item) => (
+                <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-xs uppercase tracking-wider py-4 cursor-pointer">
+                    <Link href={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
                 ))}
-                <DropdownMenu>
-                <DropdownMenuTrigger className={dropdownTriggerClasses}>
-                    {dictionary.services} <ChevronDown className="h-4 w-4 ml-1" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[250px]">
-                    {servicesItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-xs uppercase tracking-wider py-4 cursor-pointer">
-                        <Link href={item.href}>{item.label}</Link>
-                    </DropdownMenuItem>
-                    ))}
-                </DropdownMenuContent>
-                </DropdownMenu>
-                <Link
-                    key={citiesItem.href}
-                    href={citiesItem.href}
-                    className={linkClasses(citiesItem.href)}
-                >
-                    {dictionary.tradeHubs}
-                </Link>
-                <Link
-                    key={contactItem.href}
-                    href={contactItem.href}
-                    className={linkClasses(contactItem.href)}
-                >
-                    {dictionary.contact}
-                </Link>
-            </nav>
-        </div>
+            </DropdownMenuContent>
+            </DropdownMenu>
+            <Link
+                key={citiesItem.href}
+                href={citiesItem.href}
+                className={linkClasses(citiesItem.href)}
+            >
+                {dictionary.tradeHubs}
+            </Link>
+            <Link
+                key={contactItem.href}
+                href={contactItem.href}
+                className={linkClasses(contactItem.href)}
+            >
+                {dictionary.contact}
+            </Link>
+        </nav>
         
         <div className="flex-1" />
 

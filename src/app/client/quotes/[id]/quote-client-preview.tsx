@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -20,6 +21,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
+const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
+
 export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, products?: any[] }) {
     const companyInfoContext = useContext(CompanyInfoContext);
     const { user } = useUser();
@@ -31,6 +34,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const [isAccepting, setIsAccepting] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
     const [currentStatus, setCurrentStatus] = useState(quote.status);
+
+    const is3PL = quote.shippingAddress === WAREHOUSE_3PL_ADDRESS;
 
     const clientRef = useMemoFirebase(() => {
         if (!db || !user) return null;
@@ -46,6 +51,29 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
+        // Force convert images to Base64 to ensure they are captured by canvas
+        const imgs = Array.from(element.getElementsByTagName('img'));
+        const fetchPromises = imgs.map(async (img) => {
+            if (img.src && !img.src.startsWith('data:')) {
+                try {
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            img.src = reader.result as string;
+                            resolve(true);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("PDF Image Convert Error:", e);
+                }
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,
@@ -58,9 +86,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const ratio = canvas.width / canvas.height;
         let imgWidth = pdfWidth;
         let imgHeight = imgWidth / ratio;
         let heightLeft = imgHeight;
@@ -146,6 +172,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             </div>
         );
     };
+
+    const cleanCompanyAddress = is3PL 
+        ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
+        : companyInfo.address;
+
+    const beneficiaryName = is3PL ? "Huanqiu Trading Co., Ltd." : "Yiwu Huanqiu Trading Co., Ltd.";
 
     return (
         <div className="space-y-6">
@@ -295,7 +327,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <div>
                                 <h3 className="font-black text-[9px] uppercase text-muted-foreground mb-2 tracking-widest">ÉMIS PAR</h3>
                                 <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
-                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-0.5 text-[10px]">{companyInfo?.address}</p>
+                                <p className="text-zinc-500 leading-relaxed whitespace-pre-wrap mt-0.5 text-[10px]">{cleanCompanyAddress}</p>
                             </div>
                             <div>
                                 <h3 className="font-black text-[9px] uppercase text-muted-foreground mb-2 tracking-widest">DESTINATAIRE</h3>
@@ -392,14 +424,14 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 
                                 <div className="grid grid-cols-2 gap-6 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
                                     <div className="space-y-0.5">
-                                        <p><span className="font-bold text-zinc-900 text-[9px] uppercase block mb-1">Détails de la Banque</span></p>
+                                        <p><span className="font-bold text-zinc-900 text-[9px] uppercase block mb-1">Coordonnées Bancaires</span></p>
                                         <p><span className="font-semibold text-zinc-900">Banque:</span> Banking Circle S.A.</p>
                                         <p><span className="font-semibold text-zinc-900">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
                                         <p><span className="font-semibold text-zinc-900">SWIFT:</span> SXPYDEHH</p>
                                     </div>
                                     <div className="space-y-0.5">
                                         <p><span className="font-bold text-zinc-900 text-[9px] uppercase block mb-1">Bénéficiaire</span></p>
-                                        <p><span className="font-semibold text-zinc-900">Nom:</span> Yiwu Huanqiu Trading Co., Ltd.</p>
+                                        <p><span className="font-semibold text-zinc-900">Nom:</span> {beneficiaryName}</p>
                                         <p className="mt-2 italic text-primary font-black text-[11px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
                                     </div>
                                 </div>
