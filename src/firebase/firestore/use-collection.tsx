@@ -89,10 +89,10 @@ export function useCollection<T = any>(
           setError(contextualError)
           errorEmitter.emit('permission-error', contextualError);
         } else if (serverError.code === 'failed-precondition') {
-          // This usually means an index is required. We log it but don't crash the UI.
+          // Index required - we log but don't block the UI
           console.warn("Firestore Index Required:", serverError.message);
           setIsLoading(false);
-          setData([]); // Return empty data until index is ready
+          setData([]);
         } else {
           console.error("Firestore Error in useCollection:", serverError.code, serverError.message);
           setError(serverError);

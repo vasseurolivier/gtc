@@ -92,7 +92,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.logoDocument; 
-    const productsBySku = new Map(products.map(p => [p.sku, p]));
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
@@ -107,7 +106,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         return (
             <span className="inline-flex flex-col items-end align-middle">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[9px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
+                <span className="text-[7px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
             </span>
         );
     };
@@ -124,67 +123,64 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     return (
         <main className="w-full mx-auto bg-white" id="invoice-preview">
             <div className="p-4 flex justify-end no-print">
-                <Button size="sm" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> Exporter en PDF</Button>
+                <Button size="sm" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> Export PDF</Button>
             </div>
             
-            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
+            <div id="pdf-content" className="relative p-6 bg-white min-h-[297mm] pb-16">
                 <div className="flex-grow">
-                    <header className="w-full flex justify-between items-start pt-2 pb-4 border-b">
+                    <header className="w-full flex justify-between items-start pb-2 border-b">
                         <div>
-                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" />}
+                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-10 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
-                            <h1 className="text-lg font-black text-black uppercase">FACTURE</h1>
-                            <p className="mt-0.5 text-xs text-muted-foreground">N° {invoice.invoiceNumber}</p>
+                            <h1 className="text-sm font-black text-black uppercase leading-tight">FACTURE</h1>
+                            <p className="text-[8px] text-muted-foreground leading-tight">N° {invoice.invoiceNumber}</p>
                         </div>
                     </header>
 
-                    <section className="grid grid-cols-2 gap-8 my-6 text-xs">
+                    <section className="grid grid-cols-2 gap-4 my-4 text-[8px]">
                         <div>
-                            <h3 className="font-semibold text-muted-foreground mb-1">ÉMIS PAR</h3>
-                            <p className="font-bold">{companyInfo?.name}</p>
-                            <p className="whitespace-pre-wrap text-[10px]">{cleanCompanyAddress}</p>
+                            <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">ÉMIS PAR</h3>
+                            <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
+                            <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{cleanCompanyAddress}</p>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-muted-foreground mb-1">FACTURÉ À</h3>
-                            {companyName && <p className="font-bold uppercase">{companyName}</p>}
-                            <p className={companyName ? "text-muted-foreground" : "font-bold"}>{contactName}</p>
-                            <p className="whitespace-pre-wrap mt-1 text-[10px]">{invoice.shippingAddress || customer?.address}</p>
-                            <div className="mt-2 space-y-0.5 text-[10px]">
-                                {customer?.phone && <p className="flex items-center gap-1"><Phone className="h-2.5 w-2.5" /> {customer.phone}</p>}
-                                {customer?.email && <p className="flex items-center gap-1"><Mail className="h-2.5 w-2.5" /> {customer.email}</p>}
+                            <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">FACTURÉ À</h3>
+                            {companyName && <p className="font-bold uppercase text-zinc-900">{companyName}</p>}
+                            <p className={companyName ? "text-zinc-500" : "font-bold text-zinc-900"}>{contactName}</p>
+                            <p className="whitespace-pre-wrap mt-0.5 text-zinc-500 leading-tight">{invoice.shippingAddress || customer?.address}</p>
+                            <div className="mt-1 space-y-0.5 flex flex-col">
+                                {customer?.phone && <span className="flex items-center gap-1"><Phone className="h-2 w-2" /> {customer.phone}</span>}
+                                {customer?.email && <span className="flex items-center gap-1"><Mail className="h-2 w-2" /> {customer.email}</span>}
                             </div>
                         </div>
                     </section>
                     
-                    <table className="w-full text-xs">
+                    <table className="w-full text-[8px] border-collapse">
                         <thead>
                             <tr className="text-left bg-zinc-100 text-zinc-900">
-                                <th className="p-2 font-bold border">Image</th>
-                                <th className="w-1/2 p-2 font-bold border">Description</th>
-                                <th className="text-right p-2 font-bold border">Qté</th>
-                                <th className="text-right p-2 font-bold border">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
-                                <th className="text-right p-2 font-bold border">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-1 font-bold border w-10">Image</th>
+                                <th className="p-1 font-bold border">Description</th>
+                                <th className="p-1 text-center font-bold border w-8">Qté</th>
+                                <th className="p-1 text-right font-bold border w-16">Prix Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-1 text-right font-bold border w-20">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
                         <tbody>
                             {invoice.items.map((item, index) => {
                                 const displayImage = item.photo;
-                                
                                 return (
                                     <tr key={index} className="border-b">
-                                        <td className="p-1 border text-center">
-                                            <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                                        <td className="p-0.5 border text-center">
+                                            <div className="w-8 h-8 mx-auto flex items-center justify-center">
                                                 {displayImage ? (
-                                                    <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                    <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain" />
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded border bg-zinc-50 flex items-center justify-center text-zinc-300">
-                                                        <Package className="h-4 w-4" />
-                                                    </div>
+                                                    <Package className="h-3 w-3 text-zinc-200" />
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="p-1 border"><p className="font-bold text-[11px]">{item.description}</p></td>
+                                        <td className="p-1 border"><p className="font-bold text-[9px] leading-tight">{item.description}</p></td>
                                         <td className="p-1 text-center border">{item.quantity}</td>
                                         <td className="p-1 text-right border">{renderPrice(item.unitPrice)}</td>
                                         <td className="p-1 text-right border font-bold">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
@@ -194,49 +190,44 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </tbody>
                     </table>
                     
-                    <div className="flex justify-end pt-6">
-                        <div className="w-full max-w-[250px] space-y-2 text-xs">
+                    <div className="flex justify-end pt-4">
+                        <div className="w-full max-w-[180px] space-y-1 text-[8px]">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground font-medium">Sous-total articles :</span>
+                                <span className="text-zinc-500 font-medium">Sous-total:</span>
                                 <span className="font-bold">{renderPrice(subTotalCny)}</span>
                             </div>
                             {commissionCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground font-medium">Commission ({commissionRate}%) :</span>
+                                    <span className="text-zinc-500 font-medium">Commission ({commissionRate}%):</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
                             {transportCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Frais de port :</span>
+                                    <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-2 w-2" /> Port:</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between font-black text-sm pt-2 mt-2 border-t-2 border-black">
-                                <span>TOTAL FINAL :</span>
+                            <div className="flex justify-between font-black text-[10px] mt-1 pt-1 border-t-2 border-zinc-900">
+                                <span>TOTAL FINAL:</span>
                                 <span className="text-primary">{renderPrice(totalFinalCny, true)}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 p-4 bg-zinc-50 rounded-lg border text-[10px]">
-                        <h3 className="font-bold mb-2 uppercase">COORDONNÉES BANCAIRES</h3>
+                    <div className="mt-6 p-2 bg-zinc-50 rounded border text-[7px]">
+                        <h3 className="font-bold mb-1 uppercase text-zinc-400">COORDONNÉES BANCAIRES</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-0.5">
                                 <p><strong>Banque:</strong> Banking Circle S.A. - German Branch</p>
-                                <p><strong>Adresse:</strong> Maximilianstraße 54, 80538 München, Germany</p>
                                 <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
                                 <p><strong>SWIFT:</strong> SXPYDEHH</p>
                             </div>
                             <div className="space-y-0.5">
                                 <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
-                                <p className="mt-2 italic text-primary font-bold">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
+                                <p className="mt-1 italic text-primary font-bold">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="mt-4 border-t pt-2 text-[9px] text-muted-foreground italic">
-                        * Taux de change appliqué : 1 CNY = {invoiceRate.toFixed(4)} EUR
                     </div>
                 </div>
                 <PrintFooter />

@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Proxy API to bypass CORS restrictions when fetching images for PDF generation.
- * This ensures images from Firebase Storage can be converted to Base64 safely.
  */
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get('url');

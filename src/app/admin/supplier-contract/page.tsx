@@ -197,7 +197,6 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
     });
     form.setValue("totalAmount", totalAmount, { shouldValidate: true });
     
-    // We need to get the latest values after setting totals
     const finalValues = form.getValues();
 
     setIsSubmitting(true);
@@ -223,204 +222,144 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
   const depositPercentage = Number(watchedValues.depositPercentage) || 0;
   const depositAmount = totalAmount * (depositPercentage / 100);
   const balanceAmount = totalAmount - depositAmount;
-  const isExistingSupplier = suppliers.some(s => s.name === watchedValues.supplierName);
-
 
   return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-1 no-print">
           <CardContent className="p-6">
             <Form {...form}>
               <form className="space-y-6">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-semibold">{editingContract ? 'Edit Contract' : 'Contract Details'}</h3>
+                    <h3 className="text-xl font-semibold">Détails Contrat</h3>
                     <div className="flex gap-2">
-                        <Button type="button" variant="outline" onClick={handleDownloadPdf}>
-                            <Printer className="mr-2 h-4 w-4" /> Export to PDF
-                        </Button>
-                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
-                            <Save className="mr-2 h-4 w-4" /> {isSubmitting ? 'Saving...' : 'Save'}
-                        </Button>
+                        <Button type="button" variant="outline" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> PDF</Button>
+                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}><Save className="mr-2 h-4 w-4" /> Sauver</Button>
                     </div>
                 </div>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
+                    <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl></FormItem> )} />
                   </div>
                 </div>
                 <Separator />
                 <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Supplier Information</h3>
-                    <FormItem>
-                        <FormLabel>Supplier</FormLabel>
-                         <Select onValueChange={handleSupplierSelect}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select an existing supplier" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </FormItem>
-                    <div className="relative">
-                        <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormLabel>Supplier Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        {!isExistingSupplier && watchedValues.supplierName && (
-                             <Button type="button" size="sm" className="absolute top-0 right-0 mt-6" onClick={handleSaveSupplier} disabled={isSavingSupplier}>
-                                {isSavingSupplier ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
-                                Save Supplier
-                            </Button>
-                        )}
-                    </div>
-                    <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormLabel>Supplier Address</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="supplierContact" render={({ field }) => ( <FormItem><FormLabel>Contact Person</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormLabel>Fournisseur</FormLabel>
+                    <Select onValueChange={handleSupplierSelect}>
+                        <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
+                        <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Nom Usine" {...field} /></FormControl></FormItem> )} />
+                    <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse Usine" {...field} rows={2} /></FormControl></FormItem> )} />
                 </div>
                  <Separator />
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Items</h3>
+                    <h3 className="font-semibold">Articles</h3>
                     <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                         {fields.map((field, index) => (
-                          <Card key={field.id} className="p-4 relative">
-                            <div className="flex justify-end"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
+                          <Card key={field.id} className="p-2 relative">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button>
                             <div className="space-y-2">
                                 <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                    <SelectTrigger><SelectValue placeholder="Select a product or describe" /></SelectTrigger>
-                                    <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent>
+                                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Lier produit" /></SelectTrigger>
+                                    <SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}</SelectContent>
                                 </Select>
-                                <div className="flex items-center gap-4">
-                                  <div className="w-16 h-16 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
-                                      {watchedValues.items?.[index]?.photo ? (
-                                          <Image src={watchedValues.items[index].photo!.trimEnd()} alt="Product" width={64} height={64} className="object-contain" />
-                                      ) : (<UploadCloud className="h-6 w-6 text-muted-foreground" />)}
-                                  </div>
-                                  <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                                      <FormItem className="w-full"><FormLabel>Photo URL</FormLabel><FormControl><Input placeholder="https://..." {...photoField} /></FormControl></FormItem>
-                                  )} />
-                               </div>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...f} /></FormControl></FormItem> )} />
+                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Input className="h-8 text-xs" placeholder="Description" {...f} /></FormControl></FormItem> )} />
                                 <div className="grid grid-cols-2 gap-2">
-                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => ( <FormItem><FormLabel>Unit Price (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><FormControl><Input type="number" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} />
                                 </div>
                             </div>
                           </Card>
                         ))}
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' })}> <PlusCircle className="mr-2 h-4 w-4" /> Add Item </Button>
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' })}>+ Ajouter ligne</Button>
                   </div>
-                   <Separator />
-                   <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Terms & Conditions</h3>
-                        <FormField control={form.control} name="depositPercentage" render={({ field }) => ( <FormItem><FormLabel>Deposit (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="balanceTerms" render={({ field }) => ( <FormItem><FormLabel>Balance Payment Terms</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="qualityControl" render={({ field }) => ( <FormItem><FormLabel>Quality Control</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="shippingTerms" render={({ field }) => ( <FormItem><FormLabel>Shipping Terms (Incoterms)</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="leadTime" render={({ field }) => ( <FormItem><FormLabel>Lead Time</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="specificClauses" render={({ field }) => ( <FormItem><FormLabel>Specific Clauses</FormLabel><FormControl><Textarea placeholder="Add any specific clauses or notes here..." {...field} rows={4} /></FormControl></FormItem> )} />
-                   </div>
               </form>
             </Form>
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2 lg:block">
-            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm]">
-              <div className="fixed-print-header">
-                <header className="flex justify-between items-start mb-4">
-                  <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Company Logo" className="h-12 object-contain" />}</div>
+        <div className="lg:col-span-2">
+            <div id="pdf-content" className="relative p-6 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-16">
+                <header className="flex justify-between items-start pb-2 border-b">
+                  <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Logo" className="h-8 object-contain" />}</div>
                   <div className="text-right">
-                    <h1 className="text-lg font-bold text-primary">PURCHASE CONTRACT</h1>
-                    <p className="text-xs text-muted-foreground mt-1">合同编号 (Contract No.): {watchedValues.contractNumber}</p>
-                    <p className="text-xs text-muted-foreground">签订日期 (Date): {format(watchedValues.date, 'yyyy-MM-dd')}</p>
+                    <h1 className="text-sm font-bold text-primary leading-tight">PURCHASE CONTRACT</h1>
+                    <p className="text-[7px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>
+                    <p className="text-[7px] text-muted-foreground">Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p>
                   </div>
                 </header>
-              </div>
 
-              <div className="printable-content-area">
-                <section className="grid grid-cols-2 gap-8 mb-4 text-xs">
+                <section className="grid grid-cols-2 gap-4 my-4 text-[7px]">
                   <div>
-                    <h2 className="font-bold border-b mb-1 pb-1">买方 (The Buyer):</h2>
-                    <p className="font-semibold">{watchedValues.buyerName}</p>
-                    <p className="whitespace-pre-wrap">{watchedValues.buyerAddress}</p>
+                    <h2 className="font-bold border-b mb-1 uppercase text-zinc-400">The Buyer:</h2>
+                    <p className="font-bold text-zinc-900">{watchedValues.buyerName}</p>
+                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.buyerAddress}</p>
                   </div>
                   <div>
-                    <h2 className="font-bold border-b mb-1 pb-1">卖方 (The Seller):</h2>
-                    <p className="font-semibold">{watchedValues.supplierName}</p>
-                    <p className="whitespace-pre-wrap">{watchedValues.supplierAddress}</p>
-                    {watchedValues.supplierContact && <p>Attn: {watchedValues.supplierContact}</p>}
+                    <h2 className="font-bold border-b mb-1 uppercase text-zinc-400">The Seller:</h2>
+                    <p className="font-bold text-zinc-900">{watchedValues.supplierName}</p>
+                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.supplierAddress}</p>
                   </div>
                 </section>
 
                 <section>
-                    <h2 className="font-bold text-center mb-2">1. 商品 (COMMODITY)</h2>
-                    <table className="w-full text-xs leading-tight">
-                        <thead className="bg-muted">
-                            <tr className="border"><th className="p-1 border text-left w-12">图片 (Photo)</th><th className="p-1 border text-left">货描 (Description)</th><th className="p-1 border text-right">数量 (Quantity)</th><th className="p-1 border text-right">单价 (Unit Price CNY)</th><th className="p-1 border text-right">总价 (Total Amount CNY)</th></tr>
+                    <h2 className="font-bold text-center mb-2 text-[8px] uppercase tracking-widest border-y py-1">1. COMMODITY</h2>
+                    <table className="w-full text-[7px] border-collapse">
+                        <thead>
+                            <tr className="bg-zinc-100 text-zinc-900">
+                                <th className="p-1 border text-left w-10">Photo</th>
+                                <th className="p-1 border text-left">Description</th>
+                                <th className="p-1 border text-right w-8">Qty</th>
+                                <th className="p-1 border text-right w-16">Unit (CNY)</th>
+                                <th className="p-1 border text-right w-20">Total (CNY)</th>
+                            </tr>
                         </thead>
                         <tbody>
-                            {watchedValues.items?.map((item, index) => {
-                                const unitPrice = Number(item.unitPrice) || 0;
-                                const quantity = Number(item.quantity) || 0;
-                                const total = quantity * unitPrice;
-                                return (
-                                    <tr key={index}>
-                                        <td className="p-1 border align-top">{item.photo && <img src={item.photo.trimEnd()} alt={item.description} className="w-10 h-10 object-contain"/>}</td>
-                                        <td className="p-1 border align-top">{item.description}</td>
-                                        <td className="p-1 border text-right align-top">{quantity}</td>
-                                        <td className="p-1 border text-right align-top">¥{unitPrice.toFixed(2)}</td>
-                                        <td className="p-1 border text-right align-top">¥{total.toFixed(2)}</td>
-                                    </tr>
-                                );
-                            })}
+                            {watchedValues.items?.map((item, index) => (
+                                <tr key={index}>
+                                    <td className="p-0.5 border text-center">{item.photo && <img src={item.photo} alt="p" className="w-8 h-8 object-contain mx-auto"/>}</td>
+                                    <td className="p-1 border font-medium leading-tight">{item.description}</td>
+                                    <td className="p-1 border text-right">{item.quantity}</td>
+                                    <td className="p-1 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td>
+                                    <td className="p-1 border text-right font-bold">¥{(Number(item.quantity || 0) * Number(item.unitPrice || 0)).toFixed(2)}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
-                </section>
-                
-                  <>
                     <div className="flex justify-end mt-2">
-                        <div className="w-1/2">
-                             <table className="w-full text-xs">
-                                <tbody>
-                                    <tr className="font-bold">
-                                        <td className="p-1 text-right">合同总价 (Total Contract Value):</td>
-                                        <td className="p-1 text-right text-sm">¥{totalAmount.toFixed(2)}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div className="w-1/2 flex justify-between font-black text-[9px] border-t-2 border-zinc-900 pt-1">
+                            <span>TOTAL CONTRACT VALUE:</span>
+                            <span>¥{totalAmount.toFixed(2)}</span>
                         </div>
                     </div>
-                    <section className="mt-4 space-y-1 text-xs">
-                        <h2 className="font-bold text-center mb-2">2. 合同条款 (TERMS)</h2>
-                        <p><strong>- 质量要求 (Quality Control):</strong> {watchedValues.qualityControl}. {watchedValues.qualityControl?.toLowerCase().includes('aql') ? 'AQL (可接受质量水平) 国际抽样标准' : ''}</p>
-                        <p><strong>- 付款条件 (Payment Terms):</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
-                        <p><strong>- 交货条件 (Shipping Terms):</strong> {watchedValues.shippingTerms}.</p>
-                        <p><strong>- 交货时间 (Lead Time):</strong> {watchedValues.leadTime}.</p>
-                        {watchedValues.specificClauses && <p><strong>- 特别条款 (Specific Clauses):</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
-                    </section>
-                    
-                    <div className="flex-grow"></div>
-
-                    <section className="mt-16 pt-4 text-xs">
-                      <div className="grid grid-cols-2 gap-16">
-                          <div>
-                              <p className="font-bold">买方 (The Buyer):</p>
-                              <p className="mt-1">{watchedValues.buyerName}</p>
-                              <div className="mt-12 border-t pt-1"><p>Authorized Signature & Stamp</p></div>
-                          </div>
-                          <div>
-                              <p className="font-bold">卖方 (The Seller):</p>
-                              <p className="mt-1">{watchedValues.supplierName}</p>
-                               <div className="mt-12 border-t pt-1"><p>Authorized Signature & Stamp</p></div>
-                          </div>
+                </section>
+                
+                <section className="mt-4 space-y-1 text-[7px]">
+                    <h2 className="font-bold text-center mb-2 uppercase tracking-widest border-y py-1">2. TERMS</h2>
+                    <p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p>
+                    <p><strong>- Payment:</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
+                    <p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p>
+                    {watchedValues.specificClauses && <p><strong>- Clauses:</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
+                </section>
+                
+                <section className="mt-12 text-[7px]">
+                  <div className="grid grid-cols-2 gap-16">
+                      <div className="pt-8 border-t border-zinc-200">
+                          <p className="font-bold uppercase mb-1">The Buyer Signature</p>
+                          <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
                       </div>
-                    </section>
-                  </>
-                </div>
+                      <div className="pt-8 border-t border-zinc-200">
+                          <p className="font-bold uppercase mb-1">The Seller Signature</p>
+                          <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
+                      </div>
+                  </div>
+                </section>
+                <PrintFooter />
             </div>
         </div>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -462,7 +401,7 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierCo
         <Card>
             <CardContent className="p-0">
                 {contracts.length === 0 ? (
-                    <div className="text-center p-16 text-muted-foreground"><p>No saved supplier contracts found.</p></div>
+                    <div className="text-center p-16 text-muted-foreground"><p>Aucun contrat archivé.</p></div>
                 ) : (
                     <Table>
                         <TableHeader>
@@ -470,7 +409,7 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierCo
                                 <TableHead>Contract #</TableHead>
                                 <TableHead>Supplier</TableHead>
                                 <TableHead>Date</TableHead>
-                                <TableHead className="text-right">Total Amount</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -479,7 +418,7 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierCo
                                 <TableRow key={contract.id}>
                                     <TableCell className="font-medium">{contract.contractNumber}</TableCell>
                                     <TableCell>{contract.supplierName}</TableCell>
-                                    <TableCell>{format(new Date(contract.date), 'dd MMM yyyy')}</TableCell>
+                                    <TableCell>{format(new Date(contract.date), 'dd/MM/yyyy')}</TableCell>
                                     <TableCell className="text-right">¥{contract.totalAmount.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon" onClick={() => onEdit(contract)}><Pencil className="h-4 w-4" /></Button>
@@ -487,12 +426,11 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierCo
                                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                                             <AlertDialogContent>
                                                 <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>This action will permanently delete this contract.</AlertDialogDescription>
+                                                    <AlertDialogTitle>Confirmer suppression ?</AlertDialogTitle>
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(contract.id)}>Delete</AlertDialogAction>
+                                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDelete(contract.id)}>Supprimer</AlertDialogAction>
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
@@ -527,7 +465,6 @@ function SupplierContractPageContent() {
                 setProducts(fetchedProducts);
                 setSuppliers(fetchedSuppliers);
             } catch (error) {
-                console.error("Failed to fetch initial data", error);
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to load initial data.' });
             } finally {
                 setIsLoading(false);
@@ -567,17 +504,17 @@ function SupplierContractPageContent() {
     return (
         <div className="container py-8">
              <div className="flex justify-between items-center mb-8 no-print">
-                <h1 className="text-3xl font-bold">Supplier Contract</h1>
+                <h1 className="text-3xl font-bold">Contrats Fournisseurs</h1>
                  {activeTab === 'generator' && editingContract && (
                     <Button variant="outline" onClick={handleNew}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Create New Contract
+                        <PlusCircle className="mr-2 h-4 w-4" /> Nouveau Contrat
                     </Button>
                  )}
             </div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="no-print">
                 <TabsList className="mb-4">
-                    <TabsTrigger value="generator">{editingContract ? 'Edit Contract' : 'Generator'}</TabsTrigger>
-                    <TabsTrigger value="history">History</TabsTrigger>
+                    <TabsTrigger value="generator">{editingContract ? 'Modifier' : 'Générateur'}</TabsTrigger>
+                    <TabsTrigger value="history">Historique</TabsTrigger>
                 </TabsList>
                 <TabsContent value="generator">
                     <ContractGenerator 
@@ -593,10 +530,6 @@ function SupplierContractPageContent() {
                     <ContractHistory onEdit={handleEdit} refreshKey={refreshKey} />
                 </TabsContent>
             </Tabs>
-
-            <div className="hidden print-block">
-                <ContractGenerator key={generatorKey} editingContract={editingContract} onFinished={handleFinished} products={products} suppliers={suppliers} onSupplierCreated={handleSupplierCreated} />
-            </div>
         </div>
     );
 }

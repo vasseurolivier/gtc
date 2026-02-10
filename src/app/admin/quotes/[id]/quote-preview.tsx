@@ -95,7 +95,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     
     const { companyInfo } = companyInfoContext;
     const displayLogo = companyInfo.logoDocument; 
-    const productsBySku = new Map(products.map(p => [p.sku, p]));
     
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
     const currencyPref = customer?.currencyPreference || 'BOTH';
@@ -113,7 +112,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         return (
             <span className="inline-flex flex-col items-end align-middle">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[9px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
+                <span className="text-[7px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
             </span>
         );
     };
@@ -131,160 +130,145 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         <main id="invoice-preview" className="w-full mx-auto bg-white">
             <div className="p-4 flex justify-end no-print">
                 <Button size="sm" onClick={handleDownloadPdf}>
-                    <Printer className="mr-2 h-4 w-4" /> Exporter en PDF
+                    <Printer className="mr-2 h-4 w-4" /> Export PDF
                 </Button>
             </div>
             
-            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-20">
+            <div id="pdf-content" className="relative p-6 bg-white min-h-[297mm] pb-16">
                 <div className="flex-grow">
-                    <header className="w-full flex justify-between items-start pt-2 pb-4 border-b-2 border-zinc-100">
+                    <header className="w-full flex justify-between items-start pb-2 border-b">
                         <div>
-                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-14 w-auto object-contain block" />}
+                            {displayLogo && <img src={displayLogo} alt="Logo" className="h-10 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
-                            <h1 className="text-lg font-black text-black uppercase leading-tight">Proforma</h1>
-                            <p className="mt-0.5 text-xs text-muted-foreground leading-tight">N° {quote.quoteNumber}</p>
+                            <h1 className="text-sm font-black text-black uppercase leading-tight">Proforma</h1>
+                            <p className="text-[8px] text-muted-foreground leading-tight">N° {quote.quoteNumber}</p>
                         </div>
                     </header>
 
-                    <section className="grid grid-cols-2 gap-8 my-6 text-xs">
+                    <section className="grid grid-cols-2 gap-4 my-4 text-[8px]">
                         <div>
-                            <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">ÉMIS PAR</h3>
-                            <p className="font-bold leading-tight">{companyInfo?.name}</p>
-                            <p className="whitespace-pre-wrap leading-tight text-[10px]">{cleanCompanyAddress}</p>
+                            <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">ÉMIS PAR</h3>
+                            <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
+                            <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{cleanCompanyAddress}</p>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-muted-foreground mb-1 leading-tight">FACTURÉ À</h3>
-                            {companyName && <p className="font-bold uppercase leading-tight">{companyName}</p>}
-                            <p className={cn("leading-tight", companyName ? "text-muted-foreground" : "font-bold")}>{contactName}</p>
-                            <p className="whitespace-pre-wrap leading-tight mt-1 text-[10px]">{quote.shippingAddress || customer?.address}</p>
-                            <div className="mt-2 space-y-0.5 text-[10px]">
-                                {customer?.phone && <p className="flex items-center gap-1"><Phone className="h-2.5 w-2.5" /> {customer.phone}</p>}
-                                {customer?.email && <p className="flex items-center gap-1"><Mail className="h-2.5 w-2.5" /> {customer.email}</p>}
+                            <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">FACTURÉ À</h3>
+                            {companyName && <p className="font-bold uppercase text-zinc-900">{companyName}</p>}
+                            <p className={cn("leading-tight", companyName ? "text-zinc-500" : "font-bold text-zinc-900")}>{contactName}</p>
+                            <p className="whitespace-pre-wrap mt-0.5 text-zinc-500 leading-tight">{quote.shippingAddress || customer?.address}</p>
+                            <div className="mt-1 space-y-0.5 flex flex-col">
+                                {customer?.phone && <span className="flex items-center gap-1"><Phone className="h-2 w-2" /> {customer.phone}</span>}
+                                {customer?.email && <span className="flex items-center gap-1"><Mail className="h-2 w-2" /> {customer.email}</span>}
                             </div>
                         </div>
                     </section>
 
-                    <div className="my-2 text-[10px] flex gap-8">
-                        <div><span className="text-muted-foreground font-semibold">DATE:</span> {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</div>
-                        <div><span className="text-muted-foreground font-semibold">VALABLE JUSQU'AU:</span> {format(new Date(quote.validUntil), 'dd/MM/yyyy')}</div>
+                    <div className="my-2 text-[8px] flex gap-4 border-y py-1">
+                        <div><span className="text-zinc-400 font-bold uppercase">DATE:</span> {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</div>
+                        <div><span className="text-zinc-400 font-bold uppercase">VALABLE:</span> {format(new Date(quote.validUntil), 'dd/MM/yyyy')}</div>
                     </div>
                     
-                    <table className="w-full text-xs border-collapse">
+                    <table className="w-full text-[8px] border-collapse">
                         <thead>
                             <tr className="text-left bg-zinc-100 text-zinc-900">
-                                <th className="p-2 font-bold border">Image</th>
-                                <th className="w-1/2 p-2 font-bold border">Description des articles</th>
-                                <th className="text-right p-2 font-bold border">Qté</th>
-                                <th className="text-right p-2 font-bold border">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
-                                <th className="text-right p-2 font-bold border">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-1 font-bold border w-10">Image</th>
+                                <th className="p-1 font-bold border">Description des articles</th>
+                                <th className="p-1 text-center font-bold border w-8">Qté</th>
+                                <th className="p-1 text-right font-bold border w-16">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-1 text-right font-bold border w-20">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
                         <tbody>
                         {quote.items.map((item, itemIndex) => {
                             const displayImage = item.photo;
-                            
                             return (
                                 <tr key={itemIndex} className="border-b">
-                                    <td className="p-1 align-top border text-center">
-                                        <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                                    <td className="p-0.5 align-top border text-center">
+                                        <div className="w-8 h-8 mx-auto flex items-center justify-center">
                                             {displayImage ? (
-                                                <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain rounded border shadow-sm" />
+                                                <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain" />
                                             ) : (
-                                                <div className="w-8 h-8 rounded bg-zinc-50 flex items-center justify-center border text-zinc-300">
-                                                    <Package className="h-4 w-4" />
-                                                </div>
+                                                <Package className="h-3 w-3 text-zinc-200" />
                                             )}
                                         </div>
                                     </td>
                                     <td className="p-1 align-top border">
-                                        <p className="font-bold text-[11px] leading-tight">{item.description}</p>
-                                        {item.sku && <p className="text-[9px] font-mono text-muted-foreground mt-0.5">{item.sku}</p>}
+                                        <p className="font-bold text-[9px] leading-tight">{item.description}</p>
+                                        {item.sku && <p className="text-[7px] text-zinc-400 font-mono">{item.sku}</p>}
                                     </td>
                                     <td className="p-1 align-top text-center border">{item.quantity}</td>
-                                    <td className="p-1 align-top text-right border">
-                                        {renderPrice(item.unitPrice)}
-                                    </td>
-                                    <td className="p-1 align-top text-right font-bold border">
-                                        {renderPrice(Number(item.quantity) * Number(item.unitPrice))}
-                                    </td>
+                                    <td className="p-1 align-top text-right border">{renderPrice(item.unitPrice)}</td>
+                                    <td className="p-1 align-top text-right font-bold border">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
                                 </tr>
                             )
                         })}
                         </tbody>
                     </table>
                     
-                    <div className="flex justify-end pt-6">
-                        <div className="w-full max-w-[250px] space-y-2 text-xs">
+                    <div className="flex justify-end pt-4">
+                        <div className="w-full max-w-[180px] space-y-1 text-[8px]">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground font-medium">Sous-total articles :</span>
+                                <span className="text-zinc-500 font-medium">Sous-total articles:</span>
                                 <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                             </div>
-                            
                             {commissionRate > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground font-medium">Commission ({commissionRate}%) :</span>
+                                    <span className="text-zinc-500 font-medium">Commission ({commissionRate}%):</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
-                            
                             {transportCny > 0 && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Frais de port :</span>
+                                    <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-2 w-2" /> Port:</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
-
-                            <div className="flex justify-between font-black text-sm mt-2 pt-2 border-t-2 border-black">
-                                <span>TOTAL :</span>
-                                <span className="text-right text-primary">{renderPrice(totalFinalCny, true)}</span>
+                            <div className="flex justify-between font-black text-[10px] mt-1 pt-1 border-t-2 border-zinc-900">
+                                <span className="uppercase">TOTAL:</span>
+                                <span className="text-primary">{renderPrice(totalFinalCny, true)}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-4">
-                        <div className="p-4 bg-zinc-50 rounded-lg border text-[10px] mb-4">
-                            <h3 className="font-bold mb-2 uppercase">COORDONNÉES BANCAIRES</h3>
+                    <div className="mt-6">
+                        <div className="p-2 bg-zinc-50 rounded border text-[7px] mb-2">
+                            <h3 className="font-bold mb-1 uppercase text-zinc-400">COORDONNÉES BANCAIRES</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-0.5">
                                     <p><strong>Banque:</strong> Banking Circle S.A. - German Branch</p>
-                                    <p><strong>Adresse:</strong> Maximilianstraße 54, 80538 München, Germany</p>
                                     <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
                                     <p><strong>SWIFT:</strong> SXPYDEHH</p>
                                 </div>
                                 <div className="space-y-0.5">
                                     <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
-                                    <p className="mt-2 italic text-primary font-black text-[11px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
+                                    <p className="mt-1 italic text-primary font-bold text-[8px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
                                 </div>
                             </div>
                         </div>
 
                         {quote.notes && (
-                            <div className="mb-4">
-                                <h3 className="font-semibold mb-1 text-[10px] leading-tight">Notes:</h3>
-                                <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-tight">
-                                    {quote.notes}
-                                </p>
+                            <div className="mb-2">
+                                <h3 className="font-bold mb-0.5 text-[7px] text-zinc-400 uppercase">Notes:</h3>
+                                <p className="text-[7px] text-zinc-500 whitespace-pre-wrap leading-tight">{quote.notes}</p>
                             </div>
                         )}
                         
-                        <div className="mb-4 pt-2 border-t text-[10px]">
-                            <h3 className="font-semibold mb-1 uppercase tracking-widest text-[9px] text-zinc-400">Conditions :</h3>
+                        <div className="pt-1 border-t text-[7px]">
+                            <h3 className="font-bold mb-0.5 uppercase text-zinc-400">Conditions :</h3>
                             {quote.depositRequired ? (
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="text-muted-foreground leading-tight">
+                                    <div className="text-zinc-500 leading-tight">
                                         Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100))}</strong>
                                         <br />Payable sous 3 jours.
                                     </div>
-                                    <div className="text-muted-foreground leading-tight">
+                                    <div className="text-zinc-500 leading-tight">
                                         Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100))}</strong>
                                         <br />Payable après contrôle qualité (AQL).
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-muted-foreground leading-tight">
-                                    Paiement intégral avant expédition.
-                                </div>
+                                <div className="text-zinc-500 leading-tight">Paiement intégral avant expédition.</div>
                             )}
                         </div>
                     </div>
