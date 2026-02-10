@@ -157,7 +157,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             {companyName && <p className="font-bold uppercase text-zinc-900">{companyName}</p>}
                             <div className={cn("leading-tight", companyName ? "text-zinc-500" : "font-bold text-zinc-900")}>{contactName}</div>
                             <p className="whitespace-pre-wrap mt-1 text-zinc-500 leading-tight">{quote.shippingAddress || customer?.address}</p>
-                            <div className="mt-2 space-y-1 flex flex-col">
+                            <div className="mt-2 space-y-1 flex flex-col text-[9px]">
                                 {customer?.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {customer.phone}</span>}
                                 {customer?.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {customer.email}</span>}
                             </div>
@@ -242,7 +242,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 </div>
                                 <div className="space-y-1">
                                     <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
-                                    <p className="mt-1 italic text-primary font-bold text-[10px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
+                                    <p className="mt-1 italic text-primary font-bold text-[10px]">Ref: {quote.quoteNumber}</p>
                                 </div>
                             </div>
                         </div>

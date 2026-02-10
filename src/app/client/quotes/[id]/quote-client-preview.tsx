@@ -337,7 +337,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     {profile?.firstName} {profile?.lastName}
                                 </div>
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
-                                <div className="mt-2 space-y-1 flex flex-col">
+                                <div className="mt-2 space-y-1 flex flex-col text-[9px]">
                                     {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
                                     {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-3 w-3" /> {profile.email}</div>}
                                 </div>

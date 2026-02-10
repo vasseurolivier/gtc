@@ -43,20 +43,28 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const companyInfoContext = useContext(CompanyInfoContext);
-  const logoUrl = companyInfoContext?.companyInfo.logoCommercial || '';
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useUser();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-
     window.addEventListener('scroll', handleScroll);
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  if (pathname.startsWith('/admin') || (pathname.startsWith('/client') && pathname !== '/client/login')) {
+    return null;
+  }
+
+  // Robust logo recovery with fallbacks
+  const logoUrl = companyInfoContext?.companyInfo?.logoCommercial || 
+                  companyInfoContext?.companyInfo?.logoDocument || 
+                  companyInfoContext?.companyInfo?.logoAdmin || 
+                  "https://placehold.co/600x200/e11d48/white?text=Global+Trading+China";
 
   const navItems = [
     { href: '/', label: dictionary.home },
@@ -76,97 +84,59 @@ export function Header() {
 
   const headerClasses = cn(
     "fixed top-0 z-50 w-full transition-all duration-500",
-    isScrolled || pathname.startsWith('/client') || pathname.startsWith('/admin')
+    isScrolled || pathname.startsWith('/client')
       ? "border-b bg-zinc-950/95 backdrop-blur-md shadow-lg"
       : "bg-transparent border-transparent"
   );
   
   const linkClasses = (href: string, isServices = false) => {
-    let isActive = false;
-    if (isServices) {
-        isActive = pathname.startsWith('/services');
-    } else if (href === '/') {
-        isActive = pathname === `/`;
-    } else {
-        isActive = pathname.startsWith(href);
-    }
-
+    const isActive = isServices ? pathname.startsWith('/services') : (href === '/' ? pathname === '/' : pathname.startsWith(href));
     return cn(
       "relative transition-all duration-300 font-headline font-black text-[18px] uppercase tracking-tight text-white/80 hover:text-white whitespace-nowrap",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
       isActive ? "text-primary after:w-full" : ""
     );
   };
-  
-  const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-black text-[18px] uppercase tracking-tight text-white/80 hover:text-white whitespace-nowrap",
-     "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-    pathname.startsWith('/services')
-      ? "text-primary after:w-full"
-      : ""
-  );
-
-  if (pathname.startsWith('/admin') || (pathname.startsWith('/client') && pathname !== '/client/login')) {
-    return null;
-  }
 
   return (
     <header className={headerClasses}>
       <div className="container flex h-24 items-center px-4 md:px-8">
         <Link href="/" className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
-            {logoUrl ? (
-              <div className="relative h-14 w-auto">
-                <Image 
-                  src={logoUrl} 
-                  alt="Logo" 
-                  width={180}
-                  height={56}
-                  className="h-14 w-auto object-contain" 
-                  priority
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className="w-12 h-12 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg text-xl">G</div>
-            )}
+            <div className="relative h-14 w-auto flex items-center">
+              <Image 
+                src={logoUrl} 
+                alt="Logo" 
+                width={180}
+                height={56}
+                className="h-14 w-auto object-contain" 
+                priority
+                unoptimized
+              />
+            </div>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8 ml-8">
             {navItems.map((item) => (
-            <Link
-                key={item.href}
-                href={item.href}
-                className={linkClasses(item.href)}
-            >
-                {item.label}
-            </Link>
+              <Link key={item.href} href={item.href} className={linkClasses(item.href)}>{item.label}</Link>
             ))}
             <DropdownMenu>
-            <DropdownMenuTrigger className={dropdownTriggerClasses}>
+              <DropdownMenuTrigger className={cn(
+                "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-black text-[18px] uppercase tracking-tight text-white/80 hover:text-white whitespace-nowrap",
+                "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
+                pathname.startsWith('/services') ? "text-primary after:w-full" : ""
+              )}>
                 {dictionary.services} <ChevronDown className="h-4 w-4 ml-1" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[250px]">
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[250px]">
                 {servicesItems.map((item) => (
-                <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-xs uppercase tracking-wider py-4 cursor-pointer">
+                  <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-xs uppercase tracking-wider py-4 cursor-pointer">
                     <Link href={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
+                  </DropdownMenuItem>
                 ))}
-            </DropdownMenuContent>
+              </DropdownMenuContent>
             </DropdownMenu>
-            <Link
-                key={citiesItem.href}
-                href={citiesItem.href}
-                className={linkClasses(citiesItem.href)}
-            >
-                {dictionary.tradeHubs}
-            </Link>
-            <Link
-                key={contactItem.href}
-                href={contactItem.href}
-                className={linkClasses(contactItem.href)}
-            >
-                {dictionary.contact}
-            </Link>
+            <Link href={citiesItem.href} className={linkClasses(citiesItem.href)}>{citiesItem.label}</Link>
+            <Link href={contactItem.href} className={linkClasses(contactItem.href)}>{contactItem.label}</Link>
         </nav>
         
         <div className="flex-1" />
@@ -194,9 +164,7 @@ export function Header() {
                     </span>
                   )}
                 </div>
-                <span>
-                  {mounted && user ? "Mon Espace" : dictionary.clientSpace}
-                </span>
+                <span>{mounted && user ? "Mon Espace" : dictionary.clientSpace}</span>
               </Link>
             </Button>
 
@@ -205,95 +173,41 @@ export function Header() {
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                     <Menu className="h-8 w-8" />
-                    <span className="sr-only">Toggle Menu</span>
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-xs bg-zinc-950 border-zinc-800 text-white">
                     <SheetHeader>
                       <SheetTitle className="text-white font-headline tracking-widest uppercase text-sm">Navigation</SheetTitle>
-                      <SheetDescription className="text-zinc-500">Menu principal Global Trading China</SheetDescription>
                     </SheetHeader>
                     <div className="mt-12 flex flex-col space-y-4">
                     {navItems.map((item) => (
-                        <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={cn(
-                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
-                            pathname === item.href ? "text-primary" : "text-white/80"
-                        )}
-                        >
-                        {item.label}
+                        <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className={cn("text-lg font-headline font-bold uppercase tracking-widest py-2", pathname === item.href ? "text-primary" : "text-white/80")}>
+                          {item.label}
                         </Link>
                     ))}
-                    
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="services" className="border-b-0">
-                            <AccordionTrigger className={cn(
-                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary hover:no-underline py-2",
-                            pathname.startsWith('/services') ? "text-primary" : "text-white/80"
-                            )}>
-                            {dictionary.services}
+                            <AccordionTrigger className={cn("text-lg font-headline font-bold uppercase tracking-widest py-2 hover:no-underline", pathname.startsWith('/services') ? "text-primary" : "text-white/80")}>
+                              {dictionary.services}
                             </AccordionTrigger>
                             <AccordionContent className="pb-0 pl-4">
-                            <nav className="flex flex-col space-y-3 pt-2">
-                                {servicesItems.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className={cn(
-                                    "text-sm font-headline font-medium uppercase tracking-widest transition-colors hover:text-primary py-1",
-                                    pathname === item.href ? "text-primary" : "text-zinc-400"
-                                    )}
-                                >
-                                    {item.label}
-                                </Link>
-                                ))}
-                            </nav>
+                              <nav className="flex flex-col space-y-3 pt-2">
+                                  {servicesItems.map((item) => (
+                                  <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className={cn("text-sm font-headline font-medium uppercase tracking-widest py-1", pathname === item.href ? "text-primary" : "text-zinc-400")}>
+                                      {item.label}
+                                  </Link>
+                                  ))}
+                              </nav>
                             </AccordionContent>
                         </AccordionItem>
-                        </Accordion>
-                        <Link
-                        key={citiesItem.href}
-                        href={citiesItem.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={cn(
-                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
-                            pathname.startsWith(citiesItem.href) ? "text-primary" : "text-white/80"
-                        )}
-                        >
-                        {dictionary.tradeHubs}
-                        </Link>
-                        <Link
-                        key={contactItem.href}
-                        href={contactItem.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={cn(
-                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
-                            pathname.startsWith(contactItem.href) ? "text-primary" : "text-white/80"
-                        )}
-                        >
-                        {dictionary.contact}
-                        </Link>
-                        <hr className="my-6 border-zinc-800" />
-                        <Link
-                        href="/client/login"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={cn(
-                          "flex items-center gap-4 text-base font-headline font-black uppercase tracking-[0.2em] py-4 px-6 rounded-2xl transition-all",
-                          mounted && user 
-                            ? "bg-green-500/10 text-green-500 border border-green-500/20" 
-                            : "bg-primary/10 text-primary border border-primary/20"
-                        )}
-                        >
-                        <div className="relative">
-                          <UserCircle className="h-8 w-8" />
-                          {mounted && user && <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-zinc-950 rounded-full"></span>}
-                        </div>
-                        {mounted && user ? "Mon Espace" : "Connexion"}
-                        </Link>
+                    </Accordion>
+                    <Link href={citiesItem.href} onClick={() => setIsMobileMenuOpen(false)} className={cn("text-lg font-headline font-bold uppercase tracking-widest py-2", pathname.startsWith(citiesItem.href) ? "text-primary" : "text-white/80")}>{dictionary.tradeHubs}</Link>
+                    <Link href={contactItem.href} onClick={() => setIsMobileMenuOpen(false)} className={cn("text-lg font-headline font-bold uppercase tracking-widest py-2", pathname.startsWith(contactItem.href) ? "text-primary" : "text-white/80")}>{dictionary.contact}</Link>
+                    <hr className="my-6 border-zinc-800" />
+                    <Link href="/client/login" onClick={() => setIsMobileMenuOpen(false)} className={cn("flex items-center gap-4 text-base font-headline font-black uppercase tracking-[0.2em] py-4 px-6 rounded-2xl", mounted && user ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-primary/10 text-primary border border-primary/20")}>
+                      <UserCircle className="h-8 w-8" />
+                      {mounted && user ? "Mon Espace" : "Connexion"}
+                    </Link>
                     </div>
                 </SheetContent>
                 </Sheet>

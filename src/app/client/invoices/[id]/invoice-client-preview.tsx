@@ -176,7 +176,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">
                                     {invoice.shippingAddress || profile?.address || "Adresse standard"}
                                 </p>
-                                <div className="mt-2 space-y-1 text-[10px]">
+                                <div className="mt-2 space-y-1 text-[9px]">
                                     {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
                                     {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-3 w-3" /> {profile.email}</div>}
                                 </div>

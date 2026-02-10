@@ -150,8 +150,8 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             <div className={companyName ? "text-zinc-500" : "font-bold text-zinc-900"}>{contactName}</div>
                             <p className="whitespace-pre-wrap mt-1 text-zinc-500 leading-tight">{invoice.shippingAddress || customer?.address}</p>
                             <div className="mt-2 space-y-1 flex flex-col">
-                                {customer?.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {customer.phone}</span>}
-                                {customer?.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {customer.email}</span>}
+                                {customer?.phone && <span className="flex items-center gap-1 text-[9px]"><Phone className="h-3 w-3" /> {customer.phone}</span>}
+                                {customer?.email && <span className="flex items-center gap-1 text-[9px]"><Mail className="h-3 w-3" /> {customer.email}</span>}
                             </div>
                         </div>
                     </section>
@@ -225,7 +225,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                             <div className="space-y-1">
                                 <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
-                                <p className="mt-1 italic text-primary font-bold">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
+                                <p className="mt-1 italic text-primary font-bold">Ref: {invoice.invoiceNumber}</p>
                             </div>
                         </div>
                     </div>

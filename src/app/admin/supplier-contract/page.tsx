@@ -220,12 +220,12 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         <Card className="lg:col-span-1 no-print">
           <CardContent className="p-6">
             <Form {...form}>
-              <form className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="flex justify-between items-center">
                     <h3 className="text-xl font-semibold">Détails Contrat</h3>
                     <div className="flex gap-2">
                         <Button type="button" variant="outline" onClick={handleDownloadPdf}><Printer className="mr-2 h-4 w-4" /> PDF</Button>
-                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}><Save className="mr-2 h-4 w-4" /> Sauver</Button>
+                        <Button type="submit" disabled={isSubmitting}><Save className="mr-2 h-4 w-4" /> Sauver</Button>
                     </div>
                 </div>
                 <div className="space-y-4">
