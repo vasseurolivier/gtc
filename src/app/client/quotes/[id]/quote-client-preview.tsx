@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -49,7 +50,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Use the proxy API to ensure images are loadable without CORS issues
         const imgs = Array.from(element.getElementsByTagName('img'));
         for (const img of imgs) {
             const originalSrc = img.src;
@@ -65,7 +65,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         reader.readAsDataURL(blob);
                     });
                     img.src = base64;
-                    // Ensure the image is re-loaded before capturing
                     await new Promise((resolve) => {
                         if (img.complete) resolve(true);
                         else img.onload = () => resolve(true);
@@ -209,7 +208,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             </div>
                             
                             <div className="bg-white p-6 rounded-2xl border border-primary/10 text-sm text-zinc-600 leading-relaxed space-y-4 shadow-inner">
-                                <p className="font-black text-zinc-900 text-base">En validant cette Proforma Invoice (PI), vous acceptez :</p>
+                                <div className="font-black text-zinc-900 text-base">En validant cette Proforma Invoice (PI), vous acceptez :</div>
                                 <ul className="space-y-2">
                                     <li className="flex items-start gap-2">
                                         <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />

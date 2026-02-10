@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -33,7 +34,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Use the proxy API to ensure images are loadable without CORS issues
         const imgs = Array.from(element.getElementsByTagName('img'));
         for (const img of imgs) {
             const originalSrc = img.src;
@@ -169,8 +169,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         </thead>
                         <tbody>
                             {invoice.items.map((item, index) => {
-                                const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
-                                const displayImage = item.photo || catalogProduct?.imageUrl;
+                                const displayImage = item.photo;
                                 
                                 return (
                                     <tr key={index} className="border-b">
@@ -231,7 +230,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                             <div className="space-y-0.5">
                                 <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
-                                <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
                                 <p className="mt-2 italic text-primary font-bold">Ref: {invoice.invoiceNumber} - {invoice.customerName}</p>
                             </div>
                         </div>

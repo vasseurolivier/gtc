@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -32,7 +33,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Proxy relay for images
         const imgs = Array.from(element.getElementsByTagName('img'));
         for (const img of imgs) {
             const originalSrc = img.src;
@@ -48,7 +48,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         reader.readAsDataURL(blob);
                     });
                     img.src = base64;
-                    // Ensure the image is re-loaded before capturing
                     await new Promise((resolve) => {
                         if (img.complete) resolve(true);
                         else img.onload = () => resolve(true);
@@ -183,8 +182,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         </thead>
                         <tbody>
                         {quote.items.map((item, itemIndex) => {
-                            const catalogProduct = item.sku ? productsBySku.get(item.sku) : undefined;
-                            const displayImage = item.photo || catalogProduct?.imageUrl;
+                            const displayImage = item.photo;
                             
                             return (
                                 <tr key={itemIndex} className="border-b">
@@ -200,8 +198,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                         </div>
                                     </td>
                                     <td className="p-1 align-top border">
-                                        <p className="font-bold text-[11px] leading-tight">{catalogProduct?.name || item.description}</p>
-                                        <p className="text-[9px] text-muted-foreground mt-0.5">{item.description}</p>
+                                        <p className="font-bold text-[11px] leading-tight">{item.description}</p>
+                                        {item.sku && <p className="text-[9px] font-mono text-muted-foreground mt-0.5">{item.sku}</p>}
                                     </td>
                                     <td className="p-1 align-top text-center border">{item.quantity}</td>
                                     <td className="p-1 align-top text-right border">

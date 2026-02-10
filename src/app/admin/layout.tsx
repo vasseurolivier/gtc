@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -423,7 +424,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
           </SidebarMenu>
           <SidebarFooter>
             <AdminSettings />
-            <Button variant="ghost" onClick={handleLogout} className="justify-start w-full">
+            <Button variant="ghost" onClick={handleLogout} className="justify-start w-full text-zinc-400">
               <LogOut className="mr-2 h-4 w-4" /> Logout
             </Button>
           </SidebarFooter>
@@ -433,7 +434,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-white z-30 lg:h-16">
           <SidebarTrigger className="-ml-1 lg:hidden" />
           <Separator orientation="vertical" className="mr-2 h-4 lg:hidden" />
-          <span className="font-bold text-sm text-zinc-800">Administration GTC</span>
+          <span className="font-bold text-sm text-zinc-800 uppercase tracking-widest">GTC Admin Portal</span>
         </header>
         <div className="flex-grow">
           {children}
