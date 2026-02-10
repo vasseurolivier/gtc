@@ -236,7 +236,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                 </div>
                 <Separator />
                 <div className="space-y-4">
-                    <FormLabel>Fournisseur</Label>
+                    <FormLabel>Fournisseur</FormLabel>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
                         <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
@@ -443,7 +443,7 @@ export default function SupplierContractPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Supplier Contract</h1>
         <Button variant={view === 'history' ? 'default' : 'outline'} onClick={() => { setEditingContract(null); setView(view === 'history' ? 'form' : 'history'); }}>
-          {view === 'history' ? <PlusCircle className="mr-2 h-4 w-4" /> : <ArrowLeft className="mr-2 h-4 w-4" />}
+          {view === 'history' ? <PlusCircle className="mr-2 h-4 w-4" /> : <ArrowLeftIcon className="mr-2 h-4 w-4" />}
           {view === 'history' ? 'Nouveau Contrat' : 'Retour à la liste'}
         </Button>
       </div>
@@ -462,7 +462,7 @@ export default function SupplierContractPage() {
   );
 }
 
-function ArrowLeft(props: any) {
+function ArrowLeftIcon(props: any) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
   )
