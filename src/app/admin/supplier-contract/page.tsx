@@ -274,77 +274,77 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         </Card>
 
         <div className="lg:col-span-2">
-            <div id="pdf-content" className="relative p-4 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12">
-                <header className="flex justify-between items-start pb-1 border-b">
-                  <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Logo" className="h-8 object-contain" />}</div>
+            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12">
+                <header className="flex justify-between items-start pb-2 border-b">
+                  <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div>
                   <div className="text-right">
-                    <h1 className="text-[10px] font-bold text-primary leading-tight uppercase">Purchase Contract</h1>
-                    <p className="text-[7px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>
-                    <p className="text-[7px] text-muted-foreground">Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p>
+                    <h1 className="text-[14px] font-bold text-primary leading-tight uppercase">Purchase Contract</h1>
+                    <p className="text-[10px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>
+                    <p className="text-[10px] text-muted-foreground">Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p>
                   </div>
                 </header>
 
-                <section className="grid grid-cols-2 gap-4 my-2 text-[7px]">
+                <section className="grid grid-cols-2 gap-8 my-4 text-[10px]">
                   <div>
-                    <h2 className="font-bold border-b mb-1 uppercase text-zinc-400">The Buyer:</h2>
+                    <h2 className="font-bold border-b mb-2 uppercase text-zinc-400">The Buyer:</h2>
                     <p className="font-bold text-zinc-900">{watchedValues.buyerName}</p>
-                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight text-[6.5px]">{watchedValues.buyerAddress}</p>
+                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.buyerAddress}</p>
                   </div>
                   <div>
-                    <h2 className="font-bold border-b mb-1 uppercase text-zinc-400">The Seller:</h2>
+                    <h2 className="font-bold border-b mb-2 uppercase text-zinc-400">The Seller:</h2>
                     <p className="font-bold text-zinc-900">{watchedValues.supplierName}</p>
-                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight text-[6.5px]">{watchedValues.supplierAddress}</p>
+                    <p className="whitespace-pre-wrap text-zinc-500 leading-tight">{watchedValues.supplierAddress}</p>
                   </div>
                 </section>
 
                 <section>
-                    <h2 className="font-bold text-center mb-1 text-[8px] uppercase tracking-widest border-y py-0.5">1. COMMODITY</h2>
-                    <table className="w-full text-[7px] border-collapse">
+                    <h2 className="font-bold text-center mb-2 text-[11px] uppercase tracking-widest border-y py-1">1. COMMODITY</h2>
+                    <table className="w-full text-[10px] border-collapse">
                         <thead>
                             <tr className="bg-zinc-100 text-zinc-900">
-                                <th className="p-1 border text-left w-10">Photo</th>
-                                <th className="p-1 border text-left">Description</th>
-                                <th className="p-1 border text-right w-8">Qty</th>
-                                <th className="p-1 border text-right w-16">Unit (CNY)</th>
-                                <th className="p-1 border text-right w-20">Total (CNY)</th>
+                                <th className="p-2 border text-left w-12">Photo</th>
+                                <th className="p-2 border text-left">Description</th>
+                                <th className="p-2 border text-right w-10">Qty</th>
+                                <th className="p-2 border text-right w-24">Unit (CNY)</th>
+                                <th className="p-2 border text-right w-28">Total (CNY)</th>
                             </tr>
                         </thead>
                         <tbody>
                             {watchedValues.items?.map((item, index) => (
                                 <tr key={index}>
-                                    <td className="p-0.5 border text-center">{item.photo && <img src={item.photo} alt="p" className="w-7 h-7 object-contain mx-auto"/>}</td>
-                                    <td className="p-1 border font-medium leading-tight">{item.description}</td>
-                                    <td className="p-1 border text-right">{item.quantity}</td>
-                                    <td className="p-1 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td>
-                                    <td className="p-1 border text-right font-bold">¥{(Number(item.quantity || 0) * Number(item.unitPrice || 0)).toFixed(2)}</td>
+                                    <td className="p-1 border text-center">{item.photo && <img src={item.photo} alt="p" className="w-10 h-10 object-contain mx-auto"/>}</td>
+                                    <td className="p-2 border font-medium leading-tight">{item.description}</td>
+                                    <td className="p-2 border text-right">{item.quantity}</td>
+                                    <td className="p-2 border text-right">¥{Number(item.unitPrice || 0).toFixed(2)}</td>
+                                    <td className="p-2 border text-right font-bold">¥{(Number(item.quantity || 0) * Number(item.unitPrice || 0)).toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                    <div className="flex justify-end mt-1">
-                        <div className="w-1/2 flex justify-between font-black text-[8px] border-t-2 border-zinc-900 pt-0.5">
+                    <div className="flex justify-end mt-2">
+                        <div className="w-1/2 flex justify-between font-black text-[11px] border-t-2 border-zinc-900 pt-1">
                             <span>TOTAL CONTRACT VALUE:</span>
                             <span>¥{totalAmount.toFixed(2)}</span>
                         </div>
                     </div>
                 </section>
                 
-                <section className="mt-2 space-y-0.5 text-[6.5px]">
-                    <h2 className="font-bold text-center mb-1 uppercase tracking-widest border-y py-0.5">2. TERMS</h2>
+                <section className="mt-4 space-y-1 text-[10px]">
+                    <h2 className="font-bold text-center mb-2 uppercase tracking-widest border-y py-1">2. TERMS</h2>
                     <p><strong>- Quality:</strong> {watchedValues.qualityControl}.</p>
                     <p><strong>- Payment:</strong> {depositPercentage}% TT deposit, balance {balanceAmount.toFixed(2)} CNY ({watchedValues.balanceTerms}).</p>
                     <p><strong>- Delivery:</strong> {watchedValues.shippingTerms} | {watchedValues.leadTime}.</p>
                     {watchedValues.specificClauses && <p><strong>- Clauses:</strong> <span className="whitespace-pre-wrap">{watchedValues.specificClauses}</span></p>}
                 </section>
                 
-                <section className="mt-8 text-[7px]">
-                  <div className="grid grid-cols-2 gap-12">
-                      <div className="pt-4 border-t border-zinc-200">
-                          <p className="font-bold uppercase mb-0.5">The Buyer Signature</p>
+                <section className="mt-12 text-[10px]">
+                  <div className="grid grid-cols-2 gap-16">
+                      <div className="pt-6 border-t border-zinc-200">
+                          <p className="font-bold uppercase mb-1">The Buyer Signature</p>
                           <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
                       </div>
-                      <div className="pt-4 border-t border-zinc-200">
-                          <p className="font-bold uppercase mb-0.5">The Seller Signature</p>
+                      <div className="pt-6 border-t border-zinc-200">
+                          <p className="font-bold uppercase mb-1">The Seller Signature</p>
                           <p className="text-zinc-400 italic">Authorized Signature & Stamp</p>
                       </div>
                   </div>

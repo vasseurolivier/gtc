@@ -167,8 +167,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
-                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[6px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+                <span className={cn(isMain ? "font-black text-[10px]" : "font-bold text-[9px]")}>€{eurValue.toFixed(2)}</span>
+                <span className="text-[8px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
             </div>
         );
     };
@@ -308,49 +308,49 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             </div>
 
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
-                <div id="pdf-content" className="relative p-4 bg-white min-h-[297mm] pb-12">
+                <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
                     <div className="flex-grow relative z-10">
-                        <header className="w-full flex justify-between items-start pb-1 border-b">
+                        <header className="w-full flex justify-between items-start pb-2 border-b">
                             <div>
                                 {displayLogo && (
-                                    <img src={displayLogo} alt="Logo" className="h-8 w-auto object-contain block" />
+                                    <img src={displayLogo} alt="Logo" className="h-10 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
-                                <h1 className="text-[10px] font-black text-zinc-900 tracking-tighter uppercase">Proforma</h1>
-                                <p className="text-[7px] font-bold text-primary">N° {quote.quoteNumber}</p>
-                                <p className="text-[6px] text-muted-foreground mt-0.5">Date: {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
+                                <h1 className="text-[14px] font-black text-zinc-900 tracking-tighter uppercase">Proforma</h1>
+                                <p className="text-[10px] font-bold text-primary">N° {quote.quoteNumber}</p>
+                                <p className="text-[8px] text-muted-foreground mt-1">Date: {format(new Date(quote.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
                         </header>
 
-                        <section className="grid grid-cols-2 gap-4 my-2 text-[7px]">
+                        <section className="grid grid-cols-2 gap-8 my-4 text-[10px]">
                             <div>
-                                <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">ÉMIS PAR</h3>
+                                <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">ÉMIS PAR</h3>
                                 <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
-                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap text-[6.5px]">{cleanCompanyAddress}</p>
+                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap">{cleanCompanyAddress}</p>
                             </div>
                             <div>
-                                <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">DESTINATAIRE</h3>
+                                <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">DESTINATAIRE</h3>
                                 {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
                                 <div className={cn("text-zinc-900", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
                                 </div>
-                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap text-[6.5px]">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
-                                <div className="mt-1 space-y-0.5 text-[6.5px]">
-                                    {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-2 w-2" /> {profile.phone}</div>}
-                                    {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-2 w-2" /> {profile.email}</div>}
+                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
+                                <div className="mt-2 space-y-1 text-[10px]">
+                                    {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
+                                    {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-3 w-3" /> {profile.email}</div>}
                                 </div>
                             </div>
                         </section>
                         
-                        <table className="w-full text-[7px] border-collapse">
+                        <table className="w-full text-[10px] border-collapse">
                             <thead>
                                 <tr className="text-left bg-zinc-100 text-zinc-900">
-                                    <th className="p-1 font-bold border-none first:rounded-l-md w-10">Image</th>
-                                    <th className="p-1 font-bold border-none">Description des articles</th>
-                                    <th className="p-1 text-center font-bold border-none w-8">Qté</th>
-                                    <th className="p-1 text-right font-bold border-none w-16">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
-                                    <th className="p-1 text-right font-bold border-none last:rounded-r-md w-20">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                    <th className="p-2 font-bold border-none first:rounded-l-md w-12">Image</th>
+                                    <th className="p-2 font-bold border-none">Description des articles</th>
+                                    <th className="p-2 text-center font-bold border-none w-10">Qté</th>
+                                    <th className="p-2 text-right font-bold border-none w-24">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                    <th className="p-2 text-right font-bold border-none last:rounded-r-md w-28">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
@@ -358,30 +358,30 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     const displayImage = item.photo;
                                     return (
                                         <tr key={idx}>
-                                            <td className="p-1 text-center">
-                                                <div className="w-7 h-7 mx-auto flex items-center justify-center">
+                                            <td className="p-2 text-center">
+                                                <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                     {displayImage ? (
                                                         <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain" />
                                                     ) : (
-                                                        <Package className="h-3 w-3 text-zinc-200" />
+                                                        <Package className="h-4 w-4 text-zinc-200" />
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="p-1 font-medium text-zinc-900">
-                                                <p className="font-bold text-[7.5px] leading-tight">{item.description}</p>
-                                                {item.sku && <p className="text-[6px] text-zinc-400 font-mono">{item.sku}</p>}
+                                            <td className="p-2 font-medium text-zinc-900">
+                                                <p className="font-bold leading-tight">{item.description}</p>
+                                                {item.sku && <p className="text-[8px] text-zinc-400 font-mono mt-1">{item.sku}</p>}
                                             </td>
-                                            <td className="p-1 text-center font-medium">{item.quantity}</td>
-                                            <td className="p-1 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                            <td className="p-1 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
+                                            <td className="p-2 text-center font-medium">{item.quantity}</td>
+                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
+                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
                                         </tr>
                                     );
                                 })}
                             </tbody>
                         </table>
                         
-                        <div className="flex justify-end pt-2">
-                            <div className="w-full max-w-[160px] space-y-0.5 text-[7px]">
+                        <div className="flex justify-end pt-4">
+                            <div className="w-full max-w-[220px] space-y-1 text-[10px]">
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
@@ -394,23 +394,23 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 )}
                                 {transportCny > 0 && (
                                     <div className="flex justify-between items-center">
-                                        <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-2 w-2" /> Port</span>
+                                        <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
                                         <span className="font-bold">{renderPrice(transportCny)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center pt-0.5 border-t-2 border-zinc-900">
-                                    <span className="font-black text-zinc-900 uppercase text-[8px]">TOTAL FINAL</span>
-                                    <span className="text-[9px] font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
+                                <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
+                                    <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL FINAL</span>
+                                    <span className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-4 border-t pt-2">
-                            <h3 className="font-bold text-[7px] uppercase text-zinc-400 mb-1 tracking-widest">Conditions de Règlement</h3>
-                            <div className="text-[6.5px] text-zinc-600 space-y-1">
+                        <div className="mt-6 border-t pt-4">
+                            <h3 className="font-bold text-[10px] uppercase text-zinc-400 mb-2 tracking-widest">Conditions de Règlement</h3>
+                            <div className="text-[10px] text-zinc-600 space-y-2">
                                 {quote.depositRequired ? (
-                                    <div className="p-1.5 bg-primary/5 rounded border border-primary/10">
-                                        <div className="font-bold text-primary mb-0.5 uppercase">
+                                    <div className="p-3 bg-primary/5 rounded border border-primary/10">
+                                        <div className="font-bold text-primary mb-1 uppercase">
                                             Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}
                                         </div>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
@@ -419,17 +419,17 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     <div className="font-bold text-primary">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</div>
                                 )}
                                 
-                                <div className="grid grid-cols-2 gap-4 p-1.5 bg-zinc-50 rounded border border-zinc-100">
-                                    <div className="space-y-0.5">
-                                        <p className="font-bold text-zinc-900 text-[6.5px] uppercase block mb-0.5 tracking-wider">Banque</p>
+                                <div className="grid grid-cols-2 gap-8 p-3 bg-zinc-50 rounded border border-zinc-100 mt-4">
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-zinc-900 text-[9px] uppercase block mb-1 tracking-wider">Banque</p>
                                         <p>Banking Circle S.A.</p>
                                         <p><span className="font-semibold">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
                                         <p><span className="font-semibold">SWIFT:</span> SXPYDEHH</p>
                                     </div>
-                                    <div className="space-y-0.5">
-                                        <p className="font-bold text-zinc-900 text-[6.5px] uppercase block mb-0.5 tracking-wider">Bénéficiaire</p>
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-zinc-900 text-[9px] uppercase block mb-1 tracking-wider">Bénéficiaire</p>
                                         <p>{beneficiaryName}</p>
-                                        <p className="mt-0.5 italic text-primary font-bold text-[7px]">Ref: {quote.quoteNumber}</p>
+                                        <p className="mt-1 italic text-primary font-bold text-[10px]">Ref: {quote.quoteNumber}</p>
                                     </div>
                                 </div>
                             </div>

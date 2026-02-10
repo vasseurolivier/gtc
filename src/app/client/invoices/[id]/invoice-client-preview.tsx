@@ -115,8 +115,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
-                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[6px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
+                <span className={cn(isMain ? "font-black text-[10px]" : "font-bold text-[9px]")}>€{eurValue.toFixed(2)}</span>
+                <span className="text-[8px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
             </div>
         );
     };
@@ -141,60 +141,60 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             </div>
             
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
-                <div id="pdf-content" className="relative p-4 bg-white min-h-[297mm] pb-12">
-                    <div className="absolute top-24 right-12 border-2 border-green-500 rounded-lg px-4 py-1 rotate-[-15deg] opacity-20 z-0">
-                        <span className="text-xl font-black text-green-500 uppercase">PAYÉ</span>
+                <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
+                    <div className="absolute top-24 right-12 border-2 border-green-500 rounded-lg px-6 py-2 rotate-[-15deg] opacity-20 z-0">
+                        <span className="text-3xl font-black text-green-500 uppercase">PAYÉ</span>
                     </div>
 
                     <div className="flex-grow relative z-10">
-                        <header className="w-full flex justify-between items-start pb-1 border-b">
+                        <header className="w-full flex justify-between items-start pb-2 border-b">
                             <div>
                                 {displayLogo && (
-                                    <img src={displayLogo} alt="Logo" className="h-8 w-auto object-contain block" />
+                                    <img src={displayLogo} alt="Logo" className="h-10 w-auto object-contain block" />
                                 )}
                             </div>
                             <div className="text-right">
-                                <h1 className="text-[10px] font-black text-zinc-900 tracking-tighter uppercase leading-tight">Facture Acquittée</h1>
-                                <p className="text-[7px] font-bold text-primary">N° {invoice.invoiceNumber}</p>
-                                <p className="text-[6px] text-muted-foreground mt-0.5">Date: {format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
+                                <h1 className="text-[14px] font-black text-zinc-900 tracking-tighter uppercase leading-tight">Facture Acquittée</h1>
+                                <p className="text-[10px] font-bold text-primary">N° {invoice.invoiceNumber}</p>
+                                <p className="text-[8px] text-muted-foreground mt-1">Date: {format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
                         </header>
 
-                        <section className="grid grid-cols-2 gap-4 my-2 text-[7px]">
+                        <section className="grid grid-cols-2 gap-8 my-4 text-[10px]">
                             <div>
-                                <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">ÉMIS PAR</h3>
+                                <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">ÉMIS PAR</h3>
                                 <p className="font-bold text-zinc-900">{companyInfo?.name}</p>
-                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-0.5 text-[6.5px]">{cleanCompanyAddress}</p>
+                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">{cleanCompanyAddress}</p>
                             </div>
                             <div>
-                                <h3 className="font-bold text-zinc-400 mb-0.5 uppercase tracking-wider">DESTINATAIRE</h3>
+                                <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">DESTINATAIRE</h3>
                                 {profile?.companyName && <p className="font-bold text-zinc-900 uppercase">{profile.companyName}</p>}
                                 <p className={cn("text-zinc-900", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
                                 </p>
-                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-0.5 text-[6.5px]">
+                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">
                                     {invoice.shippingAddress || profile?.address || "Adresse standard"}
                                 </p>
-                                <div className="mt-1 space-y-0.5 text-[6.5px]">
-                                    {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-2 w-2" /> {profile.phone}</div>}
-                                    {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-2 w-2" /> {profile.email}</div>}
+                                <div className="mt-2 space-y-1 text-[10px]">
+                                    {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
+                                    {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-3 w-3" /> {profile.email}</div>}
                                 </div>
                             </div>
                         </section>
                         
-                        <div className="mb-1 p-1 bg-green-50 rounded border border-green-100 flex items-center gap-2 text-green-700">
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span className="text-[6.5px] font-bold uppercase tracking-wide">Document officiel de confirmation de paiement.</span>
+                        <div className="mb-4 p-2 bg-green-50 rounded border border-green-100 flex items-center gap-2 text-green-700">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span className="text-[9px] font-bold uppercase tracking-wide">Document officiel de confirmation de paiement.</span>
                         </div>
 
-                        <table className="w-full text-[7px] border-collapse">
+                        <table className="w-full text-[10px] border-collapse">
                             <thead>
                                 <tr className="text-left bg-zinc-900 text-white">
-                                    <th className="p-1 font-bold border-none first:rounded-l-md w-10">Image</th>
-                                    <th className="p-1 font-bold border-none">Description</th>
-                                    <th className="p-1 text-center font-bold border-none w-8">Qté</th>
-                                    <th className="p-1 text-right font-bold border-none w-16">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
-                                    <th className="p-1 text-right font-bold border-none last:rounded-r-md w-20">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                    <th className="p-2 font-bold border-none first:rounded-l-md w-12">Image</th>
+                                    <th className="p-2 font-bold border-none">Description</th>
+                                    <th className="p-2 text-center font-bold border-none w-10">Qté</th>
+                                    <th className="p-2 text-right font-bold border-none w-24">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                    <th className="p-2 text-right font-bold border-none last:rounded-r-md w-28">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
@@ -202,30 +202,30 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     const displayImage = item.photo;
                                     return (
                                         <tr key={idx}>
-                                            <td className="p-1 text-center">
-                                                <div className="w-7 h-7 mx-auto flex items-center justify-center">
+                                            <td className="p-2 text-center">
+                                                <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                     {displayImage ? (
                                                         <img src={displayImage} alt="Product" className="max-w-full max-h-full object-contain" />
                                                     ) : (
-                                                        <Package className="h-3 w-3 text-zinc-200" />
+                                                        <Package className="h-4 w-4 text-zinc-200" />
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="p-1 font-medium text-zinc-900">
-                                                <p className="font-bold text-[7.5px] leading-tight">{item.description}</p>
-                                                {item.sku && <p className="text-[6px] text-zinc-400 font-mono">{item.sku}</p>}
+                                            <td className="p-2 font-medium text-zinc-900">
+                                                <p className="font-bold leading-tight">{item.description}</p>
+                                                {item.sku && <p className="text-[8px] text-zinc-400 font-mono mt-1">{item.sku}</p>}
                                             </td>
-                                            <td className="p-1 text-center font-medium">{item.quantity}</td>
-                                            <td className="p-1 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                            <td className="p-1 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
+                                            <td className="p-2 text-center font-medium">{item.quantity}</td>
+                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
+                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
                                         </tr>
                                     );
                                 })}
                             </tbody>
                         </table>
                         
-                        <div className="flex justify-end pt-2">
-                            <div className="w-full max-w-[160px] space-y-0.5 text-[7px]">
+                        <div className="flex justify-end pt-4">
+                            <div className="w-full max-w-[220px] space-y-1 text-[10px]">
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 font-medium">Articles</span>
                                     <span className="font-bold">{renderPrice(subTotalCny)}</span>
@@ -238,27 +238,27 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 )}
                                 {transportCny > 0 && (
                                     <div className="flex justify-between items-center">
-                                        <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-2 w-2"/> Port</span>
+                                        <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3"/> Port</span>
                                         <span className="font-bold">{renderPrice(transportCny)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center pt-0.5 border-t-2 border-zinc-900">
-                                    <span className="font-black text-zinc-900 uppercase text-[8px]">TOTAL RÉGLÉ</span>
-                                    <span className="text-[9px] font-black text-green-600">{renderPrice(totalFinalCny, true)}</span>
+                                <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
+                                    <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL RÉGLÉ</span>
+                                    <span className="text-[12px] font-black text-green-600">{renderPrice(totalFinalCny, true)}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-4 p-1.5 bg-zinc-50 rounded border border-zinc-100">
-                            <h3 className="font-black text-[6.5px] uppercase text-zinc-400 mb-1 tracking-widest text-center">Coord. Bancaires</h3>
-                            <div className="grid grid-cols-2 gap-4 text-[6.5px] text-zinc-600">
+                        <div className="mt-8 p-3 bg-zinc-50 rounded border border-zinc-100">
+                            <h3 className="font-black text-[9px] uppercase text-zinc-400 mb-2 tracking-widest text-center">Coord. Bancaires</h3>
+                            <div className="grid grid-cols-2 gap-8 text-[9px] text-zinc-600">
                                 <div>
                                     <p><span className="font-bold">IBAN:</span> DE24 2022 0800 0056 1684 61</p>
                                     <p><span className="font-bold">SWIFT:</span> SXPYDEHH</p>
                                 </div>
                                 <div>
                                     <p><span className="font-bold">Bénéficiaire:</span> {beneficiaryName}</p>
-                                    <p className="mt-0.5 italic text-primary font-bold">Réf: {invoice.invoiceNumber}</p>
+                                    <p className="mt-1 italic text-primary font-bold">Réf: {invoice.invoiceNumber}</p>
                                 </div>
                             </div>
                         </div>

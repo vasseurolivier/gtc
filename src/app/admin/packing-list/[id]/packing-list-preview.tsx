@@ -98,25 +98,25 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                 </Button>
             </div>
             
-            <div id="pdf-content" className="relative p-4 bg-white min-h-[297mm] pb-12">
+            <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
               <div className="flex-grow">
-                <header className="w-full flex justify-between items-start pb-1 border-b">
+                <header className="w-full flex justify-between items-start pb-2 border-b">
                     <div>
                         {companyInfo.logoDocument && 
-                            <img src={companyInfo.logoDocument} alt="Logo" className="h-8 w-auto object-contain" />
+                            <img src={companyInfo.logoDocument} alt="Logo" className="h-10 w-auto object-contain" />
                         }
                     </div>
                     <div className="text-right">
-                        <h1 className="text-[10px] font-bold text-black uppercase">PACKING LIST</h1>
-                        <p className="text-[7px] text-muted-foreground leading-tight">N° {packingList.listId}</p>
+                        <h1 className="text-[12px] font-bold text-black uppercase">PACKING LIST</h1>
+                        <p className="text-[10px] text-muted-foreground leading-tight">N° {packingList.listId}</p>
                     </div>
                 </header>
               
-                  <section className="my-2 grid grid-cols-2 gap-4 text-[7px]">
+                  <section className="my-4 grid grid-cols-2 gap-8 text-[10px]">
                       <div>
-                          <h3 className="font-bold text-zinc-400 mb-0.5 uppercase">ÉMIS PAR</h3>
+                          <h3 className="font-bold text-zinc-400 mb-1 uppercase">ÉMIS PAR</h3>
                           <p className="font-bold">{companyInfo?.name}</p>
-                          <p className="whitespace-pre-wrap leading-tight text-zinc-500 text-[6.5px]">{companyInfo?.address}</p>
+                          <p className="whitespace-pre-wrap leading-tight text-zinc-500">{companyInfo?.address}</p>
                       </div>
                       <div className="text-right">
                           <p><span className="font-bold text-zinc-400">DATE:</span> {format(new Date(packingList.date), 'dd/MM/yyyy')}</p>
@@ -124,17 +124,17 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                       </div>
                   </section>
                   
-                  <table className="w-full text-[7px] border-collapse">
+                  <table className="w-full text-[10px] border-collapse">
                       <thead>
                           <tr className="text-left bg-zinc-900 text-white">
-                              <th className="p-1 font-bold border-none w-10">Photo</th>
-                              <th className="p-1 font-bold border-none">Description</th>
-                              <th className="p-1 text-right font-bold border-none w-12">SKU</th>
-                              <th className="p-1 text-right font-bold border-none w-8">Qté</th>
-                              <th className="p-1 text-right font-bold border-none w-16">Unit. (CNY)</th>
-                              <th className="p-1 text-right font-bold border-none w-20">Dim/Poids</th>
-                              <th className="p-1 text-right font-bold border-none w-20">Total (CNY)</th>
-                              <th className="p-1 font-bold border-none">Remarques</th>
+                              <th className="p-2 font-bold border-none w-14">Photo</th>
+                              <th className="p-2 font-bold border-none">Description</th>
+                              <th className="p-2 text-right font-bold border-none w-16">SKU</th>
+                              <th className="p-2 text-right font-bold border-none w-10">Qté</th>
+                              <th className="p-2 text-right font-bold border-none w-24">Unit. (CNY)</th>
+                              <th className="p-2 text-right font-bold border-none w-28">Dim/Poids</th>
+                              <th className="p-2 text-right font-bold border-none w-28">Total (CNY)</th>
+                              <th className="p-2 font-bold border-none">Remarques</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -142,18 +142,18 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                               const totalCny = item.quantity * item.unitPriceCny;
                               return (
                                   <tr key={index} className="border-b hover:bg-zinc-50">
-                                      <td className="p-0.5 align-top border text-center">
+                                      <td className="p-1 align-top border text-center">
                                           {item.photo && 
-                                              <div className="w-7 h-7 mx-auto flex items-center justify-center">
+                                              <div className="w-10 h-10 mx-auto flex items-center justify-center">
                                                   <img src={item.photo} alt="p" className="max-w-full max-h-full object-contain" />
                                               </div>
                                           }
                                       </td>
-                                      <td className="p-1 align-top font-medium leading-tight border">{item.description}</td>
-                                      <td className="p-1 align-top text-right leading-tight border">{item.sku}</td>
-                                      <td className="p-1 align-top text-right leading-tight border font-bold">{item.quantity}</td>
-                                      <td className="p-1 align-top text-right leading-tight border">¥{item.unitPriceCny.toFixed(2)}</td>
-                                      <td className="p-1 align-top text-right whitespace-nowrap leading-tight border">
+                                      <td className="p-2 align-top font-medium leading-tight border">{item.description}</td>
+                                      <td className="p-2 align-top text-right leading-tight border">{item.sku}</td>
+                                      <td className="p-2 align-top text-right leading-tight border font-bold">{item.quantity}</td>
+                                      <td className="p-2 align-top text-right leading-tight border">¥{item.unitPriceCny.toFixed(2)}</td>
+                                      <td className="p-2 align-top text-right whitespace-nowrap leading-tight border">
                                         {item.weight || item.length || item.width || item.height ? (
                                             <>
                                                 {item.weight > 0 && <div>{item.weight} kg</div>}
@@ -161,21 +161,21 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                                             </>
                                         ) : '-'}
                                       </td>
-                                      <td className="p-1 align-top text-right font-bold leading-tight border">¥{totalCny.toFixed(2)}</td>
-                                      <td className="p-1 align-top leading-tight border text-zinc-400 text-[6.5px]">{item.remarks}</td>
+                                      <td className="p-2 align-top text-right font-bold leading-tight border">¥{totalCny.toFixed(2)}</td>
+                                      <td className="p-2 align-top leading-tight border text-zinc-400 text-[9px]">{item.remarks}</td>
                                   </tr>
                               );
                           })}
                       </tbody>
                   </table>
 
-                  <div className="flex justify-end pt-2">
-                      <div className="w-full max-w-[160px] space-y-0.5 text-[7px]">
+                  <div className="flex justify-end pt-4">
+                      <div className="w-full max-w-[220px] space-y-1 text-[10px]">
                           <div className="flex justify-between">
                               <span className="text-zinc-500 font-medium">Qté Totale:</span>
                               <span className="font-bold">{totals.totalQuantity}</span>
                           </div>
-                          <div className="flex justify-between font-black text-[9px] mt-1 pt-0.5 border-t-2 border-zinc-900">
+                          <div className="flex justify-between font-black text-[12px] mt-2 pt-1 border-t-2 border-zinc-900">
                               <span>TOTAL (CNY):</span>
                               <span className="text-primary font-black">¥{totals.totalAmountCny.toFixed(2)}</span>
                           </div>
