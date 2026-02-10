@@ -92,14 +92,14 @@ export function Header() {
     }
 
     return cn(
-      "relative transition-all duration-300 font-headline font-bold text-[10px] uppercase tracking-[0.1em] text-white/80 hover:text-white whitespace-nowrap",
+      "relative transition-all duration-300 font-headline font-bold text-[18px] uppercase tracking-tight text-white/80 hover:text-white whitespace-nowrap",
       "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
       isActive ? "text-primary after:w-full" : ""
     );
   };
   
   const dropdownTriggerClasses = cn(
-    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[10px] uppercase tracking-[0.1em] text-white/80 hover:text-white whitespace-nowrap",
+    "relative flex items-center gap-1 transition-all duration-300 focus:outline-none font-headline font-bold text-[18px] uppercase tracking-tight text-white/80 hover:text-white whitespace-nowrap",
      "after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
     pathname.startsWith('/services')
       ? "text-primary after:w-full"
@@ -112,27 +112,23 @@ export function Header() {
 
   return (
     <header className={headerClasses}>
-      <div className="container flex h-20 items-center px-4 md:px-8">
-        <div className="flex items-center gap-4">
+      <div className="container flex h-24 items-center px-4 md:px-8">
+        <div className="flex items-center gap-8">
             <Link href={'/'} className="flex items-center transition-transform duration-300 hover:scale-105 shrink-0">
                 {logoUrl ? (
-                  <div className="relative h-12 w-auto">
-                    <Image 
+                  <div className="relative h-14 w-auto">
+                    <img 
                       src={logoUrl} 
                       alt="Logo" 
-                      width={140}
-                      height={48}
-                      priority
-                      unoptimized
-                      className="h-12 w-auto object-contain" 
+                      className="h-14 w-auto object-contain" 
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg">G</div>
+                  <div className="w-12 h-12 bg-primary rounded flex items-center justify-center font-bold text-white shadow-lg text-xl">G</div>
                 )}
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-4">
+            <nav className="hidden lg:flex items-center gap-8">
                 {navItems.map((item) => (
                 <Link
                     key={item.href}
@@ -144,11 +140,11 @@ export function Header() {
                 ))}
                 <DropdownMenu>
                 <DropdownMenuTrigger className={dropdownTriggerClasses}>
-                    {dictionary.services} <ChevronDown className="h-3 w-3 ml-1" />
+                    {dictionary.services} <ChevronDown className="h-4 w-4 ml-1" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[220px]">
+                <DropdownMenuContent align="start" className="bg-zinc-950 border-zinc-800 text-white min-w-[250px]">
                     {servicesItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-[10px] uppercase tracking-wider py-3 cursor-pointer">
+                    <DropdownMenuItem key={item.href} asChild className="focus:bg-primary focus:text-white font-headline text-xs uppercase tracking-wider py-4 cursor-pointer">
                         <Link href={item.href}>{item.label}</Link>
                     </DropdownMenuItem>
                     ))}
@@ -177,8 +173,8 @@ export function Header() {
             <Button 
               variant="outline" 
               className={cn(
-                "hidden sm:flex items-center gap-2 px-6 h-11 rounded-full transition-all duration-500",
-                "font-headline text-[11px] font-black uppercase tracking-widest",
+                "hidden sm:flex items-center gap-2 px-6 h-12 rounded-full transition-all duration-500",
+                "font-headline text-xs font-black uppercase tracking-widest",
                 "border-2 hover:scale-105 active:scale-95",
                 mounted && user 
                   ? "border-green-500/50 text-white bg-green-500/10 hover:bg-green-500/20 hover:border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]" 
@@ -206,7 +202,7 @@ export function Header() {
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                    <Menu className="h-6 w-6" />
+                    <Menu className="h-8 w-8" />
                     <span className="sr-only">Toggle Menu</span>
                     </Button>
                 </SheetTrigger>
@@ -222,7 +218,7 @@ export function Header() {
                         href={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
+                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
                             pathname === item.href ? "text-primary" : "text-white/80"
                         )}
                         >
@@ -233,7 +229,7 @@ export function Header() {
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="services" className="border-b-0">
                             <AccordionTrigger className={cn(
-                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary hover:no-underline py-2",
+                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary hover:no-underline py-2",
                             pathname.startsWith('/services') ? "text-primary" : "text-white/80"
                             )}>
                             {dictionary.services}
@@ -246,7 +242,7 @@ export function Header() {
                                     href={item.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={cn(
-                                    "text-[10px] font-headline font-medium uppercase tracking-widest transition-colors hover:text-primary py-1",
+                                    "text-sm font-headline font-medium uppercase tracking-widest transition-colors hover:text-primary py-1",
                                     pathname === item.href ? "text-primary" : "text-zinc-400"
                                     )}
                                 >
@@ -262,7 +258,7 @@ export function Header() {
                         href={citiesItem.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
+                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
                             pathname.startsWith(citiesItem.href) ? "text-primary" : "text-white/80"
                         )}
                         >
@@ -273,7 +269,7 @@ export function Header() {
                         href={contactItem.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                            "text-sm font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
+                            "text-lg font-headline font-bold uppercase tracking-widest transition-colors hover:text-primary py-2",
                             pathname.startsWith(contactItem.href) ? "text-primary" : "text-white/80"
                         )}
                         >
@@ -284,15 +280,15 @@ export function Header() {
                         href="/client/login"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-4 text-sm font-headline font-black uppercase tracking-[0.2em] py-4 px-6 rounded-2xl transition-all",
+                          "flex items-center gap-4 text-base font-headline font-black uppercase tracking-[0.2em] py-4 px-6 rounded-2xl transition-all",
                           mounted && user 
                             ? "bg-green-500/10 text-green-500 border border-green-500/20" 
                             : "bg-primary/10 text-primary border border-primary/20"
                         )}
                         >
                         <div className="relative">
-                          <UserCircle className="h-7 w-7" />
-                          {mounted && user && <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 border-2 border-zinc-950 rounded-full"></span>}
+                          <UserCircle className="h-8 w-8" />
+                          {mounted && user && <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-zinc-950 rounded-full"></span>}
                         </div>
                         {mounted && user ? "Mon Espace" : "Connexion"}
                         </Link>
