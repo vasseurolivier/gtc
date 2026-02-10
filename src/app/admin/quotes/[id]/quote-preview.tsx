@@ -24,7 +24,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // Force convert images to Base64 to bypass CORS during capture
+        // NEW METHOD: Convert all images to Base64 manually before capture to bypass CORS
         const imgs = Array.from(element.getElementsByTagName('img'));
         const fetchPromises = imgs.map(async (img) => {
             if (img.src && !img.src.startsWith('data:')) {
