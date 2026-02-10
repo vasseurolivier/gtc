@@ -142,7 +142,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
             </div>
             
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
-                <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
+                <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12 text-[10px]">
                     <div className="absolute top-24 right-12 border-2 border-green-500 rounded-lg px-6 py-2 rotate-[-15deg] opacity-20 z-0">
                         <span className="text-3xl font-black text-green-500 uppercase">PAYÉ</span>
                     </div>
@@ -245,7 +245,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL RÉGLÉ</span>
-                                    <span className="text-xs font-black text-green-600">{renderPrice(totalFinalCny, true)}</span>
+                                    <div className="text-xs font-black text-green-600">{renderPrice(totalFinalCny, true)}</div>
                                 </div>
                             </div>
                         </div>

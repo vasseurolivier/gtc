@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -167,7 +168,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
-                <span className={cn(isMain ? "font-black text-[10px]" : "font-bold text-[9px]")}>€{eurValue.toFixed(2)}</span>
+                <span className={cn(isMain ? "font-black" : "font-bold")}>€{eurValue.toFixed(2)}</span>
                 <span className="text-[8px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
             </div>
         );
@@ -308,7 +309,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
             </div>
 
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
-                <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12">
+                <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12 text-[10px]">
                     <div className="flex-grow relative z-10">
                         <header className="w-full flex justify-between items-start pb-2 border-b">
                             <div>
@@ -400,7 +401,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL FINAL</span>
-                                    <span className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
+                                    <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
                                 </div>
                             </div>
                         </div>
@@ -411,12 +412,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 {quote.depositRequired ? (
                                     <div className="p-3 bg-primary/5 rounded border border-primary/10">
                                         <div className="font-bold text-primary mb-1 uppercase">
-                                            Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}
+                                            <div className="flex items-center gap-1">Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}</div>
                                         </div>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
                                 ) : (
-                                    <div className="font-bold text-primary">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</div>
+                                    <div className="font-bold text-primary flex items-center gap-1">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</div>
                                 )}
                                 
                                 <div className="grid grid-cols-2 gap-8 p-3 bg-zinc-50 rounded border border-zinc-100 mt-4">

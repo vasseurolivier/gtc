@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -235,7 +236,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                 </div>
                 <Separator />
                 <div className="space-y-4">
-                    <FormLabel>Fournisseur</FormLabel>
+                    <FormLabel>Fournisseur</Label>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
                         <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
@@ -272,7 +273,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         </Card>
 
         <div className="lg:col-span-2">
-            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12">
+            <div id="pdf-content" className="relative p-8 bg-white shadow-lg ring-1 ring-black ring-opacity-5 min-h-[297mm] pb-12 text-[10px]">
                 <div className="flex-grow">
                     <header className="flex justify-between items-start pb-2 border-b">
                       <div>{companyInfoContext.companyInfo.logoDocument && <img src={companyInfoContext.companyInfo.logoDocument} alt="Logo" className="h-10 object-contain" />}</div>
@@ -354,191 +355,4 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         </div>
     </div>
   );
-}
-
-function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: SupplierContract) => void, refreshKey: number }) {
-    const [contracts, setContracts] = useState<SupplierContract[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const { toast } = useToast();
-
-    useEffect(() => {
-        async function fetchContracts() {
-            setIsLoading(true);
-            try {
-                const fetchedContracts = await getSupplierContracts();
-                setContracts(fetchedContracts);
-            } catch (error) {
-                console.error("Failed to fetch contracts", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        fetchContracts();
-    }, [refreshKey]);
-
-    const handleDelete = async (id: string) => {
-        const result = await deleteSupplierContract(id);
-        if (result.success) {
-            toast({ title: 'Success', description: result.message });
-            setContracts(prev => prev.filter(c => c.id !== id));
-        } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.message });
-        }
-    };
-
-    if (isLoading) {
-        return <div className="flex h-64 items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
-    }
-
-    return (
-        <Card>
-            <CardContent className="p-0">
-                {contracts.length === 0 ? (
-                    <div className="text-center p-16 text-muted-foreground"><p>Aucun contrat archivé.</p></div>
-                ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Contract #</TableHead>
-                                <TableHead>Supplier</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {contracts.map((contract) => (
-                                <TableRow key={contract.id}>
-                                    <TableCell className="font-medium">{contract.contractNumber}</TableCell>
-                                    <TableCell>{contract.supplierName}</TableCell>
-                                    <TableCell>{format(new Date(contract.date), 'dd/MM/yyyy')}</TableCell>
-                                    <TableCell className="text-right">¥{contract.totalAmount.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => onEdit(contract)}><Pencil className="h-4 w-4" /></Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Confirmer suppression ?</AlertDialogTitle>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(contract.id)}>Supprimer</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                )}
-            </CardContent>
-        </Card>
-    );
-}
-
-function SupplierContractPageContent() {
-    const [activeTab, setActiveTab] = useState("generator");
-    const [editingContract, setEditingContract] = useState<SupplierContract | null>(null);
-    const [refreshKey, setRefreshKey] = useState(0);
-    const [generatorKey, setGeneratorKey] = useState('new-0');
-    const [products, setProducts] = useState<Product[]>([]);
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const { toast } = useToast();
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const [fetchedProducts, fetchedSuppliers] = await Promise.all([
-                    getProducts(),
-                    getSuppliers()
-                ]);
-                setProducts(fetchedProducts);
-                setSuppliers(fetchedSuppliers);
-            } catch (error) {
-                toast({ variant: 'destructive', title: 'Error', description: 'Failed to load initial data.' });
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        fetchData();
-    }, [toast]);
-    
-    const handleSupplierCreated = async () => {
-        const fetchedSuppliers = await getSuppliers();
-        setSuppliers(fetchedSuppliers);
-    };
-
-    const handleEdit = (contract: SupplierContract) => {
-        setEditingContract(contract);
-        setGeneratorKey(`edit-${contract.id}-${Date.now()}`);
-        setActiveTab("generator");
-    };
-
-    const handleFinished = () => {
-        setEditingContract(null);
-        setGeneratorKey(`new-${Date.now()}`);
-        setRefreshKey(prev => prev + 1);
-        setActiveTab("history");
-    };
-
-    const handleNew = () => {
-        setEditingContract(null);
-        setGeneratorKey(`new-${Date.now()}`);
-        setActiveTab("generator");
-    }
-    
-    if (isLoading) {
-        return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
-    }
-
-    return (
-        <div className="container py-8">
-             <div className="flex justify-between items-center mb-8 no-print">
-                <h1 className="text-3xl font-bold">Contrats Fournisseurs</h1>
-                 {activeTab === 'generator' && editingContract && (
-                    <Button variant="outline" onClick={handleNew}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Nouveau Contrat
-                    </Button>
-                 )}
-            </div>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="no-print">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="generator">{editingContract ? 'Modifier' : 'Générateur'}</TabsTrigger>
-                    <TabsTrigger value="history">Historique</TabsTrigger>
-                </TabsList>
-                <TabsContent value="generator">
-                    <ContractGenerator 
-                        key={generatorKey} 
-                        editingContract={editingContract} 
-                        onFinished={handleFinished} 
-                        products={products}
-                        suppliers={suppliers}
-                        onSupplierCreated={handleSupplierCreated}
-                    />
-                </TabsContent>
-                <TabsContent value="history">
-                    <ContractHistory onEdit={handleEdit} refreshKey={refreshKey} />
-                </TabsContent>
-            </Tabs>
-        </div>
-    );
-}
-
-export default function SupplierContractPage() {
-    const router = useRouter();
-    useEffect(() => {
-        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
-        if (isAuthenticated !== 'true') {
-            router.push('/admin/login');
-        }
-    }, [router]);
-
-    return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
-            <SupplierContractPageContent />
-        </Suspense>
-    );
 }

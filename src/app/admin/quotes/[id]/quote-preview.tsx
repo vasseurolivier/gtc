@@ -226,7 +226,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                 <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL</span>
-                                <span className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
+                                <div className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
                             </div>
                         </div>
                     </div>
@@ -259,11 +259,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             {quote.depositRequired ? (
                                 <div className="grid grid-cols-2 gap-8">
                                     <div className="text-zinc-500 leading-tight">
-                                        Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100))}</strong>
+                                        <div className="flex items-center gap-1">Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100))}</strong></div>
                                         <br />Payable sous 3 jours.
                                     </div>
                                     <div className="text-zinc-500 leading-tight">
-                                        Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100))}</strong>
+                                        <div className="flex items-center gap-1">Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100))}</strong></div>
                                         <br />Payable après contrôle qualité (AQL).
                                     </div>
                                 </div>

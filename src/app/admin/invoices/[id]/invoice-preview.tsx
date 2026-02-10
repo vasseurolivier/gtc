@@ -210,7 +210,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                 <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL:</span>
-                                <span className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
+                                <div className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
                             </div>
                         </div>
                     </div>

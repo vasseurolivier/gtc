@@ -130,7 +130,7 @@ export default function ClientCatalogPage() {
       toast({ variant: "destructive", title: "Quantité insuffisante", description: `La personnalisation nécessite un minimum de ${moq} unités.` });
       return;
     }
-    if (selectedProduct.hasSizeSelection && !selectedSize) {
+    if (selectedProduct.hasSizeSelection && (selectedProduct.availableSizes?.length > 0) && !selectedSize) {
       toast({ variant: "destructive", title: "Taille requise", description: "Veuillez sélectionner une taille." });
       return;
     }
@@ -355,11 +355,11 @@ export default function ClientCatalogPage() {
                   )}
 
                   {/* Sélection de Taille */}
-                  {selectedProduct.hasSizeSelection && (
+                  {selectedProduct.hasSizeSelection && selectedProduct.availableSizes?.length > 0 && (
                     <div className="space-y-3">
                       <Label className="font-black text-[10px] uppercase tracking-widest text-zinc-400">Sélectionner la taille</Label>
                       <div className="flex flex-wrap gap-2">
-                        {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
+                        {selectedProduct.availableSizes.map((size: string) => (
                           <Button 
                             key={size} 
                             variant="outline" 
@@ -453,7 +453,7 @@ export default function ClientCatalogPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="font-bold flex items-center gap-2 text-zinc-700">
-                    <Hash className="h-4 w-4 text-primary" /> Référence de commande
+                    <Hash className="h-4 w-4 text-primary" /> Référence de commande (Suffixe)
                   </Label>
                   <div className="flex items-center">
                     <div className="h-10 px-3 bg-zinc-100 border border-r-0 rounded-l-md flex items-center justify-center font-black text-zinc-500">
