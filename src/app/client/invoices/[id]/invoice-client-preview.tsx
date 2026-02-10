@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -44,7 +45,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         const element = document.getElementById('pdf-content');
         if (!element) return;
         
-        // Proxy Relay for images to avoid CORS failures in PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -61,7 +61,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                     });
                     img.src = base64;
                 } catch (e) {
-                    console.error("PDF Image conversion failed", originalSrc, e);
+                    console.error("PDF Proxy conversion failed", originalSrc);
                 }
             }
         });
@@ -124,7 +124,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
 
-    // Full Beneficiary Name for bank reliability
     const beneficiaryName = "Yiwu Huanqiu Trading Co., Ltd.";
     
     return (

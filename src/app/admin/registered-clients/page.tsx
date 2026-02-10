@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -82,7 +83,7 @@ export default function RegisteredClientsPage() {
           }
         });
       } catch (e) {
-        console.error("Sourcing notification error:", e);
+        console.warn("Sourcing notifications disabled until index creation");
       }
 
       const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
@@ -103,7 +104,6 @@ export default function RegisteredClientsPage() {
       setTempNumbers(numbers);
     } catch (error) {
       console.error("Fetch data error:", error);
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de charger les données.' });
     } finally {
       setIsLoading(false);
     }
