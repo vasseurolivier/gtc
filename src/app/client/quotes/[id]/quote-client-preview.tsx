@@ -49,7 +49,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // CONVERT IMAGES TO BASE64 FOR PDF
+        // NEW ROBUST BASE64 CONVERSION TO ENSURE IMAGES APPEAR IN PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useContext } from 'react';
@@ -21,7 +20,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // FORCE BASE64 CONVERSION OF ALL IMAGES TO BYPASS CORS ON CANVAS
+        // NEW ROBUST BASE64 CONVERSION TO ENSURE IMAGES APPEAR IN PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -34,9 +33,9 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         reader.onloadend = () => resolve(reader.result as string);
                         reader.readAsDataURL(blob);
                     });
-                    img.src = base64; // Temporarily swap to local data
+                    img.src = base64;
                 } catch (e) {
-                    console.error("Image conversion failed for PDF", originalSrc);
+                    console.error("PDF Image conversion failed", originalSrc);
                 }
             }
         });

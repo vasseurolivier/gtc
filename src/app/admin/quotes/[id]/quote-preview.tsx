@@ -32,7 +32,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // ROBUST CONVERSION TO BASE64
+        // NEW ROBUST BASE64 CONVERSION TO ENSURE IMAGES APPEAR IN PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;

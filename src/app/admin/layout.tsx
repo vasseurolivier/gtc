@@ -404,22 +404,20 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref legacyBehavior>
-                  <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}>
-                    <a className="flex items-center w-full">
-                      {item.icon}
-                      <span className="ml-2">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <SidebarMenuBadge className={cn(
-                          "bg-primary text-white",
-                          (item.href === '/admin/orders' || item.href === '/admin/registered-clients') && "bg-red-600 animate-pulse"
-                        )}>
-                          {item.badge}
-                        </SidebarMenuBadge>
-                      )}
-                    </a>
-                  </SidebarMenuButton>
-                </Link>
+                <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}>
+                  <Link href={item.href} className="flex items-center w-full">
+                    {item.icon}
+                    <span className="ml-2">{item.label}</span>
+                    {item.badge !== undefined && item.badge > 0 && (
+                      <SidebarMenuBadge className={cn(
+                        "bg-primary text-white",
+                        (item.href === '/admin/orders' || item.href === '/admin/registered-clients') && "bg-red-600 animate-pulse"
+                      )}>
+                        {item.badge}
+                      </SidebarMenuBadge>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
