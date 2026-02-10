@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -33,9 +32,9 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // NEW PROXY METHOD FOR IMAGES
+        // Proxy relay for images
         const imgs = Array.from(element.getElementsByTagName('img'));
-        const convertPromises = imgs.map(async (img) => {
+        for (const img of imgs) {
             const originalSrc = img.src;
             if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
@@ -49,13 +48,16 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         reader.readAsDataURL(blob);
                     });
                     img.src = base64;
+                    // Ensure the image is re-loaded before capturing
+                    await new Promise((resolve) => {
+                        if (img.complete) resolve(true);
+                        else img.onload = () => resolve(true);
+                    });
                 } catch (e) {
                     console.error("PDF Proxy conversion failed", originalSrc);
                 }
             }
-        });
-
-        await Promise.all(convertPromises);
+        }
 
         const canvas = await html2canvas(element, { 
             scale: 2, 
@@ -110,10 +112,10 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
-            <div className="flex flex-col items-end">
+            <span className="inline-flex flex-col items-end align-middle">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[9px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
-            </div>
+                <span className="text-[9px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
+            </span>
         );
     };
 
@@ -272,19 +274,19 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <h3 className="font-semibold mb-1 uppercase tracking-widest text-[9px] text-zinc-400">Conditions :</h3>
                             {quote.depositRequired ? (
                                 <div className="grid grid-cols-2 gap-4">
-                                    <p className="text-muted-foreground leading-tight">
+                                    <div className="text-muted-foreground leading-tight">
                                         Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100))}</strong>
                                         <br />Payable sous 3 jours.
-                                    </p>
-                                    <p className="text-muted-foreground leading-tight">
+                                    </div>
+                                    <div className="text-muted-foreground leading-tight">
                                         Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100))}</strong>
                                         <br />Payable après contrôle qualité (AQL).
-                                    </p>
+                                    </div>
                                 </div>
                             ) : (
-                                <p className="text-muted-foreground leading-tight">
+                                <div className="text-muted-foreground leading-tight">
                                     Paiement intégral avant expédition.
-                                </p>
+                                </div>
                             )}
                         </div>
                     </div>

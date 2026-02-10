@@ -49,13 +49,15 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // NEW ROBUST BASE64 CONVERSION TO ENSURE IMAGES APPEAR IN PDF
+        // Use the proxy API to ensure images are loadable without CORS issues
         const imgs = Array.from(element.getElementsByTagName('img'));
-        const convertPromises = imgs.map(async (img) => {
+        for (const img of imgs) {
             const originalSrc = img.src;
             if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
-                    const response = await fetch(originalSrc);
+                    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(originalSrc)}`;
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error('Proxy fetch failed');
                     const blob = await response.blob();
                     const base64 = await new Promise<string>((resolve) => {
                         const reader = new FileReader();
@@ -63,13 +65,16 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         reader.readAsDataURL(blob);
                     });
                     img.src = base64;
+                    // Ensure the image is re-loaded before capturing
+                    await new Promise((resolve) => {
+                        if (img.complete) resolve(true);
+                        else img.onload = () => resolve(true);
+                    });
                 } catch (e) {
-                    console.error("PDF Image conversion failed", originalSrc);
+                    console.error("PDF Proxy conversion failed", originalSrc);
                 }
             }
-        });
-
-        await Promise.all(convertPromises);
+        }
 
         const canvas = await html2canvas(element, { 
             scale: 2, 
@@ -163,10 +168,10 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
-            <div className="flex flex-col items-end">
+            <span className="inline-flex flex-col items-end align-middle">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[9px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
-            </div>
+                <span className="text-[9px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
+            </span>
         );
     };
 
@@ -410,13 +415,13 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <div className="text-[10px] text-zinc-600 space-y-4">
                                 {quote.depositRequired ? (
                                     <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-                                        <p className="font-bold text-primary mb-0.5 uppercase">
+                                        <div className="font-bold text-primary mb-0.5 uppercase">
                                             Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}
-                                        </p>
+                                        </div>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
                                 ) : (
-                                    <p className="font-bold text-primary">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</p>
+                                    <div className="font-bold text-primary">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</div>
                                 )}
                                 
                                 <div className="grid grid-cols-2 gap-6 p-4 bg-zinc-50 rounded-xl border border-zinc-100">

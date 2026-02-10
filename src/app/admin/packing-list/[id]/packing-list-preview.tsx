@@ -22,7 +22,7 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
 
         // Proxy relay for images to ensure they show up in PDF
         const imgs = Array.from(element.getElementsByTagName('img'));
-        const convertPromises = imgs.map(async (img) => {
+        for (const img of imgs) {
             const originalSrc = img.src;
             if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
@@ -36,13 +36,15 @@ export function PackingListPreview({ packingList }: { packingList: PackingList }
                         reader.readAsDataURL(blob);
                     });
                     img.src = base64;
+                    await new Promise((resolve) => {
+                        if (img.complete) resolve(true);
+                        else img.onload = () => resolve(true);
+                    });
                 } catch (e) {
                     console.error("PDF Image conversion failed", originalSrc, e);
                 }
             }
-        });
-
-        await Promise.all(convertPromises);
+        }
 
         const canvas = await html2canvas(element, { 
             scale: 2, 

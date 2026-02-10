@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -36,7 +35,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
 
         // Use the proxy API to ensure images are loadable without CORS issues
         const imgs = Array.from(element.getElementsByTagName('img'));
-        const convertPromises = imgs.map(async (img) => {
+        for (const img of imgs) {
             const originalSrc = img.src;
             if (originalSrc && !originalSrc.startsWith('data:')) {
                 try {
@@ -50,13 +49,15 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         reader.readAsDataURL(blob);
                     });
                     img.src = base64;
+                    await new Promise((resolve) => {
+                        if (img.complete) resolve(true);
+                        else img.onload = () => resolve(true);
+                    });
                 } catch (e) {
                     console.error("PDF Proxy conversion failed", originalSrc);
                 }
             }
-        });
-
-        await Promise.all(convertPromises);
+        }
 
         const canvas = await html2canvas(element, { 
             scale: 2, 
@@ -104,10 +105,10 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
-            <div className="flex flex-col items-end">
+            <span className="inline-flex flex-col items-end align-middle">
                 <span className={cn(isMain ? "font-black" : "")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[9px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
-            </div>
+                <span className="text-[9px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
+            </span>
         );
     };
 
