@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useContext } from 'react';
@@ -23,6 +24,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -108,7 +111,6 @@ export default function ClientDetailPage() {
     }
   };
 
-  // Documents Queries - Admin side
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));
@@ -182,7 +184,12 @@ export default function ClientDetailPage() {
   };
 
   const handleEditProduct = (product: any) => {
-    setEditingProduct({ ...product });
+    setEditingProduct({ 
+      ...product, 
+      hasSizeSelection: product.hasSizeSelection ?? false,
+      availability: product.availability ?? 'both',
+      moq: product.moq ?? 1
+    });
     setIsProductDialogOpen(true);
   };
 
@@ -193,7 +200,7 @@ export default function ClientDetailPage() {
       const listId = editingProduct.listId || editingProduct.productListId;
       const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', editingProduct.id);
       await setDoc(productRef, { ...editingProduct, status: 'published', validatedAt: new Date().toISOString() }, { merge: true });
-      toast({ title: "Produit publié" });
+      toast({ title: "Produit mis à jour" });
       setIsProductDialogOpen(false);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message });
@@ -320,6 +327,7 @@ export default function ClientDetailPage() {
                       <TableHead className="w-[80px]">Photo</TableHead>
                       <TableHead>Produit</TableHead>
                       <TableHead>Prix</TableHead>
+                      <TableHead>Options</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -338,9 +346,15 @@ export default function ClientDetailPage() {
                           </div>
                         </TableCell>
                         <TableCell>¥{Number(p.price || 0).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {p.hasSizeSelection && <Badge variant="secondary" className="text-[8px] h-4">TAILLES ACTIVE</Badge>}
+                            <Badge variant="outline" className="text-[8px] h-4 uppercase">{p.availability || 'BOTH'}</Badge>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProductActual(p)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-red-50" onClick={() => handleDeleteProductActual(p)}><Trash2 className="h-4 w-4" /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -364,20 +378,55 @@ export default function ClientDetailPage() {
 
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-4xl">
-          <DialogHeader><DialogTitle>Éditer Produit</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Configuration Produit Catalogue</DialogTitle></DialogHeader>
           {editingProduct && (
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Label>Nom</Label><Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} />
-                <Label>Prix (CNY)</Label><Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: e.target.value})} />
-                <Label>MOQ</Label><Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: e.target.value})} />
+            <div className="grid grid-cols-2 gap-8 py-4">
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Nom commercial</Label>
+                  <Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Prix unitaire (CNY)</Label>
+                    <Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>MOQ Personnalisation</Label>
+                    <Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: Number(e.target.value)})} />
+                  </div>
+                </div>
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <Label>Activer choix des tailles ?</Label>
+                    <Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Type de vente autorisée</Label>
+                    <Select value={editingProduct.availability || 'both'} onValueChange={val => setEditingProduct({...editingProduct, availability: val})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard_only">Standard uniquement</SelectItem>
+                        <SelectItem value="personalized_only">Personnalisé uniquement</SelectItem>
+                        <SelectItem value="both">Les deux (Standard & Perso)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               <div className="space-y-4">
-                <Label>Description</Label><Textarea rows={10} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} />
+                <Label>Description Technique</Label>
+                <Textarea rows={12} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} />
               </div>
             </div>
           )}
-          <DialogFooter><Button onClick={handleSaveProduct}>Publier</Button></DialogFooter>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Annuler</Button>
+            <Button onClick={handleSaveProduct} disabled={isSaving}>
+              {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              Publier les modifications
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

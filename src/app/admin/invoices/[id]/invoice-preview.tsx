@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -8,7 +9,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
@@ -104,7 +105,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
-                <span className={cn(isMain ? "font-black text-[10px]" : "font-bold text-[9px]")}>€{eurValue.toFixed(2)}</span>
+                <span className={cn(isMain ? "font-black" : "font-bold")}>€{eurValue.toFixed(2)}</span>
                 <span className="text-[8px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
             </div>
         );
@@ -132,7 +133,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             {displayLogo && <img src={displayLogo} alt="Logo" className="h-10 w-auto object-contain block" />}
                         </div>
                         <div className="text-right">
-                            <h1 className="text-[14px] font-black text-black uppercase leading-tight">Facture</h1>
+                            <h1 className="text-sm font-black text-black uppercase leading-tight">Facture</h1>
                             <p className="text-[10px] text-muted-foreground leading-tight">N° {invoice.invoiceNumber}</p>
                         </div>
                     </header>
@@ -207,9 +208,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between items-center font-black text-[12px] mt-2 pt-1 border-t-2 border-zinc-900">
-                                <span>TOTAL FINAL:</span>
-                                <span className="text-primary">{renderPrice(totalFinalCny, true)}</span>
+                            <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
+                                <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL:</span>
+                                <span className="text-xs font-black text-primary">{renderPrice(totalFinalCny, true)}</span>
                             </div>
                         </div>
                     </div>
@@ -218,7 +219,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <h3 className="font-bold mb-1 uppercase text-zinc-400">COORDONNÉES BANCAIRES</h3>
                         <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-1">
-                                <p><strong>Banque:</strong> Banking Circle S.A. - German Branch</p>
+                                <p><strong>Banque:</strong> Banking Circle S.A.</p>
                                 <p><strong>IBAN:</strong> DE24 2022 0800 0056 1684 61</p>
                                 <p><strong>SWIFT:</strong> SXPYDEHH</p>
                             </div>

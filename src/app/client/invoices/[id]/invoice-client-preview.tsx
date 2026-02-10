@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -115,7 +116,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
-                <span className={cn(isMain ? "font-black text-[10px]" : "font-bold text-[9px]")}>€{eurValue.toFixed(2)}</span>
+                <span className={cn(isMain ? "font-black" : "font-bold")}>€{eurValue.toFixed(2)}</span>
                 <span className="text-[8px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
             </div>
         );
@@ -154,7 +155,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 )}
                             </div>
                             <div className="text-right">
-                                <h1 className="text-[14px] font-black text-zinc-900 tracking-tighter uppercase leading-tight">Facture Acquittée</h1>
+                                <h1 className="text-sm font-black text-zinc-900 tracking-tighter uppercase leading-tight">Facture Acquittée</h1>
                                 <p className="text-[10px] font-bold text-primary leading-tight">N° {invoice.invoiceNumber}</p>
                                 <p className="text-[8px] text-muted-foreground mt-1 leading-tight">Date: {format(new Date(invoice.issueDate), 'dd/MM/yyyy')}</p>
                             </div>
@@ -244,7 +245,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL RÉGLÉ</span>
-                                    <span className="text-[12px] font-black text-green-600">{renderPrice(totalFinalCny, true)}</span>
+                                    <span className="text-xs font-black text-green-600">{renderPrice(totalFinalCny, true)}</span>
                                 </div>
                             </div>
                         </div>

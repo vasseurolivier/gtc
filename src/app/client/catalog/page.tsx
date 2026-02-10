@@ -28,13 +28,15 @@ import {
   Minus, 
   Hash,
   Building2,
-  Trash2
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
@@ -322,6 +324,56 @@ export default function ClientCatalogPage() {
                   </div>
                 </div>
 
+                <div className="space-y-6">
+                  {/* Options de personnalisation */}
+                  {selectedProduct.availability !== 'standard_only' && (
+                    <div className="space-y-3">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-zinc-400">Type de commande</Label>
+                      <RadioGroup 
+                        defaultValue={isPersonalized ? "personalized" : "standard"} 
+                        onValueChange={(val) => {
+                          const isPerso = val === "personalized";
+                          setIsPersonalized(isPerso);
+                          if (isPerso) setProductQuantity(Math.max(productQuantity, Number(selectedProduct.moq || 1)));
+                        }}
+                        className="flex gap-4"
+                      >
+                        {selectedProduct.availability !== 'personalized_only' && (
+                          <div className={cn("flex-1 p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-all", !isPersonalized ? "border-primary bg-primary/5" : "hover:bg-zinc-50")}>
+                            <RadioGroupItem value="standard" id="std" className="sr-only" />
+                            <Label htmlFor="std" className="flex-grow cursor-pointer font-bold text-sm">Standard</Label>
+                            {!isPersonalized && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                          </div>
+                        )}
+                        <div className={cn("flex-1 p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-all", isPersonalized ? "border-primary bg-primary/5" : "hover:bg-zinc-50")}>
+                          <RadioGroupItem value="personalized" id="perso" className="sr-only" />
+                          <Label htmlFor="perso" className="flex-grow cursor-pointer font-bold text-sm">Personnalisé</Label>
+                          {isPersonalized && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  )}
+
+                  {/* Sélection de Taille */}
+                  {selectedProduct.hasSizeSelection && (
+                    <div className="space-y-3">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-zinc-400">Sélectionner la taille</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
+                          <Button 
+                            key={size} 
+                            variant="outline" 
+                            className={cn("h-10 w-12 font-bold", selectedSize === size ? "bg-primary text-white border-primary" : "hover:border-primary")}
+                            onClick={() => setSelectedSize(size)}
+                          >
+                            {size}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="prose prose-sm text-zinc-600 max-h-40 overflow-y-auto border-y py-4 leading-relaxed">
                   {selectedProduct.description || "Aucune description technique."}
                 </div>
@@ -329,9 +381,10 @@ export default function ClientCatalogPage() {
                 <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
                   <div className="flex items-center justify-between">
                     <Label className="font-black text-xs uppercase tracking-widest text-zinc-400">Quantité souhaitée</Label>
+                    {isPersonalized && <span className="text-[9px] font-bold text-orange-600 uppercase">Min: {selectedProduct.moq}</span>}
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}><Minus className="h-4 w-4" /></Button>
+                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(Math.max(isPersonalized ? Number(selectedProduct.moq || 1) : 1, productQuantity - 1))}><Minus className="h-4 w-4" /></Button>
                     <Input type="number" className="h-12 text-center font-black text-xl bg-white rounded-xl" value={productQuantity} onChange={(e) => setProductQuantity(parseInt(e.target.value) || 1)} />
                     <Button variant="outline" className="h-12 w-12 rounded-xl bg-white" onClick={() => setProductQuantity(productQuantity + 1)}><Plus className="h-4 w-4" /></Button>
                   </div>
@@ -374,7 +427,7 @@ export default function ClientCatalogPage() {
                         <div className="flex flex-col">
                           <span className="font-bold text-sm">{item.name}</span>
                           {item.size && <Badge variant="secondary" className="w-fit text-[10px] h-4 mt-1">Taille: {item.size}</Badge>}
-                          {item.isPersonalized && <Badge className="w-fit bg-orange-100 text-orange-700 text-[9px] mt-1 h-4">PERSONNALISÉ</Badge>}
+                          {item.isPersonalized && <Badge className="w-fit bg-orange-100 text-orange-700 text-[9px] mt-1 h-4 uppercase font-black">PERSONNALISÉ</Badge>}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
