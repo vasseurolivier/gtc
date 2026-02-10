@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -12,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -164,12 +163,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
     const renderPrice = (cnyValue: number, isMain = false) => {
         const eurValue = cnyValue * quoteRate;
-        if (currencyPref === 'EUR') return `€{eurValue.toFixed(2)}`;
-        if (currencyPref === 'CNY') return `¥{cnyValue.toFixed(2)}`;
+        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
+        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
-                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€{eurValue.toFixed(2)}</span>
-                <span className="text-[6px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
+                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€${eurValue.toFixed(2)}</span>
+                <span className="text-[6px] text-zinc-400 font-normal">¥${cnyValue.toFixed(2)}</span>
             </div>
         );
     };
@@ -310,7 +309,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
             <main className="w-full mx-auto bg-white border shadow-xl rounded-xl overflow-hidden" id="invoice-preview">
                 <div id="pdf-content" className="relative p-4 bg-white min-h-[297mm] pb-12">
-                    <div className="flex-grow">
+                    <div className="flex-grow relative z-10">
                         <header className="w-full flex justify-between items-start pb-1 border-b">
                             <div>
                                 {displayLogo && (

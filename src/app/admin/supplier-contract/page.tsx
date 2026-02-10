@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-
+import { PrintFooter } from '@/components/layout/print-footer';
 
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
@@ -129,25 +129,6 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
         form.setValue('supplierContact', supplier.contactName || '');
     }
   };
-  
-  const handleSaveSupplier = async () => {
-    const supplierName = form.getValues('supplierName');
-    const supplierAddress = form.getValues('supplierAddress');
-    const supplierContact = form.getValues('supplierContact');
-    if (!supplierName) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Supplier name is required.' });
-        return;
-    }
-    setIsSavingSupplier(true);
-    const result = await addSupplier({ name: supplierName, address: supplierAddress, contactName: supplierContact });
-    if (result.success) {
-        toast({ title: 'Success', description: 'New supplier has been saved.' });
-        onSupplierCreated();
-    } else {
-        toast({ variant: 'destructive', title: 'Error', description: result.message || 'Could not save supplier.' });
-    }
-    setIsSavingSupplier(false);
-  }
 
   const handleDownloadPdf = async () => {
       const element = document.getElementById('pdf-content');
@@ -297,7 +278,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers, o
                 <header className="flex justify-between items-start pb-1 border-b">
                   <div>{companyInfo.logoDocument && <img src={companyInfo.logoDocument} alt="Logo" className="h-8 object-contain" />}</div>
                   <div className="text-right">
-                    <h1 className="text-[10px] font-bold text-primary leading-tight">PURCHASE CONTRACT</h1>
+                    <h1 className="text-[10px] font-bold text-primary leading-tight uppercase">Purchase Contract</h1>
                     <p className="text-[7px] text-muted-foreground">Contract No.: {watchedValues.contractNumber}</p>
                     <p className="text-[7px] text-muted-foreground">Date: {format(watchedValues.date, 'yyyy-MM-dd')}</p>
                   </div>

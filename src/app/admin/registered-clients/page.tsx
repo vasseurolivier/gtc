@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -209,7 +208,7 @@ export default function RegisteredClientsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
-              <input 
+              <Input 
                 type="number" 
                 step="0.0001" 
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
