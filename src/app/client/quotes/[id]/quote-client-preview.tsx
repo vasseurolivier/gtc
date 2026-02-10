@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -51,7 +50,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // FORCE BASE64 CONVERSION OF ALL IMAGES TO BYPASS CORS ON CANVAS
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -64,9 +62,9 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         reader.onloadend = () => resolve(reader.result as string);
                         reader.readAsDataURL(blob);
                     });
-                    img.src = base64; // Temporarily swap to local data
+                    img.src = base64;
                 } catch (e) {
-                    console.error("Image conversion failed for PDF", originalSrc);
+                    console.error("PDF Image conversion failed", originalSrc);
                 }
             }
         });
@@ -172,7 +170,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         );
     };
 
-    // CONFIDENTIALITY RULE: REMOVE YIWU IF 3PL SELECTED
     const cleanCompanyAddress = is3PL 
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;

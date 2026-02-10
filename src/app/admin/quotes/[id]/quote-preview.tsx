@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -33,7 +32,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // FORCE BASE64 CONVERSION OF ALL IMAGES TO BYPASS CORS ON CANVAS
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -46,9 +44,9 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         reader.onloadend = () => resolve(reader.result as string);
                         reader.readAsDataURL(blob);
                     });
-                    img.src = base64; // Temporarily swap to local data
+                    img.src = base64;
                 } catch (e) {
-                    console.error("Image to Base64 conversion failed:", originalSrc, e);
+                    console.error("PDF Image conversion failed", originalSrc);
                 }
             }
         });
@@ -87,11 +85,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     };
 
     if (!currencyContext || !companyInfoContext || !companyInfoContext.isCompanyInfoLoaded) {
-        return (
-             <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
+        return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     }
     
     const { companyInfo } = companyInfoContext;
@@ -122,7 +116,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
 
-    // CONFIDENTIALITY RULE: REMOVE YIWU IF 3PL SELECTED
     const cleanCompanyAddress = is3PL 
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
@@ -257,7 +250,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 </div>
                                 <div className="space-y-0.5">
                                     <p><strong>Bénéficiaire:</strong> {beneficiaryName}</p>
-                                    <p><strong>Méthode:</strong> SEPA Instant / SCT</p>
                                     <p className="mt-2 italic text-primary font-black text-[11px]">Ref: {quote.quoteNumber} - {quote.customerName}</p>
                                 </div>
                             </div>

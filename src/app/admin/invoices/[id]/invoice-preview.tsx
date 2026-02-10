@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -34,7 +33,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
         const element = document.getElementById('pdf-content');
         if (!element) return;
 
-        // FORCE BASE64 CONVERSION OF ALL IMAGES TO BYPASS CORS ON CANVAS
         const imgs = Array.from(element.getElementsByTagName('img'));
         const convertPromises = imgs.map(async (img) => {
             const originalSrc = img.src;
@@ -47,9 +45,9 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         reader.onloadend = () => resolve(reader.result as string);
                         reader.readAsDataURL(blob);
                     });
-                    img.src = base64; // Temporarily swap to local data
+                    img.src = base64;
                 } catch (e) {
-                    console.error("Image to Base64 conversion failed:", originalSrc, e);
+                    console.error("PDF Image conversion failed", originalSrc);
                 }
             }
         });
@@ -112,7 +110,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     const companyName = customer.companyName || customer.company || '';
     const contactName = customer.firstName ? `${customer.firstName} ${customer.lastName}` : (customer.name || 'Client');
     
-    // CONFIDENTIALITY RULE: REMOVE YIWU IF 3PL SELECTED
     const cleanCompanyAddress = is3PL 
         ? companyInfo.address.replace(/Yiwu/gi, '').replace(/义乌/g, '').replace(/,,/g, ',').trim()
         : companyInfo.address;
