@@ -9,7 +9,7 @@ import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
 
@@ -109,10 +109,10 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
-            <span className="inline-flex flex-col items-end align-middle">
-                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[6px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
-            </span>
+            <div className="flex flex-col items-end leading-none">
+                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€{eurValue.toFixed(2)}</span>
+                <span className="text-[6px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
+            </div>
         );
     };
 
@@ -207,23 +207,23 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                     
                     <div className="flex justify-end pt-2">
                         <div className="w-full max-w-[160px] space-y-0.5 text-[7px]">
-                            <div className="flex justify-between">
+                            <div className="flex justify-between items-center">
                                 <span className="text-zinc-500">Sous-total articles:</span>
                                 <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                             </div>
                             {commissionRate > 0 && (
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     <span className="text-zinc-500">Commission ({commissionRate}%):</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
                             {transportCny > 0 && (
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 flex items-center gap-1"><Truck className="h-2 w-2" /> Port:</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between font-black text-[9px] mt-1 pt-0.5 border-t-2 border-zinc-900">
+                            <div className="flex justify-between items-center font-black text-[9px] mt-1 pt-0.5 border-t-2 border-zinc-900">
                                 <span className="uppercase">TOTAL:</span>
                                 <span className="text-primary">{renderPrice(totalFinalCny, true)}</span>
                             </div>

@@ -233,8 +233,7 @@ export default function RegisteredClientsPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </CardContent>
-        </Card>
-      </div>
+        </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-white">
         <CardContent className="p-0">

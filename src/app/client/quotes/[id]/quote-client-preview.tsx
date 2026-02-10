@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -166,10 +166,10 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
-            <span className="inline-flex flex-col items-end align-middle">
-                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€${eurValue.toFixed(2)}</span>
-                <span className="text-[6px] text-zinc-400 font-normal leading-none">¥${cnyValue.toFixed(2)}</span>
-            </span>
+            <div className="flex flex-col items-end leading-none">
+                <span className={cn(isMain ? "font-black text-[8px]" : "font-bold text-[7px]")}>€{eurValue.toFixed(2)}</span>
+                <span className="text-[6px] text-zinc-400 font-normal">¥{cnyValue.toFixed(2)}</span>
+            </div>
         );
     };
 
@@ -382,18 +382,18 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         
                         <div className="flex justify-end pt-2">
                             <div className="w-full max-w-[160px] space-y-0.5 text-[7px]">
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                                 </div>
                                 {commissionRate > 0 && (
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
                                         <span className="font-bold">{renderPrice(commissionCny)}</span>
                                     </div>
                                 )}
                                 {transportCny > 0 && (
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-2 w-2" /> Port</span>
                                         <span className="font-bold">{renderPrice(transportCny)}</span>
                                     </div>

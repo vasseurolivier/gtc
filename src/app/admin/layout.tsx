@@ -30,6 +30,7 @@ import {
   UserCheck,
   Settings,
   Factory,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -47,7 +48,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions } from '@/actions/submissions';
 import { getOrders } from '@/actions/orders';
 import { getRegisteredClients } from '@/actions/registered-clients';
-import { Loader2 } from 'lucide-react';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
