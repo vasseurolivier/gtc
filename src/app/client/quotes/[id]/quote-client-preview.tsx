@@ -414,7 +414,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 {quote.depositRequired ? (
                                     <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
                                         <p className="font-bold text-primary mb-0.5 uppercase">
-                                            Acompte à la commande ({quote.depositPercentage}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}
+                                            Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}
                                         </p>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
