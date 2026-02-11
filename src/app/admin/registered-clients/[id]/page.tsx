@@ -58,7 +58,9 @@ import {
   Euro,
   TrendingUp,
   CircleAlert,
-  ShoppingCart
+  ShoppingCart,
+  Mail,
+  Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -582,7 +584,7 @@ export default function ClientDetailPage() {
                         <TableRow key={q.id} className={cn((q.status === 'draft' || q.status === 'sent') && "bg-primary/5")}>
                           <TableCell className="font-black pl-6">{q.quoteNumber}</TableCell>
                           <TableCell className="text-xs font-medium text-zinc-400">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'} className="text-[9px] uppercase font-black">{q.status}</Badge></TableCell>
+                          <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'} className="text-[9px] uppercase font-black">{q.status}</Badge></TableCell>
                           <TableCell className="text-right font-black">¥{q.totalAmount.toFixed(2)}</TableCell>
                           <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button></TableCell>
                         </TableRow>
