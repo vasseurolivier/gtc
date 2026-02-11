@@ -179,7 +179,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                   <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl></FormItem> )} />
                 </div>
                 <div className="space-y-2">
-                    <Label>Fournisseur</Label>
+                    <Label className="text-sm font-bold">Fournisseur</Label>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>
                         <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
@@ -188,7 +188,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                     <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse" {...field} rows={2} /></FormControl></FormItem> )} />
                 </div>
                 <div className="space-y-4">
-                    <Label>Articles</Label>
+                    <Label className="text-sm font-bold">Articles</Label>
                     {fields.map((field, index) => (
                       <Card key={field.id} className="p-2 relative"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button>
                         <div className="space-y-2">

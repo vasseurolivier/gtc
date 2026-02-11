@@ -162,40 +162,40 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
-  // Sorting Logic
+  // CUSTOM SORTING LOGIC: Priority Documents at Top, then Date Desc
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
+      // Priority 0: non-validated (processing)
       const priorityA = a.status === 'processing' ? 0 : 1;
       const priorityB = b.status === 'processing' ? 0 : 1;
       if (priorityA !== priorityB) return priorityA - priorityB;
-      const dateA = a.createdAt ? parseSafeDate(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? parseSafeDate(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      // Then date desc
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [orders]);
 
   const sortedQuotes = useMemo(() => {
     if (!quotes) return [];
     return [...quotes].sort((a, b) => {
-      const priorityA = (a.status === 'sent' || a.status === 'draft') ? 0 : 1;
-      const priorityB = (b.status === 'sent' || b.status === 'draft') ? 0 : 1;
+      // Priority 0: non-accepted (draft or sent)
+      const priorityA = (a.status === 'draft' || a.status === 'sent') ? 0 : 1;
+      const priorityB = (b.status === 'draft' || b.status === 'sent') ? 0 : 1;
       if (priorityA !== priorityB) return priorityA - priorityB;
-      const dateA = a.createdAt ? parseSafeDate(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? parseSafeDate(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      // Then date desc
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [quotes]);
 
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
+      // Priority 0: unpaid (everything except paid)
       const priorityA = a.status !== 'paid' ? 0 : 1;
       const priorityB = b.status !== 'paid' ? 0 : 1;
       if (priorityA !== priorityB) return priorityA - priorityB;
-      const dateA = a.createdAt ? parseSafeDate(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? parseSafeDate(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      // Then date desc
+      return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [invoices]);
 
