@@ -179,7 +179,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                   <FormField control={form.control} name="contractNumber" render={({ field }) => ( <FormItem><FormLabel>Contract #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
                   <FormField control={form.control} name="date" render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input value={format(field.value, 'yyyy-MM-dd')} readOnly disabled /></FormControl></FormItem> )} />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-4">
                     <Label className="text-sm font-bold">Fournisseur</Label>
                     <Select onValueChange={handleSupplierSelect}>
                         <SelectTrigger><SelectValue placeholder="Choisir un fournisseur" /></SelectTrigger>

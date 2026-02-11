@@ -167,6 +167,7 @@ export default function RegisteredClientsPage() {
         <Card className="md:col-span-2">
           <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><Search className="h-4 w-4 text-zinc-400" /> RECHERCHE</CardTitle></CardHeader>
           <CardContent><Input placeholder="Rechercher par nom, email ou numéro..." value={search} onChange={(e) => setSearch(e.target.value)} /></CardContent>
+        </Card>
       </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-white">
