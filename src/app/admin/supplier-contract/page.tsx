@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { PrintFooter } from '@/components/layout/print-footer';
+import { Separator } from '@/components/ui/separator';
 
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { getProducts, Product } from '@/actions/products';
@@ -187,6 +188,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                     <FormField control={form.control} name="supplierName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Nom" {...field} /></FormControl></FormItem> )} />
                     <FormField control={form.control} name="supplierAddress" render={({ field }) => ( <FormItem><FormControl><Textarea placeholder="Adresse" {...field} rows={2} /></FormControl></FormItem> )} />
                 </div>
+                <Separator />
                 <div className="space-y-4">
                     <Label className="text-sm font-bold">Articles</Label>
                     {fields.map((field, index) => (
@@ -226,7 +228,6 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
 function History({ onEdit, refreshKey }: { onEdit: (contract: SupplierContract) => void, refreshKey: number }) {
   const [contracts, setContracts] = useState<SupplierContract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
   useEffect(() => { async function fetch() { setIsLoading(true); try { const data = await getSupplierContracts(); setContracts(data); } finally { setIsLoading(false); } } fetch(); }, [refreshKey]);
   return (
     <Card><CardContent className="p-0">
