@@ -20,8 +20,9 @@ import {
   Order,
   PaymentStatus
 } from '@/actions/orders';
-import { updateQuoteStatus, getQuotes, Quote } from '@/actions/quotes';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { updateQuoteStatus, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
+import { deleteInvoice } from '@/actions/invoices';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -247,6 +248,21 @@ export default function ClientDetailPage() {
     const result = await updateOrderTransportCost(orderId, costValue);
     setIsUpdatingTransport(null);
     if (result.success) toast({ title: "Transport mis à jour" });
+  };
+
+  const handleDeleteOrderRow = async (id: string) => {
+    const result = await deleteOrder(id);
+    if (result.success) toast({ title: "Commande supprimée" });
+  };
+
+  const handleDeleteQuoteRow = async (id: string) => {
+    const result = await deleteQuote(id);
+    if (result.success) toast({ title: "Proforma supprimée" });
+  };
+
+  const handleDeleteInvoiceRow = async (id: string) => {
+    const result = await deleteInvoice(id);
+    if (result.success) toast({ title: "Facture supprimée" });
   };
 
   const openCalculator = (order: Order) => {
@@ -562,6 +578,13 @@ export default function ClientDetailPage() {
                             <TableCell className="text-right pr-6 space-x-1">
                               <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
                               <Button variant="secondary" size="sm" className="h-8 text-[10px] font-black uppercase tracking-tighter" onClick={() => handleNavigateToQuote(order.id)}><Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "Générer PI"}</Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Cela supprimera la commande définitivement du système.</AlertDialogDescription></AlertDialogHeader>
+                                  <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteOrderRow(order.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </TableCell>
                           </TableRow>
                         );
@@ -586,7 +609,16 @@ export default function ClientDetailPage() {
                           <TableCell className="text-xs font-medium text-zinc-400">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
                           <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'} className="text-[9px] uppercase font-black">{q.status}</Badge></TableCell>
                           <TableCell className="text-right font-black">¥{q.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button></TableCell>
+                          <TableCell className="text-right pr-6 space-x-1">
+                            <Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader><AlertDialogTitle>Supprimer la Proforma ?</AlertDialogTitle><AlertDialogDescription>Ce document sera supprimé partout.</AlertDialogDescription></AlertDialogHeader>
+                                <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteQuoteRow(q.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -609,7 +641,16 @@ export default function ClientDetailPage() {
                           <TableCell className="text-xs font-medium text-zinc-400">{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
                           <TableCell><Badge className={cn("text-[9px] font-black uppercase", i.status === 'paid' ? 'bg-green-500' : 'bg-red-500')}>{i.status}</Badge></TableCell>
                           <TableCell className="text-right font-black">¥{i.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button></TableCell>
+                          <TableCell className="text-right pr-6 space-x-1">
+                            <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader><AlertDialogTitle>Supprimer la Facture ?</AlertDialogTitle><AlertDialogDescription>Ce document sera supprimé partout.</AlertDialogDescription></AlertDialogHeader>
+                                <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteInvoiceRow(i.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
