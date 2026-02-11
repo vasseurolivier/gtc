@@ -406,38 +406,50 @@ export default function ClientCatalogPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-6">
-            <div className="border rounded-xl overflow-hidden">
+            <div className="border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-zinc-50">
                   <TableRow>
+                    <TableHead className="w-20 pl-6">Aperçu</TableHead>
                     <TableHead>Produit</TableHead>
                     <TableHead className="text-center">Qté</TableHead>
                     <TableHead className="text-right">Total</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead className="w-16"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {cart.map((item) => (
-                    <TableRow key={item.key}>
+                    <TableRow key={item.key} className="hover:bg-zinc-50/50 transition-colors">
+                      <TableCell className="pl-6 py-4">
+                        <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center overflow-hidden shadow-inner">
+                          {item.photo ? (
+                            <img src={item.photo} alt={item.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <Package className="h-4 w-4 text-zinc-200" />
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="py-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm">{item.name}</span>
-                          {item.size && <Badge variant="secondary" className="w-fit text-[10px] h-4 mt-1">Taille: {item.size}</Badge>}
-                          {item.isPersonalized && <Badge className="w-fit bg-orange-100 text-orange-700 text-[9px] mt-1 h-4 uppercase font-black">PERSONNALISÉ</Badge>}
+                          <span className="font-black text-sm text-zinc-900">{item.name}</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.size && <Badge variant="secondary" className="text-[8px] h-4">Taille: {item.size}</Badge>}
+                            {item.isPersonalized && <Badge className="bg-orange-100 text-orange-700 text-[8px] h-4 uppercase font-black">PERSO</Badge>}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.key, -1)}><Minus className="h-3 w-3" /></Button>
-                          <span className="font-bold">{item.quantity}</span>
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateCartItemQuantity(item.key, 1)}><Plus className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg" onClick={() => updateCartItemQuantity(item.key, -1)}><Minus className="h-3 w-3" /></Button>
+                          <span className="font-black min-w-[20px]">{item.quantity}</span>
+                          <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg" onClick={() => updateCartItemQuantity(item.key, 1)}><Plus className="h-3 w-3" /></Button>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         {renderPrice(item.total, "font-black text-zinc-900")}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.key)} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
+                      <TableCell className="text-right pr-6">
+                        <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.key)} className="text-zinc-300 hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -464,21 +476,24 @@ export default function ClientCatalogPage() {
                     <MapPin className="h-4 w-4 text-primary" /> Destination
                   </Label>
                   <div 
-                    className={cn("p-4 rounded-xl border-2 cursor-pointer", is3PLSelected ? "border-primary bg-primary/5" : "bg-zinc-50 border-zinc-100")}
+                    className={cn("p-4 rounded-xl border-2 cursor-pointer transition-all", is3PLSelected ? "border-primary bg-primary/5" : "bg-zinc-50 border-zinc-100 hover:border-zinc-200")}
                     onClick={() => toggle3PLService(!is3PLSelected)}
                   >
                     <Label className="font-black text-xs cursor-pointer flex items-center gap-2"><Building2 className="h-3 w-3" /> Service 3PL (Entrepôt GTC)</Label>
                   </div>
-                  <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-20" placeholder="Adresse complète..." />
+                  <Textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} className="h-20 bg-white" placeholder="Adresse complète..." />
                 </div>
               </div>
 
-              <Card className="bg-zinc-950 text-white p-6 h-fit rounded-2xl border-none">
+              <Card className="bg-zinc-950 text-white p-6 h-fit rounded-3xl border-none shadow-2xl">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Articles</span>
                 <div className="mt-1">
                   {renderPrice(cartTotalCny, "text-3xl font-black text-primary")}
                 </div>
-                <Button className="w-full mt-6 h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
+                <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
+                  <p className="text-[10px] text-zinc-400 italic">Note : Les frais de transport seront calculés par nos agents après validation du poids total.</p>
+                </div>
+                <Button className="w-full mt-6 h-14 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95" onClick={handleConfirmOrder} disabled={isSubmittingOrder || !shippingAddress || cart.length === 0 || !orderSuffix}>
                   {isSubmittingOrder ? <Loader2 className="animate-spin" /> : "VALIDER LA COMMANDE"}
                 </Button>
               </Card>

@@ -187,7 +187,7 @@ export default function ClientDetailPage() {
     return { totalOrders, processingOrders, totalRevenue, pendingBalance };
   }, [orders, invoices]);
 
-  // Sorting Logics - Prioritizing items that need action
+  // Sorting Logics
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
