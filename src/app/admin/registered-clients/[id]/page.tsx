@@ -37,6 +37,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -186,7 +187,7 @@ export default function ClientDetailPage() {
     return { totalOrders, processingOrders, totalRevenue, pendingBalance };
   }, [orders, invoices]);
 
-  // Sorting Logics
+  // Sorting Logics - Prioritizing items that need action
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -210,8 +211,8 @@ export default function ClientDetailPage() {
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
-      const priorityA = a.status !== 'paid' ? 0 : 1;
-      const priorityB = b.status !== 'paid' ? 0 : 1;
+      const priorityA = (a.status !== 'paid' && a.status !== 'cancelled') ? 0 : 1;
+      const priorityB = (b.status !== 'paid' && b.status !== 'cancelled') ? 0 : 1;
       if (priorityA !== priorityB) return priorityA - priorityB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
@@ -456,7 +457,7 @@ export default function ClientDetailPage() {
         </Card>
         <Card className="border-l-4 border-l-green-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground">Revenu Réel</CardTitle>
+            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground">Chiffre d'Affaires</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -762,6 +763,29 @@ export default function ClientDetailPage() {
                     <div><Label className="font-black text-[10px] uppercase text-zinc-400">SKU</Label><Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} className="h-12 font-mono" /></div>
                     <div><Label className="font-black text-[10px] uppercase text-zinc-400">Prix Vente (CNY)</Label><Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="h-12 font-black text-primary" /></div>
                   </div>
+
+                  <div className="space-y-4 pt-6 border-t">
+                    <Label className="font-black text-xs uppercase text-zinc-600">Configuration Options</Label>
+                    <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold uppercase text-zinc-400">Disponibilité</Label>
+                        <RadioGroup 
+                          value={editingProduct.availability} 
+                          onValueChange={(val) => setEditingProduct({...editingProduct, availability: val})}
+                          className="flex flex-col gap-2"
+                        >
+                          <div className="flex items-center space-x-2"><RadioGroupItem value="both" id="both" /><Label htmlFor="both" className="text-xs cursor-pointer">Les deux (Standard & Perso)</Label></div>
+                          <div className="flex items-center space-x-2"><RadioGroupItem value="standard_only" id="std_only" /><Label htmlFor="std_only" className="text-xs cursor-pointer">Standard uniquement</Label></div>
+                          <div className="flex items-center space-x-2"><RadioGroupItem value="personalized_only" id="perso_only" /><Label htmlFor="perso_only" className="text-xs cursor-pointer">Personnalisé uniquement</Label></div>
+                        </RadioGroup>
+                      </div>
+                      <div className="space-y-2 pt-2 border-t">
+                        <Label className="text-[10px] font-bold uppercase text-zinc-400">MOQ Personnalisation</Label>
+                        <Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: Number(e.target.value)})} className="h-8" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-4 pt-6 border-t">
                     <div className="flex items-center justify-between"><Label className="font-black text-xs uppercase text-zinc-600">Activer choix tailles ?</Label><Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} /></div>
                     {editingProduct.hasSizeSelection && (
