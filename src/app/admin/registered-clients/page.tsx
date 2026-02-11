@@ -30,7 +30,7 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from "@/components/ui/alert-dialog";
-import { Loader2, Save, Search, Eye, Euro, UserPlus, Trash2 } from 'lucide-react';
+import { Loader2, Save, Search, Eye, Euro, UserPlus, Trash2, CircleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -166,8 +166,7 @@ export default function RegisteredClientsPage() {
         </Card>
         <Card className="md:col-span-2">
           <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><Search className="h-4 w-4 text-zinc-400" /> RECHERCHE</CardTitle></CardHeader>
-          <CardContent><Input placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} /></CardContent>
-        </Card>
+          <CardContent><Input placeholder="Rechercher par nom, email ou numéro..." value={search} onChange={(e) => setSearch(e.target.value)} /></CardContent>
       </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-white">
@@ -184,14 +183,28 @@ export default function RegisteredClientsPage() {
             </TableHeader>
             <TableBody>
               {filteredClients.map((client) => {
-                const pendingOrdersCount = orders.filter(o => o.customerId === client.id && o.status === 'processing').length;
+                const pendingOrders = orders.filter(o => o.customerId === client.id && o.status === 'processing');
                 const isPendingSourcing = pendingSourcingIds.has(client.id);
+                const hasAlert = pendingOrders.length > 0 || isPendingSourcing;
+
                 return (
-                  <TableRow key={client.id} className={cn("hover:bg-muted/30", (pendingOrdersCount > 0 || isPendingSourcing) && "bg-red-50/20")}>
-                    <TableCell className="font-semibold pl-6"><Link href={`/admin/registered-clients/${client.id}`} className="hover:text-primary">{client.firstName} {client.lastName}</Link></TableCell>
-                    <TableCell>{client.email}</TableCell>
+                  <TableRow key={client.id} className={cn("hover:bg-muted/30 transition-colors", hasAlert && "bg-primary/5")}>
+                    <TableCell className="font-semibold pl-6">
+                      <div className="flex flex-col">
+                        <Link href={`/admin/registered-clients/${client.id}`} className={cn("hover:text-primary transition-colors flex items-center gap-2", hasAlert && "text-primary font-black")}>
+                          {client.firstName} {client.lastName}
+                          {hasAlert && <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />}
+                        </Link>
+                        {pendingOrders.length > 0 && (
+                          <span className="text-[10px] text-primary font-black flex items-center gap-1 uppercase">
+                            <CircleAlert className="h-3 w-3" /> {pendingOrders.length} commande(s) à traiter
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-zinc-500">{client.email}</TableCell>
                     <TableCell>{client.status === 'validated' ? <Badge className="bg-green-500">Validé</Badge> : <Badge variant="outline">En attente</Badge>}</TableCell>
-                    <TableCell><div className="flex items-center gap-2"><Input value={tempNumbers[client.id] || ''} onChange={e => setTempNumbers({...tempNumbers, [client.id]: e.target.value})} className="h-8 w-24 text-xs" /><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateNumber(client.id)} disabled={savingId === client.id}>{savingId === client.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}</Button></div></TableCell>
+                    <TableCell><div className="flex items-center gap-2"><Input value={tempNumbers[client.id] || ''} onChange={e => setTempNumbers({...tempNumbers, [client.id]: e.target.value})} className="h-8 w-24 text-xs font-bold" /><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateNumber(client.id)} disabled={savingId === client.id}>{savingId === client.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}</Button></div></TableCell>
                     <TableCell className="text-right pr-6 space-x-2"><Button variant="ghost" size="icon" asChild><Link href={`/admin/registered-clients/${client.id}`}><Eye className="h-4 w-4" /></Link></Button><Button size="sm" variant={client.status === 'validated' ? "outline" : "default"} onClick={() => handleToggleStatus(client.id, client.status)} disabled={validatingId === client.id}>{client.status === 'validated' ? 'Suspendre' : 'Valider'}</Button>
                       <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteClient(client.id)}>Supprimer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
                     </TableCell>

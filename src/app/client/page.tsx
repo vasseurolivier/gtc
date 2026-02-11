@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -14,7 +15,8 @@ import {
   Loader2,
   ShoppingBag,
   Sparkles,
-  Receipt
+  Receipt,
+  CircleAlert
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -33,7 +35,7 @@ export default function ClientDashboard() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '==', 'unpaid'));
+    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '!=', 'paid'));
   }, [db, user]);
   const { data: unpaidInvoices } = useCollection(invoicesQuery);
 
@@ -76,20 +78,35 @@ export default function ClientDashboard() {
         </div>
       </div>
 
+      {notificationCounts.invoices > 0 && (
+        <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center gap-4 text-red-700 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="h-10 w-10 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">
+            <CircleAlert className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="font-black uppercase text-xs tracking-widest">Attention !</p>
+            <p className="text-sm font-bold">Vous avez {notificationCounts.invoices} facture(s) en attente de règlement. Veuillez régulariser pour débloquer vos expéditions.</p>
+          </div>
+          <Button size="sm" className="ml-auto bg-red-600 hover:bg-red-700 text-white font-black" asChild>
+            <Link href="/client/orders">VOIR LES FACTURES</Link>
+          </Button>
+        </div>
+      )}
+
       {/* Quick Actions - Highly Visible with Badges */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Button 
           asChild 
           className="h-32 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border-none shadow-xl flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group relative"
         >
-          <Link href="/client/orders">
-            {(notificationCounts.quotes > 0 || notificationCounts.invoices > 0) && (
+          <Link href="/client/catalog">
+            {notificationCounts.quotes > 0 && (
               <span className="absolute top-4 right-4 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs font-black text-white animate-pulse">
-                {notificationCounts.quotes + notificationCounts.invoices}
+                {notificationCounts.quotes}
               </span>
             )}
             <ShoppingBag className="h-8 w-8 text-primary group-hover:animate-bounce" />
-            <span className="text-lg font-black uppercase tracking-tight text-white">Passer une nouvelle commande</span>
+            <span className="text-lg font-black uppercase tracking-tight text-white">Consulter mon Catalogue</span>
           </Link>
         </Button>
 
@@ -105,7 +122,7 @@ export default function ClientDashboard() {
               </span>
             )}
             <Sparkles className="h-8 w-8 group-hover:rotate-12 transition-transform" />
-            <span className="text-lg font-black uppercase tracking-tight">Sourcer un nouveau produit</span>
+            <span className="text-lg font-black uppercase tracking-tight">Lancer un nouveau sourcing</span>
           </Link>
         </Button>
       </div>
@@ -113,7 +130,7 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-md bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Listes actives</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Projets actifs</CardTitle>
             <ClipboardList className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
@@ -122,22 +139,22 @@ export default function ClientDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="border-none shadow-md bg-white">
+        <Card className={cn("border-none shadow-md bg-white", notificationCounts.invoices > 0 && "ring-2 ring-red-500 animate-pulse")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Factures en attente</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Factures à payer</CardTitle>
             <Receipt className={cn("h-5 w-5", notificationCounts.invoices > 0 ? "text-red-500" : "text-blue-500")} />
           </CardHeader>
           <CardContent>
             <div className={cn("text-3xl font-bold", notificationCounts.invoices > 0 && "text-red-600")}>
               {notificationCounts.invoices}
             </div>
-            <p className="text-xs text-zinc-400 mt-1">Documents à régler</p>
+            <p className="text-xs text-zinc-400 mt-1">Actions de paiement requises</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-md bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Proformas à valider</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">PI à valider</CardTitle>
             <Clock className={cn("h-5 w-5", notificationCounts.quotes > 0 ? "text-orange-500" : "text-zinc-300")} />
           </CardHeader>
           <CardContent>
@@ -153,8 +170,8 @@ export default function ClientDashboard() {
         <Card className="border-none shadow-md bg-white overflow-hidden">
           <CardHeader className="bg-zinc-50 border-b border-zinc-100 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Vos dernières listes</CardTitle>
-              <CardDescription>Consultez et modifiez vos projets récents</CardDescription>
+              <CardTitle className="text-lg">Dernières listes de sourcing</CardTitle>
+              <CardDescription>Suivi de vos projets récents</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href="/client/product-lists">Voir tout</Link>
@@ -178,7 +195,7 @@ export default function ClientDashboard() {
             ) : (
               <div className="p-12 text-center text-zinc-400">
                 <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>Vous n'avez pas encore de liste de produits.</p>
+                <p>Aucune liste de produits active.</p>
                 <Button className="mt-4" asChild>
                   <Link href="/client/product-lists">Créer ma première liste</Link>
                 </Button>
@@ -192,17 +209,17 @@ export default function ClientDashboard() {
             <TrendingUp className="h-32 w-32" />
           </div>
           <CardHeader>
-            <CardTitle className="text-xl">Besoin d'aide pour votre sourcing ?</CardTitle>
-            <CardDescription className="text-white/80">Nos experts en Chine sont là pour vous accompagner.</CardDescription>
+            <CardTitle className="text-xl">Expertise Terrain à votre service</CardTitle>
+            <CardDescription className="text-white/80">Nos agents à Yiwu et Shenzhen analysent vos demandes.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 relative z-10">
             <p className="text-sm leading-relaxed">
-              Dès que vous créez une liste, notre équipe reçoit une notification pour commencer à analyser la faisabilité et rechercher les meilleurs fournisseurs pour vous.
+              Dès que vous créez une liste, nous lançons l'audit des fournisseurs et la négociation des tarifs pour vous garantir le meilleur rapport qualité/prix.
             </p>
             <ul className="space-y-2 text-sm font-medium">
-              <li className="flex items-center gap-2">✓ Analyse de prix sous 48h</li>
-              <li className="flex items-center gap-2">✓ Audit usine sur demande</li>
-              <li className="flex items-center gap-2">✓ Consolidation d'échantillons</li>
+              <li className="flex items-center gap-2">✓ Devis détaillés sous 24-48h</li>
+              <li className="flex items-center gap-2">✓ Photos et vidéos réelles des usines</li>
+              <li className="flex items-center gap-2">✓ Protection de vos paiements</li>
             </ul>
           </CardContent>
           <CardFooter>

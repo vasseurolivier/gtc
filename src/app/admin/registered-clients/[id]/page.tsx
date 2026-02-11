@@ -20,7 +20,7 @@ import {
   Order,
   PaymentStatus
 } from '@/actions/orders';
-import { updateQuoteStatus, getQuotes, deleteQuote, Quote } from '@/actions/quotes';
+import { updateQuoteStatus, deleteQuote, Quote } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
@@ -30,7 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -187,7 +187,7 @@ export default function ClientDetailPage() {
     return { totalOrders, processingOrders, totalRevenue, pendingBalance };
   }, [orders, invoices]);
 
-  // Sorting Logics
+  // Priority Sorting Logic
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
