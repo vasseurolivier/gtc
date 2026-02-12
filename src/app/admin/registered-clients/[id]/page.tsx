@@ -358,7 +358,7 @@ export default function ClientDetailPage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0 || !user) return;
+    if (!files || files.length === 0) return;
     setIsUploading(true);
     try {
       const newUrls = [...(editingProduct.images || [])];
@@ -668,7 +668,7 @@ export default function ClientDetailPage() {
                   <TableBody>
                     {publishedProducts.map(p => (
                       <TableRow key={p.id}>
-                        <TableCell className="pl-6"><div className="w-10 h-10 rounded-lg border overflow-hidden shadow-inner">{p.images?.[0] ? <img src={p.images[0]} className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-200 mx-auto mt-3" />}</div></TableCell>
+                        <TableCell className="pl-6"><div className="w-10 h-10 rounded-lg border overflow-hidden shadow-inner">{p.images?.[0] ? <img src={p.images[0]} className="object-contain w-full h-full" alt="" /> : <Package className="h-4 w-4 text-zinc-200 mx-auto mt-3" />}</div></TableCell>
                         <TableCell className="font-black text-sm"><div className="flex flex-col"><span>{p.name}</span><span className="text-[9px] text-zinc-400 font-mono tracking-tighter">{p.sku}</span></div></TableCell>
                         <TableCell className="font-bold">¥{Number(p.price || 0).toFixed(2)}</TableCell>
                         <TableCell>{p.hasSizeSelection ? <div className="flex flex-wrap gap-1">{p.availableSizes?.map((s:string) => <Badge key={s} variant="secondary" className="text-[8px] h-4 font-black">{s}</Badge>)}</div> : <span className="text-zinc-300 text-xs italic">Taille unique</span>}</TableCell>
@@ -725,7 +725,7 @@ export default function ClientDetailPage() {
                   <TableBody>
                     {selectedOrderPreview.items?.map((item: any, idx: number) => (
                       <TableRow key={idx}>
-                        <TableCell className="pl-6"><div className="w-12 h-12 border rounded-lg flex items-center justify-center bg-white shadow-sm">{item.photo ? <img src={item.photo} className="object-contain w-full h-full" /> : <Package className="h-4 w-4 text-zinc-200" />}</div></TableCell>
+                        <TableCell className="pl-6"><div className="w-12 h-12 border rounded-lg flex items-center justify-center bg-white shadow-sm">{item.photo ? <img src={item.photo} className="object-contain w-full h-full" alt="" /> : <Package className="h-4 w-4 text-zinc-200" />}</div></TableCell>
                         <TableCell className="font-bold text-sm"><div>{item.description}</div>{item.sku && <div className="text-[10px] text-zinc-400 font-mono tracking-tighter mt-1">{item.sku}</div>}</TableCell>
                         <TableCell className="text-center font-black">{item.quantity}</TableCell>
                         <TableCell className="text-right font-black pr-6">¥{item.total.toFixed(2)}</TableCell>
@@ -807,7 +807,7 @@ export default function ClientDetailPage() {
                   <div className="grid grid-cols-3 gap-3 p-4 bg-zinc-50 rounded-2xl border">
                     {editingProduct.images?.map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square border-2 border-white rounded-xl bg-white group shadow-sm overflow-hidden">
-                        <img src={url} className="w-full h-full object-contain" />
+                        <img src={url} className="w-full h-full object-contain" alt="" />
                         <button onClick={() => { const ni = [...editingProduct.images]; ni.splice(i, 1); setEditingProduct({...editingProduct, images: ni}); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                       </div>
                     ))}

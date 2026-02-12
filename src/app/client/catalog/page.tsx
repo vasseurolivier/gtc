@@ -335,7 +335,7 @@ export default function ClientCatalogPage() {
                         }}
                         className="flex gap-4"
                       >
-                        {selectedProduct.availability !== 'personalized_only' && (
+                        {selectedProduct.availability !== 'standard_only' && (
                           <div className={cn("flex-1 p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-all", !isPersonalized ? "border-primary bg-primary/5" : "hover:bg-zinc-50")}>
                             <RadioGroupItem value="standard" id="std" className="sr-only" />
                             <Label htmlFor="std" className="flex-grow cursor-pointer font-bold text-sm">Standard</Label>

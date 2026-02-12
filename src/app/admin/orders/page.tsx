@@ -171,7 +171,8 @@ export default function OrdersPage() {
   };
 
   const handleUpdateTransportCost = async (orderId: string) => {
-    const cost = parseFloat(transportInputs[orderId] || '0');
+    const rawValue = transportInputs[orderId];
+    const cost = rawValue === "" ? 0 : parseFloat(rawValue || '0');
     if (isNaN(cost)) return;
 
     setIsUpdatingTransport(orderId);
