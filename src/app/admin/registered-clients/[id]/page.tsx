@@ -358,7 +358,7 @@ export default function ClientDetailPage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || !user) return;
     setIsUploading(true);
     try {
       const newUrls = [...(editingProduct.images || [])];
@@ -774,7 +774,7 @@ export default function ClientDetailPage() {
                           onValueChange={(val) => setEditingProduct({...editingProduct, availability: val})}
                           className="flex flex-col gap-2"
                         >
-                          <div className="flex items-center space-x-2"><RadioGroupItem value="both" id="both" /><Label htmlFor="both" className="text-xs cursor-pointer">Les deux (Standard & Perso)</Label></div>
+                          <div className="flex items-center space-x-2"><RadioGroupItem value="both" id="both" /><Label htmlFor="both" className="text-xs cursor-pointer">Les deux (Standard &amp; Perso)</Label></div>
                           <div className="flex items-center space-x-2"><RadioGroupItem value="standard_only" id="std_only" /><Label htmlFor="std_only" className="text-xs cursor-pointer">Standard uniquement</Label></div>
                           <div className="flex items-center space-x-2"><RadioGroupItem value="personalized_only" id="perso_only" /><Label htmlFor="perso_only" className="text-xs cursor-pointer">Personnalisé uniquement</Label></div>
                         </RadioGroup>
@@ -803,7 +803,7 @@ export default function ClientDetailPage() {
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <Label className="font-black text-[10px] uppercase text-zinc-400">Visuels & Media</Label>
+                  <Label className="font-black text-[10px] uppercase text-zinc-400">Visuels &amp; Media</Label>
                   <div className="grid grid-cols-3 gap-3 p-4 bg-zinc-50 rounded-2xl border">
                     {editingProduct.images?.map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square border-2 border-white rounded-xl bg-white group shadow-sm overflow-hidden">

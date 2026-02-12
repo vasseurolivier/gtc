@@ -35,9 +35,15 @@ export default function ClientDashboard() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'clients', user.uid, 'invoices'), where('status', '!=', 'paid'));
+    // Look into client subcollection for direct access
+    return collection(db, 'clients', user.uid, 'invoices');
   }, [db, user]);
-  const { data: unpaidInvoices } = useCollection(invoicesQuery);
+  const { data: clientInvoices } = useCollection(invoicesQuery);
+
+  const unpaidInvoices = useMemo(() => {
+    if (!clientInvoices) return [];
+    return clientInvoices.filter((inv: any) => inv.status !== 'paid' && inv.status !== 'cancelled');
+  }, [clientInvoices]);
 
   const sourcingProductsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -79,15 +85,15 @@ export default function ClientDashboard() {
       </div>
 
       {notificationCounts.invoices > 0 && (
-        <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center gap-4 text-red-700 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center gap-4 text-red-700 animate-in fade-in slide-in-from-top-4 duration-500 ring-2 ring-red-500 ring-offset-2 animate-pulse">
           <div className="h-10 w-10 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">
             <CircleAlert className="h-6 w-6" />
           </div>
-          <div>
-            <p className="font-black uppercase text-xs tracking-widest">Attention !</p>
+          <div className="flex-grow">
+            <p className="font-black uppercase text-xs tracking-widest">Action requise !</p>
             <p className="text-sm font-bold">Vous avez {notificationCounts.invoices} facture(s) en attente de règlement. Veuillez régulariser pour débloquer vos expéditions.</p>
           </div>
-          <Button size="sm" className="ml-auto bg-red-600 hover:bg-red-700 text-white font-black" asChild>
+          <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-black whitespace-nowrap" asChild>
             <Link href="/client/orders">VOIR LES FACTURES</Link>
           </Button>
         </div>
@@ -139,9 +145,9 @@ export default function ClientDashboard() {
           </CardContent>
         </Card>
         
-        <Card className={cn("border-none shadow-md bg-white", notificationCounts.invoices > 0 && "ring-2 ring-red-500 animate-pulse")}>
+        <Card className={cn("border-none shadow-md bg-white", notificationCounts.invoices > 0 && "ring-2 ring-red-500 animate-pulse bg-red-50/30")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Factures à payer</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Factures à régler</CardTitle>
             <Receipt className={cn("h-5 w-5", notificationCounts.invoices > 0 ? "text-red-500" : "text-blue-500")} />
           </CardHeader>
           <CardContent>

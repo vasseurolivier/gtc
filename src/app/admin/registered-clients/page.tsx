@@ -206,8 +206,23 @@ export default function RegisteredClientsPage() {
                     <TableCell className="text-zinc-500">{client.email}</TableCell>
                     <TableCell>{client.status === 'validated' ? <Badge className="bg-green-500">Validé</Badge> : <Badge variant="outline">En attente</Badge>}</TableCell>
                     <TableCell><div className="flex items-center gap-2"><Input value={tempNumbers[client.id] || ''} onChange={e => setTempNumbers({...tempNumbers, [client.id]: e.target.value})} className="h-8 w-24 text-xs font-bold" /><Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateNumber(client.id)} disabled={savingId === client.id}>{savingId === client.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}</Button></div></TableCell>
-                    <TableCell className="text-right pr-6 space-x-2"><Button variant="ghost" size="icon" asChild><Link href={`/admin/registered-clients/${client.id}`}><Eye className="h-4 w-4" /></Link></Button><Button size="sm" variant={client.status === 'validated' ? "outline" : "default"} onClick={() => handleToggleStatus(client.id, client.status)} disabled={validatingId === client.id}>{client.status === 'validated' ? 'Suspendre' : 'Valider'}</Button>
-                      <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteClient(client.id)}>Supprimer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+                    <TableCell className="text-right pr-6 space-x-2">
+                      <Button variant="ghost" size="icon" asChild><Link href={`/admin/registered-clients/${client.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                      <Button size="sm" variant={client.status === 'validated' ? "outline" : "default"} onClick={() => handleToggleStatus(client.id, client.status)} disabled={validatingId === client.id}>
+                        {client.status === 'validated' ? 'Suspendre' : 'Valider'}
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle></AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteClient(client.id)}>Supprimer</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 )
@@ -223,7 +238,16 @@ export default function RegisteredClientsPage() {
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>
               <TableHeader><TableRow><TableHead>Nom</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
-              <TableBody>{leads.map((lead) => (<TableRow key={lead.id}><TableCell className="font-bold">{lead.name}</TableCell><TableCell className="text-right"><Button size="sm" asChild><Link href={`/admin/customers/${lead.id}`}>Gérer</Link></Button></TableCell></TableRow>))}</TableBody>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell className="font-bold">{lead.name}</TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" asChild><Link href={`/admin/customers/${lead.id}`}>Gérer</Link></Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             </Table>
           </div>
         </DialogContent>
