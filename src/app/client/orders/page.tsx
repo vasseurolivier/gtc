@@ -3,24 +3,21 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   Loader2, 
   Package, 
   Receipt, 
   Eye, 
   MapPin, 
-  CheckCircle2, 
   FileText,
-  Sparkles,
   CreditCard,
   AlertCircle,
-  Truck,
   ArrowRight,
   Clock
 } from 'lucide-react';
@@ -74,6 +71,11 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: linkedQuotes, isLoading: isQuotesLoading } = useCollection(linkedQuotesQuery);
 
+  const hasUnpaidInvoices = useMemo(() => {
+    if (!invoices) return false;
+    return invoices.some((inv: any) => inv.status !== 'paid' && inv.status !== 'cancelled');
+  }, [invoices]);
+
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -107,7 +109,7 @@ export default function ClientOrdersPage() {
     switch (status) {
       case 'delivered': return <Badge className="bg-green-500">Livré</Badge>;
       case 'shipped': return <Badge className="bg-blue-500">Expédié</Badge>;
-      case 'validated': return <Badge className="bg-green-600 font-black">VALIDÉ !</Badge>;
+      case 'validated': return <Badge className="bg-green-600 font-black">VALIDÉ</Badge>;
       case 'processing': return <Badge variant="outline">En cours</Badge>;
       case 'cancelled': return <Badge variant="destructive">Annulé</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;
@@ -128,7 +130,7 @@ export default function ClientOrdersPage() {
     if (currencyPreference === 'EUR') return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
     if (currencyPreference === 'CNY') return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col items-end">
         <div className={mainClass}>€{priceEur.toFixed(2)}</div>
         <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
       </div>
@@ -137,16 +139,34 @@ export default function ClientOrdersPage() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div>
-        <h1 className="text-3xl font-headline font-bold text-zinc-900">Mes Commandes & Documents</h1>
-        <p className="text-zinc-500 mt-2">Gérez vos ordres d'importation et consultez vos pièces comptables.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold text-zinc-900">Mes Commandes & Documents</h1>
+          <p className="text-zinc-500 mt-2">Gérez vos ordres d'importation et consultez vos pièces comptables.</p>
+        </div>
       </div>
+
+      {hasUnpaidInvoices && (
+        <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center gap-4 text-red-700 animate-in fade-in slide-in-from-top-4 duration-500 ring-2 ring-red-500 ring-offset-2 animate-pulse">
+          <div className="h-10 w-10 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">
+            <AlertCircle className="h-6 w-6" />
+          </div>
+          <div className="flex-grow">
+            <p className="font-black uppercase text-xs tracking-widest">Facture(s) en attente</p>
+            <p className="text-sm font-bold">Veuillez régulariser vos paiements pour débloquer l'expédition de vos marchandises.</p>
+          </div>
+          <Button size="sm" variant="destructive" className="font-black" onClick={() => {
+            const el = document.querySelector('[data-value="invoices"]');
+            if (el instanceof HTMLElement) el.click();
+          }}>VOIR LES FACTURES</Button>
+        </div>
+      )}
 
       <Tabs defaultValue="orders" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm border p-1 rounded-xl h-auto">
           <TabsTrigger value="orders" className="py-2"><Package className="h-4 w-4 mr-2" /> Commandes</TabsTrigger>
-          <TabsTrigger value="quotes" className="py-2"><FileText className="h-4 w-4 mr-2" /> Proformas</TabsTrigger>
-          <TabsTrigger value="invoices" className="py-2"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
+          <TabsTrigger value="quotes" className="py-2" data-value="quotes"><FileText className="h-4 w-4 mr-2" /> Proformas</TabsTrigger>
+          <TabsTrigger value="invoices" className="py-2" data-value="invoices"><Receipt className="h-4 w-4 mr-2" /> Factures</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="mt-6">
@@ -174,7 +194,13 @@ export default function ClientOrdersPage() {
                           <TableCell className="text-xs">{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
                           <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                           <TableCell className="text-center">
-                            {order.transportCost > 0 ? <Badge variant="outline" className="bg-blue-50 text-blue-600">¥{order.transportCost.toFixed(2)}</Badge> : <span className="text-zinc-300 italic">En attente</span>}
+                            {order.transportCost >= 0 ? (
+                              <div className="inline-flex">
+                                {renderPrice(order.transportCost, "font-bold text-blue-600")}
+                              </div>
+                            ) : (
+                              <span className="text-zinc-300 italic">En attente</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
                           <TableCell className="text-right">{renderPrice(order.totalAmount, "font-black text-zinc-900")}</TableCell>

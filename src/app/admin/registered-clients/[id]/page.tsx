@@ -243,7 +243,8 @@ export default function ClientDetailPage() {
   };
 
   const handleUpdateTransportCost = async (orderId: string) => {
-    const costValue = parseFloat(transportInputs[orderId] || '0');
+    const rawVal = transportInputs[orderId];
+    const costValue = rawVal === "" ? 0 : parseFloat(rawVal || '0');
     if (isNaN(costValue)) return;
     setIsUpdatingTransport(orderId);
     const result = await updateOrderTransportCost(orderId, costValue);

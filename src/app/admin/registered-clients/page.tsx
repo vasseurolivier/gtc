@@ -189,7 +189,7 @@ export default function RegisteredClientsPage() {
                 const hasAlert = pendingOrders.length > 0 || isPendingSourcing;
 
                 return (
-                  <TableRow key={client.id} className={cn("hover:bg-muted/30 transition-colors", hasAlert && "bg-primary/5")}>
+                  <TableRow key={client.id} className={cn("hover:bg-muted/30 transition-colors", hasAlert && "bg-red-50")}>
                     <TableCell className="font-semibold pl-6">
                       <div className="flex flex-col">
                         <Link href={`/admin/registered-clients/${client.id}`} className={cn("hover:text-primary transition-colors flex items-center gap-2", hasAlert && "text-primary font-black")}>
