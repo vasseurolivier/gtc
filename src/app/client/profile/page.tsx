@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { updateEmail } from 'firebase/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,18 +21,21 @@ import {
   Save, 
   Loader2, 
   CheckCircle2,
-  Fingerprint
+  Fingerprint,
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updateClientProfile } from '@/actions/registered-clients';
+import { updateClientProfile, updateClientCredentials } from '@/actions/registered-clients';
 
 export default function ClientProfilePage() {
   const { user } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
   // States for form
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [address, setAddress] = useState('');
@@ -45,6 +49,7 @@ export default function ClientProfilePage() {
 
   useEffect(() => {
     if (profile) {
+      setEmail(profile.email || '');
       setPhone(profile.phone || '');
       setCompanyName(profile.companyName || '');
       setAddress(profile.address || '');
@@ -56,18 +61,44 @@ export default function ClientProfilePage() {
     if (!user) return;
 
     setIsSaving(true);
-    const result = await updateClientProfile(user.uid, {
-      phone,
-      companyName,
-      address
-    });
+    try {
+      // 1. Check if email changed and update Auth
+      if (email !== profile?.email) {
+        try {
+          await updateEmail(user, email);
+          // If auth update succeeds, also update Firestore credentials record
+          await updateClientCredentials(user.uid, email);
+        } catch (authError: any) {
+          if (authError.code === 'auth/requires-recent-login') {
+            toast({ 
+              variant: "destructive", 
+              title: "Action requise", 
+              description: "Pour changer votre email de connexion, veuillez vous déconnecter puis vous reconnecter avant de réessayer." 
+            });
+            setIsSaving(false);
+            return;
+          }
+          throw authError;
+        }
+      }
 
-    if (result.success) {
-      toast({ title: "Profil mis à jour", description: "Vos informations ont été enregistrées avec succès." });
-    } else {
-      toast({ variant: "destructive", title: "Erreur", description: result.message });
+      // 2. Update Firestore Profile
+      const result = await updateClientProfile(user.uid, {
+        phone,
+        companyName,
+        address
+      });
+
+      if (result.success) {
+        toast({ title: "Profil mis à jour", description: "Vos informations ont été enregistrées avec succès." });
+      } else {
+        toast({ variant: "destructive", title: "Erreur", description: result.message });
+      }
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Erreur", description: err.message });
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   if (isLoading) {
@@ -107,7 +138,7 @@ export default function ClientProfilePage() {
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center gap-3 text-sm">
                   <Mail className="h-4 w-4 text-zinc-400" />
-                  <span className="text-zinc-600">{profile?.email}</span>
+                  <span className="text-zinc-600 truncate">{profile?.email}</span>
                 </div>
                 {profile?.clientNumber && (
                   <div className="flex items-center gap-3 text-sm">
@@ -138,6 +169,22 @@ export default function ClientProfilePage() {
             <form onSubmit={handleSave} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <Label htmlFor="email" className="font-bold">Email de connexion</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <Input 
+                      id="email" 
+                      type="email"
+                      className="pl-10" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-400 italic flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> Changer l'email changera votre identifiant de connexion.
+                  </p>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="phone" className="font-bold">Téléphone / WhatsApp</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
@@ -150,18 +197,19 @@ export default function ClientProfilePage() {
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company" className="font-bold">Nom de l'entreprise</Label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                    <Input 
-                      id="company" 
-                      className="pl-10" 
-                      value={companyName} 
-                      onChange={(e) => setCompanyName(e.target.value)} 
-                      placeholder="SARL..."
-                    />
-                  </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="company" className="font-bold">Nom de l'entreprise</Label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                  <Input 
+                    id="company" 
+                    className="pl-10" 
+                    value={companyName} 
+                    onChange={(e) => setCompanyName(e.target.value)} 
+                    placeholder="SARL..."
+                  />
                 </div>
               </div>
 

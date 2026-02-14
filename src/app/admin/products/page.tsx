@@ -288,7 +288,7 @@ export default function ProductsPage() {
                      <div className="flex items-start gap-4">
                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
                             {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : watchImageUrl ? (
-                                <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" />
+                                <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" unoptimized />
                             ) : (
                                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
                             )}

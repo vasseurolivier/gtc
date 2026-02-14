@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -22,6 +23,7 @@ export default function ClientLoginPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [acceptTerms, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const auth = useAuth();
@@ -50,6 +52,10 @@ export default function ClientLoginPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptTerms) {
+      toast({ variant: "destructive", title: "Action requise", description: "Veuillez accepter les conditions d'utilisation." });
+      return;
+    }
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -93,12 +99,12 @@ export default function ClientLoginPage() {
         </Button>
       </div>
       <div className="flex-grow flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-none">
-          <CardHeader className="text-center space-y-2">
+        <Card className="w-full max-w-md shadow-xl border-none overflow-hidden">
+          <CardHeader className="text-center space-y-2 bg-white pb-8">
             <CardTitle className="text-3xl font-headline font-bold text-primary">Espace Client</CardTitle>
             <CardDescription>Gérez vos projets de sourcing et listes de produits</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="bg-white">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-8">
                 <TabsTrigger value="login">Connexion</TabsTrigger>
@@ -145,6 +151,18 @@ export default function ClientLoginPage() {
                     <Label htmlFor="reg-password">Mot de passe</Label>
                     <Input id="reg-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   </div>
+                  
+                  <div className="flex items-start space-x-2 pt-2">
+                    <Checkbox 
+                      id="terms" 
+                      checked={acceptTerms} 
+                      onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} 
+                    />
+                    <label htmlFor="terms" className="text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground">
+                      J'accepte les <Link href="/client-terms" className="text-primary font-bold hover:underline" target="_blank">conditions d'utilisation</Link> de l'espace client.
+                    </label>
+                  </div>
+
                   <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Créer mon compte"}
                   </Button>
@@ -152,8 +170,13 @@ export default function ClientLoginPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex flex-col text-center text-sm text-muted-foreground">
-            <p>En vous connectant, vous acceptez nos conditions d'utilisation.</p>
+          <CardFooter className="bg-zinc-50 flex flex-col text-center text-[10px] text-muted-foreground p-6">
+            <p className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> Accès hautement sécurisé • Cryptage SSL 256 bits</p>
+            <div className="mt-4 flex gap-4">
+              <Link href="/client-terms" className="hover:underline">Conditions d'utilisation</Link>
+              <span>•</span>
+              <Link href="/privacy-policy" className="hover:underline">Confidentialité</Link>
+            </div>
           </CardFooter>
         </Card>
       </div>
