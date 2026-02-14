@@ -181,7 +181,7 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: result.newTotal } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: result.newTotal ?? o.totalAmount } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
@@ -191,6 +191,17 @@ export default function OrdersPage() {
     const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
     setCalcWeight(totalWeight);
     setCalcTargetId(order.id);
+    
+    // Charger automatiquement les tarifs par défaut du client si enregistrés
+    const client = registeredClients.find(c => c.id === order.customerId);
+    if (client) {
+      setCalcRate(client.shippingRatePerKg || 0);
+      setCalcFixed(client.shippingFixedFee || 0);
+    } else {
+      setCalcRate(0);
+      setCalcFixed(0);
+    }
+    
     setIsCalcOpen(true);
   };
 
@@ -272,7 +283,7 @@ export default function OrdersPage() {
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
           const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
           const linkedQuote = quotes.find(q => q.orderId === order.id);
-          const isLocked = linkedQuote?.status === 'accepted' || linkedQuote?.status === 'paid';
+          const isLocked = linkedQuote && (linkedQuote.status === 'accepted' || linkedQuote.status === 'paid');
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -591,8 +602,8 @@ export default function OrdersPage() {
                 ) : (
                    <Accordion type="multiple" className="w-full">
                       {Object.entries(archivedOrdersByCustomer).map(([customerId, customerOrders]) => {
-                        const lead = customers.find(c => c.id === customerId);
                         const regClient = registeredClients.find(c => c.id === customerId);
+                        const lead = customers.find(c => c.id === customerId);
                         
                         const displayName = regClient 
                           ? `${regClient.firstName} ${regClient.lastName} ${regClient.clientNumber ? `(${regClient.clientNumber})` : ''}`
