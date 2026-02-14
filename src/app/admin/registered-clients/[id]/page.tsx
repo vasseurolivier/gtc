@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -65,7 +64,8 @@ import {
   ShoppingCart,
   Mail,
   Phone,
-  Globe
+  Globe,
+  Truck
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
