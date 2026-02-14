@@ -183,10 +183,11 @@ export default function OrdersPage() {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
       setOrders(prev => prev.map(o => {
         if (o.id === orderId) {
+          const newTotal = typeof result.newTotal === 'number' ? result.newTotal : o.totalAmount;
           return { 
             ...o, 
             transportCost: cost, 
-            totalAmount: typeof result.newTotal === 'number' ? result.newTotal : o.totalAmount 
+            totalAmount: newTotal
           };
         }
         return o;

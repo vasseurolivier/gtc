@@ -337,7 +337,10 @@ function QuotesPageContent() {
                   {!isLocked && (
                     <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent>
                       <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>Cette action supprimera définitivement ce document.</AlertDialogDescription></AlertDialogHeader>
-                      <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction>
+                      </AlertDialogFooter></AlertDialogContent></AlertDialog>
                   )}
               </TableCell>
             </TableRow>
@@ -410,8 +413,8 @@ function QuotesPageContent() {
                     </div>
                     <div className="bg-zinc-950 text-white p-6 rounded-2xl space-y-3">
                         <div className="flex justify-between text-sm"><span>Sous-total</span><span>¥{subTotalValue.toFixed(2)}</span></div>
-                        <div className="grid grid-cols-2 gap-4 items-center"><span>Port (CNY)</span><FormField control={form.control} name="transportCost" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8" {...field} /></FormControl></FormItem> )}/></div>
-                        <div className="grid grid-cols-2 gap-4 items-center"><span>Commission (%)</span><FormField control={form.control} name="commissionRate" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8 text-primary font-black" {...field} /></FormControl></FormItem> )}/></div>
+                        <div className="grid grid-cols-2 gap-4 items-center"><span>Port (CNY)</span><FormField control={form.control} name="transportCost" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8" {...field} /></FormControl></FormItem> )}/div>
+                        <div className="grid grid-cols-2 gap-4 items-center"><span>Commission (%)</span><FormField control={form.control} name="commissionRate" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8 text-primary font-black" {...field} /></FormControl></FormItem> )}/div>
                         <Separator className="bg-white/10" />
                         <div className="flex justify-between font-black"><span>TOTAL</span><div className="text-right"><div>¥{totalAmountValue.toFixed(2)}</div><div className="text-xs">{currency.symbol}{(totalAmountValue * exchangeRate).toFixed(2)}</div></div></div>
                     </div>
