@@ -344,6 +344,9 @@ export default function ClientDetailPage() {
         category: 'Importé du client ' + (client?.firstName || ''),
         imageUrl: product.images?.[0] || '',
         weight: Number(product.weight || 0),
+        height: 0,
+        width: 0,
+        length: 0,
       });
       if (result.success) {
         toast({ title: "Produit copié !", description: "L'article est désormais dans votre inventaire global." });
