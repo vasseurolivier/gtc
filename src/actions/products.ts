@@ -67,22 +67,21 @@ export async function updateProduct(id: string, values: z.infer<typeof productSc
         await updateDoc(productRef, validatedData);
 
         // 2. PROPAGATION: Find all instances of this SKU in client subcollections
-        // Note: For large scale, this should be a background cloud function.
-        // For a prototype, we do it here.
         const skuQuery = query(collectionGroup(db, 'products'), where('sku', '==', validatedData.sku));
         const querySnapshot = await getDocs(skuQuery);
         
         if (!querySnapshot.empty) {
             const batch = writeBatch(db);
             querySnapshot.forEach((docSnap) => {
-                // We update only technical info, preserving client-specific status or notes if any
-                // Usually price is also synced if it's a "standard" product reference
+                // Skip the global product itself if encountered (though collectionGroup covers subcollections)
+                if (docSnap.ref.path.startsWith('products/')) return;
+
                 batch.update(docSnap.ref, {
                     name: validatedData.name,
                     description: validatedData.description || '',
                     price: validatedData.price,
                     imageUrl: validatedData.imageUrl || '',
-                    images: validatedData.imageUrl ? [validatedData.imageUrl] : [], // Compatibility with client array images
+                    images: validatedData.imageUrl ? [validatedData.imageUrl] : [], 
                     weight: validatedData.weight || 0,
                     width: validatedData.width || 0,
                     height: validatedData.height || 0,

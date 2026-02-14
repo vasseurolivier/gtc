@@ -184,21 +184,21 @@ export default function RegisteredClientsPage() {
             </TableHeader>
             <TableBody>
               {filteredClients.map((client) => {
-                const pendingOrders = orders.filter(o => o.customerId === client.id && o.status === 'processing');
+                const pendingOrdersCount = orders.filter(o => o.customerId === client.id && o.status === 'processing').length;
                 const isPendingSourcing = pendingSourcingIds.has(client.id);
-                const hasAlert = pendingOrders.length > 0 || isPendingSourcing;
+                const hasAlert = pendingOrdersCount > 0 || isPendingSourcing;
 
                 return (
-                  <TableRow key={client.id} className={cn("hover:bg-muted/30 transition-colors", hasAlert && "bg-red-50")}>
+                  <TableRow key={client.id} className={cn("hover:bg-muted/30 transition-colors", hasAlert && "bg-primary/5")}>
                     <TableCell className="font-semibold pl-6">
                       <div className="flex flex-col">
                         <Link href={`/admin/registered-clients/${client.id}`} className={cn("hover:text-primary transition-colors flex items-center gap-2", hasAlert && "text-primary font-black")}>
                           {client.firstName} {client.lastName}
                           {hasAlert && <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />}
                         </Link>
-                        {pendingOrders.length > 0 && (
+                        {pendingOrdersCount > 0 && (
                           <span className="text-[10px] text-primary font-black flex items-center gap-1 uppercase">
-                            <CircleAlert className="h-3 w-3" /> {pendingOrders.length} commande(s) à traiter
+                            <CircleAlert className="h-3 w-3" /> {pendingOrdersCount} commande(s) à traiter
                           </span>
                         )}
                       </div>

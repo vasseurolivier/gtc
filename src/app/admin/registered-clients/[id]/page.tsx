@@ -735,7 +735,10 @@ export default function ClientDetailPage() {
                                 <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Cela supprimera la commande définitivement du système.</AlertDialogDescription></AlertDialogHeader>
-                                  <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteOrderRow(order.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                                  <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteOrderRow(order.id)}>Supprimer</AlertDialogAction>
+                                  </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
                             </TableCell>
@@ -768,7 +771,10 @@ export default function ClientDetailPage() {
                               <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader><AlertDialogTitle>Supprimer la Proforma ?</AlertDialogTitle><AlertDialogDescription>Ce document sera supprimé partout.</AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteQuoteRow(q.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteQuoteRow(q.id)}>Supprimer</AlertDialogAction>
+                                </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
                           </TableCell>
@@ -800,7 +806,10 @@ export default function ClientDetailPage() {
                               <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader><AlertDialogTitle>Supprimer la Facture ?</AlertDialogTitle><AlertDialogDescription>Ce document sera supprimé partout.</AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteInvoiceRow(i.id)}>Supprimer</AlertDialogAction></AlertDialogFooter>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteInvoiceRow(i.id)}>Supprimer</AlertDialogAction>
+                                </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
                           </TableCell>
