@@ -10,6 +10,7 @@ import {
   updateClientCredentials,
   deleteRegisteredClient,
   deleteClientProduct,
+  updateRegisteredClientCurrencyPreference,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -62,14 +63,15 @@ import {
   CircleAlert,
   ShoppingCart,
   Mail,
-  Phone
+  Phone,
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
-import { getProducts, Product } from '@/actions/products';
+import { getProducts, Product, addProduct } from '@/actions/products';
 import { cn } from '@/lib/utils';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
@@ -109,6 +111,7 @@ export default function ClientDetailPage() {
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isExportingToGlobal, setIsExportingToGlobal] = useState<string | null>(null);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -187,7 +190,7 @@ export default function ClientDetailPage() {
     return { totalOrders, processingOrders, totalRevenue, pendingBalance };
   }, [orders, invoices]);
 
-  // Priority Sorting Logic
+  // Priority Sorting Logic (Actionable first, then date desc)
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -319,6 +322,30 @@ export default function ClientDetailPage() {
     setIsProductDialogOpen(true);
   };
 
+  const handleSaveToGlobal = async (product: any) => {
+    setIsExportingToGlobal(product.id);
+    try {
+      const result = await addProduct({
+        name: product.name,
+        sku: product.sku || `SKU-${Date.now().toString().slice(-6)}`,
+        description: product.description || '',
+        price: Number(product.price || 0),
+        purchasePrice: 0,
+        stock: 0,
+        category: 'Importé du client ' + (client?.firstName || ''),
+        imageUrl: product.images?.[0] || '',
+        weight: Number(product.weight || 0),
+      });
+      if (result.success) {
+        toast({ title: "Produit copié !", description: "L'article est désormais dans votre inventaire global." });
+      } else {
+        toast({ variant: "destructive", title: "Erreur", description: result.message });
+      }
+    } finally {
+      setIsExportingToGlobal(null);
+    }
+  };
+
   const handleAddNewProduct = () => {
     if (!productLists || productLists.length === 0) {
       toast({ variant: "destructive", title: "Liste requise", description: "Veuillez créer une liste de produits pour ce client." });
@@ -415,6 +442,14 @@ export default function ClientDetailPage() {
     setIsSaving(false);
   };
 
+  const handleCurrencyPrefChange = async (pref: 'EUR' | 'CNY' | 'BOTH') => {
+    const result = await updateRegisteredClientCurrencyPreference(clientId, pref);
+    if (result.success) {
+      toast({ title: "Devise mise à jour" });
+      setClient(prev => prev ? { ...prev, currencyPreference: pref } : null);
+    }
+  };
+
   const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
     const priceEur = priceCny * rate;
     return (
@@ -503,6 +538,21 @@ export default function ClientDetailPage() {
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center gap-3 text-sm font-medium"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
                 <div className="flex items-center gap-3 text-sm font-medium"><Phone className="h-4 w-4 text-zinc-300" /> {client?.phone || 'Non renseigné'}</div>
+                
+                <div className="space-y-2 pt-4 border-t">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Préférence Devise</Label>
+                  <Select value={client?.currencyPreference || 'EUR'} onValueChange={(val: any) => handleCurrencyPrefChange(val)}>
+                    <SelectTrigger className="h-8 text-xs font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">Euros (€) uniquement</SelectItem>
+                      <SelectItem value="CNY">Yuans (¥) uniquement</SelectItem>
+                      <SelectItem value="BOTH">Les deux (EUR & ¥)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
               </div>
             </CardContent>
@@ -673,7 +723,20 @@ export default function ClientDetailPage() {
                         <TableCell className="font-black text-sm"><div className="flex flex-col"><span>{p.name}</span><span className="text-[9px] text-zinc-400 font-mono tracking-tighter">{p.sku}</span></div></TableCell>
                         <TableCell className="font-bold">¥{Number(p.price || 0).toFixed(2)}</TableCell>
                         <TableCell>{p.hasSizeSelection ? <div className="flex flex-wrap gap-1">{p.availableSizes?.map((s:string) => <Badge key={s} variant="secondary" className="text-[8px] h-4 font-black">{s}</Badge>)}</div> : <span className="text-zinc-300 text-xs italic">Taille unique</span>}</TableCell>
-                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                        <TableCell className="text-right pr-6 space-x-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-blue-500" 
+                            onClick={() => handleSaveToGlobal(p)}
+                            disabled={isExportingToGlobal === p.id}
+                            title="Copier vers catalogue global"
+                          >
+                            {isExportingToGlobal === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)} title="Modifier"><Pencil className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }} title="Supprimer"><Trash2 className="h-4 w-4" /></Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

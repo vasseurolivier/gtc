@@ -99,7 +99,7 @@ export default function ClientOrdersPage() {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
       const isPendingA = a.status !== 'paid' ? 1 : 0;
-      const isPendingB = b.status !== 'paid' ? 1 : 0;
+      const isPendingB = a.status !== 'paid' ? 1 : 0;
       if (isPendingA !== isPendingB) return isPendingB - isPendingA;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
