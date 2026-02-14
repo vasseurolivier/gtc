@@ -9,22 +9,20 @@ export interface RegisteredClient {
     firstName: string;
     lastName: string;
     email: string;
-    password?: string; // Added for visibility in admin
+    password?: string;
     clientNumber?: string;
-    orderPrefix?: string; // Prefix for custom order numbers
-    currencyPreference?: 'EUR' | 'CNY' | 'BOTH'; // Display preference
+    orderPrefix?: string;
+    currencyPreference?: 'EUR' | 'CNY' | 'BOTH';
+    commissionBasis?: 'products_only' | 'total'; // New field
     status?: 'pending' | 'validated';
     createdAt: string;
     phone?: string;
     companyName?: string;
     address?: string;
-    shippingRatePerKg?: number; // Base rate per kg for this client
-    shippingFixedFee?: number; // Fixed service fee for this client
+    shippingRatePerKg?: number;
+    shippingFixedFee?: number;
 }
 
-/**
- * Fetch all registered clients from the /clients collection.
- */
 export async function getRegisteredClients(): Promise<RegisteredClient[]> {
     try {
         const q = query(collection(db, 'clients'), orderBy('createdAt', 'desc'));
@@ -39,9 +37,6 @@ export async function getRegisteredClients(): Promise<RegisteredClient[]> {
     }
 }
 
-/**
- * Fetch a single registered client by ID.
- */
 export async function getRegisteredClientById(id: string): Promise<RegisteredClient | null> {
     try {
         const clientRef = doc(db, 'clients', id);
@@ -54,42 +49,28 @@ export async function getRegisteredClientById(id: string): Promise<RegisteredCli
     }
 }
 
-/**
- * Update client credentials (Email & Password) in Firestore only.
- * Auth update is handled on the client side via secondary app trick to avoid Admin SDK issues.
- */
 export async function updateClientCredentials(id: string, email: string, password?: string) {
     try {
         const clientRef = doc(db, 'clients', id);
         const firestoreUpdate: any = { email };
         if (password) firestoreUpdate.password = password;
-        
         await updateDoc(clientRef, firestoreUpdate);
-
-        return { success: true, message: 'Firestore mis à jour avec succès.' };
+        return { success: true, message: 'Firestore mis à jour.' };
     } catch (e: any) {
-        console.error("Error updating credentials in firestore:", e);
-        return { success: false, message: e.message || 'Erreur lors de la mise à jour Firestore.' };
+        return { success: false, message: e.message };
     }
 }
 
-/**
- * Update the client number for a registered client.
- */
 export async function updateRegisteredClientNumber(id: string, clientNumber: string) {
     try {
         const clientRef = doc(db, 'clients', id);
         await updateDoc(clientRef, { clientNumber });
-        return { success: true, message: 'Numéro client mis à jour avec succès.' };
+        return { success: true, message: 'Numéro client mis à jour.' };
     } catch (e: any) {
-        console.error("Error updating client number:", e);
-        return { success: false, message: e.message || 'Une erreur est survenue.' };
+        return { success: false, message: e.message };
     }
 }
 
-/**
- * Update shipping rates for a specific client.
- */
 export async function updateClientShippingRates(id: string, rate: number, fee: number) {
     try {
         const clientRef = doc(db, 'clients', id);
@@ -99,69 +80,49 @@ export async function updateClientShippingRates(id: string, rate: number, fee: n
         });
         return { success: true, message: 'Tarifs de transport mis à jour.' };
     } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la mise à jour des tarifs.' };
+        return { success: false, message: 'Erreur lors de la mise à jour.' };
     }
 }
 
-/**
- * Update the order prefix for a registered client.
- */
-export async function updateRegisteredClientPrefix(id: string, orderPrefix: string) {
+export async function updateClientCommissionBasis(id: string, basis: 'products_only' | 'total') {
     try {
         const clientRef = doc(db, 'clients', id);
-        // Ensure only 2 chars uppercase
-        const cleanPrefix = orderPrefix.substring(0, 2).toUpperCase();
-        await updateDoc(clientRef, { orderPrefix: cleanPrefix });
-        return { success: true, message: 'Préfixe de commande mis à jour.' };
+        await updateDoc(clientRef, { commissionBasis: basis });
+        return { success: true, message: 'Base de commission mise à jour.' };
     } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la mise à jour du préfixe.' };
+        return { success: false, message: 'Erreur lors de la mise à jour.' };
     }
 }
 
-/**
- * Update the currency preference for a registered client.
- */
 export async function updateRegisteredClientCurrencyPreference(id: string, preference: 'EUR' | 'CNY' | 'BOTH') {
     try {
         const clientRef = doc(db, 'clients', id);
         await updateDoc(clientRef, { currencyPreference: preference });
         return { success: true, message: 'Préférence de devise mise à jour.' };
     } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la mise à jour de la devise.' };
+        return { success: false, message: 'Erreur.' };
     }
 }
 
-/**
- * Update the validation status for a registered client.
- */
 export async function updateRegisteredClientStatus(id: string, status: 'pending' | 'validated') {
     try {
         const clientRef = doc(db, 'clients', id);
         await updateDoc(clientRef, { status });
-        const msg = status === 'validated' ? 'Compte validé avec succès.' : 'Compte suspendu.';
-        return { success: true, message: msg };
+        return { success: true, message: status === 'validated' ? 'Compte validé.' : 'Compte suspendu.' };
     } catch (e: any) {
-        console.error("Error updating client status:", e);
-        return { success: false, message: e.message || 'Une erreur est survenue.' };
+        return { success: false, message: e.message };
     }
 }
 
-/**
- * Delete a registered client account record from Firestore.
- * Auth deletion is handled on client side.
- */
 export async function deleteRegisteredClient(id: string) {
     try {
         await deleteDoc(doc(db, 'clients', id));
-        return { success: true, message: 'Profil supprimé de la base de données.' };
+        return { success: true, message: 'Profil supprimé.' };
     } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la suppression Firestore.' };
+        return { success: false, message: e.message };
     }
 }
 
-/**
- * Update client profile from the client space.
- */
 export async function updateClientProfile(id: string, data: Partial<RegisteredClient>) {
     try {
         const clientRef = doc(db, 'clients', id);
@@ -170,35 +131,18 @@ export async function updateClientProfile(id: string, data: Partial<RegisteredCl
             companyName: data.companyName,
             address: data.address,
         });
-        return { success: true, message: 'Profil mis à jour avec succès.' };
+        return { success: true, message: 'Profil mis à jour.' };
     } catch (e: any) {
-        console.error("Error updating client profile:", e);
-        return { success: false, message: 'Erreur lors de la mise à jour.' };
+        return { success: false, message: 'Erreur.' };
     }
 }
 
-/**
- * Delete a product list for a client.
- */
-export async function deleteProductList(clientId: string, listId: string) {
-    try {
-        const listRef = doc(db, 'clients', clientId, 'productLists', listId);
-        await deleteDoc(listRef);
-        return { success: true, message: 'Liste supprimée avec succès.' };
-    } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la suppression de la liste.' };
-    }
-}
-
-/**
- * Delete a specific product from a client's list.
- */
 export async function deleteClientProduct(clientId: string, listId: string, productId: string) {
     try {
         const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', productId);
         await deleteDoc(productRef);
         return { success: true, message: 'Produit supprimé.' };
     } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la suppression du produit.' };
+        return { success: false, message: 'Erreur.' };
     }
 }

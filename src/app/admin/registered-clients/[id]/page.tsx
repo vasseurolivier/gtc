@@ -12,6 +12,7 @@ import {
   deleteClientProduct,
   updateRegisteredClientCurrencyPreference,
   updateClientShippingRates,
+  updateClientCommissionBasis,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -69,7 +70,8 @@ import {
   Mail,
   Phone,
   Globe,
-  Truck
+  Truck,
+  Scale
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -103,6 +105,7 @@ export default function ClientDetailPage() {
 
   const [shippingRate, setShippingRate] = useState<string>('0');
   const [shippingFee, setShippingFee] = useState<string>('0');
+  const [commissionBasis, setCommissionBasis] = useState<'products_only' | 'total'>('products_only');
 
   // States for Orders Management
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
@@ -146,6 +149,7 @@ export default function ClientDetailPage() {
           setLoginPassword(clientData.password || '');
           setShippingRate((clientData.shippingRatePerKg || 0).toString());
           setShippingFee((clientData.shippingFixedFee || 0).toString());
+          setCommissionBasis(clientData.commissionBasis || 'products_only');
         }
         setGlobalProducts(productsData || []);
       } catch (error) {
@@ -438,26 +442,17 @@ export default function ClientDetailPage() {
   const handleUpdateCredentials = async () => {
     if (!client || !loginEmail || !loginPassword) return;
     setIsUpdatingCredentials(true);
-    
     const secondaryAppName = `update-auth-${Date.now()}`;
     const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
     const secondaryAuth = getAuth(secondaryApp);
-    
     try {
       await signInWithEmailAndPassword(secondaryAuth, client.email, client.password!);
       const secondaryUser = secondaryAuth.currentUser;
-      
       if (secondaryUser) {
-        if (loginEmail !== client.email) {
-          await updateEmail(secondaryUser, loginEmail);
-        }
-        if (loginPassword !== client.password) {
-          await updatePassword(secondaryUser, loginPassword);
-        }
+        if (loginEmail !== client.email) await updateEmail(secondaryUser, loginEmail);
+        if (loginPassword !== client.password) await updatePassword(secondaryUser, loginPassword);
       }
-      
       const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
-      
       if (result.success) {
         toast({ title: "Identifiants mis à jour" });
         setClient({ ...client, email: loginEmail, password: loginPassword });
@@ -465,11 +460,8 @@ export default function ClientDetailPage() {
         toast({ variant: "destructive", title: "Erreur Firestore", description: result.message });
       }
     } catch (e: any) {
-      console.error("Auth update error:", e);
       let errorMsg = e.message;
-      if (e.code === 'auth/operation-not-allowed') {
-        errorMsg = "Veuillez activer la 'Modification de l'adresse e-mail' dans votre Console Firebase (Auth > Paramètres > Protection des comptes).";
-      }
+      if (e.code === 'auth/operation-not-allowed') errorMsg = "Activez la 'Modification de l'adresse e-mail' dans Firebase console.";
       toast({ variant: "destructive", title: "Erreur Authentification", description: errorMsg });
     } finally {
       await deleteApp(secondaryApp);
@@ -483,6 +475,17 @@ export default function ClientDetailPage() {
     if (result.success) {
       toast({ title: "Tarifs transport enregistrés" });
       setClient(prev => prev ? { ...prev, shippingRatePerKg: parseFloat(shippingRate), shippingFixedFee: parseFloat(shippingFee) } : null);
+    }
+    setIsSaving(false);
+  };
+
+  const handleUpdateCommissionBasis = async (basis: 'products_only' | 'total') => {
+    setIsSaving(true);
+    const result = await updateClientCommissionBasis(clientId, basis);
+    if (result.success) {
+      toast({ title: "Base de commission mise à jour" });
+      setCommissionBasis(basis);
+      setClient(prev => prev ? { ...prev, commissionBasis: basis } : null);
     }
     setIsSaving(false);
   };
@@ -532,7 +535,6 @@ export default function ClientDetailPage() {
                     await signInWithEmailAndPassword(secondaryAuth, client!.email, client!.password!);
                     if (secondaryAuth.currentUser) await deleteUser(secondaryAuth.currentUser);
                   } catch(e) {} finally { await deleteApp(secondaryApp); }
-                  
                   await deleteRegisteredClient(clientId); 
                   router.push('/admin/registered-clients'); 
                 }}>Supprimer</AlertDialogAction>
@@ -618,8 +620,27 @@ export default function ClientDetailPage() {
                 <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
                 
                 <div className="space-y-4 pt-6 border-t">
-                  <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Base de calcul transport</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Transport & Commission</h4>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold text-zinc-500">Calcul Commission sur :</Label>
+                    <RadioGroup 
+                      value={commissionBasis} 
+                      onValueChange={(val: 'products_only' | 'total') => handleUpdateCommissionBasis(val)}
+                      className="flex flex-col gap-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="products_only" id="basis-prod" />
+                        <Label htmlFor="basis-prod" className="text-[10px] font-medium cursor-pointer">Articles uniquement</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="total" id="basis-total" />
+                        <Label htmlFor="basis-total" className="text-[10px] font-medium cursor-pointer">Total (Articles + Transport)</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="space-y-1">
                       <Label className="text-[9px] font-bold text-zinc-500">Prix / kg (CNY)</Label>
                       <Input type="number" step="0.01" value={shippingRate} onChange={e => setShippingRate(e.target.value)} className="h-8 text-xs font-bold" />
@@ -631,7 +652,7 @@ export default function ClientDetailPage() {
                   </div>
                   <Button size="sm" className="w-full h-8 text-[10px] font-black" onClick={handleUpdateShippingRates} disabled={isSaving}>
                     {isSaving ? <Loader2 className="animate-spin h-3 w-3 mr-2" /> : <Save className="h-3 w-3 mr-2" />}
-                    ENREGISTRER TARIFS
+                    SAUVER PARAMÈTRES
                   </Button>
                 </div>
               </div>

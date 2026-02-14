@@ -21,7 +21,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
-import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
+import { getRegisteredClients, RegisteredClient, getRegisteredClientById } from '@/actions/registered-clients';
 import { getProducts, Product, addProduct } from '@/actions/products';
 import { getPackingListById } from '@/actions/packing-lists';
 import { getOrderById } from '@/actions/orders';
@@ -79,6 +79,7 @@ function QuotesPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  const [selectedClientPreference, setSelectedClientPreference] = useState<'products_only' | 'total'>('products_only');
 
   const currencyContext = useContext(CurrencyContext);
   if (!currencyContext) {
@@ -120,7 +121,6 @@ function QuotesPageContent() {
   const handleSaveAsProduct = async (index: number) => {
     const item = form.getValues(`items.${index}`);
     if (!item.description) return;
-    
     setIsSavingProduct(index);
     try {
         const result = await addProduct({
@@ -131,13 +131,12 @@ function QuotesPageContent() {
             imageUrl: item.photo || '',
             stock: 0,
             weight: item.weight || 0,
-            width: 0,
             height: 0,
+            width: 0,
             length: 0,
         });
-
         if (result.success) {
-            toast({ title: 'Produit Sauvegardé', description: `${item.description} a été ajouté au catalogue global.` });
+            toast({ title: 'Produit Sauvegardé' });
             const fetchedProducts = await getProducts();
             setProducts(fetchedProducts);
         }
@@ -151,30 +150,32 @@ function QuotesPageContent() {
         if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
             const items = (values.items || []) as any[];
             let currentSubTotal = 0;
-            
             items.forEach((item, index) => {
                 if (!item) return;
                 const quantity = Number(item.quantity) || 0;
                 const unitPrice = Number(item.unitPrice) || 0;
                 const newTotal = quantity * unitPrice;
                 currentSubTotal += newTotal;
-                
-                if (item.total !== newTotal) {
-                     form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
-                }
+                if (item.total !== newTotal) form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
             });
 
             const transportCost = Number(values.transportCost) || 0;
             const commissionRate = Number(values.commissionRate) || 0;
-            const commissionAmount = currentSubTotal * (commissionRate / 100);
-            const totalAmount = currentSubTotal + transportCost + commissionAmount;
+            
+            let totalAmount = 0;
+            if (selectedClientPreference === 'total') {
+                totalAmount = (currentSubTotal + transportCost) * (1 + commissionRate / 100);
+            } else {
+                const commissionAmount = currentSubTotal * (commissionRate / 100);
+                totalAmount = currentSubTotal + transportCost + commissionAmount;
+            }
             
             form.setValue("subTotal", currentSubTotal, { shouldValidate: true });
             form.setValue("totalAmount", totalAmount, { shouldValidate: true });
         }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, selectedClientPreference]);
   
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -182,10 +183,8 @@ function QuotesPageContent() {
       router.push('/admin/login');
       return;
     }
-    
     const packingListId = searchParams.get('fromPackingList');
     const orderId = searchParams.get('fromOrder');
-
     async function fetchData() {
       setIsLoading(true);
       try {
@@ -200,39 +199,11 @@ function QuotesPageContent() {
         setProducts(fetchedProducts);
         setRegisteredClients(fetchedRegistered);
 
-        if (packingListId) {
-            const packingList = await getPackingListById(packingListId);
-            if (packingList) {
-                const newItems = packingList.items.map(item => ({
-                    sku: item.sku || "",
-                    description: item.description,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPriceCny,
-                    purchasePrice: item.unitPriceCny,
-                    total: item.quantity * item.unitPriceCny,
-                    photo: item.photo || "",
-                    weight: item.weight || 0,
-                }));
-                const itemsTotal = newItems.reduce((sum, i) => sum + i.total, 0);
-                form.reset({
-                    quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
-                    issueDate: new Date(),
-                    validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-                    items: newItems,
-                    subTotal: itemsTotal,
-                    totalAmount: itemsTotal,
-                    status: "draft",
-                    depositRequired: true,
-                    depositPercentage: 30,
-                });
-                setIsDialogOpen(true);
-                router.replace('/admin/quotes');
-            }
-        }
-
         if (orderId) {
           const order = await getOrderById(orderId);
           if (order) {
+            const clientData = await getRegisteredClientById(order.customerId);
+            if (clientData) setSelectedClientPreference(clientData.commissionBasis || 'products_only');
             const newItems = order.items.map(item => ({
               sku: item.sku || "",
               description: item.description,
@@ -243,13 +214,7 @@ function QuotesPageContent() {
               photo: (item as any).photo || "",
               weight: (item as any).weight || 0,
             }));
-            
             const itemsTotal = newItems.reduce((sum, i) => sum + i.total, 0);
-            const transport = Number(order.transportCost) || 0;
-            const commRate = Number(order.commissionRate) || 0;
-            const commAmount = itemsTotal * (commRate / 100);
-            const calculatedTotal = itemsTotal + transport + commAmount;
-
             form.reset({
               quoteNumber: `PI-${order.orderNumber.replace('ORD-', '').replace('O-', '')}`,
               customerId: order.customerId,
@@ -259,9 +224,9 @@ function QuotesPageContent() {
               validUntil: new Date(new Date().setDate(new Date().getDate() + 15)),
               items: newItems,
               subTotal: itemsTotal,
-              transportCost: transport,
-              commissionRate: commRate,
-              totalAmount: calculatedTotal,
+              transportCost: order.transportCost || 0,
+              commissionRate: order.commissionRate || 0,
+              totalAmount: order.totalAmount,
               status: "draft",
               shippingAddress: order.shippingAddress || "",
               depositRequired: true,
@@ -271,7 +236,7 @@ function QuotesPageContent() {
             router.replace('/admin/quotes');
           }
         }
-      } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
+      } catch (error) { toast({ variant: 'destructive', title: 'Error' });
       } finally { setIsLoading(false); }
     }
     fetchData();
@@ -280,6 +245,7 @@ function QuotesPageContent() {
   const handleOpenDialog = (quote: Quote | null = null) => {
     setEditingQuote(quote);
     if (quote) {
+        getRegisteredClientById(quote.customerId).then(c => { if(c) setSelectedClientPreference(c.commissionBasis || 'products_only'); });
         form.reset({
             ...quote,
             issueDate: new Date(quote.issueDate),
@@ -289,6 +255,7 @@ function QuotesPageContent() {
             depositPercentage: quote.depositPercentage || 30,
         });
     } else {
+        setSelectedClientPreference('products_only');
         form.reset({
             quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
             issueDate: new Date(),
@@ -308,16 +275,17 @@ function QuotesPageContent() {
     setIsDialogOpen(true);
   };
   
-  const handleCustomerChange = (customerId: string) => {
+  const handleCustomerChange = async (customerId: string) => {
     const lead = customers.find(c => c.id === customerId);
     const registered = registeredClients.find(c => c.id === customerId);
-    
     if (registered) {
         form.setValue("customerId", registered.id);
         form.setValue("customerName", `${registered.firstName} ${registered.lastName}`);
+        setSelectedClientPreference(registered.commissionBasis || 'products_only');
     } else if (lead) {
         form.setValue("customerId", lead.id);
         form.setValue("customerName", lead.name);
+        setSelectedClientPreference('products_only');
     }
   };
 
@@ -335,16 +303,12 @@ function QuotesPageContent() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    const result = editingQuote
-      ? await updateQuote(editingQuote.id, values)
-      : await addQuote(values);
-
+    const result = editingQuote ? await updateQuote(editingQuote.id, values) : await addQuote(values);
     if (result.success) {
-      toast({ title: 'Success', description: result.message });
+      toast({ title: 'Success' });
       const newQuotes = await getQuotes();
       setQuotes(newQuotes);
       setIsDialogOpen(false);
-      router.refresh();
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.message });
     }
@@ -354,7 +318,7 @@ function QuotesPageContent() {
   const handleDeleteQuote = async (id: string) => {
     const result = await deleteQuote(id);
     if (result.success) {
-        toast({ title: 'Success', description: result.message });
+        toast({ title: 'Success' });
         setQuotes(quotes.filter(q => q.id !== id));
     }
   };
@@ -363,43 +327,19 @@ function QuotesPageContent() {
     const originalQuotes = [...quotes];
     const updatedQuotes = quotes.map(q => q.id === quote.id ? {...q, status: newStatus} : q);
     setQuotes(updatedQuotes);
-
     const result = await updateQuoteStatus(quote.id, newStatus);
     if (!result.success) {
         setQuotes(originalQuotes);
         toast({ variant: 'destructive', title: 'Error', description: result.message });
-    } else {
-        toast({ title: 'Success', description: 'Proforma status updated.' });
-        router.refresh();
     }
   };
-  
-  const handleDuplicateQuote = (quoteToDuplicate: Quote) => {
-    form.reset({
-      ...quoteToDuplicate,
-      issueDate: new Date(),
-      validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-      quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
-      status: "draft",
-      items: quoteToDuplicate.items.map(item => ({...item, photo: item.photo || '', weight: item.weight || 0}))
-    });
-    setEditingQuote(null);
-    setIsDialogOpen(true);
-  };
-
-  const getStatusBadgeVariant = (status: Quote['status']) => {
-    switch (status) {
-        case 'paid': return 'default';
-        case 'accepted': return 'default';
-        case 'sent': return 'secondary';
-        case 'rejected': return 'destructive';
-        default: return 'outline';
-    }
-  }
 
   const subTotalValue = form.watch('subTotal') || 0;
   const commissionRateValue = form.watch('commissionRate') || 0;
-  const calculatedCommissionAmount = subTotalValue * (commissionRateValue / 100);
+  const transportCostValue = form.watch('transportCost') || 0;
+  const commissionAmountValue = selectedClientPreference === 'total' 
+    ? (subTotalValue + transportCostValue) * (commissionRateValue / 100) 
+    : subTotalValue * (commissionRateValue / 100);
   const totalAmountValue = form.watch('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
@@ -415,81 +355,28 @@ function QuotesPageContent() {
   const renderTable = (quoteList: Quote[], isArchived = false) => (
     <Table>
       {!isArchived && (
-        <TableHeader>
-          <TableRow>
-            <TableHead>Proforma #</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Total</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+        <TableHeader><TableRow><TableHead>Proforma #</TableHead><TableHead>Customer</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
       )}
       <TableBody>
         {quoteList.map((quote) => {
           const isLocked = quote.status === 'accepted' || quote.status === 'paid';
           return (
             <TableRow key={quote.id}>
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  {quote.quoteNumber}
-                  {quote.orderId && <span title="Lié à une commande client"><LinkIcon className="h-3 w-3 text-primary" /></span>}
-                  {isLocked && <span title="Verrouillé car accepté"><ShieldCheck className="h-3 w-3 text-green-600" /></span>}
-                </div>
-              </TableCell>
+              <TableCell className="font-medium"><div className="flex items-center gap-2">{quote.quoteNumber}{quote.orderId && <LinkIcon className="h-3 w-3 text-primary" />}{isLocked && <ShieldCheck className="h-3 w-3 text-green-600" />}</div></TableCell>
               <TableCell>{quote.customerName}</TableCell>
               <TableCell>{format(new Date(quote.issueDate), 'dd MMM yyyy')}</TableCell>
               <TableCell>
                 <Select onValueChange={(value: Quote['status']) => handleStatusChange(quote, value)} defaultValue={quote.status}>
-                  <SelectTrigger className="w-32">
-                     <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="sent">Sent</SelectItem>
-                      <SelectItem value="accepted">Accepted</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
+                  <SelectTrigger className="w-32"><Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge></SelectTrigger>
+                  <SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="sent">Sent</SelectItem><SelectItem value="accepted">Accepted</SelectItem><SelectItem value="paid">Paid</SelectItem><SelectItem value="rejected">Rejected</SelectItem></SelectContent>
                 </Select>
               </TableCell>
+              <TableCell className="text-right"><div>¥{quote.totalAmount.toFixed(2)}</div><div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div></TableCell>
               <TableCell className="text-right">
-                  <div>¥{quote.totalAmount.toFixed(2)}</div>
-                  <div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div>
-              </TableCell>
-              <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" asChild title="Voir PDF">
-                      <Link href={`/admin/quotes/${quote.id}`}>
-                          <Eye className="h-4 w-4" />
-                      </Link>
-                  </Button>
-                   <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => handleOpenDialog(quote)} 
-                    title="Modifier" 
-                    disabled={isLocked}
-                    className={cn(isLocked && "opacity-20 cursor-not-allowed")}
-                  >
-                      <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Dupliquer">
-                      <Copy className="h-4 w-4" />
-                  </Button>
+                  <Button variant="ghost" size="icon" asChild title="Voir PDF"><Link href={`/admin/quotes/${quote.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} disabled={isLocked} className={cn(isLocked && "opacity-20")}><Pencil className="h-4 w-4" /></Button>
                   {!isLocked && (
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>
-                                Cette action supprimera définitivement cette Proforma.
-                            </AlertDialogDescription></AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
                   )}
               </TableCell>
             </TableRow>
@@ -499,257 +386,92 @@ function QuotesPageContent() {
     </Table>
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
+  const getStatusBadgeVariant = (status: Quote['status']) => {
+    switch (status) {
+        case 'paid': return 'default';
+        case 'accepted': return 'default';
+        case 'sent': return 'secondary';
+        case 'rejected': return 'destructive';
+        default: return 'outline';
+    }
   }
+
+  if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
 
   return (
     <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Proforma Invoices</h1>
-        <Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Créer manuellement</Button>
-      </div>
-      
+      <div className="flex justify-between items-center mb-8"><h1 className="text-3xl font-bold">Proforma Invoices</h1><Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Créer manuellement</Button></div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-                <DialogTitle>{editingQuote ? 'Modifier Proforma' : 'Nouvelle Proforma'}</DialogTitle>
-                <DialogDescription>
-                    {form.getValues('orderId') ? "Génération à partir d'une commande client." : "Remplissez les détails ci-dessous."}
-                </DialogDescription>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>{editingQuote ? 'Modifier Proforma' : 'Nouvelle Proforma'}</DialogTitle></DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <FormField control={form.control} name="quoteNumber" render={({ field }) => (
-                    <FormItem><FormLabel>Proforma #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
+                  <FormField control={form.control} name="quoteNumber" render={({ field }) => ( <FormItem><FormLabel>Proforma #</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                   <FormField control={form.control} name="customerId" render={({ field }) => (
                       <FormItem className="lg:col-span-3">
                       <FormLabel>Client</FormLabel>
                       <Select onValueChange={handleCustomerChange} value={field.value}>
                           <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger></FormControl>
                           <SelectContent>
-                            <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50">COMPTES CLIENTS</div>
-                            {registeredClients.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName} {c.clientNumber ? `(${c.clientNumber})` : ''}</SelectItem>)}
-                            <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50 mt-2">PROSPECTS CRM</div>
-                            {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>)}
+                            <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase bg-zinc-50">COMPTES CLIENTS</div>
+                            {registeredClients.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}
+                            <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase bg-zinc-50 mt-2">PROSPECTS CRM</div>
+                            {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />
-                  <FormField control={form.control} name="issueDate" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Date d'émission</FormLabel><Popover><PopoverTrigger asChild>
-                    <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Choisir une date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
-                    </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="validUntil" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Valide jusqu'au</FormLabel><Popover><PopoverTrigger asChild>
-                    <FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Choisir une date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl>
-                    </PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover><FormMessage /></FormItem>
-                  )} />
                 </div>
-
-                 <FormField control={form.control} name="shippingAddress" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Adresse de livraison</FormLabel>
-                        <FormControl><Textarea placeholder="Adresse complète..." {...field} rows={3} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                  )} />
-                
                 <Card className="p-4 border-primary/20 bg-primary/5">
                   <CardHeader className="p-2 mb-2"><h4 className="font-bold flex items-center gap-2"><Package className="h-4 w-4"/> Articles</h4></CardHeader>
                   <CardContent className="p-0 space-y-4">
                       {fields.map((field, index) => (
                         <div key={field.id} className="p-3 border rounded-md bg-white shadow-sm">
-                          <div className="flex justify-end">
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                          </div>
+                          <div className="flex justify-end"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button></div>
                           <div className="space-y-4">
-                                <Select onValueChange={(value) => handleProductSelect(value, index)}>
-                                    <SelectTrigger className="h-8 text-xs">
-                                        <SelectValue placeholder="Lier un produit du catalogue global" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}
-                                    </SelectContent>
-                                </Select>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => (
-                                    <FormItem><FormLabel className="text-xs">Description</FormLabel><FormControl><Textarea placeholder="Spécifications..." {...f} rows={2} /></FormControl><FormMessage/></FormItem>
-                                )} />
+                                <Select onValueChange={(v) => handleProductSelect(v, index)}><SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Lier un produit global" /></SelectTrigger><SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent></Select>
+                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Textarea placeholder="Spécifications..." {...f} rows={2} /></FormControl></FormItem> )} />
                                 <div className="grid grid-cols-4 gap-4">
-                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Qté</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
-                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Prix Unit. (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
-                                    <FormField control={form.control} name={`items.${index}.weight`} render={({ field: f }) => (<FormItem><FormLabel className="text-xs">Poids Unit. (kg)</FormLabel><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
-                                    <div className="text-right space-y-1">
-                                        <span className="text-[10px] text-zinc-400 uppercase font-bold">Total</span>
-                                        <div className="font-black text-sm">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 pt-2">
-                                    <div className="w-12 h-12 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
-                                        {watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain h-full w-full" alt="Item preview" /> : <UploadCloud className="h-4 w-4 text-zinc-300" />}
-                                    </div>
-                                    <FormField control={form.control} name={`items.${index}.photo`} render={({ field: photoField }) => (
-                                        <FormItem className="flex-grow"><FormControl><Input placeholder="URL photo..." {...photoField} className="h-8 text-xs" /></FormControl></FormItem>
-                                    )}/>
-                                    {watchItems[index]?.description && !products.some(p => p.sku === watchItems[index].sku) && (
-                                        <Button type="button" variant="outline" size="sm" className="h-8 text-[10px]" onClick={() => handleSaveAsProduct(index)} disabled={isSavingProduct === index}>
-                                            <Save className="h-3 w-3 mr-1" /> SAUVER AU CATALOGUE
-                                        </Button>
-                                    )}
+                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
+                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
+                                    <div className="text-right font-black text-sm">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
                                 </div>
                           </div>
                         </div>
                       ))}
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>
-                        <PlusCircle className="mr-2 h-4 w-4"/> Ajouter une ligne
-                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>+ Ligne</Button>
                   </CardContent>
                 </Card>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">
-                    <div className="space-y-4">
-                        <FormField control={form.control} name="notes" render={({ field }) => (
-                            <FormItem><FormLabel>Notes internes / Conditions</FormLabel><FormControl><Textarea placeholder="Détails bancaires, délais..." {...field} rows={4} /></FormControl></FormItem>
-                        )} />
-                        <Card className="p-4 bg-zinc-50 border-none">
-                            <FormField 
-                              control={form.control} 
-                              name="depositRequired" 
-                              render={({ field }) => (
-                                <FormItem className="flex items-center justify-between">
-                                    <FormLabel className="m-0">Acompte requis ?</FormLabel>
-                                    <FormControl>
-                                      <Switch checked={field.value} onCheckedChange={field.onChange}/>
-                                    </FormControl>
-                                </FormItem>
-                            )}/>
-                            {watchDepositRequired && (
-                                <FormField control={form.control} name="depositPercentage" render={({ field }) => (
-                                    <FormItem className="mt-4"><FormLabel className="text-xs">Pourcentage d'acompte (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
-                                )}/>
-                            )}
-                        </Card>
-                    </div>
+                    <div className="space-y-2"><Label className="text-xs">Base Commission : {selectedClientPreference === 'total' ? 'Total (Articles + Port)' : 'Articles uniquement'}</Label><FormField control={form.control} name="notes" render={({ field }) => ( <FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} rows={4} /></FormControl></FormItem> )} /></div>
                     <div className="bg-zinc-950 text-white p-6 rounded-2xl space-y-3">
-                        <div className="flex justify-between items-center text-zinc-400 text-sm">
-                            <span>Sous-total</span>
-                            <span>¥{subTotalValue.toFixed(2)}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 items-center">
-                            <span className="text-zinc-400 text-sm">Frais de port (CNY)</span>
-                            <FormField control={form.control} name="transportCost" render={({ field }) => (
-                                <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 border-white/20 text-right h-8" {...field} /></FormControl></FormItem>
-                            )}/>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 items-center">
-                            <div className="flex flex-col">
-                                <span className="text-zinc-400 text-sm">Commission (%)</span>
-                                {calculatedCommissionAmount > 0 && (
-                                    <span className="text-[10px] text-primary font-bold italic">+ ¥{calculatedCommissionAmount.toFixed(2)}</span>
-                                )}
-                            </div>
-                            <FormField control={form.control} name="commissionRate" render={({ field }) => (
-                                <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 border-white/20 text-right h-8 font-black text-primary" {...field} /></FormControl></FormItem>
-                            )}/>
-                        </div>
+                        <div className="flex justify-between text-sm"><span>Sous-total</span><span>¥{subTotalValue.toFixed(2)}</span></div>
+                        <div className="grid grid-cols-2 gap-4 items-center"><span>Port (CNY)</span><FormField control={form.control} name="transportCost" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8" {...field} /></FormControl></FormItem> )}/></div>
+                        <div className="grid grid-cols-2 gap-4 items-center"><span>Commission (%)</span><FormField control={form.control} name="commissionRate" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8 text-primary font-black" {...field} /></FormControl></FormItem> )}/></div>
                         <Separator className="bg-white/10" />
-                        <div className="flex justify-between items-center pt-2">
-                            <span className="text-primary font-bold">TOTAL FINAL</span>
-                            <div className="text-right">
-                                <div className="text-2xl font-black">¥{totalAmountValue.toFixed(2)}</div>
-                                <div className="text-sm text-zinc-400">{currency.symbol}{(totalAmountValue * exchangeRate).toFixed(2)}</div>
-                            </div>
-                        </div>
+                        <div className="flex justify-between font-black"><span>TOTAL</span><div className="text-right"><div>¥{totalAmountValue.toFixed(2)}</div><div className="text-xs">{currency.symbol}{(totalAmountValue * exchangeRate).toFixed(2)}</div></div></div>
                     </div>
                 </div>
-
-                <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-6">
-                    <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
-                    <div className="flex gap-2">
-                        <FormField control={form.control} name="status" render={({ field }) => (
-                            <FormItem>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl><SelectTrigger className="w-32"><SelectValue/></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="draft">Draft</SelectItem>
-                                        <SelectItem value="sent">Sent</SelectItem>
-                                        <SelectItem value="accepted">Accepted</SelectItem>
-                                        <SelectItem value="paid">Paid</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormItem>
-                        )} />
-                        <Button type="submit" disabled={isSubmitting} className="font-bold bg-primary hover:bg-primary/90">
-                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            Enregistrer Proforma
-                        </Button>
-                    </div>
-                </DialogFooter>
+                <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-6"><DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose><Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Enregistrer Proforma</Button></DialogFooter>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
-      
       <Tabs defaultValue="ongoing">
-        <TabsList className="mb-4">
-            <TabsTrigger value="ongoing">En cours</TabsTrigger>
-            <TabsTrigger value="archived">Archivés</TabsTrigger>
-        </TabsList>
-        <Card>
-            <CardContent className="p-0">
-            <TabsContent value="ongoing">
-                {ongoingQuotes.length === 0 ? (
-                    <div className="text-center p-16 text-muted-foreground"><p>Aucune proforma en cours.</p></div>
-                ) : renderTable(ongoingQuotes)}
-            </TabsContent>
-            <TabsContent value="archived">
-                {Object.keys(archivedQuotesByCustomer).length === 0 ? (
-                    <div className="text-center p-16 text-muted-foreground"><p>Aucun historique archivé.</p></div>
-                ) : (
-                    <Accordion type="multiple" className="w-full">
-                      {Object.entries(archivedQuotesByCustomer).map(([customerId, customerQuotes]) => {
-                        const lead = customers.find(c => c.id === customerId);
-                        const regClient = registeredClients.find(c => c.id === customerId);
-                        
-                        const displayName = regClient 
-                          ? `${regClient.firstName} ${regClient.lastName} ${regClient.clientNumber ? `(${regClient.clientNumber})` : ''}`
-                          : (lead?.name || 'Client inconnu');
-
-                        return (
-                          <AccordionItem value={customerId} key={customerId}>
-                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                              <div className='flex justify-between w-full pr-4 font-bold'>
-                                <span>{displayName}</span>
-                                <Badge variant="outline">{customerQuotes.length} document(s)</Badge>
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent>{renderTable(customerQuotes, true)}</AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
-                )}
-            </TabsContent>
-            </CardContent>
-        </Card>
+        <TabsList className="mb-4"><TabsTrigger value="ongoing">En cours</TabsTrigger><TabsTrigger value="archived">Archivés</TabsTrigger></TabsList>
+        <Card><CardContent className="p-0">
+            <TabsContent value="ongoing">{ongoingQuotes.length === 0 ? <div className="text-center p-16 text-muted-foreground">Aucune proforma.</div> : renderTable(ongoingQuotes)}</TabsContent>
+            <TabsContent value="archived">{Object.keys(archivedQuotesByCustomer).length === 0 ? <div className="text-center p-16 text-muted-foreground">Aucun archivé.</div> : (
+                <Accordion type="multiple">{Object.entries(archivedQuotesByCustomer).map(([id, qs]) => (
+                    <AccordionItem value={id} key={id}><AccordionTrigger className="px-6 py-4"><span>{qs[0].customerName}</span></AccordionTrigger><AccordionContent>{renderTable(qs, true)}</AccordionContent></AccordionItem>
+                ))}</Accordion>
+            )}</TabsContent>
+        </CardContent></Card>
       </Tabs>
     </div>
   );
 }
 
-
 export default function QuotesPage() {
-    return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
-            <QuotesPageContent />
-        </Suspense>
-    );
+    return ( <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}><QuotesPageContent /></Suspense> );
 }

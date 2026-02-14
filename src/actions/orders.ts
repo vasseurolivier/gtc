@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -272,8 +273,21 @@ export async function updateOrderTransportCost(id: string, cost: number) {
         const data = orderSnap.data();
         const itemsTotal = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
         const commissionRate = Number(data.commissionRate) || 0;
-        const commissionAmount = itemsTotal * (commissionRate / 100);
-        const newTotal = itemsTotal + commissionAmount + cost;
+
+        // Fetch client's commission basis preference
+        const clientRef = doc(db, 'clients', data.customerId);
+        const clientSnap = await getDoc(clientRef);
+        const basis = clientSnap.exists() ? clientSnap.data().commissionBasis : 'products_only';
+
+        let newTotal = 0;
+        if (basis === 'total') {
+            // Commission on both products AND transport
+            newTotal = (itemsTotal + cost) * (1 + commissionRate / 100);
+        } else {
+            // Commission on products ONLY
+            const commissionAmount = itemsTotal * (commissionRate / 100);
+            newTotal = itemsTotal + commissionAmount + cost;
+        }
 
         await updateDoc(orderRef, { 
             transportCost: cost,
