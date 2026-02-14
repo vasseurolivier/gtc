@@ -181,17 +181,8 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      setOrders(prev => prev.map(o => {
-        if (o.id === orderId) {
-          const newTotal = typeof result.newTotal === 'number' ? result.newTotal : o.totalAmount;
-          return { 
-            ...o, 
-            transportCost: cost, 
-            totalAmount: newTotal
-          };
-        }
-        return o;
-      }));
+      const totalAmount = typeof result.newTotal === 'number' ? result.newTotal : 0;
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }

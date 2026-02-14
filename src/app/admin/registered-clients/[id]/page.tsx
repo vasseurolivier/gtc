@@ -609,7 +609,7 @@ export default function ClientDetailPage() {
             <CardHeader className="bg-zinc-50 border-b border-zinc-100"><CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400">Identité Client</CardTitle></CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-2xl shadow-inner">{client?.firstName?.charAt(0)}</div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">{client?.firstName?.charAt(0)}</div>
                 <div>
                   <div className="font-black text-xl text-zinc-900 leading-none">{client?.firstName} {client?.lastName}</div>
                   <div className="text-xs text-zinc-400 mt-1 font-bold italic">Client depuis {client?.createdAt ? format(new Date(client.createdAt), 'yyyy') : '-'}</div>

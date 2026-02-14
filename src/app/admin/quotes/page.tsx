@@ -21,9 +21,9 @@ import { useToast } from '@/hooks/use-toast';
 import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getRegisteredClients, RegisteredClient, getRegisteredClientById } from '@/actions/registered-clients';
-import { getProducts, Product, addProduct } from '@/actions/products';
+import { getProducts, Product } from '@/actions/products';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon, Package, ShieldCheck, Sparkles } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -108,39 +108,50 @@ function QuotesPageContent() {
     name: "items"
   });
 
-  const watchItems = form.watch("items");
-  
-  useEffect(() => {
-    const subscription = form.watch((values, { name }) => {
-        if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
-            const items = (values.items || []) as any[];
-            let currentSubTotal = 0;
-            items.forEach((item, index) => {
-                if (!item) return;
-                const quantity = Number(item.quantity) || 0;
-                const unitPrice = Number(item.unitPrice) || 0;
-                const newTotal = quantity * unitPrice;
-                currentSubTotal += newTotal;
-                if (item.total !== newTotal) form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
-            });
+  // Calculate totals whenever inputs or preference change
+  const calculateTotals = () => {
+    const values = form.getValues();
+    const items = values.items || [];
+    let currentSubTotal = 0;
+    
+    items.forEach((item, index) => {
+      const quantity = Number(item.quantity) || 0;
+      const unitPrice = Number(item.unitPrice) || 0;
+      const newTotal = quantity * unitPrice;
+      currentSubTotal += newTotal;
+      if (item.total !== newTotal) {
+        form.setValue(`items.${index}.total`, newTotal, { shouldValidate: false });
+      }
+    });
 
-            const transportCost = Number(values.transportCost) || 0;
-            const commissionRate = Number(values.commissionRate) || 0;
-            
-            let totalAmount = 0;
-            if (selectedClientPreference === 'total') {
-                totalAmount = (currentSubTotal + transportCost) * (1 + commissionRate / 100);
-            } else {
-                const commissionAmount = currentSubTotal * (commissionRate / 100);
-                totalAmount = currentSubTotal + transportCost + commissionAmount;
-            }
-            
-            form.setValue("subTotal", currentSubTotal, { shouldValidate: true });
-            form.setValue("totalAmount", totalAmount, { shouldValidate: true });
-        }
+    const transportCost = Number(values.transportCost) || 0;
+    const commissionRate = Number(values.commissionRate) || 0;
+    
+    let totalAmount = 0;
+    if (selectedClientPreference === 'total') {
+      totalAmount = (currentSubTotal + transportCost) * (1 + commissionRate / 100);
+    } else {
+      const commissionAmount = currentSubTotal * (commissionRate / 100);
+      totalAmount = currentSubTotal + transportCost + commissionAmount;
+    }
+    
+    form.setValue("subTotal", currentSubTotal, { shouldValidate: true });
+    form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+  };
+
+  useEffect(() => {
+    const subscription = form.watch((_value, { name }) => {
+      if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
+        calculateTotals();
+      }
     });
     return () => subscription.unsubscribe();
   }, [form, selectedClientPreference]);
+
+  // Force recalculation when preference changes
+  useEffect(() => {
+    calculateTotals();
+  }, [selectedClientPreference]);
   
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
@@ -209,7 +220,9 @@ function QuotesPageContent() {
   const handleOpenDialog = (quote: Quote | null = null) => {
     setEditingQuote(quote);
     if (quote) {
-        getRegisteredClientById(quote.customerId).then(c => { if(c) setSelectedClientPreference(c.commissionBasis || 'products_only'); });
+        getRegisteredClientById(quote.customerId).then(c => { 
+          if(c) setSelectedClientPreference(c.commissionBasis || 'products_only'); 
+        });
         form.reset({
             ...quote,
             issueDate: new Date(quote.issueDate),
@@ -262,6 +275,7 @@ function QuotesPageContent() {
         form.setValue(`items.${index}.purchasePrice`, product.purchasePrice || 0);
         form.setValue(`items.${index}.photo`, product.imageUrl || "");
         form.setValue(`items.${index}.weight`, product.weight || 0);
+        calculateTotals();
     }
   };
 
@@ -398,7 +412,7 @@ function QuotesPageContent() {
                                 <div className="grid grid-cols-4 gap-4">
                                     <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
                                     <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
-                                    <div className="text-right font-black text-sm">¥{watchItems[index]?.total.toFixed(2) || '0.00'}</div>
+                                    <div className="text-right font-black text-sm">¥{watchItems[index]?.total?.toFixed(2) || '0.00'}</div>
                                 </div>
                           </div>
                         </div>
@@ -408,15 +422,15 @@ function QuotesPageContent() {
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">
                     <div className="space-y-2">
-                        <Label className="text-xs">Base Commission : {selectedClientPreference === 'total' ? 'Total (Articles + Port)' : 'Articles uniquement'}</Label>
+                        <Label className="text-[10px] font-bold uppercase text-zinc-400">Base Commission : {selectedClientPreference === 'total' ? 'Total (Articles + Port)' : 'Articles uniquement'}</Label>
                         <FormField control={form.control} name="notes" render={({ field }) => ( <FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} rows={4} /></FormControl></FormItem> )} />
                     </div>
                     <div className="bg-zinc-950 text-white p-6 rounded-2xl space-y-3">
-                        <div className="flex justify-between text-sm"><span>Sous-total</span><span>¥{subTotalValue.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-sm"><span>Sous-total articles</span><span>¥{subTotalValue.toFixed(2)}</span></div>
                         <div className="grid grid-cols-2 gap-4 items-center"><span>Port (CNY)</span><FormField control={form.control} name="transportCost" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8" {...field} /></FormControl></FormItem> )}/></div>
                         <div className="grid grid-cols-2 gap-4 items-center"><span>Commission (%)</span><FormField control={form.control} name="commissionRate" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8 text-primary font-black" {...field} /></FormControl></FormItem> )}/></div>
                         <Separator className="bg-white/10" />
-                        <div className="flex justify-between font-black"><span>TOTAL</span><div className="text-right"><div>¥{totalAmountValue.toFixed(2)}</div><div className="text-xs">{currency.symbol}{(totalAmountValue * exchangeRate).toFixed(2)}</div></div></div>
+                        <div className="flex justify-between font-black"><span>TOTAL FINAL</span><div className="text-right"><div>¥{totalAmountValue.toFixed(2)}</div><div className="text-xs">{currency.symbol}{(totalAmountValue * exchangeRate).toFixed(2)}</div></div></div>
                     </div>
                 </div>
                 <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-6"><DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose><Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Enregistrer Proforma</Button></DialogFooter>
