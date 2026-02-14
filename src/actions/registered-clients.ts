@@ -19,6 +19,8 @@ export interface RegisteredClient {
     phone?: string;
     companyName?: string;
     address?: string;
+    shippingRatePerKg?: number; // Base rate per kg for this client
+    shippingFixedFee?: number; // Fixed service fee for this client
 }
 
 /**
@@ -96,6 +98,22 @@ export async function updateRegisteredClientNumber(id: string, clientNumber: str
     } catch (e: any) {
         console.error("Error updating client number:", e);
         return { success: false, message: e.message || 'Une erreur est survenue.' };
+    }
+}
+
+/**
+ * Update shipping rates for a specific client.
+ */
+export async function updateClientShippingRates(id: string, rate: number, fee: number) {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        await updateDoc(clientRef, { 
+            shippingRatePerKg: Number(rate), 
+            shippingFixedFee: Number(fee) 
+        });
+        return { success: true, message: 'Tarifs de transport mis à jour.' };
+    } catch (e: any) {
+        return { success: false, message: 'Erreur lors de la mise à jour des tarifs.' };
     }
 }
 

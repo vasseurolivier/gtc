@@ -11,6 +11,7 @@ import {
   deleteRegisteredClient,
   deleteClientProduct,
   updateRegisteredClientCurrencyPreference,
+  updateClientShippingRates,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -96,6 +97,9 @@ export default function ClientDetailPage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
 
+  const [shippingRate, setShippingRate] = useState<string>('0');
+  const [shippingFee, setShippingFee] = useState<string>('0');
+
   // States for Orders Management
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
@@ -136,6 +140,8 @@ export default function ClientDetailPage() {
           setClientNumber(clientData.clientNumber || '');
           setLoginEmail(clientData.email || '');
           setLoginPassword(clientData.password || '');
+          setShippingRate((clientData.shippingRatePerKg || 0).toString());
+          setShippingFee((clientData.shippingFixedFee || 0).toString());
         }
         setGlobalProducts(productsData || []);
       } catch (error) {
@@ -274,6 +280,9 @@ export default function ClientDetailPage() {
     const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
     setCalcWeight(totalWeight);
     setCalcTargetId(order.id);
+    // Use client defaults if available
+    setCalcRate(parseFloat(shippingRate) || 0);
+    setCalcFixed(parseFloat(shippingFee) || 0);
     setIsCalcOpen(true);
   };
 
@@ -428,6 +437,16 @@ export default function ClientDetailPage() {
     setIsUpdatingCredentials(false);
   };
 
+  const handleUpdateShippingRates = async () => {
+    setIsSaving(true);
+    const result = await updateClientShippingRates(clientId, parseFloat(shippingRate), parseFloat(shippingFee));
+    if (result.success) {
+      toast({ title: "Tarifs transport enregistrés" });
+      setClient(prev => prev ? { ...prev, shippingRatePerKg: parseFloat(shippingRate), shippingFixedFee: parseFloat(shippingFee) } : null);
+    }
+    setIsSaving(false);
+  };
+
   const handleToggleStatus = async () => {
     if (!client) return;
     const newStatus = client.status === 'validated' ? 'pending' : 'validated';
@@ -554,6 +573,24 @@ export default function ClientDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
+                
+                <div className="space-y-4 pt-6 border-t">
+                  <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Base de calcul transport</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[9px] font-bold text-zinc-500">Prix / kg (CNY)</Label>
+                      <Input type="number" step="0.01" value={shippingRate} onChange={e => setShippingRate(e.target.value)} className="h-8 text-xs font-bold" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[9px] font-bold text-zinc-500">Fixe (CNY)</Label>
+                      <Input type="number" step="0.01" value={shippingFee} onChange={e => setShippingFee(e.target.value)} className="h-8 text-xs font-bold" />
+                    </div>
+                  </div>
+                  <Button size="sm" className="w-full h-8 text-[10px] font-black" onClick={handleUpdateShippingRates} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="animate-spin h-3 w-3 mr-2" /> : <Save className="h-3 w-3 mr-2" />}
+                    ENREGISTRER TARIFS
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -766,8 +803,16 @@ export default function ClientDetailPage() {
           <DialogHeader><DialogTitle className="font-black uppercase tracking-tighter text-xl">Calculateur Transport</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4 text-sm font-medium">
             <div className="space-y-2"><Label>Poids Total (kg)</Label><Input type="number" value={calcWeight} onChange={e => setCalcWeight(parseFloat(e.target.value) || 0)} /></div>
-            <div className="space-y-2"><Label>Tarif par kg (CNY)</Label><Input type="number" value={calcRate} onChange={e => setCalcRate(parseFloat(e.target.value) || 0)} /></div>
-            <div className="space-y-2"><Label>Frais fixes (CNY)</Label><Input type="number" value={calcFixed} onChange={e => setCalcFixed(parseFloat(e.target.value) || 0)} /></div>
+            <div className="space-y-2">
+              <Label>Tarif par kg (CNY)</Label>
+              <Input type="number" value={calcRate} onChange={e => setCalcRate(parseFloat(e.target.value) || 0)} />
+              {client?.shippingRatePerKg && calcRate === client.shippingRatePerKg && <p className="text-[10px] text-green-600 font-bold italic">Utilisation du tarif client par défaut</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Frais fixes (CNY)</Label>
+              <Input type="number" value={calcFixed} onChange={e => setCalcFixed(parseFloat(e.target.value) || 0)} />
+              {client?.shippingFixedFee && calcFixed === client.shippingFixedFee && <p className="text-[10px] text-green-600 font-bold italic">Utilisation des frais client par défaut</p>}
+            </div>
             <div className="pt-4 border-t font-black flex justify-between items-center text-lg"><span>TOTAL :</span><span className="text-primary text-2xl">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span></div>
           </div>
           <DialogFooter><Button onClick={applyCalculatedCost} className="w-full font-black uppercase text-xs h-12">Appliquer le montant</Button></DialogFooter>
