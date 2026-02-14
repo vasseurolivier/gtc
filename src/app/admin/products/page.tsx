@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
 import { uploadImage } from '@/actions/upload';
-import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye, Search } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye, Search, Package } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
