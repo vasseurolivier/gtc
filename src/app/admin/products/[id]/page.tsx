@@ -158,7 +158,7 @@ export default function ProductProfilePage() {
                                             <FormItem><FormLabel>SKU</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <FormField control={form.control} name="category" render={({ field }) => (
-                                            <FormItem><FormLabel>Catégorie</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabel>Catégorie</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormMessage>
                                         )} />
                                     </div>
                                     <FormField control={form.control} name="description" render={({ field }) => (

@@ -170,7 +170,7 @@ export default function ClientDetailPage() {
 
   const invoicesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
-    return query(collection(db, 'invoices'), where('customerId', '==', clientId));
+    return collection(db, 'clients', clientId, 'invoices');
   }, [db, clientId]);
   const { data: invoices } = useCollection(invoicesQuery);
 
@@ -620,7 +620,7 @@ export default function ClientDetailPage() {
                 <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
                 
                 <div className="space-y-4 pt-6 border-t">
-                  <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Transport & Commission</h4>
+                  <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Base de calcul transport</h4>
                   
                   <div className="space-y-2">
                     <Label className="text-[9px] font-bold text-zinc-500">Calcul Commission sur :</Label>
@@ -652,7 +652,7 @@ export default function ClientDetailPage() {
                   </div>
                   <Button size="sm" className="w-full h-8 text-[10px] font-black" onClick={handleUpdateShippingRates} disabled={isSaving}>
                     {isSaving ? <Loader2 className="animate-spin h-3 w-3 mr-2" /> : <Save className="h-3 w-3 mr-2" />}
-                    SAUVER PARAMÈTRES
+                    SAUVER BASES TRANSPORT
                   </Button>
                 </div>
               </div>

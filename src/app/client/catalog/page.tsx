@@ -419,7 +419,7 @@ export default function ClientCatalogPage() {
       </Dialog>
 
       <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               <ShoppingCart className="text-primary" /> Mon Panier
