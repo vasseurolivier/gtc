@@ -442,37 +442,21 @@ export default function ClientDetailPage() {
     const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
     const secondaryAuth = getAuth(secondaryApp);
     try {
-      // 1. Tenter de mettre à jour Firebase Auth
       await signInWithEmailAndPassword(secondaryAuth, client.email, client.password!);
       const secondaryUser = secondaryAuth.currentUser;
       if (secondaryUser) {
-        if (loginEmail !== client.email) {
-          try {
-            await updateEmail(secondaryUser, loginEmail);
-          } catch (authError: any) {
-            if (authError.code === 'auth/operation-not-allowed') {
-              toast({ 
-                variant: "destructive", 
-                title: "Login non modifié", 
-                description: "Le nouvel email sera utilisé pour les factures, mais le LOGIN reste l'ancien. Activez 'Modification de l'adresse e-mail' dans votre console Firebase (Authentication > Settings) pour permettre ce changement." 
-              });
-            } else throw authError;
-          }
-        }
+        if (loginEmail !== client.email) await updateEmail(secondaryUser, loginEmail);
         if (loginPassword !== client.password) await updatePassword(secondaryUser, loginPassword);
       }
-      
-      // 2. Toujours mettre à jour Firestore pour que les documents soient corrects
       const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
       if (result.success) {
-        toast({ title: "Identifiants Firestore à jour" });
+        toast({ title: "Identifiants à jour" });
         setClient({ ...client, email: loginEmail, password: loginPassword });
       }
     } catch (e: any) {
-      console.warn("Auth update process error:", e.message);
       const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
       if (result.success) {
-        toast({ title: "Profil mis à jour", description: "Le nouvel email sera utilisé pour vos documents." });
+        toast({ title: "Profil Firestore à jour", description: "L'auth n'a pas pu être modifiée (option console)." });
         setClient({ ...client, email: loginEmail, password: loginPassword });
       }
     } finally {
@@ -528,6 +512,10 @@ export default function ClientDetailPage() {
     router.push(`/admin/quotes?fromOrder=${orderId}`);
   };
 
+  const handleCreateDirectQuote = () => {
+    router.push(`/admin/quotes?clientId=${clientId}`);
+  };
+
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
 
   return (
@@ -535,6 +523,9 @@ export default function ClientDetailPage() {
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild><Link href="/admin/registered-clients"><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Link></Button>
         <div className="flex items-center gap-3">
+          <Button onClick={handleCreateDirectQuote} className="bg-primary hover:bg-primary/90 font-black uppercase text-[10px] tracking-widest">
+            <Plus className="h-4 w-4 mr-2" /> Créer Proforma
+          </Button>
           {client?.status === 'validated' ? <Badge className="bg-green-500">Compte Validé</Badge> : <Badge variant="outline">En attente de validation</Badge>}
           <Button size="sm" variant="outline" onClick={handleToggleStatus}>{client?.status === 'validated' ? 'Suspendre' : 'Valider'}</Button>
           <AlertDialog>

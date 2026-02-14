@@ -23,7 +23,7 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { getRegisteredClients, RegisteredClient, getRegisteredClientById } from '@/actions/registered-clients';
 import { getProducts, Product } from '@/actions/products';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -160,6 +160,8 @@ function QuotesPageContent() {
       return;
     }
     const orderId = searchParams.get('fromOrder');
+    const directClientId = searchParams.get('clientId');
+
     async function fetchData() {
       setIsLoading(true);
       try {
@@ -210,6 +212,30 @@ function QuotesPageContent() {
             setIsDialogOpen(true);
             router.replace('/admin/quotes');
           }
+        } else if (directClientId) {
+            const client = fetchedRegistered.find(c => c.id === directClientId) || fetchedCustomers.find(c => c.id === directClientId);
+            if (client) {
+                const isReg = 'firstName' in client;
+                form.reset({
+                    quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
+                    customerId: directClientId,
+                    customerName: isReg ? `${(client as any).firstName} ${(client as any).lastName}` : (client as any).name,
+                    issueDate: new Date(),
+                    validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+                    items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
+                    subTotal: 0,
+                    transportCost: 0,
+                    commissionRate: 0,
+                    totalAmount: 0,
+                    status: "draft",
+                    shippingAddress: (client as any).address || "",
+                    depositRequired: true,
+                    depositPercentage: 30,
+                });
+                if (isReg) setSelectedClientPreference((client as any).commissionBasis || 'products_only');
+                setIsDialogOpen(true);
+                router.replace('/admin/quotes');
+            }
         }
       } catch (error) { toast({ variant: 'destructive', title: 'Error' });
       } finally { setIsLoading(false); }
@@ -408,16 +434,22 @@ function QuotesPageContent() {
                           <div className="flex justify-end"><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button></div>
                           <div className="space-y-4">
                                 <Select onValueChange={(v) => handleProductSelect(v, index)}><SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Lier un produit global" /></SelectTrigger><SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>))}</SelectContent></Select>
-                                <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Textarea placeholder="Spécifications..." {...f} rows={2} /></FormControl></FormItem> )} />
-                                <div className="grid grid-cols-4 gap-4">
-                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
-                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
-                                    <div className="text-right font-black text-sm">¥{watchItems[index]?.total?.toFixed(2) || '0.00'}</div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Textarea placeholder="Désignation de l'article..." {...f} rows={2} /></FormControl></FormItem> )} />
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] uppercase font-bold flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Photo URL</Label>
+                                        <FormField control={form.control} name={`items.${index}.photo`} render={({ field: f }) => ( <FormItem><FormControl><Input placeholder="https://..." {...f} /></FormControl></FormItem> )} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-4 gap-4 items-end">
+                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><Label className="text-[10px] uppercase font-bold">Qté</Label><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
+                                    <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><Label className="text-[10px] uppercase font-bold">Prix Unit.</Label><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
+                                    <div className="col-span-2 text-right pb-2"><Label className="text-[10px] uppercase font-bold block mb-1">Total</Label><span className="font-black text-sm">¥{watchItems[index]?.total?.toFixed(2) || '0.00'}</span></div>
                                 </div>
                           </div>
                         </div>
                       ))}
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>+ Ligne</Button>
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>+ Ajouter une ligne manuelle</Button>
                   </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">

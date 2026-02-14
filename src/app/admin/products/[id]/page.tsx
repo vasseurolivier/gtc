@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getProductById, updateProduct, Product } from '@/actions/products';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,6 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Save, UploadCloud } from 'lucide-react';
 import Link from 'next/link';
-import { CurrencyContext } from '@/context/currency-context';
-import { Separator } from '@/components/ui/separator';
 import { uploadImage } from '@/actions/upload';
 
 const formSchema = z.object({
@@ -44,7 +42,6 @@ export default function ProductProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const currencyContext = useContext(CurrencyContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

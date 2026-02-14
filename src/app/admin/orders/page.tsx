@@ -181,7 +181,8 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      const updatedTotal = Number(result.newTotal) || 0;
+      const currentOrder = orders.find(o => o.id === orderId);
+      const updatedTotal = Number(result.newTotal) || (currentOrder?.totalAmount || 0);
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: updatedTotal } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
