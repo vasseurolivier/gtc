@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -221,8 +220,8 @@ export default function ClientDetailPage() {
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
-      const priorityA = (a.status !== 'paid' && a.status !== 'cancelled') ? 0 : 1;
-      const priorityB = (b.status !== 'paid' && b.status !== 'cancelled') ? 0 : 1;
+      const priorityA = a.status !== 'paid' ? 0 : 1;
+      const priorityB = b.status !== 'paid' ? 0 : 1;
       if (priorityA !== priorityB) return priorityA - priorityB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
@@ -501,7 +500,6 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* DASHBOARD METRICS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-l-4 border-l-primary shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">

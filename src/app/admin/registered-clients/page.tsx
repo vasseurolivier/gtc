@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -216,7 +215,7 @@ export default function RegisteredClientsPage() {
                           <Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
-                          <AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle></AlertDialogHeader>
+                          <AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Annuler</AlertDialogCancel>
                             <AlertDialogAction onClick={() => handleDeleteClient(client.id)}>Supprimer</AlertDialogAction>

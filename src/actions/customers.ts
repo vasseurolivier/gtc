@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -54,12 +53,46 @@ export async function addCustomer(values: CustomerFormValues) {
     }
 }
 
+/**
+ * Updates a customer in CRM and propagates changes to their Registered Client account if it exists.
+ */
 export async function updateCustomer(id: string, values: CustomerFormValues) {
     try {
         const validatedData = customerSchema.parse(values);
         const customerRef = doc(db, 'customers', id);
+        
+        // Get old data to find the client account via previous email if changed
+        const oldSnap = await getDoc(customerRef);
+        const oldData = oldSnap.data();
+        
         await updateDoc(customerRef, validatedData);
-        return { success: true, message: 'Customer updated successfully!' };
+
+        // SYNC: Find and update registered client document
+        // We look by the current email or the old email to ensure we catch them
+        const emailsToSearch = [validatedData.email];
+        if (oldData?.email && oldData.email !== validatedData.email) {
+            emailsToSearch.push(oldData.email);
+        }
+
+        for (const email of emailsToSearch) {
+            if (!email) continue;
+            const q = query(collection(db, 'clients'), where('email', '==', email));
+            const snap = await getDocs(q);
+            
+            if (!snap.empty) {
+                const clientRef = snap.docs[0].ref;
+                await updateDoc(clientRef, {
+                    email: validatedData.email,
+                    firstName: validatedData.name.split(' ')[0] || '',
+                    lastName: validatedData.name.split(' ').slice(1).join(' ') || '',
+                    phone: validatedData.phone || '',
+                    companyName: validatedData.company || '',
+                    address: validatedData.address || '',
+                });
+            }
+        }
+
+        return { success: true, message: 'Customer and Client account updated successfully!' };
     } catch (error: any) {
         console.error('Error updating customer:', error);
         if (error instanceof z.ZodError) {
@@ -77,7 +110,6 @@ async function seedInitialCustomers() {
         const customerSnap = await getDoc(customerRef);
 
         if (!customerSnap.exists()) {
-            // Only add the customer if they don't exist by that specific ID
             await setDoc(customerRef, {
                 ...customerData,
                 createdAt: serverTimestamp(),
@@ -108,7 +140,6 @@ export async function getCustomers(): Promise<Customer[]> {
 
     if (needsSeeding) {
         await seedInitialCustomers();
-        // Re-fetch after potentially seeding
         querySnapshot = await getDocs(customersQuery);
     }
     
