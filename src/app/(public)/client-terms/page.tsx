@@ -3,7 +3,7 @@ export default function ClientTermsPage() {
   return (
     <div className="container py-16 md:py-24">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-headline font-bold mb-8">Conditions d'Utilisation de l'Espace Client</h1>
+        <h1 className="text-4xl font-headline font-bold mb-8 text-primary">Conditions d'Utilisation de l'Espace Client</h1>
         <div className="prose prose-lg max-w-none text-muted-foreground space-y-8">
           <section>
             <h2 className="text-2xl font-bold text-zinc-900">1. Objet de l'Espace Client</h2>

@@ -108,7 +108,8 @@ function QuotesPageContent() {
     name: "items"
   });
 
-  // Calculate totals whenever inputs or preference change
+  const watchItems = form.watch("items");
+
   const calculateTotals = () => {
     const values = form.getValues();
     const items = values.items || [];
@@ -148,7 +149,6 @@ function QuotesPageContent() {
     return () => subscription.unsubscribe();
   }, [form, selectedClientPreference]);
 
-  // Force recalculation when preference changes
   useEffect(() => {
     calculateTotals();
   }, [selectedClientPreference]);

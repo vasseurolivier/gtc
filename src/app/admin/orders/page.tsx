@@ -181,8 +181,8 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      const totalAmount = typeof result.newTotal === 'number' ? result.newTotal : 0;
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount } : o));
+      const updatedTotal = Number(result.newTotal) || 0;
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: updatedTotal } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
@@ -193,7 +193,6 @@ export default function OrdersPage() {
     setCalcWeight(totalWeight);
     setCalcTargetId(order.id);
     
-    // Charger automatiquement les tarifs par défaut du client si enregistrés
     const client = registeredClients.find(c => c.id === order.customerId);
     if (client) {
       setCalcRate(client.shippingRatePerKg || 0);
