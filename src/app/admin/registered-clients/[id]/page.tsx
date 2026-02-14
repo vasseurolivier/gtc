@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -25,6 +26,9 @@ import { updateQuoteStatus, deleteQuote, Quote } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, updateEmail, updatePassword, deleteUser } from 'firebase/auth';
+import { firebaseConfig } from '@/firebase/config';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -431,12 +435,51 @@ export default function ClientDetailPage() {
     } finally { setIsSaving(false); }
   };
 
+  /**
+   * Safe Credentials Update using Secondary App Trick (Client-side)
+   * This avoids failing Admin SDK initialization.
+   */
   const handleUpdateCredentials = async () => {
+    if (!client || !loginEmail || !loginPassword) return;
     setIsUpdatingCredentials(true);
-    const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
-    if (result.success) toast({ title: "Identifiants mis à jour" });
-    else toast({ variant: "destructive", title: "Erreur", description: result.message });
-    setIsUpdatingCredentials(false);
+    
+    const secondaryAppName = `update-auth-${Date.now()}`;
+    const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+    const secondaryAuth = getAuth(secondaryApp);
+    
+    try {
+      // 1. Authenticate as the client using current stored credentials
+      // Note: This assumes the admin knows the current password (stored in Firestore)
+      await signInWithEmailAndPassword(secondaryAuth, client.email, client.password!);
+      const secondaryUser = secondaryAuth.currentUser;
+      
+      if (secondaryUser) {
+        // 2. Update Auth Email if changed
+        if (loginEmail !== client.email) {
+          await updateEmail(secondaryUser, loginEmail);
+        }
+        // 3. Update Auth Password if changed
+        if (loginPassword !== client.password) {
+          await updatePassword(secondaryUser, loginPassword);
+        }
+      }
+      
+      // 4. Update Firestore via Server Action
+      const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
+      
+      if (result.success) {
+        toast({ title: "Identifiants mis à jour", description: "Auth et Firestore synchronisés." });
+        setClient({ ...client, email: loginEmail, password: loginPassword });
+      } else {
+        toast({ variant: "destructive", title: "Erreur Firestore", description: result.message });
+      }
+    } catch (e: any) {
+      console.error("Auth update error:", e);
+      toast({ variant: "destructive", title: "Erreur Authentification", description: e.message });
+    } finally {
+      await deleteApp(secondaryApp);
+      setIsUpdatingCredentials(false);
+    }
   };
 
   const handleUpdateShippingRates = async () => {
@@ -493,8 +536,23 @@ export default function ClientDetailPage() {
           <AlertDialog>
             <AlertDialogTrigger asChild><Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</Button></AlertDialogTrigger>
             <AlertDialogContent>
-              <AlertDialogHeader><AlertDialogTitle>Confirmer la suppression ?</AlertDialogTitle><AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription></AlertDialogHeader>
-              <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={async () => { await deleteRegisteredClient(clientId); router.push('/admin/registered-clients'); }}>Supprimer</AlertDialogAction></AlertDialogFooter>
+              <AlertDialogHeader><AlertDialogTitle>Confirmer la suppression ?</AlertDialogTitle><AlertDialogDescription>Cette action supprimera également l'accès Auth du client s'il est possible de s'y connecter.</AlertDialogDescription></AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={async () => {
+                  // Attempt Auth deletion via secondary app
+                  const secondaryAppName = `del-auth-${Date.now()}`;
+                  const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+                  const secondaryAuth = getAuth(secondaryApp);
+                  try {
+                    await signInWithEmailAndPassword(secondaryAuth, client!.email, client!.password!);
+                    if (secondaryAuth.currentUser) await deleteUser(secondaryAuth.currentUser);
+                  } catch(e) {} finally { await deleteApp(secondaryApp); }
+                  
+                  await deleteRegisteredClient(clientId); 
+                  router.push('/admin/registered-clients'); 
+                }}>Supprimer</AlertDialogAction>
+              </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>

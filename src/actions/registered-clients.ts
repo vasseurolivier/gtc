@@ -3,7 +3,6 @@
 
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where, deleteDoc, setDoc } from 'firebase/firestore';
-import { firebaseConfig } from '@/firebase/config';
 
 export interface RegisteredClient {
     id: string;
@@ -56,34 +55,21 @@ export async function getRegisteredClientById(id: string): Promise<RegisteredCli
 }
 
 /**
- * Update client credentials (Email & Password) in Auth and Firestore.
+ * Update client credentials (Email & Password) in Firestore only.
+ * Auth update is handled on the client side via secondary app trick to avoid Admin SDK issues.
  */
 export async function updateClientCredentials(id: string, email: string, password?: string) {
     try {
-        const admin = await import('firebase-admin');
-        if (!admin.apps.length) {
-            admin.initializeApp({
-                projectId: firebaseConfig.projectId
-            });
-        }
-
-        const updateData: any = { email };
-        if (password) updateData.password = password;
-
-        // 1. Update Firebase Auth
-        await admin.auth().updateUser(id, updateData);
-
-        // 2. Update Firestore
         const clientRef = doc(db, 'clients', id);
         const firestoreUpdate: any = { email };
         if (password) firestoreUpdate.password = password;
         
         await updateDoc(clientRef, firestoreUpdate);
 
-        return { success: true, message: 'Identifiants mis à jour avec succès.' };
+        return { success: true, message: 'Firestore mis à jour avec succès.' };
     } catch (e: any) {
-        console.error("Error updating credentials:", e);
-        return { success: false, message: e.message || 'Erreur lors de la mise à jour des identifiants.' };
+        console.error("Error updating credentials in firestore:", e);
+        return { success: false, message: e.message || 'Erreur lors de la mise à jour Firestore.' };
     }
 }
 
@@ -161,32 +147,15 @@ export async function updateRegisteredClientStatus(id: string, status: 'pending'
 }
 
 /**
- * Delete a registered client account record and try to remove their Auth credentials.
+ * Delete a registered client account record from Firestore.
+ * Auth deletion is handled on client side.
  */
 export async function deleteRegisteredClient(id: string) {
     try {
-        // 1. Delete the Firestore document first to clean up the UI
         await deleteDoc(doc(db, 'clients', id));
-
-        // 2. Attempt to delete from Auth via Admin SDK
-        try {
-            const admin = await import('firebase-admin');
-            if (!admin.apps.length) {
-                admin.initializeApp({
-                    projectId: firebaseConfig.projectId
-                });
-            }
-            await admin.auth().deleteUser(id);
-            return { success: true, message: 'Compte supprimé. L\'email est maintenant libre.' };
-        } catch (authError) {
-            // Document is deleted, but Auth record might persist if Admin SDK isn't fully set up
-            return { 
-                success: true, 
-                message: 'Profil supprimé. Note: Veuillez supprimer manuellement l\'email dans la console Firebase (onglet Authentication) pour le rendre à nouveau disponible.' 
-            };
-        }
+        return { success: true, message: 'Profil supprimé de la base de données.' };
     } catch (e: any) {
-        return { success: false, message: 'Erreur lors de la suppression.' };
+        return { success: false, message: 'Erreur lors de la suppression Firestore.' };
     }
 }
 
