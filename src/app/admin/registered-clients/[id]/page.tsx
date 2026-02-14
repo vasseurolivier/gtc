@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -920,7 +921,7 @@ export default function ClientDetailPage() {
                     {editingProduct.images?.map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square border-2 border-white rounded-xl bg-white group shadow-sm overflow-hidden">
                         <img src={url} className="w-full h-full object-contain" alt="" />
-                        <button onClick={() => { const ni = [...editingProduct.images]; ni.splice(i, 1); setEditingProduct({...editingProduct, images: ni}); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
+                        <button type="button" onClick={() => { const ni = [...editingProduct.images]; ni.splice(i, 1); setEditingProduct({...editingProduct, images: ni}); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                       </div>
                     ))}
                     <label className="aspect-square border-2 border-dashed border-zinc-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-primary transition-all group">

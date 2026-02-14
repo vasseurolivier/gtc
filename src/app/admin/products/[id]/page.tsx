@@ -128,29 +128,29 @@ export default function ProductProfilePage() {
 
     return (
         <div className="container py-8">
-            <div className="flex justify-between items-center mb-8">
-                <Button variant="ghost" asChild>
-                    <Link href="/admin/products">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Retour aux produits
-                    </Link>
-                </Button>
-                <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
-                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Enregistrer les modifications
-                </Button>
-            </div>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <div className="flex justify-between items-center mb-8">
+                        <Button variant="ghost" type="button" asChild>
+                            <Link href="/admin/products">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Retour aux produits
+                            </Link>
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            Enregistrer les modifications
+                        </Button>
+                    </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Détails du Produit</CardTitle>
-                            <CardDescription>Informations de base et description commerciale.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Form {...form}>
-                                <form className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Détails du Produit</CardTitle>
+                                    <CardDescription>Informations de base et description commerciale.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
                                     <FormField control={form.control} name="name" render={({ field }) => (
                                         <FormItem><FormLabel>Nom du Produit</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
@@ -165,18 +165,14 @@ export default function ProductProfilePage() {
                                     <FormField control={form.control} name="description" render={({ field }) => (
                                         <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} rows={6} /></FormControl><FormMessage /></FormItem>
                                     )} />
-                                </form>
-                            </Form>
-                        </CardContent>
-                    </Card>
+                                </CardContent>
+                            </Card>
 
-                    <Card className="mt-8">
-                        <CardHeader>
-                            <CardTitle>Logistique & Douane</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Form {...form}>
-                                <form className="space-y-6">
+                            <Card className="mt-8">
+                                <CardHeader>
+                                    <CardTitle>Logistique & Douane</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                         <FormField control={form.control} name="weight" render={({ field }) => (
                                             <FormItem><FormLabel>Poids (kg)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
@@ -199,52 +195,52 @@ export default function ProductProfilePage() {
                                             <FormItem><FormLabel>Pays d'origine</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
                                         )} />
                                     </div>
-                                </form>
-                            </Form>
-                        </CardContent>
-                    </Card>
-                </div>
+                                </CardContent>
+                            </Card>
+                        </div>
 
-                <div className="space-y-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Visuel</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col items-center gap-4">
-                            <div className="w-full aspect-square relative rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                {isUploading ? <Loader2 className="h-12 w-12 animate-spin text-primary" /> : watchImageUrl ? (
-                                    <Image src={watchImageUrl} alt="Produit" fill className="object-contain" />
-                                ) : (
-                                    <UploadCloud className="h-16 w-16 text-muted-foreground" />
-                                )}
-                            </div>
-                            <div className="w-full space-y-2">
-                                <Input type="file" accept="image/*" onChange={handleImageChange} disabled={isUploading} className="cursor-pointer" />
-                                <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                                    <FormItem><FormLabel className="text-xs">URL Directe</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
-                                )} />
-                            </div>
-                        </CardContent>
-                    </Card>
+                        <div className="space-y-8">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Visuel</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-col items-center gap-4">
+                                    <div className="w-full aspect-square relative rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                        {isUploading ? <Loader2 className="h-12 w-12 animate-spin text-primary" /> : watchImageUrl ? (
+                                            <img src={watchImageUrl} alt="Produit" className="object-contain w-full h-full" />
+                                        ) : (
+                                            <UploadCloud className="h-16 w-16 text-muted-foreground" />
+                                        )}
+                                    </div>
+                                    <div className="w-full space-y-2">
+                                        <Input type="file" accept="image/*" onChange={handleImageChange} disabled={isUploading} className="cursor-pointer" />
+                                        <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                                            <FormItem><FormLabel className="text-xs">URL Directe</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                        )} />
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Prix & Stock</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <FormField control={form.control} name="price" render={({ field }) => (
-                                <FormItem><FormLabel>Prix de vente (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
-                            )} />
-                            <FormField control={form.control} name="purchasePrice" render={({ field }) => (
-                                <FormItem><FormLabel>Prix d'achat (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
-                            )} />
-                            <FormField control={form.control} name="stock" render={({ field }) => (
-                                <FormItem><FormLabel>Quantité en stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
-                            )} />
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Prix & Stock</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <FormField control={form.control} name="price" render={({ field }) => (
+                                        <FormItem><FormLabel>Prix de vente (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="purchasePrice" render={({ field }) => (
+                                        <FormItem><FormLabel>Prix d'achat (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="stock" render={({ field }) => (
+                                        <FormItem><FormLabel>Quantité en stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
+                                    )} />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </form>
+            </Form>
         </div>
     );
 }
