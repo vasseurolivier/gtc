@@ -29,7 +29,8 @@ import {
   Hash,
   Building2,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  Search
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +59,7 @@ export default function ClientCatalogPage() {
   const [orderSuffix, setOrderSuffix] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [cart, setCart] = useState<any[]>([]);
   const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
@@ -107,6 +109,16 @@ export default function ClientCatalogPage() {
     }
     fetchAllSourced();
   }, [db, user, clientLists]);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return sourcedProducts;
+    const s = searchTerm.toLowerCase();
+    return sourcedProducts.filter(p => 
+      p.name.toLowerCase().includes(s) || 
+      p.sku?.toLowerCase().includes(s) ||
+      p.description?.toLowerCase().includes(s)
+    );
+  }, [sourcedProducts, searchTerm]);
 
   const cartTotalCny = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.total, 0);
@@ -260,9 +272,19 @@ export default function ClientCatalogPage() {
         )}
       </div>
 
+      <div className="relative max-w-xl">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+        <Input 
+          placeholder="Rechercher un produit dans votre catalogue..." 
+          className="pl-11 h-12 shadow-sm bg-white rounded-xl border-zinc-200"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {isSourcedLoading ? [1,2,3,4].map(i => <div key={i} className="h-64 bg-zinc-100 animate-pulse rounded-2xl" />) : sourcedProducts.length > 0 ? (
-          sourcedProducts.map((p) => (
+        {isSourcedLoading ? [1,2,3,4].map(i => <div key={i} className="h-64 bg-zinc-100 animate-pulse rounded-2xl" />) : filteredProducts.length > 0 ? (
+          filteredProducts.map((p) => (
             <Card key={p.id} className="border-none shadow-md overflow-hidden bg-white hover:ring-2 hover:ring-primary/50 cursor-pointer relative" onClick={() => handleOpenProduct(p)}>
               {Number(p.moq || 1) > 1 && (p.availability !== 'standard_only') && (
                 <Badge className="absolute top-2 right-2 z-10 bg-primary/90 text-[10px] font-black">MOQ PERSO: {p.moq}</Badge>
@@ -272,18 +294,16 @@ export default function ClientCatalogPage() {
               </div>
               <div className="p-4">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">{p.sku}</div>
-                <CardTitle className="text-base mt-1">{p.name}</CardTitle>
+                <CardTitle className="text-base mt-1 line-clamp-1">{p.name}</CardTitle>
                 <div className="mt-2">{renderPrice(p.price, "text-xl font-black text-primary")}</div>
               </div>
             </Card>
           ))
         ) : (
           <div className="col-span-full p-20 text-center bg-white rounded-2xl border-2 border-dashed">
-            <Star className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
-            <p className="text-zinc-500">Votre catalogue est vide. Créez une liste de sourcing pour commencer.</p>
-            <Button variant="link" asChild className="mt-2">
-              <Link href="/client/product-lists">Gérer mes listes</Link>
-            </Button>
+            <Search className="h-12 w-12 mx-auto text-zinc-200 mb-4 opacity-20" />
+            <p className="text-zinc-500">Aucun produit ne correspond à votre recherche.</p>
+            <Button variant="link" onClick={() => setSearchTerm('')}>Afficher tout le catalogue</Button>
           </div>
         )}
       </div>

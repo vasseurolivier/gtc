@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct, getProducts, deleteProduct, updateProduct, Product } from '@/actions/products';
 import { uploadImage } from '@/actions/upload';
-import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, UploadCloud, Eye, Search } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
 
@@ -45,6 +45,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -101,6 +102,16 @@ export default function ProductsPage() {
     }
     fetchProducts();
   }, [router, toast]);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    const s = searchTerm.toLowerCase();
+    return products.filter(p => 
+      p.name.toLowerCase().includes(s) || 
+      p.sku.toLowerCase().includes(s) ||
+      p.category?.toLowerCase().includes(s)
+    );
+  }, [products, searchTerm]);
 
   const handleOpenDialog = (product: Product | null = null) => {
     setEditingProduct(product);
@@ -202,32 +213,45 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Products</h1>
-        <Button onClick={() => handleOpenDialog()}>
+    <div className="container py-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Catalogue Global</h1>
+          <p className="text-muted-foreground">Inventaire principal utilisé pour le sourcing et les PI.</p>
+        </div>
+        <Button onClick={() => handleOpenDialog()} className="bg-primary hover:bg-primary/90 font-bold">
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Product
+          Nouveau Produit
         </Button>
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+        <Input 
+          placeholder="Rechercher par nom, SKU ou catégorie..." 
+          className="pl-10 h-11 shadow-sm bg-white"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle>{editingProduct ? 'Edit Product' : 'Add a New Product'}</DialogTitle>
+              <DialogTitle>{editingProduct ? 'Modifier le Produit' : 'Ajouter un Produit'}</DialogTitle>
               <DialogDescription>
-                Fill in the details below to add or update a product.
+                Remplissez les détails techniques pour le catalogue principal.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-1">
                 <div>
-                    <h3 className="text-lg font-medium mb-2">Basic Information</h3>
+                    <h3 className="text-lg font-medium mb-2">Informations de base</h3>
                     <div className="space-y-4">
                         <FormField control={form.control} name="name" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Product Name</FormLabel>
-                                <FormControl><Input placeholder="e.g., Ceramic Mug" {...field} /></FormControl>
+                                <FormLabel>Nom du produit</FormLabel>
+                                <FormControl><Input placeholder="ex: Mug Céramique" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -241,8 +265,8 @@ export default function ProductsPage() {
                             )} />
                             <FormField control={form.control} name="category" render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <FormControl><Input placeholder="e.g., Kitchenware" {...field} /></FormControl>
+                                <FormLabel>Catégorie</FormLabel>
+                                <FormControl><Input placeholder="ex: Cuisine" {...field} /></FormControl>
                                 <FormMessage />
                                 </FormItem>
                             )} />
@@ -250,7 +274,7 @@ export default function ProductsPage() {
                         <FormField control={form.control} name="description" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Description</FormLabel>
-                                <FormControl><Textarea placeholder="Product details..." {...field} rows={3} /></FormControl>
+                                <FormControl><Textarea placeholder="Détails techniques..." {...field} rows={3} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -260,7 +284,7 @@ export default function ProductsPage() {
                 <Separator />
 
                 <div>
-                    <h3 className="text-lg font-medium mb-2">Product Image</h3>
+                    <h3 className="text-lg font-medium mb-2">Image du produit</h3>
                      <div className="flex items-start gap-4">
                         <div className="w-24 h-24 rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden flex-shrink-0">
                             {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : watchImageUrl ? (
@@ -275,7 +299,7 @@ export default function ProductsPage() {
                               name="imageUrl"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Image URL</FormLabel>
+                                  <FormLabel>URL Image</FormLabel>
                                   <FormControl>
                                     <Input placeholder="https://example.com/image.png" {...field} />
                                   </FormControl>
@@ -283,9 +307,9 @@ export default function ProductsPage() {
                                 </FormItem>
                               )}
                             />
-                            <div className="text-sm text-muted-foreground text-center">OR</div>
+                            <div className="text-sm text-muted-foreground text-center">OU</div>
                              <FormItem>
-                                <FormLabel>Upload File</FormLabel>
+                                <FormLabel>Télécharger un fichier</FormLabel>
                                  <FormControl>
                                     <Input type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="w-full" disabled={isUploading} />
                                 </FormControl>
@@ -297,25 +321,25 @@ export default function ProductsPage() {
                 <Separator />
 
                 <div>
-                    <h3 className="text-lg font-medium mb-2">Pricing & Stock</h3>
+                    <h3 className="text-lg font-medium mb-2">Prix & Stock</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField control={form.control} name="price" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Selling Price (CNY)</FormLabel>
+                                <FormLabel>Prix de vente (CNY)</FormLabel>
                                 <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="purchasePrice" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Cost Price (CNY)</FormLabel>
+                                <FormLabel>Prix d'achat (CNY)</FormLabel>
                                 <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="stock" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Stock Quantity</FormLabel>
+                                <FormLabel>Quantité en stock</FormLabel>
                                 <FormControl><Input type="number" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -326,19 +350,19 @@ export default function ProductsPage() {
                 <Separator />
                 
                 <div>
-                    <h3 className="text-lg font-medium mb-2">Logistics & Customs</h3>
+                    <h3 className="text-lg font-medium mb-2">Logistique & Douane</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <FormField control={form.control} name="weight" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Weight (kg)</FormLabel>
+                                <FormLabel>Poids (kg)</FormLabel>
                                 <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                          <FormField control={form.control} name="countryOfOrigin" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Country of Origin</FormLabel>
-                                <FormControl><Input placeholder="e.g., China" {...field} /></FormControl>
+                                <FormLabel>Pays d'origine</FormLabel>
+                                <FormControl><Input placeholder="ex: China" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -346,21 +370,21 @@ export default function ProductsPage() {
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                         <FormField control={form.control} name="length" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Length (cm)</FormLabel>
+                                <FormLabel>Longueur (cm)</FormLabel>
                                 <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="width" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Width (cm)</FormLabel>
+                                <FormLabel>Largeur (cm)</FormLabel>
                                 <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="height" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Height (cm)</FormLabel>
+                                <FormLabel>Hauteur (cm)</FormLabel>
                                 <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -369,8 +393,8 @@ export default function ProductsPage() {
                     <div className="mt-4">
                          <FormField control={form.control} name="hsCode" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>HS Code (Customs)</FormLabel>
-                                <FormControl><Input placeholder="e.g., 6911.10" {...field} /></FormControl>
+                                <FormLabel>Code Douanier (HS Code)</FormLabel>
+                                <FormControl><Input placeholder="ex: 6911.10" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -379,10 +403,10 @@ export default function ProductsPage() {
 
 
                 <DialogFooter className="pt-4">
-                    <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
+                    <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
                     <Button type="submit" disabled={isSubmitting || isUploading}>
                         {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isUploading ? 'Uploading...' : isSubmitting ? 'Saving...' : editingProduct ? 'Save Changes' : 'Add Product'}
+                        {isUploading ? 'Chargement...' : isSubmitting ? 'Sauvegarde...' : editingProduct ? 'Modifier' : 'Ajouter'}
                     </Button>
                 </DialogFooter>
               </form>
@@ -390,38 +414,39 @@ export default function ProductsPage() {
           </DialogContent>
         </Dialog>
 
-      <Card>
+      <Card className="border-none shadow-md overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
              <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
              </div>
-          ) : products.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="text-center p-16 text-muted-foreground">
-              <p>No products yet.</p>
-              <p className="text-sm mt-2">Click "Add Product" to get started.</p>
+              <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>Aucun produit trouvé.</p>
+              {searchTerm && <Button variant="link" onClick={() => setSearchTerm('')}>Effacer la recherche</Button>}
             </div>
           ) : (
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-zinc-50">
                 <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Product Name</TableHead>
+                  <TableHead className="w-20 pl-6">Image</TableHead>
+                  <TableHead>Nom du produit</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Selling Price</TableHead>
+                  <TableHead>Prix Vente</TableHead>
                   <TableHead>Stock</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right pr-6">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                    <TableCell className="pl-6">
+                      <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden border">
                         {product.imageUrl ? (
-                          <Image src={product.imageUrl} alt={product.name} width={48} height={48} className="object-contain"/>
+                          <Image src={product.imageUrl} alt={product.name} width={48} height={48} className="object-contain w-full h-full"/>
                         ) : (
-                          <div className="text-xs text-muted-foreground">No Img</div>
+                          <Package className="h-4 w-4 text-muted-foreground" />
                         )}
                       </div>
                     </TableCell>
@@ -430,13 +455,13 @@ export default function ProductsPage() {
                         {product.name}
                       </Link>
                     </TableCell>
-                    <TableCell>{product.sku}</TableCell>
+                    <TableCell className="font-mono text-xs">{product.sku}</TableCell>
                     <TableCell>
-                        <div>¥{(product.price).toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">{currency.symbol}{(product.price * exchangeRate).toFixed(2)}</div>
+                        <div className="font-bold">¥{(product.price).toFixed(2)}</div>
+                        <div className="text-[10px] text-zinc-400">{currency.symbol}{(product.price * exchangeRate).toFixed(2)}</div>
                     </TableCell>
                     <TableCell>{product.stock}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right pr-6">
                        <Button variant="ghost" size="icon" asChild>
                           <Link href={`/admin/products/${product.id}`}>
                             <Eye className="h-4 w-4" />
@@ -453,15 +478,15 @@ export default function ProductsPage() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogTitle>Confirmer la suppression ?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the product.
+                                    Cette action est irréversible. Le produit sera supprimé de l'inventaire global.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>
-                                    Delete
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteProduct(product.id)} className="bg-destructive text-destructive-foreground">
+                                    Supprimer
                                 </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
