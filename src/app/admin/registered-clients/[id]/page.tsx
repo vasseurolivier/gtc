@@ -435,10 +435,6 @@ export default function ClientDetailPage() {
     } finally { setIsSaving(false); }
   };
 
-  /**
-   * Safe Credentials Update using Secondary App Trick (Client-side)
-   * This avoids failing Admin SDK initialization.
-   */
   const handleUpdateCredentials = async () => {
     if (!client || !loginEmail || !loginPassword) return;
     setIsUpdatingCredentials(true);
@@ -448,34 +444,33 @@ export default function ClientDetailPage() {
     const secondaryAuth = getAuth(secondaryApp);
     
     try {
-      // 1. Authenticate as the client using current stored credentials
-      // Note: This assumes the admin knows the current password (stored in Firestore)
       await signInWithEmailAndPassword(secondaryAuth, client.email, client.password!);
       const secondaryUser = secondaryAuth.currentUser;
       
       if (secondaryUser) {
-        // 2. Update Auth Email if changed
         if (loginEmail !== client.email) {
           await updateEmail(secondaryUser, loginEmail);
         }
-        // 3. Update Auth Password if changed
         if (loginPassword !== client.password) {
           await updatePassword(secondaryUser, loginPassword);
         }
       }
       
-      // 4. Update Firestore via Server Action
       const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
       
       if (result.success) {
-        toast({ title: "Identifiants mis à jour", description: "Auth et Firestore synchronisés." });
+        toast({ title: "Identifiants mis à jour" });
         setClient({ ...client, email: loginEmail, password: loginPassword });
       } else {
         toast({ variant: "destructive", title: "Erreur Firestore", description: result.message });
       }
     } catch (e: any) {
       console.error("Auth update error:", e);
-      toast({ variant: "destructive", title: "Erreur Authentification", description: e.message });
+      let errorMsg = e.message;
+      if (e.code === 'auth/operation-not-allowed') {
+        errorMsg = "Veuillez activer la 'Modification de l'adresse e-mail' dans votre Console Firebase (Auth > Paramètres > Protection des comptes).";
+      }
+      toast({ variant: "destructive", title: "Erreur Authentification", description: errorMsg });
     } finally {
       await deleteApp(secondaryApp);
       setIsUpdatingCredentials(false);
@@ -514,16 +509,6 @@ export default function ClientDetailPage() {
     }
   };
 
-  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
-    const priceEur = priceCny * rate;
-    return (
-      <div className="flex flex-col">
-        <div className={mainClass}>€{priceEur.toFixed(2)}</div>
-        <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
-      </div>
-    );
-  };
-
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
 
   return (
@@ -540,7 +525,6 @@ export default function ClientDetailPage() {
               <AlertDialogFooter>
                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                 <AlertDialogAction onClick={async () => {
-                  // Attempt Auth deletion via secondary app
                   const secondaryAppName = `del-auth-${Date.now()}`;
                   const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
                   const secondaryAuth = getAuth(secondaryApp);
@@ -722,7 +706,7 @@ export default function ClientDetailPage() {
                                 </SelectContent>
                               </Select>
                             </TableCell>
-                            <TableCell className="text-right">{renderPrice(order.totalAmount, "font-black text-zinc-900")}</TableCell>
+                            <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
                               <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
                               <Button variant="secondary" size="sm" className="h-8 text-[10px] font-black uppercase tracking-tighter" onClick={() => handleNavigateToQuote(order.id)}><Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "Générer PI"}</Button>
