@@ -17,7 +17,6 @@ import { ArrowLeft, Loader2, Save, UploadCloud } from 'lucide-react';
 import Link from 'next/link';
 import { CurrencyContext } from '@/context/currency-context';
 import { Separator } from '@/components/ui/separator';
-import Image from 'next/image';
 import { uploadImage } from '@/actions/upload';
 
 const formSchema = z.object({
@@ -117,7 +116,7 @@ export default function ProductProfilePage() {
         setIsSubmitting(true);
         const result = await updateProduct(id!, values);
         if (result.success) {
-            toast({ title: 'Succès', description: 'Produit mis à jour.' });
+            toast({ title: 'Succès', description: result.message });
         } else {
             toast({ variant: 'destructive', title: 'Erreur', description: result.message });
         }
@@ -144,7 +143,7 @@ export default function ProductProfilePage() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-2 space-y-8">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Détails du Produit</CardTitle>
@@ -168,7 +167,7 @@ export default function ProductProfilePage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="mt-8">
+                            <Card>
                                 <CardHeader>
                                     <CardTitle>Logistique & Douane</CardTitle>
                                 </CardHeader>

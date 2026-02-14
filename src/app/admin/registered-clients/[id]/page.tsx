@@ -197,7 +197,7 @@ export default function ClientDetailPage() {
     return { totalOrders, processingOrders, totalRevenue, pendingBalance };
   }, [orders, invoices]);
 
-  // Priority Sorting Logic (Actionable first, then date desc)
+  // Priority Sorting
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
@@ -281,7 +281,6 @@ export default function ClientDetailPage() {
     const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
     setCalcWeight(totalWeight);
     setCalcTargetId(order.id);
-    // Use client defaults if available
     setCalcRate(parseFloat(shippingRate) || 0);
     setCalcFixed(parseFloat(shippingFee) || 0);
     setIsCalcOpen(true);
