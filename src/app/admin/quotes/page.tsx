@@ -12,8 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,9 +22,8 @@ import { addQuote, getQuotes, deleteQuote, updateQuoteStatus, updateQuote, Quote
 import { getCustomers, Customer } from '@/actions/customers';
 import { getRegisteredClients, RegisteredClient, getRegisteredClientById } from '@/actions/registered-clients';
 import { getProducts, Product, addProduct } from '@/actions/products';
-import { getPackingListById } from '@/actions/packing-lists';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, CalendarIcon, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon, Package, ShieldCheck } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Copy, Eye, Pencil, UploadCloud, Save, Link as LinkIcon, Package, ShieldCheck, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -33,7 +31,6 @@ import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Switch } from '@/components/ui/switch';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
@@ -112,39 +109,7 @@ function QuotesPageContent() {
   });
 
   const watchItems = form.watch("items");
-  const watchTransportCost = form.watch("transportCost");
-  const watchCommissionRate = form.watch("commissionRate");
-  const watchDepositRequired = form.watch("depositRequired");
   
-  const [isSavingProduct, setIsSavingProduct] = useState<number | null>(null);
-  
-  const handleSaveAsProduct = async (index: number) => {
-    const item = form.getValues(`items.${index}`);
-    if (!item.description) return;
-    setIsSavingProduct(index);
-    try {
-        const result = await addProduct({
-            name: item.description,
-            sku: item.sku || `SKU-${Date.now().toString().slice(-8)}`,
-            price: item.unitPrice,
-            purchasePrice: item.purchasePrice || 0,
-            imageUrl: item.photo || '',
-            stock: 0,
-            weight: item.weight || 0,
-            height: 0,
-            width: 0,
-            length: 0,
-        });
-        if (result.success) {
-            toast({ title: 'Produit Sauvegardé' });
-            const fetchedProducts = await getProducts();
-            setProducts(fetchedProducts);
-        }
-    } finally {
-        setIsSavingProduct(null);
-    }
-  };
-
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
         if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
@@ -183,7 +148,6 @@ function QuotesPageContent() {
       router.push('/admin/login');
       return;
     }
-    const packingListId = searchParams.get('fromPackingList');
     const orderId = searchParams.get('fromOrder');
     async function fetchData() {
       setIsLoading(true);
@@ -335,11 +299,6 @@ function QuotesPageContent() {
   };
 
   const subTotalValue = form.watch('subTotal') || 0;
-  const commissionRateValue = form.watch('commissionRate') || 0;
-  const transportCostValue = form.watch('transportCost') || 0;
-  const commissionAmountValue = selectedClientPreference === 'total' 
-    ? (subTotalValue + transportCostValue) * (commissionRateValue / 100) 
-    : subTotalValue * (commissionRateValue / 100);
   const totalAmountValue = form.watch('totalAmount') || 0;
 
   const ongoingQuotes = quotes.filter(q => q.status === 'draft' || q.status === 'sent');
@@ -376,7 +335,9 @@ function QuotesPageContent() {
                   <Button variant="ghost" size="icon" asChild title="Voir PDF"><Link href={`/admin/quotes/${quote.id}`}><Eye className="h-4 w-4" /></Link></Button>
                   <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} disabled={isLocked} className={cn(isLocked && "opacity-20")}><Pencil className="h-4 w-4" /></Button>
                   {!isLocked && (
-                    <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+                    <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent>
+                      <AlertDialogHeader><AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle><AlertDialogDescription>Cette action supprimera définitivement ce document.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteQuote(quote.id)}>Supprimer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
                   )}
               </TableCell>
             </TableRow>
@@ -443,7 +404,10 @@ function QuotesPageContent() {
                   </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">
-                    <div className="space-y-2"><Label className="text-xs">Base Commission : {selectedClientPreference === 'total' ? 'Total (Articles + Port)' : 'Articles uniquement'}</Label><FormField control={form.control} name="notes" render={({ field }) => ( <FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} rows={4} /></FormControl></FormItem> )} /></div>
+                    <div className="space-y-2">
+                        <Label className="text-xs">Base Commission : {selectedClientPreference === 'total' ? 'Total (Articles + Port)' : 'Articles uniquement'}</Label>
+                        <FormField control={form.control} name="notes" render={({ field }) => ( <FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} rows={4} /></FormControl></FormItem> )} />
+                    </div>
                     <div className="bg-zinc-950 text-white p-6 rounded-2xl space-y-3">
                         <div className="flex justify-between text-sm"><span>Sous-total</span><span>¥{subTotalValue.toFixed(2)}</span></div>
                         <div className="grid grid-cols-2 gap-4 items-center"><span>Port (CNY)</span><FormField control={form.control} name="transportCost" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.01" className="bg-white/10 h-8" {...field} /></FormControl></FormItem> )}/></div>
