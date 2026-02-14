@@ -442,25 +442,37 @@ export default function ClientDetailPage() {
     const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
     const secondaryAuth = getAuth(secondaryApp);
     try {
+      // 1. Tenter de mettre à jour Firebase Auth
       await signInWithEmailAndPassword(secondaryAuth, client.email, client.password!);
       const secondaryUser = secondaryAuth.currentUser;
       if (secondaryUser) {
-        if (loginEmail !== client.email) await updateEmail(secondaryUser, loginEmail);
+        if (loginEmail !== client.email) {
+          try {
+            await updateEmail(secondaryUser, loginEmail);
+          } catch (authError: any) {
+            if (authError.code === 'auth/operation-not-allowed') {
+              toast({ 
+                variant: "destructive", 
+                title: "Login non modifié", 
+                description: "Le nouvel email sera utilisé pour les factures, mais le LOGIN reste l'ancien. Activez 'Modification de l'adresse e-mail' dans votre console Firebase (Authentication > Settings) pour permettre ce changement." 
+              });
+            } else throw authError;
+          }
+        }
         if (loginPassword !== client.password) await updatePassword(secondaryUser, loginPassword);
       }
+      
+      // 2. Toujours mettre à jour Firestore pour que les documents soient corrects
       const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
       if (result.success) {
-        toast({ title: "Identifiants mis à jour" });
+        toast({ title: "Identifiants Firestore à jour" });
         setClient({ ...client, email: loginEmail, password: loginPassword });
-      } else {
-        toast({ variant: "destructive", title: "Erreur Firestore", description: result.message });
       }
     } catch (e: any) {
-      console.warn("Auth update limited:", e.message);
-      // Failover: just update Firestore if Auth is restricted
+      console.warn("Auth update process error:", e.message);
       const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
       if (result.success) {
-        toast({ title: "Identifiants Firestore mis à jour", description: "L'email a été mis à jour pour vos documents mais peut nécessiter une activation console pour la connexion." });
+        toast({ title: "Profil mis à jour", description: "Le nouvel email sera utilisé pour vos documents." });
         setClient({ ...client, email: loginEmail, password: loginPassword });
       }
     } finally {
@@ -510,6 +522,10 @@ export default function ClientDetailPage() {
       toast({ title: "Devise mise à jour" });
       setClient(prev => prev ? { ...prev, currencyPreference: pref } : null);
     }
+  };
+
+  const handleNavigateToQuote = (orderId: string) => {
+    router.push(`/admin/quotes?fromOrder=${orderId}`);
   };
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -798,7 +814,7 @@ export default function ClientDetailPage() {
                         <TableRow key={i.id} className={cn(i.status !== 'paid' && "bg-red-50/20")}>
                           <TableCell className="font-black pl-6">{i.invoiceNumber}</TableCell>
                           <TableCell className="text-xs font-medium text-zinc-400">{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell><Badge className={cn("text-[9px] font-black uppercase", i.status === 'paid' ? 'bg-green-500' : 'bg-red-500')}>{i.status}</Badge></TableCell>
+                          <TableCell><Badge className={cn("text-[9px] font-black uppercase", i.status === 'paid' ? 'bg-green-500' : 'bg-red-500')}>{i.status === 'paid' ? 'Acquittée' : 'À régler'}</Badge></TableCell>
                           <TableCell className="text-right font-black">¥{i.totalAmount.toFixed(2)}</TableCell>
                           <TableCell className="text-right pr-6 space-x-1">
                             <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button>

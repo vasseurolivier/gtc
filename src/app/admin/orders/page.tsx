@@ -313,7 +313,7 @@ export default function OrdersPage() {
                   disabled={isLocked && order.status !== 'processing'}
                 >
                   <SelectTrigger className="w-32 h-8 text-xs">
-                    {getStatusBadgeVariant(order.status) === 'default' ? <Badge>{order.status}</Badge> : <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>}
+                    <Badge variant={getStatusBadgeVariant(order.status) === 'default' ? 'default' : getStatusBadgeVariant(order.status)}>{order.status}</Badge>
                   </SelectTrigger>
                   <SelectContent>
                       <SelectItem value="processing">En cours</SelectItem>
@@ -527,7 +527,7 @@ export default function OrdersPage() {
               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border">
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400">Statut</span>
-                  <div>{getStatusBadgeVariant(selectedOrderPreview.status) === 'default' ? <Badge>{selectedOrderPreview.status}</Badge> : <Badge variant={getStatusBadgeVariant(selectedOrderPreview.status)}>{selectedOrderPreview.status}</Badge>}</div>
+                  <div><Badge variant={getStatusBadgeVariant(selectedOrderPreview.status) === 'default' ? 'default' : getStatusBadgeVariant(selectedOrderPreview.status)}>{selectedOrderPreview.status}</Badge></div>
                 </div>
                 <div className="text-right space-y-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400">Total</span>
