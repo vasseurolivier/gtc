@@ -298,11 +298,7 @@ export default function OrdersPage() {
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
               <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  {order.orderNumber}
-                  {isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}
-                  {isLocked && <ShieldCheck className="h-3 w-3 text-green-600" />}
-                </div>
+                <div className="flex items-center gap-2">{order.orderNumber}{isNewNotification && <Badge className="bg-red-500 text-[8px] h-4 px-1">NEW</Badge>}{isLocked && <ShieldCheck className="h-3 w-3 text-green-600" />}</div>
               </TableCell>
               <TableCell>
                 <Link href={`/admin/registered-clients/${order.customerId}`} className="hover:underline font-semibold">

@@ -444,7 +444,7 @@ export default function ProductsPage() {
                     <TableCell className="pl-6">
                       <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden border">
                         {product.imageUrl ? (
-                          <Image src={product.imageUrl} alt={product.name} width={48} height={48} className="object-contain w-full h-full"/>
+                          <Image src={product.imageUrl} alt={product.name} width={48} height={48} className="object-contain w-full h-full" unoptimized />
                         ) : (
                           <Package className="h-4 w-4 text-muted-foreground" />
                         )}

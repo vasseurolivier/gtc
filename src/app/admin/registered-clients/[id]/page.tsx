@@ -301,10 +301,6 @@ export default function ClientDetailPage() {
     toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône (V) pour enregistrer." });
   };
 
-  const handleNavigateToQuote = (orderId: string) => {
-    router.push(`/admin/quotes?fromOrder=${orderId}`);
-  };
-
   const aggregateProducts = async () => {
     if (!db || !clientId || !productLists) return;
     try {
@@ -460,9 +456,13 @@ export default function ClientDetailPage() {
         toast({ variant: "destructive", title: "Erreur Firestore", description: result.message });
       }
     } catch (e: any) {
-      let errorMsg = e.message;
-      if (e.code === 'auth/operation-not-allowed') errorMsg = "Activez la 'Modification de l'adresse e-mail' dans Firebase console.";
-      toast({ variant: "destructive", title: "Erreur Authentification", description: errorMsg });
+      console.warn("Auth update limited:", e.message);
+      // Failover: just update Firestore if Auth is restricted
+      const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
+      if (result.success) {
+        toast({ title: "Identifiants Firestore mis à jour", description: "L'email a été mis à jour pour vos documents mais peut nécessiter une activation console pour la connexion." });
+        setClient({ ...client, email: loginEmail, password: loginPassword });
+      }
     } finally {
       await deleteApp(secondaryApp);
       setIsUpdatingCredentials(false);
