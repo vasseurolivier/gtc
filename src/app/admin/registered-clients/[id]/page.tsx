@@ -71,7 +71,8 @@ import {
   Phone,
   Globe,
   Truck,
-  Scale
+  Scale,
+  Image as ImageIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -373,8 +374,8 @@ export default function ClientDetailPage() {
         await setDoc(listRef, {
           id: listId,
           clientId: clientId,
-          name: 'Catalogue',
-          description: 'Liste de produits par défaut',
+          name: 'Catalogue par défaut',
+          description: 'Liste générée automatiquement',
           createdAt: new Date().toISOString(),
         });
         listIdToUse = listId;

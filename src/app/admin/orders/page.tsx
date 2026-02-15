@@ -181,7 +181,7 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: result.newTotal || o.totalAmount } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: (result.newTotal ?? o.totalAmount) as number } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
