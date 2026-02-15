@@ -361,11 +361,33 @@ export default function ClientDetailPage() {
     }
   };
 
-  const handleAddNewProduct = () => {
+  const handleAddNewProduct = async () => {
+    let listIdToUse = '';
+    
     if (!productLists || productLists.length === 0) {
-      toast({ variant: "destructive", title: "Liste requise", description: "Veuillez créer une liste de produits pour ce client." });
-      return;
+      // Automatiquement créer une liste "Catalogue" si aucune n'existe
+      setIsSaving(true);
+      try {
+        const listId = `LST-AUTO-${Date.now()}`;
+        const listRef = doc(db!, 'clients', clientId, 'productLists', listId);
+        await setDoc(listRef, {
+          id: listId,
+          clientId: clientId,
+          name: 'Catalogue',
+          description: 'Liste de produits par défaut',
+          createdAt: new Date().toISOString(),
+        });
+        listIdToUse = listId;
+      } catch (e) {
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de créer le catalogue par défaut." });
+        setIsSaving(false);
+        return;
+      }
+      setIsSaving(false);
+    } else {
+      listIdToUse = productLists[0].id;
     }
+
     setEditingProduct({
       id: `PROD-MANUAL-${Date.now()}`,
       name: '',
@@ -377,7 +399,7 @@ export default function ClientDetailPage() {
       hasSizeSelection: false,
       availability: 'both',
       moq: 1,
-      listId: productLists[0].id,
+      listId: listIdToUse,
       status: 'published',
       clientId: clientId
     });
