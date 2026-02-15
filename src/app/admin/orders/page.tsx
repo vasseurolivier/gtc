@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,7 +26,6 @@ import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -181,9 +181,7 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      const currentOrder = orders.find(o => o.id === orderId);
-      const updatedTotal = Number(result.newTotal) || (currentOrder?.totalAmount || 0);
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: updatedTotal } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: result.newTotal || o.totalAmount } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }

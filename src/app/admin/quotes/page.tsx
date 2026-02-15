@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,7 +24,8 @@ import { getCustomers, Customer } from '@/actions/customers';
 import { getRegisteredClients, RegisteredClient, getRegisteredClientById } from '@/actions/registered-clients';
 import { getProducts, Product } from '@/actions/products';
 import { getOrderById } from '@/actions/orders';
-import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { uploadImage } from '@/actions/upload';
+import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon, Image as ImageIcon, UploadCloud } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -56,6 +58,7 @@ const formSchema = z.object({
   subTotal: z.coerce.number(),
   transportCost: z.coerce.number().nonnegative("Transport cost cannot be negative.").optional().default(0),
   commissionRate: z.coerce.number().min(0).max(100).optional().default(0),
+  commissionBasis: z.enum(['products_only', 'total']).default('products_only'),
   totalAmount: z.coerce.number(),
   status: quoteStatusSchema,
   shippingAddress: z.string().optional(),
@@ -76,7 +79,7 @@ function QuotesPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
-  const [selectedClientPreference, setSelectedClientPreference] = useState<'products_only' | 'total'>('products_only');
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
 
   const currencyContext = useContext(CurrencyContext);
   if (!currencyContext) {
@@ -94,6 +97,7 @@ function QuotesPageContent() {
       subTotal: 0,
       transportCost: 0,
       commissionRate: 0,
+      commissionBasis: 'products_only',
       totalAmount: 0,
       status: "draft",
       shippingAddress: "",
@@ -109,6 +113,7 @@ function QuotesPageContent() {
   });
 
   const watchItems = form.watch("items");
+  const watchBasis = form.watch("commissionBasis");
 
   const calculateTotals = () => {
     const values = form.getValues();
@@ -127,9 +132,10 @@ function QuotesPageContent() {
 
     const transportCost = Number(values.transportCost) || 0;
     const commissionRate = Number(values.commissionRate) || 0;
+    const basis = values.commissionBasis;
     
     let totalAmount = 0;
-    if (selectedClientPreference === 'total') {
+    if (basis === 'total') {
       totalAmount = (currentSubTotal + transportCost) * (1 + commissionRate / 100);
     } else {
       const commissionAmount = currentSubTotal * (commissionRate / 100);
@@ -142,17 +148,13 @@ function QuotesPageContent() {
 
   useEffect(() => {
     const subscription = form.watch((_value, { name }) => {
-      if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate')) {
+      if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate' || name === 'commissionBasis')) {
         calculateTotals();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form, selectedClientPreference]);
+  }, [form]);
 
-  useEffect(() => {
-    calculateTotals();
-  }, [selectedClientPreference]);
-  
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
@@ -180,7 +182,7 @@ function QuotesPageContent() {
           const order = await getOrderById(orderId);
           if (order) {
             const clientData = await getRegisteredClientById(order.customerId);
-            if (clientData) setSelectedClientPreference(clientData.commissionBasis || 'products_only');
+            const basis = clientData?.commissionBasis || 'products_only';
             const newItems = order.items.map(item => ({
               sku: item.sku || "",
               description: item.description,
@@ -203,6 +205,7 @@ function QuotesPageContent() {
               subTotal: itemsTotal,
               transportCost: order.transportCost || 0,
               commissionRate: order.commissionRate || 0,
+              commissionBasis: basis,
               totalAmount: order.totalAmount,
               status: "draft",
               shippingAddress: order.shippingAddress || "",
@@ -226,13 +229,13 @@ function QuotesPageContent() {
                     subTotal: 0,
                     transportCost: 0,
                     commissionRate: 0,
+                    commissionBasis: isReg ? (client as any).commissionBasis : 'products_only',
                     totalAmount: 0,
                     status: "draft",
                     shippingAddress: (client as any).address || "",
                     depositRequired: true,
                     depositPercentage: 30,
                 });
-                if (isReg) setSelectedClientPreference((client as any).commissionBasis || 'products_only');
                 setIsDialogOpen(true);
                 router.replace('/admin/quotes');
             }
@@ -246,9 +249,6 @@ function QuotesPageContent() {
   const handleOpenDialog = (quote: Quote | null = null) => {
     setEditingQuote(quote);
     if (quote) {
-        getRegisteredClientById(quote.customerId).then(c => { 
-          if(c) setSelectedClientPreference(c.commissionBasis || 'products_only'); 
-        });
         form.reset({
             ...quote,
             issueDate: new Date(quote.issueDate),
@@ -256,9 +256,9 @@ function QuotesPageContent() {
             items: quote.items.map(item => ({...item, photo: item.photo || '', weight: item.weight || 0})),
             depositRequired: quote.depositRequired !== false,
             depositPercentage: quote.depositPercentage || 30,
+            commissionBasis: (quote as any).commissionBasis || 'products_only',
         });
     } else {
-        setSelectedClientPreference('products_only');
         form.reset({
             quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
             issueDate: new Date(),
@@ -267,6 +267,7 @@ function QuotesPageContent() {
             subTotal: 0,
             transportCost: 0,
             commissionRate: 0,
+            commissionBasis: 'products_only',
             totalAmount: 0,
             status: "draft",
             shippingAddress: "",
@@ -284,11 +285,11 @@ function QuotesPageContent() {
     if (registered) {
         form.setValue("customerId", registered.id);
         form.setValue("customerName", `${registered.firstName} ${registered.lastName}`);
-        setSelectedClientPreference(registered.commissionBasis || 'products_only');
+        form.setValue("commissionBasis", registered.commissionBasis || 'products_only');
     } else if (lead) {
         form.setValue("customerId", lead.id);
         form.setValue("customerName", lead.name);
-        setSelectedClientPreference('products_only');
+        form.setValue("commissionBasis", 'products_only');
     }
   };
 
@@ -303,6 +304,21 @@ function QuotesPageContent() {
         form.setValue(`items.${index}.weight`, product.weight || 0);
         calculateTotals();
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingIdx(index);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'proforma-manual');
+    const result = await uploadImage(formData);
+    if (result.success && result.url) {
+      form.setValue(`items.${index}.photo`, result.url);
+      toast({ title: "Image chargée" });
+    }
+    setUploadingIdx(null);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -437,8 +453,19 @@ function QuotesPageContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Textarea placeholder="Désignation de l'article..." {...f} rows={2} /></FormControl></FormItem> )} />
                                     <div className="space-y-2">
-                                        <Label className="text-[10px] uppercase font-bold flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Photo URL</Label>
-                                        <FormField control={form.control} name={`items.${index}.photo`} render={({ field: f }) => ( <FormItem><FormControl><Input placeholder="https://..." {...f} /></FormControl></FormItem> )} />
+                                        <Label className="text-[10px] uppercase font-bold flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Image Article</Label>
+                                        <div className="flex gap-2">
+                                          <div className="w-16 h-16 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden shrink-0">
+                                            {uploadingIdx === index ? <Loader2 className="h-4 w-4 animate-spin" /> : watchItems[index]?.photo ? <img src={watchItems[index].photo} className="object-contain w-full h-full" alt="" /> : <ImageIcon className="h-6 w-6 text-zinc-300" />}
+                                          </div>
+                                          <div className="flex-grow space-y-1">
+                                            <FormField control={form.control} name={`items.${index}.photo`} render={({ field: f }) => ( <FormItem><FormControl><Input placeholder="URL photo..." {...f} className="h-7 text-[10px]" /></FormControl></FormItem> )} />
+                                            <label className="flex items-center gap-2 cursor-pointer bg-zinc-100 hover:bg-zinc-200 px-3 h-7 rounded text-[10px] font-bold transition-colors">
+                                              <UploadCloud className="h-3 w-3" /> {uploadingIdx === index ? "Envoi..." : "Envoyer fichier"}
+                                              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, index)} disabled={uploadingIdx !== null} />
+                                            </label>
+                                          </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-4 gap-4 items-end">
@@ -453,8 +480,34 @@ function QuotesPageContent() {
                   </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">
-                    <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase text-zinc-400">Base Commission : {selectedClientPreference === 'total' ? 'Total (Articles + Port)' : 'Articles uniquement'}</Label>
+                    <div className="space-y-4">
+                        <div className="p-4 bg-white border rounded-2xl shadow-sm space-y-3">
+                          <Label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Base de Commission</Label>
+                          <FormField
+                            control={form.control}
+                            name="commissionBasis"
+                            render={({ field }) => (
+                              <FormItem className="space-y-3">
+                                <FormControl>
+                                  <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-col space-y-1"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="products_only" id="pi-basis-prod" />
+                                      <Label htmlFor="pi-basis-prod" className="text-xs font-bold cursor-pointer">Articles uniquement</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="total" id="pi-basis-total" />
+                                      <Label htmlFor="pi-basis-total" className="text-xs font-bold cursor-pointer">Total (Articles + Transport)</Label>
+                                    </div>
+                                  </RadioGroup>
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         <FormField control={form.control} name="notes" render={({ field }) => ( <FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} rows={4} /></FormControl></FormItem> )} />
                     </div>
                     <div className="bg-zinc-950 text-white p-6 rounded-2xl space-y-3">

@@ -174,11 +174,11 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: invoices } = useCollection(invoicesQuery);
 
-  const listsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
+  const productListsQuery = useMemoFirebase(() => {
+    if (!db || !clientId) return null;
     return collection(db, 'clients', clientId, 'productLists');
-  }, [db, user]);
-  const { data: productLists } = useCollection(listsQuery);
+  }, [db, clientId]);
+  const { data: productLists } = useCollection(productListsQuery);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
@@ -493,9 +493,10 @@ export default function ClientDetailPage() {
     if (result.success) setClient({ ...client, status: newStatus } as RegisteredClient);
   };
 
-  const handleUpdateNumber = async () => {
+  const handleUpdateNumber = async (id: string) => {
+    const newNumber = clientNumber;
     setIsSaving(true);
-    const result = await updateRegisteredClientNumber(clientId, clientNumber);
+    const result = await updateRegisteredClientNumber(id, newNumber);
     if (result.success) toast({ title: "Numéro client sauvé" });
     setIsSaving(false);
   };
@@ -624,7 +625,7 @@ export default function ClientDetailPage() {
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
+                <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={() => handleUpdateNumber(clientId)} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
                 
                 <div className="space-y-4 pt-6 border-t">
                   <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Base de calcul transport</h4>
