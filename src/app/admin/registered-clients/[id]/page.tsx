@@ -175,9 +175,9 @@ export default function ClientDetailPage() {
   const { data: invoices } = useCollection(invoicesQuery);
 
   const listsQuery = useMemoFirebase(() => {
-    if (!db || !clientId) return null;
+    if (!db || !user) return null;
     return collection(db, 'clients', clientId, 'productLists');
-  }, [db, clientId]);
+  }, [db, user]);
   const { data: productLists } = useCollection(listsQuery);
 
   const ordersQuery = useMemoFirebase(() => {

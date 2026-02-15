@@ -290,7 +290,7 @@ export default function ProductsPage() {
                             {isUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : watchImageUrl ? (
                                 <Image src={watchImageUrl} alt="Product image" width={96} height={96} className="object-contain" unoptimized />
                             ) : (
-                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                <Package className="h-8 w-8 text-muted-foreground" />
                             )}
                         </div>
                         <div className="space-y-2 w-full">
