@@ -25,7 +25,7 @@ import { getRegisteredClients, RegisteredClient, getRegisteredClientById } from 
 import { getProducts, Product } from '@/actions/products';
 import { getOrderById } from '@/actions/orders';
 import { uploadImage } from '@/actions/upload';
-import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon, Image as ImageIcon, UploadCloud, Globe } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Pencil, Package, ShieldCheck, Sparkles, Link as LinkIcon, Image as ImageIcon, UploadCloud } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

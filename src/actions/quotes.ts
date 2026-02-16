@@ -72,12 +72,28 @@ export async function addQuote(values: any) {
     try {
         const currentRate = await getGlobalExchangeRate();
         const quoteId = `QT-${Date.now()}`;
+        
+        // Calculate correctly based on basis
+        const subTotal = values.items.reduce((sum: number, i: any) => sum + (Number(i.quantity) * Number(i.unitPrice)), 0);
+        const transport = Number(values.transportCost) || 0;
+        const commRate = Number(values.commissionRate) || 0;
+        const basis = values.commissionBasis || 'products_only';
+        
+        let totalAmount = 0;
+        if (basis === 'total') {
+            totalAmount = (subTotal + transport) * (1 + commRate / 100);
+        } else {
+            totalAmount = subTotal * (1 + commRate / 100) + transport;
+        }
+
         const data = {
             ...values,
             id: quoteId,
+            subTotal,
+            totalAmount,
             exchangeRate: currentRate,
             createdAt: serverTimestamp(),
-            // Ensure dates are ISO strings for serialization
+            updatedAt: serverTimestamp(),
             issueDate: values.issueDate instanceof Date ? values.issueDate.toISOString() : parseDate(values.issueDate),
             validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil),
         };
@@ -105,12 +121,27 @@ export async function updateQuote(id: string, values: any) {
         if (!quoteSnap.exists()) return { success: false, message: "Quote not found" };
         const quoteData = quoteSnap.data();
 
+        // Recalculate totals
+        const items = values.items || quoteData.items;
+        const subTotal = items.reduce((sum: number, i: any) => sum + (Number(i.quantity) * Number(i.unitPrice)), 0);
+        const transport = values.transportCost !== undefined ? Number(values.transportCost) : (quoteData.transportCost || 0);
+        const commRate = values.commissionRate !== undefined ? Number(values.commissionRate) : (quoteData.commissionRate || 0);
+        const basis = values.commissionBasis || quoteData.commissionBasis || 'products_only';
+
+        let totalAmount = 0;
+        if (basis === 'total') {
+            totalAmount = (subTotal + transport) * (1 + commRate / 100);
+        } else {
+            totalAmount = subTotal * (1 + commRate / 100) + transport;
+        }
+
         const updateData = {
             ...values,
+            subTotal,
+            totalAmount,
             updatedAt: serverTimestamp(),
-            // Ensure dates are ISO strings
-            issueDate: values.issueDate instanceof Date ? values.issueDate.toISOString() : parseDate(values.issueDate),
-            validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil),
+            issueDate: values.issueDate instanceof Date ? values.issueDate.toISOString() : parseDate(values.issueDate || quoteData.issueDate),
+            validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil || quoteData.validUntil),
         };
 
         await updateDoc(quoteRef, updateData);
@@ -133,8 +164,7 @@ export async function updateQuote(id: string, values: any) {
 }
 
 /**
- * Synchronizes an existing Quote with current Order data and resets status to 'sent'
- * for client re-validation.
+ * Synchronizes an existing Quote with current Order data.
  */
 export async function syncQuoteFromOrder(orderId: string) {
     try {
@@ -158,12 +188,9 @@ export async function syncQuoteFromOrder(orderId: string) {
 
         let calculatedTotal = 0;
         if (basis === 'total') {
-            // Commission on both products AND transport
             calculatedTotal = (itemsSubTotal + transport) * (1 + commRate / 100);
         } else {
-            // Commission on products ONLY
-            const commAmount = itemsSubTotal * (commRate / 100);
-            calculatedTotal = itemsSubTotal + transport + commAmount;
+            calculatedTotal = itemsSubTotal * (1 + commRate / 100) + transport;
         }
 
         const updatedQuoteData = {
@@ -182,7 +209,7 @@ export async function syncQuoteFromOrder(orderId: string) {
             commissionRate: commRate,
             commissionBasis: basis,
             totalAmount: calculatedTotal,
-            status: "sent" as const, // Forces client to accept new conditions
+            status: "sent" as const, 
             updatedAt: serverTimestamp(),
         };
 
@@ -212,8 +239,7 @@ export async function createQuoteFromOrder(orderId: string) {
         if (basis === 'total') {
             calculatedTotal = (itemsSubTotal + transport) * (1 + commRate / 100);
         } else {
-            const commAmount = itemsSubTotal * (commRate / 100);
-            calculatedTotal = itemsSubTotal + transport + commAmount;
+            calculatedTotal = itemsSubTotal * (1 + commRate / 100) + transport;
         }
 
         const newQuoteData = {
@@ -246,8 +272,10 @@ export async function createQuoteFromOrder(orderId: string) {
             depositPercentage: order.depositPercentage || 30,
             exchangeRate: currentRate,
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         };
 
+        // Double save
         await setDoc(doc(db, 'quotes', quoteId), newQuoteData);
         await setDoc(doc(db, 'clients', order.customerId, 'quotes', quoteId), newQuoteData);
 
@@ -272,7 +300,7 @@ export async function getQuotes(): Promise<Quote[]> {
           issueDate: parseDate(data.issueDate),
           validUntil: parseDate(data.validUntil),
           createdAt: parseDate(data.createdAt),
-          updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
+          updatedAt: parseDate(data.updatedAt),
           exchangeRate: data.exchangeRate || 0.13,
         } as Quote);
     });
@@ -300,7 +328,7 @@ export async function getQuoteById(id: string, clientId?: string): Promise<Quote
             issueDate: parseDate(data.issueDate),
             validUntil: parseDate(data.validUntil),
             createdAt: parseDate(data.createdAt),
-            updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
+            updatedAt: parseDate(data.updatedAt),
             exchangeRate: data.exchangeRate || 0.13,
         } as Quote;
     } catch (error) {

@@ -72,7 +72,6 @@ import {
   Truck,
   Scale,
   RefreshCw,
-  Image as ImageIcon,
   Globe
 } from 'lucide-react';
 import Link from 'next/link';
@@ -234,7 +233,7 @@ export default function ClientDetailPage() {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
       const priorityA = a.status !== 'paid' ? 0 : 1;
-      const priorityB = b.status !== 'paid' ? 0 : 1;
+      const priorityB = a.status !== 'paid' ? 0 : 1;
       if (priorityA !== priorityB) return priorityA - priorityB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });

@@ -32,6 +32,7 @@ export default function AdminLoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === "admin123") {
+      // Use localStorage instead of sessionStorage for tab persistence
       localStorage.setItem('isAdminAuthenticated', 'true');
       setIsAuthenticated(true);
        toast({
