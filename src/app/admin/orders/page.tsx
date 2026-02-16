@@ -140,28 +140,17 @@ export default function OrdersPage() {
   };
   
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
-    const originalOrders = [...orders];
-    const updatedOrders = orders.map(o => o.id === orderId ? {...o, status: newStatus} : o);
-    setOrders(updatedOrders);
-
     const result = await updateOrderStatus(orderId, newStatus);
-    if (!result.success) {
-        setOrders(originalOrders);
-        toast({ variant: 'destructive', title: 'Error', description: result.message });
-    } else {
+    if (result.success) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
         toast({ title: 'Success', description: 'Order status updated.' });
     }
   }
 
   const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
-    const originalOrders = [...orders];
-    setOrders(orders.map(o => o.id === orderId ? {...o, paymentStatus: newStatus} : o));
-
     const result = await updateOrderPaymentStatus(orderId, newStatus);
-    if (!result.success) {
-        setOrders(originalOrders);
-        toast({ variant: 'destructive', title: 'Error', description: result.message });
-    } else {
+    if (result.success) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus: newStatus } : o));
         toast({ title: "Succès", description: `Statut de paiement mis à jour.` });
         if (newStatus === 'paid') {
             toast({ title: "Facture générée", description: "La facture finale a été créée." });
@@ -180,7 +169,7 @@ export default function OrdersPage() {
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: (result.newTotal ?? o.totalAmount) as number } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: (result.newTotal || o.totalAmount) as number } : o));
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }

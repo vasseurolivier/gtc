@@ -76,6 +76,9 @@ export async function addQuote(values: any) {
             id: quoteId,
             exchangeRate: currentRate,
             createdAt: serverTimestamp(),
+            // Ensure dates are ISO strings for serialization
+            issueDate: values.issueDate instanceof Date ? values.issueDate.toISOString() : parseDate(values.issueDate),
+            validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil),
         };
 
         // Admin Master Copy
@@ -101,18 +104,20 @@ export async function updateQuote(id: string, values: any) {
         if (!quoteSnap.exists()) return { success: false, message: "Quote not found" };
         const quoteData = quoteSnap.data();
 
-        await updateDoc(quoteRef, {
+        const updateData = {
             ...values,
-            updatedAt: serverTimestamp()
-        });
+            updatedAt: serverTimestamp(),
+            // Ensure dates are ISO strings
+            issueDate: values.issueDate instanceof Date ? values.issueDate.toISOString() : parseDate(values.issueDate),
+            validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil),
+        };
+
+        await updateDoc(quoteRef, updateData);
 
         // Update Client Copy
         if (quoteData.customerId) {
             const clientQuoteRef = doc(db, 'clients', quoteData.customerId, 'quotes', id);
-            await updateDoc(clientQuoteRef, {
-                ...values,
-                updatedAt: serverTimestamp()
-            });
+            await updateDoc(clientQuoteRef, updateData);
         }
 
         const updatedQuote = await getQuoteById(id);
