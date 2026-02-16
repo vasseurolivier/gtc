@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,8 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-
   useEffect(() => {
-    const authStatus = sessionStorage.getItem('isAdminAuthenticated');
+    const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus === 'true') {
         setIsAuthenticated(true);
     }
@@ -31,8 +30,9 @@ export default function AdminLoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    // Utilisation de localStorage pour que l'auth soit partagée entre les onglets (Preview PDF)
     if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === "admin123") {
-      sessionStorage.setItem('isAdminAuthenticated', 'true');
+      localStorage.setItem('isAdminAuthenticated', 'true');
       setIsAuthenticated(true);
        toast({
         title: 'Login Successful',

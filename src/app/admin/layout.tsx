@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -327,7 +328,8 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const companyInfoContext = useContext(CompanyInfoContext);
   
   useEffect(() => {
-    const authStatus = sessionStorage.getItem('isAdminAuthenticated');
+    // Changement de sessionStorage vers localStorage pour préserver l'auth dans les nouveaux onglets (PDF)
+    const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
       router.push('/admin/login');
       setIsAuthenticated(false);
@@ -365,7 +367,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   }, [pathname, isAuthenticated, db]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('isAdminAuthenticated');
+    localStorage.removeItem('isAdminAuthenticated');
     router.push('/admin/login');
   };
 

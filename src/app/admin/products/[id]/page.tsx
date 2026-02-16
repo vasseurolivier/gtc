@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -65,7 +66,7 @@ export default function ProductProfilePage() {
     const watchImageUrl = form.watch("imageUrl");
 
     useEffect(() => {
-        const auth = sessionStorage.getItem('isAdminAuthenticated');
+        const auth = localStorage.getItem('isAdminAuthenticated');
         if (auth !== 'true') {
             router.push('/admin/login');
             return;
