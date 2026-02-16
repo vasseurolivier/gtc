@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -235,7 +236,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             )}
                             {commissionRate > 0 && (
                                 <div className="flex justify-between items-center">
-                                    <span className="text-zinc-500">Commission ({commissionRate}%) {basis === 'total' && '(Articles + Port)'}</span>
+                                    <span className="text-zinc-500">Commission ({commissionRate}%)</span>
                                     <span className="font-bold">{renderPrice(commissionCny)}</span>
                                 </div>
                             )}
