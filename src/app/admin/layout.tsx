@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -328,7 +327,6 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const companyInfoContext = useContext(CompanyInfoContext);
   
   useEffect(() => {
-    // Changement de sessionStorage vers localStorage pour préserver l'auth dans les nouveaux onglets (PDF)
     const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
       router.push('/admin/login');

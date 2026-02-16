@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -30,44 +29,44 @@ export default function AdminLoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Utilisation de localStorage pour que l'auth soit partagée entre les onglets (Preview PDF)
     if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === "admin123") {
       localStorage.setItem('isAdminAuthenticated', 'true');
       setIsAuthenticated(true);
        toast({
-        title: 'Login Successful',
-        description: 'Redirecting to dashboard...',
+        title: 'Connexion réussie',
+        description: 'Redirection vers le tableau de bord...',
       });
     } else {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Incorrect password.',
+        title: 'Échec',
+        description: 'Mot de passe incorrect.',
       });
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Admin Access</CardTitle>
-          <CardDescription>Enter the password to view the dashboard.</CardDescription>
+    <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+      <Card className="w-full max-w-sm border-zinc-800 bg-zinc-900 text-white shadow-2xl">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-black uppercase tracking-tighter">GTC Admin</CardTitle>
+          <CardDescription className="text-zinc-400">Accès sécurisé réservé aux administrateurs.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="bg-zinc-800 border-zinc-700 text-white"
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 font-bold h-12">
+              Se connecter
             </Button>
           </form>
         </CardContent>
