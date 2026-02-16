@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -71,7 +72,8 @@ import {
   Truck,
   Scale,
   RefreshCw,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -886,7 +888,7 @@ export default function ClientDetailPage() {
                     {publishedProducts.map(p => (
                       <TableRow key={p.id}>
                         <TableCell className="pl-6"><div className="w-10 h-10 rounded-lg border overflow-hidden shadow-inner">{p.images?.[0] ? <img src={p.images[0]} className="object-contain w-full h-full" alt="" /> : <Package className="h-4 w-4 text-zinc-200 mx-auto mt-3" />}</div></TableCell>
-                        <TableCell className="font-black text-sm"><div className="flex flex-col"><span>{p.name}</span><span className="text-[9px] text-zinc-400 font-mono tracking-tighter">{p.sku}</span></div></TableCell>
+                        <TableCell className="font-black text-sm"><div className="flex flex-col"><span>{p.name}</span><span className="text-[9px] text-zinc-400 font-mono tracking-tighter mt-1">{p.sku}</span></div></TableCell>
                         <TableCell className="font-bold">¥{Number(p.price || 0).toFixed(2)}</TableCell>
                         <TableCell>{p.hasSizeSelection ? <div className="flex flex-wrap gap-1">{p.availableSizes?.map((s:string) => <Badge key={s} variant="secondary" className="text-[8px] h-4 font-black">{s}</Badge>)}</div> : <span className="text-zinc-300 text-xs italic">Taille unique</span>}</TableCell>
                         <TableCell className="text-right pr-6 space-x-1">
