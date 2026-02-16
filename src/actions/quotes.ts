@@ -269,8 +269,8 @@ export async function getQuotes(): Promise<Quote[]> {
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         quotes.push({
-          id: doc.id,
           ...data,
+          id: doc.id,
           issueDate: parseDate(data.issueDate),
           validUntil: parseDate(data.validUntil),
           createdAt: parseDate(data.createdAt),
@@ -297,8 +297,8 @@ export async function getQuoteById(id: string, clientId?: string): Promise<Quote
 
         const data = quoteSnap.data();
         return {
-            id: quoteSnap.id,
             ...data,
+            id: quoteSnap.id,
             issueDate: parseDate(data.issueDate),
             validUntil: parseDate(data.validUntil),
             createdAt: parseDate(data.createdAt),

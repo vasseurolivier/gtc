@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -157,9 +156,17 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const displayLogo = companyInfo.logoDocument; 
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
-    const commissionRate = Number(quote.commissionRate) || 0;
-    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
-    const transportCny = Number(quote.transportCost) || 0;
+    const transportCny = Number(quote.transportCost || 0);
+    const commissionRate = Number(quote.commissionRate || 0);
+    const basis = quote.commissionBasis || 'products_only';
+
+    let commissionCny = 0;
+    if (basis === 'total') {
+        commissionCny = (calculatedSubTotalCny + transportCny) * (commissionRate / 100);
+    } else {
+        commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+    }
+
     const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
 
     const renderPrice = (cnyValue: number, isMain = false) => {
@@ -387,16 +394,16 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                                 </div>
-                                {commissionRate > 0 && (
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
-                                        <span className="font-bold">{renderPrice(commissionCny)}</span>
-                                    </div>
-                                )}
                                 {transportCny > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
                                         <span className="font-bold">{renderPrice(transportCny)}</span>
+                                    </div>
+                                )}
+                                {commissionRate > 0 && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-zinc-500 font-medium">Commission ({commissionRate}%) {basis === 'total' && '(Articles + Port)'}</span>
+                                        <span className="font-bold">{renderPrice(commissionCny)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">

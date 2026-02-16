@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -6,10 +5,11 @@ import { getOrderById, Order } from '@/actions/orders';
 import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer, Phone, Mail, Package, Truck } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail, Package, Truck, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
 import { PrintFooter } from '@/components/layout/print-footer';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
@@ -100,9 +100,17 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
-    const commissionRate = Number(quote.commissionRate) || 0;
-    const commissionCny = calculatedSubTotalCny * (commissionRate / 100);
-    const transportCny = Number(quote.transportCost) || 0;
+    const transportCny = Number(quote.transportCost || 0);
+    const commissionRate = Number(quote.commissionRate || 0);
+    const basis = quote.commissionBasis || 'products_only';
+
+    let commissionCny = 0;
+    if (basis === 'total') {
+        commissionCny = (calculatedSubTotalCny + transportCny) * (commissionRate / 100);
+    } else {
+        commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+    }
+
     const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
 
     const renderPrice = (cnyValue: number, isMain = false) => {
@@ -128,14 +136,21 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
     return (
         <main id="invoice-preview" className="w-full mx-auto bg-white">
-            <div className="p-4 flex justify-end no-print">
+            <div className="p-4 flex justify-end no-print gap-2">
+                <Badge variant={quote.status === 'accepted' || quote.status === 'paid' ? 'default' : 'outline'} className="mr-auto h-10 px-6 uppercase font-black tracking-widest text-sm">STATUT: {quote.status}</Badge>
                 <Button size="sm" onClick={handleDownloadPdf}>
                     <Printer className="mr-2 h-4 w-4" /> Export PDF
                 </Button>
             </div>
             
             <div id="pdf-content" className="relative p-8 bg-white min-h-[297mm] pb-12 text-[10px]">
-                <div className="flex-grow">
+                {(quote.status === 'accepted' || quote.status === 'paid') && (
+                    <div className="absolute top-24 right-12 border-2 border-green-500 rounded-lg px-6 py-2 rotate-[-15deg] opacity-20 z-0">
+                        <span className="text-3xl font-black text-green-500 uppercase">VALIDÉ</span>
+                    </div>
+                )}
+
+                <div className="flex-grow relative z-10">
                     <header className="w-full flex justify-between items-start pb-2 border-b">
                         <div>
                             {displayLogo && <img src={displayLogo} alt="Logo" className="h-10 w-auto object-contain block" />}
@@ -212,20 +227,20 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <span className="text-zinc-500">Sous-total articles</span>
                                 <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
                             </div>
-                            {commissionRate > 0 && (
-                                <div className="flex justify-between items-center">
-                                    <span className="text-zinc-500">Commission ({commissionRate}%)</span>
-                                    <span className="font-bold">{renderPrice(commissionCny)}</span>
-                                </div>
-                            )}
                             {transportCny > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
                                     <span className="font-bold">{renderPrice(transportCny)}</span>
                                 </div>
                             )}
+                            {commissionRate > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-zinc-500">Commission ({commissionRate}%) {basis === 'total' && '(Articles + Port)'}</span>
+                                    <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
-                                <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL</span>
+                                <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL FINAL</span>
                                 <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
                             </div>
                         </div>

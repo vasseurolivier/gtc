@@ -170,24 +170,24 @@ export default function ProductProfilePage() {
                                 <CardContent className="space-y-6">
                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                         <FormField control={form.control} name="weight" render={({ field }) => (
-                                            <FormItem><FormLabel>Poids (kg)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>Poids (kg)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <FormField control={form.control} name="length" render={({ field }) => (
-                                            <FormItem><FormLabel>L (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>L (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <FormField control={form.control} name="width" render={({ field }) => (
-                                            <FormItem><FormLabel>W (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>W (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <FormField control={form.control} name="height" render={({ field }) => (
-                                            <FormItem><FormLabel>H (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>H (cm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormField control={form.control} name="hsCode" render={({ field }) => (
-                                            <FormItem><FormLabel>HS Code</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>HS Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <FormField control={form.control} name="countryOfOrigin" render={({ field }) => (
-                                            <FormItem><FormLabel>Pays d'origine</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>Pays d'origine</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                     </div>
                                 </CardContent>
@@ -210,7 +210,7 @@ export default function ProductProfilePage() {
                                     <div className="w-full space-y-2">
                                         <Input type="file" accept="image/*" onChange={handleImageChange} disabled={isUploading} className="cursor-pointer" />
                                         <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                                            <FormItem><FormLabel className="text-xs">URL Directe</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel className="text-xs">URL Directe</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                     </div>
                                 </CardContent>
@@ -222,13 +222,13 @@ export default function ProductProfilePage() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <FormField control={form.control} name="price" render={({ field }) => (
-                                        <FormItem><FormLabel>Prix de vente (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                        <FormItem><FormLabel>Prix de vente (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <FormField control={form.control} name="purchasePrice" render={({ field }) => (
-                                        <FormItem><FormLabel>Prix d'achat (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem>
+                                        <FormItem><FormLabel>Prix d'achat (CNY)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <FormField control={form.control} name="stock" render={({ field }) => (
-                                        <FormItem><FormLabel>Quantité en stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
+                                        <FormItem><FormLabel>Quantité en stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                 </CardContent>
                             </Card>
