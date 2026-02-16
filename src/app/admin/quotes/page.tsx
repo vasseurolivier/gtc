@@ -135,10 +135,8 @@ function QuotesPageContent() {
     
     let totalAmount = 0;
     if (basis === 'total') {
-      // Formule exacte pour commission sur (Produits + Transport)
       totalAmount = (currentSubTotal + transportCost) * (1 + commissionRate / 100);
     } else {
-      // Commission sur produits uniquement
       const commissionAmount = currentSubTotal * (commissionRate / 100);
       totalAmount = currentSubTotal + transportCost + commissionAmount;
     }
