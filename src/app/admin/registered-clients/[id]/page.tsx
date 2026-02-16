@@ -18,7 +18,7 @@ import {
 import { 
   updateOrderStatus, 
   updateOrderPaymentStatus, 
-  updateOrderTransportCost,
+  updateOrderFinancials,
   deleteOrder,
   Order,
   PaymentStatus
@@ -112,9 +112,11 @@ export default function ClientDetailPage() {
   // States for Orders Management
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
-  const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
+  const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
+  const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
+  const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
   const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [calcWeight, setCalcWeight] = useState(0);
   const [calcRate, setCalcRate] = useState(0);
@@ -240,11 +242,17 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     if (orders) {
-      const inputs: Record<string, string> = {};
+      const tInputs: Record<string, string> = {};
+      const cInputs: Record<string, string> = {};
+      const bInputs: Record<string, 'products_only' | 'total'> = {};
       orders.forEach(o => {
-        inputs[o.id] = (o.transportCost || 0).toString();
+        tInputs[o.id] = (o.transportCost || 0).toString();
+        cInputs[o.id] = (o.commissionRate || 0).toString();
+        bInputs[o.id] = o.commissionBasis || 'products_only';
       });
-      setTransportInputs(inputs);
+      setTransportInputs(tInputs);
+      setCommissionInputs(cInputs);
+      setBasisInputs(bInputs);
     }
   }, [orders]);
 
@@ -262,14 +270,19 @@ export default function ClientDetailPage() {
     }
   };
 
-  const handleUpdateTransportCost = async (orderId: string) => {
-    const rawVal = transportInputs[orderId];
-    const costValue = rawVal === "" ? 0 : parseFloat(rawVal || '0');
-    if (isNaN(costValue)) return;
-    setIsUpdatingTransport(orderId);
-    const result = await updateOrderTransportCost(orderId, costValue);
-    setIsUpdatingTransport(null);
-    if (result.success) toast({ title: "Transport mis à jour" });
+  const handleUpdateFinance = async (orderId: string) => {
+    const tVal = parseFloat(transportInputs[orderId] || '0');
+    const cVal = parseFloat(commissionInputs[orderId] || '0');
+    const bVal = basisInputs[orderId] || 'products_only';
+
+    setIsUpdatingFinance(orderId);
+    const result = await updateOrderFinancials(orderId, {
+        transportCost: tVal,
+        commissionRate: cVal,
+        commissionBasis: bVal
+    });
+    setIsUpdatingFinance(null);
+    if (result.success) toast({ title: "Données financières enregistrées" });
   };
 
   const handleSyncPI = async (orderId: string) => {
@@ -732,6 +745,8 @@ export default function ClientDetailPage() {
                         <TableHead className="pl-6">Order #</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead className="text-center">Port (CNY)</TableHead>
+                        <TableHead className="text-center">Comm (%)</TableHead>
+                        <TableHead className="text-center">Base</TableHead>
                         <TableHead className="text-center">Paiement</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead className="text-right pr-6">Actions</TableHead>
@@ -739,7 +754,11 @@ export default function ClientDetailPage() {
                     </TableHeader>
                     <TableBody>
                       {sortedOrders.map(order => {
-                        const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
+                        const isFinanceDirty = 
+                            (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString() ||
+                            (commissionInputs[order.id] || "0") !== (order.commissionRate || 0).toString() ||
+                            (basisInputs[order.id] || "products_only") !== (order.commissionBasis || "products_only");
+
                         const linkedQuote = sortedQuotes.find(q => q.orderId === order.id);
                         const isLocked = linkedQuote && (linkedQuote.status === 'accepted' || linkedQuote.status === 'paid');
                         return (
@@ -749,7 +768,7 @@ export default function ClientDetailPage() {
                             </TableCell>
                             <TableCell>
                               <Select onValueChange={(val: any) => handleStatusChange(order.id, val)} defaultValue={order.status}>
-                                <SelectTrigger className="h-8 w-32 text-[10px] font-bold uppercase"><Badge variant="outline" className="border-none">{order.status}</Badge></SelectTrigger>
+                                <SelectTrigger className="h-8 w-28 text-[9px] font-bold uppercase"><Badge variant="outline" className="border-none">{order.status}</Badge></SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="processing">Processing</SelectItem>
                                   <SelectItem value="validated">Validated</SelectItem>
@@ -763,15 +782,32 @@ export default function ClientDetailPage() {
                               {!isLocked ? (
                                 <div className="flex items-center justify-center gap-1">
                                   <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400" onClick={() => openCalculator(order)}><Calculator className="h-3.5 w-3.5" /></Button>
-                                  <Input type="number" className="w-16 h-7 text-xs text-center font-bold" value={transportInputs[order.id] || ''} onChange={e => setTransportInputs({...transportInputs, [order.id]: e.target.value})} />
-                                  <Button size="icon" variant={isTransportDirty ? "default" : "ghost"} className="h-7 w-7" onClick={() => handleUpdateTransportCost(order.id)} disabled={isUpdatingTransport === order.id}>{isUpdatingTransport === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</Button>
+                                  <Input type="number" className="w-14 h-7 text-xs text-center font-bold" value={transportInputs[order.id] || ''} onChange={e => setTransportInputs({...transportInputs, [order.id]: e.target.value})} />
                                 </div>
-                              ) : <span className="font-black text-xs">¥{order.transportCost?.toFixed(2)}</span>}
+                              ) : <span className="font-black text-[10px]">¥{order.transportCost?.toFixed(2)}</span>}
+                            </TableCell>
+                            <TableCell className="text-center">
+                               {!isLocked ? (
+                                  <Input type="number" className="w-12 h-7 text-xs text-center font-bold" value={commissionInputs[order.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [order.id]: e.target.value})} />
+                               ) : <span className="text-[10px] font-bold">{order.commissionRate}%</span>}
+                            </TableCell>
+                            <TableCell className="text-center">
+                               {!isLocked ? (
+                                  <Select value={basisInputs[order.id]} onValueChange={(val: any) => setBasisInputs({...basisInputs, [order.id]: val})}>
+                                    <SelectTrigger className="h-7 w-16 text-[8px] font-black uppercase">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="products_only" className="text-[10px]">Prod</SelectItem>
+                                        <SelectItem value="total" className="text-[10px]">All</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                               ) : <span className="text-[8px] uppercase text-zinc-400">{order.commissionBasis === 'total' ? 'All' : 'Prod'}</span>}
                             </TableCell>
                             <TableCell className="text-center">
                               <Select onValueChange={(val: PaymentStatus) => handlePaymentStatusChange(order.id, val)} defaultValue={order.paymentStatus}>
-                                <SelectTrigger className="h-8 w-32 text-[10px] font-black">
-                                  {order.paymentStatus === 'paid' ? <Badge className="bg-green-500 text-[8px]">PAYÉ</Badge> : order.paymentStatus === 'deposit_paid' ? <Badge variant="outline" className="text-blue-600 text-[8px] border-blue-200">ACOMPTE</Badge> : <Badge variant="outline" className="text-zinc-400 text-[8px]">NON PAYÉ</Badge>}
+                                <SelectTrigger className="h-8 w-24 text-[9px] font-black">
+                                  {order.paymentStatus === 'paid' ? <Badge className="bg-green-500 text-[7px]">PAYÉ</Badge> : order.paymentStatus === 'deposit_paid' ? <Badge variant="outline" className="text-blue-600 text-[7px] border-blue-200">ACOMPTE</Badge> : <Badge variant="outline" className="text-zinc-400 text-[7px]">WAIT</Badge>}
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="unpaid">Non payé</SelectItem>
@@ -780,14 +816,25 @@ export default function ClientDetailPage() {
                                 </SelectContent>
                               </Select>
                             </TableCell>
-                            <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-xs font-black">¥{order.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
+                              {!isLocked && (
+                                <Button 
+                                    size="icon" 
+                                    variant={isFinanceDirty ? "default" : "ghost"} 
+                                    className={cn("h-7 w-7 transition-all", isFinanceDirty && "bg-green-600 text-white shadow-lg")} 
+                                    onClick={() => handleUpdateFinance(order.id)} 
+                                    disabled={isUpdatingFinance === order.id}
+                                >
+                                    {isUpdatingFinance === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                </Button>
+                              )}
                               {linkedQuote && (
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
                                   className="text-primary animate-pulse" 
-                                  title="Mettre à jour la PI avec les nouveaux coûts" 
+                                  title="Mettre à jour la PI" 
                                   onClick={() => handleSyncPI(order.id)}
                                   disabled={isSyncingPI === order.id}
                                 >
@@ -795,7 +842,7 @@ export default function ClientDetailPage() {
                                 </Button>
                               )}
                               <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
-                              <Button variant="secondary" size="sm" className="h-8 text-[10px] font-black uppercase tracking-tighter" onClick={() => handleNavigateToQuote(order.id)}><Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "Générer PI"}</Button>
+                              <Button variant="secondary" size="sm" className="h-8 text-[9px] font-black uppercase tracking-tighter" onClick={() => handleNavigateToQuote(order.id)}><Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "PI"}</Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                 <AlertDialogContent>

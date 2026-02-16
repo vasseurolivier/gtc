@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,6 +16,7 @@ export default function AdminLoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Shared multi-tab session via localStorage
     const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus === 'true') {
         setIsAuthenticated(true);

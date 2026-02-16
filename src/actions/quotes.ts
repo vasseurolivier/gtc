@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -150,14 +151,10 @@ export async function syncQuoteFromOrder(orderId: string) {
         const quoteDoc = quotesSnapshot.docs[0];
         const quoteId = quoteDoc.id;
 
-        // Fetch client basis
-        const clientRef = doc(db, 'clients', order.customerId);
-        const clientSnap = await getDoc(clientRef);
-        const basis = clientSnap.exists() ? clientSnap.data().commissionBasis : 'products_only';
-
         const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
         const transport = Number(order.transportCost) || 0;
         const commRate = Number(order.commissionRate) || 0;
+        const basis = order.commissionBasis || 'products_only';
 
         let calculatedTotal = 0;
         if (basis === 'total') {
@@ -203,17 +200,13 @@ export async function createQuoteFromOrder(orderId: string) {
         const order = await getOrderById(orderId);
         if (!order) return { success: false, message: "Commande introuvable." };
         
-        // Fetch client basis
-        const clientRef = doc(db, 'clients', order.customerId);
-        const clientSnap = await getDoc(clientRef);
-        const basis = clientSnap.exists() ? clientSnap.data().commissionBasis : 'products_only';
-
         const currentRate = await getGlobalExchangeRate();
         const quoteId = `PI-AUTO-${Date.now()}`;
 
         const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
         const transport = Number(order.transportCost) || 0;
         const commRate = Number(order.commissionRate) || 0;
+        const basis = order.commissionBasis || 'products_only';
         
         let calculatedTotal = 0;
         if (basis === 'total') {

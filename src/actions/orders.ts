@@ -41,6 +41,7 @@ export interface Order {
     updatedAt?: string;
     transportCost?: number;
     commissionRate?: number;
+    commissionBasis?: 'products_only' | 'total';
     paymentStatus: PaymentStatus;
     depositRequired?: boolean;
     depositPercentage?: number;
@@ -82,6 +83,7 @@ export async function addOrder(quote: Quote) {
           createdAt: serverTimestamp(),
           transportCost: quote.transportCost || 0,
           commissionRate: quote.commissionRate || 0,
+          commissionBasis: quote.commissionBasis || 'products_only',
           paymentStatus: (quote.status === 'paid' ? 'paid' : 'unpaid') as PaymentStatus,
           depositRequired: quote.depositRequired || false,
           depositPercentage: quote.depositPercentage || 30,
@@ -115,6 +117,45 @@ export async function updateOrder(id: string, values: Partial<Order>) {
     }
 }
 
+export async function updateOrderFinancials(id: string, financials: { transportCost?: number, commissionRate?: number, commissionBasis?: 'products_only' | 'total' }) {
+    try {
+        const orderRef = doc(db, 'orders', id);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return { success: false, message: "Order not found." };
+        
+        const data = orderSnap.data();
+        const itemsTotal = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
+        
+        const cost = financials.transportCost !== undefined ? financials.transportCost : (data.transportCost || 0);
+        const rate = financials.commissionRate !== undefined ? financials.commissionRate : (data.commissionRate || 0);
+        const basis = financials.commissionBasis !== undefined ? financials.commissionBasis : (data.commissionBasis || 'products_only');
+
+        let newTotal = 0;
+        if (basis === 'total') {
+            // Commission on both products AND transport
+            newTotal = (itemsTotal + cost) * (1 + rate / 100);
+        } else {
+            // Commission on products ONLY
+            const commissionAmount = itemsTotal * (rate / 100);
+            newTotal = itemsTotal + commissionAmount + cost;
+        }
+
+        const updatePayload = { 
+            transportCost: cost,
+            commissionRate: rate,
+            commissionBasis: basis,
+            totalAmount: newTotal,
+            updatedAt: serverTimestamp()
+        };
+
+        await updateDoc(orderRef, updatePayload);
+        return { success: true, message: 'Finance updated.', newTotal };
+    } catch (error: any) {
+        console.error('Error updating order financials:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
 export async function updateOrderFromQuote(quote: Quote) {
     try {
         const ordersQuery = query(collection(db, "orders"), where("quoteId", "==", quote.id));
@@ -135,9 +176,9 @@ export async function updateOrderFromQuote(quote: Quote) {
                 sku: item.sku || '',
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
-                purchasePrice: item.purchasePrice || 0,
+                purchasePrice: (item as any).purchasePrice || 0,
                 total: item.total,
-                photo: item.photo || '',
+                photo: (item as any).photo || '',
                 size: (item as any).size || null,
                 isPersonalized: (item as any).isPersonalized || false,
                 weight: (item as any).weight || 0
@@ -146,6 +187,7 @@ export async function updateOrderFromQuote(quote: Quote) {
             shippingAddress: quote.shippingAddress || "",
             transportCost: quote.transportCost || 0,
             commissionRate: quote.commissionRate || 0,
+            commissionBasis: quote.commissionBasis || 'products_only',
             depositRequired: quote.depositRequired || false,
             depositPercentage: quote.depositPercentage || 30,
         };
@@ -265,37 +307,5 @@ export async function updateOrderPaymentStatus(id: string, paymentStatus: Paymen
 }
 
 export async function updateOrderTransportCost(id: string, cost: number) {
-    try {
-        const orderRef = doc(db, 'orders', id);
-        const orderSnap = await getDoc(orderRef);
-        if (!orderSnap.exists()) return { success: false, message: "Order not found." };
-        
-        const data = orderSnap.data();
-        const itemsTotal = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
-        const commissionRate = Number(data.commissionRate) || 0;
-
-        // Fetch client's commission basis preference
-        const clientRef = doc(db, 'clients', data.customerId);
-        const clientSnap = await getDoc(clientRef);
-        const basis = clientSnap.exists() ? clientSnap.data().commissionBasis : 'products_only';
-
-        let newTotal = 0;
-        if (basis === 'total') {
-            // Commission on both products AND transport
-            newTotal = (itemsTotal + cost) * (1 + commissionRate / 100);
-        } else {
-            // Commission on products ONLY
-            const commissionAmount = itemsTotal * (commissionRate / 100);
-            newTotal = itemsTotal + commissionAmount + cost;
-        }
-
-        await updateDoc(orderRef, { 
-            transportCost: cost,
-            totalAmount: newTotal
-        });
-        return { success: true, message: 'Transport cost updated.', newTotal };
-    } catch (error: any) {
-        console.error('Error updating transport cost:', error);
-        return { success: false, message: 'An unexpected error occurred.' };
-    }
+    return updateOrderFinancials(id, { transportCost: cost });
 }
