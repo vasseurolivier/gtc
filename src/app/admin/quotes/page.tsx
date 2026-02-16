@@ -469,7 +469,10 @@ function QuotesPageContent() {
                                 <div className="grid grid-cols-4 gap-4 items-end">
                                     <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<FormItem><Label className="text-[10px] uppercase font-bold">Qté</Label><FormControl><Input type="number" {...f} /></FormControl></FormItem>)}/>
                                     <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field: f }) => (<FormItem><Label className="text-[10px] uppercase font-bold">Prix Unit.</Label><FormControl><Input type="number" step="0.01" {...f} /></FormControl></FormItem>)}/>
-                                    <div className="col-span-2 text-right pb-2"><Label className="text-[10px] uppercase font-bold block mb-1">Total</Label><span className="font-black text-sm">¥{watchItems[index]?.total?.toFixed(2) || '0.00'}</span></div>
+                                    <div className="col-span-2 text-right pb-2">
+                                        <Label className="text-[10px] uppercase font-bold block mb-1">Total</Label>
+                                        <div className="font-black text-sm">¥{watchItems[index]?.total?.toFixed(2) || '0.00'}</div>
+                                    </div>
                                 </div>
                           </div>
                         </div>

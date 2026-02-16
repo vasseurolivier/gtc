@@ -35,6 +35,7 @@ export interface Quote {
     issueDate: string;
     validUntil: string;
     createdAt: string;
+    updatedAt?: string;
     depositRequired?: boolean;
     depositPercentage?: number;
     exchangeRate: number; // Freeze EUR price
@@ -100,12 +101,18 @@ export async function updateQuote(id: string, values: any) {
         if (!quoteSnap.exists()) return { success: false, message: "Quote not found" };
         const quoteData = quoteSnap.data();
 
-        await updateDoc(quoteRef, values);
+        await updateDoc(quoteRef, {
+            ...values,
+            updatedAt: serverTimestamp()
+        });
 
         // Update Client Copy
         if (quoteData.customerId) {
             const clientQuoteRef = doc(db, 'clients', quoteData.customerId, 'quotes', id);
-            await updateDoc(clientQuoteRef, values);
+            await updateDoc(clientQuoteRef, {
+                ...values,
+                updatedAt: serverTimestamp()
+            });
         }
 
         const updatedQuote = await getQuoteById(id);
@@ -149,8 +156,10 @@ export async function syncQuoteFromOrder(orderId: string) {
 
         let calculatedTotal = 0;
         if (basis === 'total') {
+            // Commission on both products AND transport
             calculatedTotal = (itemsSubTotal + transport) * (1 + commRate / 100);
         } else {
+            // Commission on products ONLY
             const commAmount = itemsSubTotal * (commRate / 100);
             calculatedTotal = itemsSubTotal + transport + commAmount;
         }
@@ -265,6 +274,7 @@ export async function getQuotes(): Promise<Quote[]> {
           issueDate: parseDate(data.issueDate),
           validUntil: parseDate(data.validUntil),
           createdAt: parseDate(data.createdAt),
+          updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
           exchangeRate: data.exchangeRate || 0.13,
         } as Quote);
     });
@@ -292,6 +302,7 @@ export async function getQuoteById(id: string, clientId?: string): Promise<Quote
             issueDate: parseDate(data.issueDate),
             validUntil: parseDate(data.validUntil),
             createdAt: parseDate(data.createdAt),
+            updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
             exchangeRate: data.exchangeRate || 0.13,
         } as Quote;
     } catch (error) {
@@ -327,11 +338,17 @@ export async function updateQuoteStatus(id: string, status: string) {
         const quoteData = quoteSnap.data();
         const previousStatus = quoteData.status;
 
-        await updateDoc(quoteRef, { status });
+        await updateDoc(quoteRef, { 
+            status,
+            updatedAt: serverTimestamp()
+        });
         
         // Sync Client Copy
         if (quoteData.customerId) {
-            await updateDoc(doc(db, 'clients', quoteData.customerId, 'quotes', id), { status });
+            await updateDoc(doc(db, 'clients', quoteData.customerId, 'quotes', id), { 
+                status,
+                updatedAt: serverTimestamp()
+            });
         }
         
         const isPositiveStatus = status === 'accepted' || status === 'paid';
