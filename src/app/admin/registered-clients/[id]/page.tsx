@@ -555,6 +555,13 @@ export default function ClientDetailPage() {
     router.push(`/admin/quotes?clientId=${clientId}`);
   };
 
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isAdminAuthenticated');
+    if (authStatus !== 'true') {
+      router.push('/admin/login');
+    }
+  }, [router]);
+
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
 
   return (
