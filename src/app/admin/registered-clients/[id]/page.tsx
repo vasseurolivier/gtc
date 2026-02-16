@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -23,7 +22,7 @@ import {
   Order,
   PaymentStatus
 } from '@/actions/orders';
-import { updateQuoteStatus, deleteQuote, Quote } from '@/actions/quotes';
+import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
@@ -69,9 +68,9 @@ import {
   ShoppingCart,
   Mail,
   Phone,
-  Globe,
   Truck,
   Scale,
+  RefreshCw,
   Image as ImageIcon
 } from 'lucide-react';
 import Link from 'next/link';
@@ -112,6 +111,7 @@ export default function ClientDetailPage() {
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
   const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
+  const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [calcWeight, setCalcWeight] = useState(0);
@@ -270,6 +270,20 @@ export default function ClientDetailPage() {
     if (result.success) toast({ title: "Transport mis à jour" });
   };
 
+  const handleSyncPI = async (orderId: string) => {
+    setIsSyncingPI(orderId);
+    const result = await syncQuoteFromOrder(orderId);
+    setIsSyncingPI(null);
+    if (result.success) {
+      toast({ 
+        title: "PI mise à jour", 
+        description: "Les modifications ont été synchronisées sur la Proforma et elle a été renvoyée pour validation." 
+      });
+    } else {
+      toast({ variant: "destructive", title: "Erreur Sync", description: result.message });
+    }
+  };
+
   const handleDeleteOrderRow = async (id: string) => {
     const result = await deleteOrder(id);
     if (result.success) toast({ title: "Commande supprimée" });
@@ -366,7 +380,6 @@ export default function ClientDetailPage() {
     let listIdToUse = '';
     
     if (!productLists || productLists.length === 0) {
-      // Automatiquement créer une liste "Catalogue" si aucune n'existe
       setIsSaving(true);
       try {
         const listId = `LST-AUTO-${Date.now()}`;
@@ -760,6 +773,18 @@ export default function ClientDetailPage() {
                             </TableCell>
                             <TableCell className="text-right">¥{order.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
+                              {linkedQuote && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="text-primary animate-pulse" 
+                                  title="Mettre à jour la PI avec les nouveaux coûts" 
+                                  onClick={() => handleSyncPI(order.id)}
+                                  disabled={isSyncingPI === order.id}
+                                >
+                                  {isSyncingPI === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                </Button>
+                              )}
                               <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
                               <Button variant="secondary" size="sm" className="h-8 text-[10px] font-black uppercase tracking-tighter" onClick={() => handleNavigateToQuote(order.id)}><Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "Générer PI"}</Button>
                               <AlertDialog>

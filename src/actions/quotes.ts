@@ -42,7 +42,7 @@ export interface Quote {
 const parseDate = (val: any) => {
     if (!val) return new Date().toISOString();
     if (typeof val.toDate === 'function') return val.toDate().toISOString();
-    if (val && typeof val === 'object' && 'seconds' in val) {
+    if (typeof val === 'object' && val && 'seconds' in val) {
         return new Date(val.seconds * 1000).toISOString();
     }
     const d = new Date(val);
@@ -118,6 +118,53 @@ export async function updateQuote(id: string, values: any) {
     }
 }
 
+/**
+ * Synchronizes an existing Quote with current Order data and resets status to 'sent'
+ * for client re-validation.
+ */
+export async function syncQuoteFromOrder(orderId: string) {
+    try {
+        const order = await getOrderById(orderId);
+        if (!order) return { success: false, message: "Commande introuvable." };
+
+        const quotesQuery = query(collection(db, "quotes"), where("orderId", "==", orderId));
+        const quotesSnapshot = await getDocs(quotesQuery);
+
+        if (quotesSnapshot.empty) {
+            return { success: false, message: "Aucune PI liée à cette commande." };
+        }
+
+        const quoteDoc = quotesSnapshot.docs[0];
+        const quoteId = quoteDoc.id;
+
+        const updatedQuoteData = {
+            items: order.items.map(item => ({
+                sku: item.sku || "",
+                description: item.description,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                purchasePrice: (item as any).purchasePrice || 0,
+                total: item.total,
+                photo: (item as any).photo || "",
+                weight: item.weight || 0
+            })),
+            subTotal: order.items.reduce((sum, item) => sum + (item.total || 0), 0),
+            transportCost: order.transportCost || 0,
+            commissionRate: order.commissionRate || 0,
+            totalAmount: order.totalAmount,
+            status: "sent" as const, // Forces client to accept new conditions
+            updatedAt: serverTimestamp(),
+        };
+
+        await updateQuote(quoteId, updatedQuoteData);
+
+        return { success: true, message: "PI mise à jour et renvoyée pour validation." };
+    } catch (error: any) {
+        console.error("Sync quote error:", error);
+        return { success: false, message: "Erreur lors de la synchronisation." };
+    }
+}
+
 export async function createQuoteFromOrder(orderId: string) {
     try {
         const order = await getOrderById(orderId);
@@ -146,7 +193,7 @@ export async function createQuoteFromOrder(orderId: string) {
                 unitPrice: item.unitPrice || 0,
                 purchasePrice: (item as any).purchasePrice || 0,
                 total: item.total || 0,
-                photo: item.photo || "",
+                photo: (item as any).photo || "",
                 weight: item.weight || 0
             })),
             subTotal: itemsSubTotal,
