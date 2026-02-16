@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -824,7 +823,7 @@ export default function ClientDetailPage() {
                           <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'} className="text-[9px] uppercase font-black">{q.status}</Badge></TableCell>
                           <TableCell className="text-right font-black">¥{q.totalAmount.toFixed(2)}</TableCell>
                           <TableCell className="text-right pr-6 space-x-1">
-                            <Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                            <Button variant="ghost" size="icon" asChild><Link href={`/client/quotes/${q.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                               <AlertDialogContent>
@@ -859,7 +858,7 @@ export default function ClientDetailPage() {
                           <TableCell><Badge className={cn("text-[9px] font-black uppercase", i.status === 'paid' ? 'bg-green-500' : 'bg-red-500')}>{i.status === 'paid' ? 'Acquittée' : 'À régler'}</Badge></TableCell>
                           <TableCell className="text-right font-black">¥{i.totalAmount.toFixed(2)}</TableCell>
                           <TableCell className="text-right pr-6 space-x-1">
-                            <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                            <Button variant="ghost" size="icon" asChild><Link href={`/client/invoices/${i.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                               <AlertDialogContent>

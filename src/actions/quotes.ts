@@ -27,6 +27,7 @@ export interface Quote {
     subTotal: number;
     transportCost?: number;
     commissionRate?: number;
+    commissionBasis?: 'products_only' | 'total';
     totalAmount: number;
     status: "draft" | "sent" | "accepted" | "rejected" | "paid";
     shippingAddress?: string;
@@ -137,6 +138,23 @@ export async function syncQuoteFromOrder(orderId: string) {
         const quoteDoc = quotesSnapshot.docs[0];
         const quoteId = quoteDoc.id;
 
+        // Fetch client basis
+        const clientRef = doc(db, 'clients', order.customerId);
+        const clientSnap = await getDoc(clientRef);
+        const basis = clientSnap.exists() ? clientSnap.data().commissionBasis : 'products_only';
+
+        const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
+        const transport = Number(order.transportCost) || 0;
+        const commRate = Number(order.commissionRate) || 0;
+
+        let calculatedTotal = 0;
+        if (basis === 'total') {
+            calculatedTotal = (itemsSubTotal + transport) * (1 + commRate / 100);
+        } else {
+            const commAmount = itemsSubTotal * (commRate / 100);
+            calculatedTotal = itemsSubTotal + transport + commAmount;
+        }
+
         const updatedQuoteData = {
             items: order.items.map(item => ({
                 sku: item.sku || "",
@@ -148,10 +166,11 @@ export async function syncQuoteFromOrder(orderId: string) {
                 photo: (item as any).photo || "",
                 weight: item.weight || 0
             })),
-            subTotal: order.items.reduce((sum, item) => sum + (item.total || 0), 0),
-            transportCost: order.transportCost || 0,
-            commissionRate: order.commissionRate || 0,
-            totalAmount: order.totalAmount,
+            subTotal: itemsSubTotal,
+            transportCost: transport,
+            commissionRate: commRate,
+            commissionBasis: basis,
+            totalAmount: calculatedTotal,
             status: "sent" as const, // Forces client to accept new conditions
             updatedAt: serverTimestamp(),
         };
@@ -169,14 +188,26 @@ export async function createQuoteFromOrder(orderId: string) {
     try {
         const order = await getOrderById(orderId);
         if (!order) return { success: false, message: "Commande introuvable." };
+        
+        // Fetch client basis
+        const clientRef = doc(db, 'clients', order.customerId);
+        const clientSnap = await getDoc(clientRef);
+        const basis = clientSnap.exists() ? clientSnap.data().commissionBasis : 'products_only';
+
         const currentRate = await getGlobalExchangeRate();
         const quoteId = `PI-AUTO-${Date.now()}`;
 
         const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
         const transport = Number(order.transportCost) || 0;
         const commRate = Number(order.commissionRate) || 0;
-        const commAmount = itemsSubTotal * (commRate / 100);
-        const calculatedTotal = itemsSubTotal + transport + commAmount;
+        
+        let calculatedTotal = 0;
+        if (basis === 'total') {
+            calculatedTotal = (itemsSubTotal + transport) * (1 + commRate / 100);
+        } else {
+            const commAmount = itemsSubTotal * (commRate / 100);
+            calculatedTotal = itemsSubTotal + transport + commAmount;
+        }
 
         const newQuoteData = {
             id: quoteId,
@@ -199,6 +230,7 @@ export async function createQuoteFromOrder(orderId: string) {
             subTotal: itemsSubTotal,
             transportCost: transport,
             commissionRate: commRate,
+            commissionBasis: basis,
             totalAmount: calculatedTotal,
             status: "draft" as const,
             shippingAddress: order.shippingAddress || "",

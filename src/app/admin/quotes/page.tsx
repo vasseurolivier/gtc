@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext, Suspense } from 'react';
@@ -113,7 +112,6 @@ function QuotesPageContent() {
   });
 
   const watchItems = form.watch("items");
-  const watchBasis = form.watch("commissionBasis");
 
   const calculateTotals = () => {
     const values = form.getValues();
@@ -256,7 +254,7 @@ function QuotesPageContent() {
             items: quote.items.map(item => ({...item, photo: item.photo || '', weight: item.weight || 0})),
             depositRequired: quote.depositRequired !== false,
             depositPercentage: quote.depositPercentage || 30,
-            commissionBasis: (quote as any).commissionBasis || 'products_only',
+            commissionBasis: quote.commissionBasis || 'products_only',
         });
     } else {
         form.reset({
@@ -388,7 +386,7 @@ function QuotesPageContent() {
               </TableCell>
               <TableCell className="text-right"><div>¥{quote.totalAmount.toFixed(2)}</div><div className="text-xs text-muted-foreground">{currency.symbol}{(quote.totalAmount * exchangeRate).toFixed(2)}</div></TableCell>
               <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" asChild title="Voir PDF"><Link href={`/admin/quotes/${quote.id}`}><Eye className="h-4 w-4" /></Link></Button>
+                  <Button variant="ghost" size="icon" asChild title="Voir PDF"><Link href={`/client/quotes/${quote.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
                   <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} disabled={isLocked} className={cn(isLocked && "opacity-20")}><Pencil className="h-4 w-4" /></Button>
                   {!isLocked && (
                     <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent>
