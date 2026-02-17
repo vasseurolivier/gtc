@@ -109,6 +109,9 @@ export async function updateOrder(id: string, values: Partial<Order>) {
     }
 }
 
+/**
+ * Updates financials and propagates to linked invoice if it exists.
+ */
 export async function updateOrderFinancials(id: string, financials: { transportCost?: number, commissionRate?: number, commissionBasis?: 'products_only' | 'total' }) {
     try {
         const orderRef = doc(db, 'orders', id);
@@ -130,19 +133,33 @@ export async function updateOrderFinancials(id: string, financials: { transportC
             newTotal = itemsTotal + commissionAmount + cost;
         }
 
-        await updateDoc(orderRef, { 
+        const updatePayload = { 
             transportCost: cost,
             commissionRate: rate,
             commissionBasis: basis,
             totalAmount: newTotal,
             updatedAt: serverTimestamp()
-        });
+        };
+
+        await updateDoc(orderRef, updatePayload);
+
+        // PROPAGATE TO INVOICE
+        const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
+        const invoiceSnap = await getDocs(invoiceQuery);
+        if (!invoiceSnap.empty) {
+            const finalOrder = { ...data, ...updatePayload, id } as unknown as Order;
+            await addInvoiceFromOrder(finalOrder, invoiceSnap.docs[0].id);
+        }
+
         return { success: true, message: 'Finance updated.', newTotal };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
+/**
+ * Alias for build compatibility
+ */
 export async function updateOrderTransportCost(id: string, cost: number) {
     return updateOrderFinancials(id, { transportCost: cost });
 }

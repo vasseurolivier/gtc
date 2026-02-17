@@ -52,7 +52,9 @@ import {
   Lock,
   Euro,
   Truck,
-  Sparkles
+  Sparkles,
+  CircleAlert,
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -287,11 +289,31 @@ export default function ClientDetailPage() {
   };
 
   useEffect(() => {
-    const authStatus = sessionStorage.getItem('isAdminAuthenticated') || localStorage.getItem('isAdminAuthenticated');
+    const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') router.push('/admin/login');
   }, [router]);
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+
+  const getStatusBadgeVariant = (status: Order['status']) => {
+    switch (status) {
+        case 'delivered': return 'default';
+        case 'shipped': return 'secondary';
+        case 'validated': return 'default';
+        case 'processing': return 'outline';
+        case 'cancelled': return 'destructive';
+        default: return 'outline';
+    }
+  };
+
+  const getPaymentBadge = (status: PaymentStatus) => {
+    switch (status) {
+        case 'paid': return <Badge className="bg-green-500 text-[10px] h-5">PAYÉ</Badge>;
+        case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 text-[10px] h-5">ACOMPTE OK</Badge>;
+        case 'unpaid': return <Badge variant="outline" className="text-zinc-400 text-[10px] h-5">NON PAYÉ</Badge>;
+        default: return null;
+    }
+  };
 
   return (
     <div className="container py-8 space-y-8">
@@ -394,9 +416,10 @@ export default function ClientDetailPage() {
                     <TableHeader className="bg-zinc-50">
                       <TableRow>
                         <TableHead className="pl-6">Order #</TableHead>
+                        <TableHead>Statut</TableHead>
                         <TableHead>Port (CNY)</TableHead>
                         <TableHead>Comm (%)</TableHead>
-                        <TableHead>Base</TableHead>
+                        <TableHead>Paiement</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead className="text-right pr-6">Action</TableHead>
                       </TableRow>
@@ -408,6 +431,23 @@ export default function ClientDetailPage() {
                           <TableRow key={o.id}>
                             <TableCell className="font-black pl-6">{o.orderNumber}</TableCell>
                             <TableCell>
+                                <Select 
+                                    onValueChange={(value: Order['status']) => handleStatusChange(o.id, value)} 
+                                    defaultValue={o.status}
+                                >
+                                    <SelectTrigger className="w-28 h-7 text-[10px]">
+                                        <Badge variant={getStatusBadgeVariant(o.status)} className="h-4 text-[8px] uppercase">{o.status}</Badge>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="processing">En cours</SelectItem>
+                                        <SelectItem value="validated">Validé</SelectItem>
+                                        <SelectItem value="shipped">Expédié</SelectItem>
+                                        <SelectItem value="delivered">Livré</SelectItem>
+                                        <SelectItem value="cancelled">Annulé</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex gap-1">
                                 <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInputs[o.id] || ''} onChange={e => setTransportInputs({...transportInputs, [o.id]: e.target.value})} />
                                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCalculator(o)}><Calculator className="h-3 w-3" /></Button>
@@ -415,12 +455,21 @@ export default function ClientDetailPage() {
                             </TableCell>
                             <TableCell><Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} /></TableCell>
                             <TableCell>
-                              <Select value={basisInputs[o.id] || 'products_only'} onValueChange={v => setBasisInputs({...basisInputs, [o.id]: v as 'products_only' | 'total'})}>
-                                <SelectTrigger className="h-7 w-16 text-[8px] font-black uppercase"><SelectValue /></SelectTrigger>
-                                <SelectContent><SelectItem value="products_only" className="text-[10px]">Prod</SelectItem><SelectItem value="total" className="text-[10px]">Total</SelectItem></SelectContent>
-                              </Select>
+                                <Select 
+                                    defaultValue={o.paymentStatus} 
+                                    onValueChange={(value: PaymentStatus) => handlePaymentStatusChange(o.id, value)}
+                                >
+                                    <SelectTrigger className="w-32 h-7 text-[10px]">
+                                        {getPaymentBadge(o.paymentStatus)}
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="unpaid">Non payé</SelectItem>
+                                        <SelectItem value="deposit_paid">Acompte</SelectItem>
+                                        <SelectItem value="paid">Payé</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </TableCell>
-                            <TableCell className="text-right font-black">¥{o.totalAmount.toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-black text-xs">¥{o.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
                               <Button size="icon" variant="ghost" className="h-7 w-7 bg-green-50" onClick={() => handleUpdateFinance(o.id)} disabled={isUpdatingFinance === o.id} title="Sauver"><Check className="h-4 w-4 text-green-600" /></Button>
                               
