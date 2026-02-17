@@ -34,7 +34,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -295,7 +295,7 @@ export default function ClientDetailPage() {
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
                 <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY &gt; Devise)</Label>
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY &rarr; Devise)</Label>
                   <div className="flex gap-2">
                     <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" placeholder="ex: 0.1320" />
                     <Button size="sm" variant="outline" className="h-8" onClick={handleUpdateClientRate} disabled={isSaving}><Save className="h-4 w-4" /></Button>

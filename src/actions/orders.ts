@@ -143,6 +143,9 @@ export async function updateOrderFinancials(id: string, financials: { transportC
     }
 }
 
+/**
+ * Updates transport cost for an order.
+ */
 export async function updateOrderTransportCost(id: string, cost: number) {
     return updateOrderFinancials(id, { transportCost: cost });
 }
