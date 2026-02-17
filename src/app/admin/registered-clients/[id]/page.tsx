@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -37,6 +38,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -59,7 +61,8 @@ import {
   Package,
   Pencil,
   UploadCloud,
-  X
+  X,
+  Image as ImageIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -294,7 +297,13 @@ export default function ClientDetailPage() {
   };
 
   const handleOpenEditProduct = (product: any) => {
-    setEditingProductData({ ...product, images: product.images || [] });
+    setEditingProductData({ 
+      ...product, 
+      images: product.images || [],
+      availableSizes: product.availableSizes || [],
+      hasSizeSelection: !!product.hasSizeSelection,
+      availability: product.availability || 'both'
+    });
     setIsEditProductOpen(true);
   };
 
@@ -706,58 +715,118 @@ export default function ClientDetailPage() {
       </div>
 
       <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le Produit Client</DialogTitle>
-            <DialogDescription>Modifiez les détails de l'article pour le catalogue privé du client.</DialogDescription>
+            <DialogDescription>Modifiez les détails techniques, les tailles et les options de personnalisation.</DialogDescription>
           </DialogHeader>
           {editingProductData && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Nom du produit</Label>
-                  <Input value={editingProductData.name} onChange={e => setEditingProductData({...editingProductData, name: e.target.value})} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>SKU</Label>
-                    <Input value={editingProductData.sku} onChange={e => setEditingProductData({...editingProductData, sku: e.target.value})} />
+                    <Label className="font-bold">Nom du produit</Label>
+                    <Input value={editingProductData.name} onChange={e => setEditingProductData({...editingProductData, name: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="font-bold">SKU</Label>
+                      <Input value={editingProductData.sku} onChange={e => setEditingProductData({...editingProductData, sku: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-bold">MOQ (Perso)</Label>
+                      <Input type="number" value={editingProductData.moq} onChange={e => setEditingProductData({...editingProductData, moq: parseInt(e.target.value) || 1})} />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>MOQ (Perso)</Label>
-                    <Input type="number" value={editingProductData.moq} onChange={e => setEditingProductData({...editingProductData, moq: parseInt(e.target.value) || 1})} />
+                    <Label className="font-bold">Description technique</Label>
+                    <Textarea rows={4} value={editingProductData.description} onChange={e => setEditingProductData({...editingProductData, description: e.target.value})} />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Description technique</Label>
-                  <Textarea rows={4} value={editingProductData.description} onChange={e => setEditingProductData({...editingProductData, description: e.target.value})} />
-                </div>
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                  <div className="space-y-2"><Label>Prix CNY (¥)</Label><Input type="number" step="0.01" value={editingProductData.price} onChange={e => setEditingProductData({...editingProductData, price: parseFloat(e.target.value) || 0})} /></div>
-                  <div className="space-y-2"><Label>Prix EUR (€)</Label><Input type="number" step="0.01" value={editingProductData.priceEur} onChange={e => setEditingProductData({...editingProductData, priceEur: parseFloat(e.target.value) || 0})} /></div>
+
+                <div className="p-4 bg-zinc-50 rounded-2xl border space-y-4">
+                  <h4 className="font-black text-[10px] uppercase text-zinc-400 tracking-widest flex items-center gap-2">
+                    <Check className="h-3 w-3" /> Options Client
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-bold">Sélection de taille</Label>
+                      <p className="text-[10px] text-zinc-500">Autoriser le client à choisir une taille</p>
+                    </div>
+                    <Switch 
+                      checked={editingProductData.hasSizeSelection} 
+                      onCheckedChange={(checked) => setEditingProductData({...editingProductData, hasSizeSelection: checked})} 
+                    />
+                  </div>
+                  {editingProductData.hasSizeSelection && (
+                    <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2">
+                      <Label className="text-[10px] font-bold uppercase">Tailles disponibles (séparées par virgule)</Label>
+                      <Input 
+                        placeholder="ex: S, M, L, XL ou 38, 39, 40" 
+                        value={editingProductData.availableSizes?.join(', ') || ''} 
+                        onChange={(e) => setEditingProductData({
+                          ...editingProductData, 
+                          availableSizes: e.target.value.split(',').map(s => s.trim()).filter(s => s !== '')
+                        })}
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="pt-2">
+                    <Label className="text-sm font-bold">Type de vente</Label>
+                    <Select 
+                      value={editingProductData.availability} 
+                      onValueChange={(val) => setEditingProductData({...editingProductData, availability: val})}
+                    >
+                      <SelectTrigger className="h-9 mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard_only">Standard uniquement</SelectItem>
+                        <SelectItem value="personalized_only">Personnalisation uniquement</SelectItem>
+                        <SelectItem value="both">Standard & Personnalisé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <Label>Images du produit</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {editingProductData.images?.map((img: string, idx: number) => (
-                    <div key={idx} className="relative aspect-square rounded border bg-muted group">
-                      <img src={img} className="w-full h-full object-contain" alt="" />
-                      <button 
-                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setEditingProductData({...editingProductData, images: editingProductData.images.filter((_:any, i:number) => i !== idx)})}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  <label className="aspect-square rounded border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 transition-colors">
-                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 text-zinc-400" />}
-                    <span className="text-[8px] font-bold mt-1 text-zinc-400">AJOUTER</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleProductImageUpload} disabled={isUploading} />
-                  </label>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="font-bold">Images du produit</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {editingProductData.images?.map((img: string, idx: number) => (
+                      <div key={idx} className="relative aspect-square rounded border bg-muted group overflow-hidden">
+                        <img src={img} className="w-full h-full object-contain" alt="" />
+                        <button 
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setEditingProductData({...editingProductData, images: editingProductData.images.filter((_:any, i:number) => i !== idx)})}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    <label className="aspect-square rounded border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 transition-colors">
+                      {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Plus className="h-4 w-4 text-zinc-400" />}
+                      <span className="text-[8px] font-bold mt-1 text-zinc-400">AJOUTER</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleProductImageUpload} disabled={isUploading} />
+                    </label>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="space-y-2">
+                    <Label className="font-bold text-zinc-900">Prix CNY (¥)</Label>
+                    <Input type="number" step="0.01" value={editingProductData.price} onChange={e => setEditingProductData({...editingProductData, price: parseFloat(e.target.value) || 0})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-blue-600">Prix EUR (€)</Label>
+                    <Input type="number" step="0.01" value={editingProductData.priceEur} onChange={e => setEditingProductData({...editingProductData, priceEur: parseFloat(e.target.value) || 0})} />
+                  </div>
+                </div>
+
                 <div className="space-y-4 pt-4 border-t">
+                  <h4 className="font-black text-[10px] uppercase text-zinc-400 tracking-widest">Logistique & Douane</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1"><Label className="text-xs">Poids (kg)</Label><Input type="number" step="0.01" value={editingProductData.weight} onChange={e => setEditingProductData({...editingProductData, weight: parseFloat(e.target.value) || 0})} /></div>
                     <div className="space-y-1"><Label className="text-xs">HS Code</Label><Input value={editingProductData.hsCode} onChange={e => setEditingProductData({...editingProductData, hsCode: e.target.value})} /></div>
@@ -773,9 +842,9 @@ export default function ClientDetailPage() {
           )}
           <DialogFooter className="border-t pt-4">
             <DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose>
-            <Button onClick={handleSaveProductEdit} disabled={isSaving || isUploading}>
+            <Button onClick={handleSaveProductEdit} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-bold">
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              Sauvegarder les modifications
+              Enregistrer dans le catalogue
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -785,7 +854,7 @@ export default function ClientDetailPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Détails Commande</DialogTitle>
-            <DialogDescription>Aperçu des articles et de la livraison.</DialogDescription>
+            <DialogDescription>Consultez les articles, les options de personnalisation et les adresses.</DialogDescription>
           </DialogHeader>
           {selectedOrderPreview && (
             <div className="space-y-4 py-4">
