@@ -10,9 +10,7 @@ import {
   updateClientCredentials,
   deleteRegisteredClient,
   deleteClientProduct,
-  updateRegisteredClientCurrencyPreference,
   updateClientShippingRates,
-  updateClientCommissionBasis,
   updateClientExchangeRate,
   RegisteredClient 
 } from '@/actions/registered-clients';
@@ -23,12 +21,11 @@ import {
   deleteOrder,
   Order,
   PaymentStatus,
-  updateOrderTransportCost
 } from '@/actions/orders';
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, doc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,19 +34,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   ArrowLeft, 
   Loader2, 
   Trash2, 
-  Pencil, 
-  Package, 
   Save, 
   ShieldCheck,
   FileText,
-  Receipt,
   Eye,
   Plus,
   Calculator,
@@ -57,8 +50,9 @@ import {
   RefreshCw,
   Mail,
   Lock,
-  Globe,
-  Truck
+  Euro,
+  Truck,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -73,7 +67,6 @@ export default function ClientDetailPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const currencyContext = useContext(CurrencyContext);
-  const rate = currencyContext?.exchangeRate || 0.13;
 
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,7 +84,6 @@ export default function ClientDetailPage() {
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   
-  // Strict typing for indexable objects
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
   const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
@@ -214,7 +206,7 @@ export default function ClientDetailPage() {
     setIsSyncingPI(orderId);
     const res = await syncQuoteFromOrder(orderId);
     setIsSyncingPI(null);
-    if (res.success) toast({ title: "PI mise à jour et renvoyée" });
+    if (res.success) toast({ title: "PI mise à jour" });
   };
 
   const handleUpdateCredentials = async () => {
@@ -295,7 +287,7 @@ export default function ClientDetailPage() {
   };
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAdminAuthenticated');
+    const authStatus = sessionStorage.getItem('isAdminAuthenticated') || localStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') router.push('/admin/login');
   }, [router]);
 
@@ -430,13 +422,25 @@ export default function ClientDetailPage() {
                             </TableCell>
                             <TableCell className="text-right font-black">¥{o.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
-                              <Button size="icon" variant="ghost" className="h-7 w-7 bg-green-50" onClick={() => handleUpdateFinance(o.id)} disabled={isUpdatingFinance === o.id}><Check className="h-4 w-4 text-green-600" /></Button>
-                              {linkedPI && <Button variant="ghost" size="icon" className="text-primary" onClick={() => handleSyncPI(o.id)} disabled={isSyncingPI === o.id}><RefreshCw className="h-4 w-4" /></Button>}
-                              <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(o); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 bg-green-50" onClick={() => handleUpdateFinance(o.id)} disabled={isUpdatingFinance === o.id} title="Sauver"><Check className="h-4 w-4 text-green-600" /></Button>
+                              
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-7 px-2 text-[10px] font-bold"
+                                onClick={() => router.push(`/admin/quotes?fromOrder=${o.id}`)}
+                              >
+                                {linkedPI ? "Gérer PI" : "Générer PI"}
+                              </Button>
+
+                              {linkedPI && <Button variant="ghost" size="icon" className="text-primary h-7 w-7" onClick={() => handleSyncPI(o.id)} disabled={isSyncingPI === o.id} title="Sync documents liés"><RefreshCw className="h-4 w-4" /></Button>}
+                              
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedOrderPreview(o); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                              
                               <AlertDialog>
-                                <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                                <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500 h-7 w-7"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                 <AlertDialogContent>
-                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
+                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Cette action est irréversible et supprimera définitivement les données.</AlertDialogDescription></AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => handleDeleteOrderAction(o.id)}>Supprimer</AlertDialogAction>
