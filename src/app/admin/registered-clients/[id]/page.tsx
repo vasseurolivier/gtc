@@ -79,7 +79,6 @@ export default function ClientDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Client Identity states
   const [clientEmail, setClientEmail] = useState('');
   const [clientPassword, setClientPassword] = useState('');
   const [clientNumber, setClientNumber] = useState('');
@@ -92,7 +91,6 @@ export default function ClientDetailPage() {
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   
-  // Indexed states with explicit types for TS build
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
   const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
@@ -555,7 +553,7 @@ export default function ClientDetailPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCalcOpen(false)}>Annuler</Button>
+            <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
             <Button onClick={applyCalculatedCost}>Appliquer</Button>
           </DialogFooter>
         </DialogContent>

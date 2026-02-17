@@ -184,7 +184,14 @@ export async function updateOrderFromQuote(quote: Quote) {
         await updateDoc(orderRef, updatedOrderData);
         
         // Auto-update Invoice if it exists
-        const finalOrder = { ...updatedOrderData, id: orderDoc.id, orderNumber: orderDoc.data().orderNumber, paymentStatus: orderDoc.data().paymentStatus } as unknown as Order;
+        const finalOrder = { 
+            ...updatedOrderData, 
+            id: orderDoc.id, 
+            orderNumber: orderDoc.data().orderNumber, 
+            paymentStatus: orderDoc.data().paymentStatus,
+            orderDate: orderDoc.data().orderDate
+        } as unknown as Order;
+        
         const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', orderDoc.id));
         const invoiceSnap = await getDocs(invoiceQuery);
         if (!invoiceSnap.empty) {
@@ -193,6 +200,7 @@ export async function updateOrderFromQuote(quote: Quote) {
         
         return { success: true, message: 'Order and linked documents updated!', orderId: orderDoc.id };
     } catch (error: any) {
+        console.error("Sync Order error:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
