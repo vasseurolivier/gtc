@@ -143,9 +143,6 @@ export async function updateOrderFinancials(id: string, financials: { transportC
     }
 }
 
-/**
- * Updates transport cost for an order.
- */
 export async function updateOrderTransportCost(id: string, cost: number) {
     return updateOrderFinancials(id, { transportCost: cost });
 }
@@ -181,6 +178,7 @@ export async function updateOrderFromQuote(quote: Quote) {
             commissionBasis: quote.commissionBasis || 'products_only',
             depositRequired: quote.depositRequired || false,
             depositPercentage: quote.depositPercentage || 30,
+            updatedAt: serverTimestamp(),
         };
 
         await updateDoc(orderRef, updatedOrderData);
@@ -250,7 +248,7 @@ export async function deleteOrder(id: string) {
 export async function updateOrderStatus(id: string, status: string) {
     try {
         const orderRef = doc(db, 'orders', id);
-        await updateDoc(orderRef, { status: status });
+        await updateDoc(orderRef, { status: status, updatedAt: serverTimestamp() });
         return { success: true, message: 'Order status updated successfully!' };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };
@@ -264,7 +262,7 @@ export async function updateOrderPaymentStatus(id: string, paymentStatus: Paymen
         if (!orderSnap.exists()) return { success: false, message: "Order not found" };
         
         const currentData = orderSnap.data();
-        const updatePayload: any = { paymentStatus };
+        const updatePayload: any = { paymentStatus, updatedAt: serverTimestamp() };
         if (paymentStatus === 'paid' && currentData.status === 'processing') {
             updatePayload.status = 'validated';
         }

@@ -55,7 +55,8 @@ import {
   Check,
   RefreshCw,
   Mail,
-  Globe
+  Globe,
+  Truck
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -78,11 +79,15 @@ export default function ClientDetailPage() {
   
   const [clientNumber, setClientNumber] = useState('');
   const [clientRate, setClientRate] = useState('');
+  const [shippingRate, setShippingRate] = useState('');
+  const [shippingFixed, setShippingFixed] = useState('');
 
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
+  
+  // Typed states for dynamic indexing
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
   const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
@@ -115,6 +120,8 @@ export default function ClientDetailPage() {
           setClient(clientData);
           setClientNumber(clientData.clientNumber || '');
           setClientRate(clientData.exchangeRate?.toString() || '');
+          setShippingRate(clientData.shippingRatePerKg?.toString() || '0');
+          setShippingFixed(clientData.shippingFixedFee?.toString() || '0');
         }
       } finally { setIsLoading(false); }
     }
@@ -211,6 +218,13 @@ export default function ClientDetailPage() {
     setIsSaving(false);
   };
 
+  const handleUpdateShippingRates = async () => {
+    setIsSaving(true);
+    const res = await updateClientShippingRates(clientId, parseFloat(shippingRate), parseFloat(shippingFixed));
+    if (res.success) toast({ title: "Tarifs de transport enregistrés" });
+    setIsSaving(false);
+  };
+
   const handleToggleStatus = async () => {
     const newStatus = client?.status === 'validated' ? 'pending' : 'validated';
     const res = await updateRegisteredClientStatus(clientId, newStatus);
@@ -237,6 +251,7 @@ export default function ClientDetailPage() {
   useEffect(() => { aggregateProducts(); }, [db, clientId, productLists]);
 
   const handleSaveProduct = async () => {
+    if (!editingProduct) return;
     setIsSaving(true);
     try {
       const ref = doc(db!, 'clients', clientId, 'productLists', editingProduct.listId, 'products', editingProduct.id);
@@ -251,8 +266,8 @@ export default function ClientDetailPage() {
     const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
     setCalcWeight(totalWeight);
     setCalcTargetId(order.id);
-    setCalcRate(client?.shippingRatePerKg || 0);
-    setCalcFixed(client?.shippingFixedFee || 0);
+    setCalcRate(parseFloat(shippingRate) || 0);
+    setCalcFixed(parseFloat(shippingFixed) || 0);
     setIsCalcOpen(true);
   };
 
@@ -294,14 +309,39 @@ export default function ClientDetailPage() {
               </div>
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
+                
                 <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY &rarr; Devise)</Label>
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change (CNY &rarr; Devise)</Label>
                   <div className="flex gap-2">
-                    <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" placeholder="ex: 0.1320" />
+                    <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" />
                     <Button size="sm" variant="outline" className="h-8" onClick={handleUpdateClientRate} disabled={isSaving}><Save className="h-4 w-4" /></Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Client</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} className="h-8"><Save className="h-4 w-4" /></Button></div>
+
+                <div className="space-y-2 pt-4 border-t">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Tarifs Transport Référents</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase">Prix / kg (¥)</Label>
+                      <Input type="number" step="0.01" value={shippingRate} onChange={e => setShippingRate(e.target.value)} className="h-8 text-xs font-bold" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase">Frais fixe (¥)</Label>
+                      <Input type="number" step="0.01" value={shippingFixed} onChange={e => setShippingFixed(e.target.value)} className="h-8 text-xs font-bold" />
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="w-full h-8 mt-2" onClick={handleUpdateShippingRates} disabled={isSaving}>
+                    <Save className="h-3 w-3 mr-2" /> Sauver les tarifs
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 pt-4 border-t">
+                  <div className="flex-grow space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-zinc-400">N° Client</Label>
+                    <Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" />
+                  </div>
+                  <Button size="sm" variant="outline" onClick={handleUpdateNumber} className="h-8 self-end"><Save className="h-4 w-4" /></Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -443,10 +483,22 @@ export default function ClientDetailPage() {
           <DialogHeader><DialogTitle>Détails Commande</DialogTitle></DialogHeader>
           {selectedOrderPreview && (
             <div className="space-y-4 py-4">
-              <p>Détails pour {selectedOrderPreview.orderNumber}</p>
+              <p className="font-bold">Commande {selectedOrderPreview.orderNumber}</p>
+              <Table>
+                <TableHeader><TableRow><TableHead>Description</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total (¥)</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {selectedOrderPreview.items.map((item, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-center">{item.quantity}</TableCell>
+                      <TableCell className="text-right">¥{item.total.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
-          <DialogFooter><Button onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button></DialogFooter>
+          <DialogFooter><DialogClose asChild><Button variant="outline">Fermer</Button></DialogClose></DialogFooter>
         </DialogContent>
       </Dialog>
 
