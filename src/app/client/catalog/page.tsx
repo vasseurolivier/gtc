@@ -6,7 +6,7 @@ import { collection, query, where, getDocs, doc, addDoc, serverTimestamp } from 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -156,14 +156,18 @@ export default function ClientCatalogPage() {
       newCart[existingIdx].total = newCart[existingIdx].quantity * newCart[existingIdx].unitPrice;
       setCart(newCart);
     } else {
+      const manualPriceEur = Number(selectedProduct.priceEur || 0);
+      const manualPriceCny = Number(selectedProduct.price || 0);
+      
       setCart([...cart, {
         key: itemKey,
         id: selectedProduct.id,
         name: selectedProduct.name,
         sku: selectedProduct.sku || '',
         quantity: productQuantity,
-        unitPrice: Number(selectedProduct.price || 0),
-        total: productQuantity * Number(selectedProduct.price || 0),
+        unitPrice: manualPriceCny,
+        unitPriceEur: manualPriceEur,
+        total: productQuantity * manualPriceCny,
         photo: selectedProduct.images?.[0] || '',
         size: selectedSize,
         moq: isPersonalized ? moq : 1,
@@ -247,12 +251,17 @@ export default function ClientCatalogPage() {
     }
   };
 
-  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
-    const priceEur = priceCny * rate;
+  const renderPrice = (product: any, quantity = 1, mainClass = "text-primary font-black") => {
+    const manualEur = Number(product.priceEur || 0);
+    const manualCny = Number(product.price || 0);
+    
+    const finalEur = manualEur > 0 ? manualEur * quantity : (manualCny * quantity * rate);
+    const finalCny = manualCny * quantity;
+
     return (
       <div className="flex flex-col">
-        {currencyPreference !== 'CNY' && <div className={mainClass}>€{priceEur.toFixed(2)}</div>}
-        {currencyPreference !== 'EUR' && <div className={cn(mainClass, currencyPreference === 'BOTH' && "text-[10px] text-zinc-400 font-bold")}>¥{priceCny.toFixed(2)}</div>}
+        {currencyPreference !== 'CNY' && <div className={mainClass}>€{finalEur.toFixed(2)}</div>}
+        {currencyPreference !== 'EUR' && <div className={cn(mainClass, currencyPreference === 'BOTH' && "text-[10px] text-zinc-400 font-bold")}>¥{finalCny.toFixed(2)}</div>}
       </div>
     );
   };
@@ -295,7 +304,7 @@ export default function ClientCatalogPage() {
               <div className="p-4">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">{p.sku}</div>
                 <CardTitle className="text-base mt-1 line-clamp-1">{p.name}</CardTitle>
-                <div className="mt-2">{renderPrice(p.price, "text-xl font-black text-primary")}</div>
+                <div className="mt-2">{renderPrice(p, 1, "text-xl font-black text-primary")}</div>
               </div>
             </Card>
           ))
@@ -310,6 +319,10 @@ export default function ClientCatalogPage() {
 
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Détails Produit</DialogTitle>
+            <DialogDescription>Consultez les spécifications et ajoutez au panier.</DialogDescription>
+          </DialogHeader>
           {selectedProduct && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6">
               <div className="space-y-4">
@@ -337,7 +350,7 @@ export default function ClientCatalogPage() {
                   </div>
                   <h3 className="text-3xl font-black text-zinc-900">{selectedProduct.name}</h3>
                   <div>
-                    {renderPrice(selectedProduct.price, "text-3xl font-black text-primary")}
+                    {renderPrice(selectedProduct, 1, "text-3xl font-black text-primary")}
                     <span className="text-xs text-zinc-400 font-normal">/ Unité</span>
                   </div>
                 </div>
@@ -355,13 +368,11 @@ export default function ClientCatalogPage() {
                         }}
                         className="flex gap-4"
                       >
-                        {selectedProduct.availability !== 'standard_only' && (
-                          <div className={cn("flex-1 p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-all", !isPersonalized ? "border-primary bg-primary/5" : "hover:bg-zinc-50")}>
-                            <RadioGroupItem value="standard" id="std" className="sr-only" />
-                            <Label htmlFor="std" className="flex-grow cursor-pointer font-bold text-sm">Standard</Label>
-                            {!isPersonalized && <CheckCircle2 className="h-4 w-4 text-primary" />}
-                          </div>
-                        )}
+                        <div className={cn("flex-1 p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-all", !isPersonalized ? "border-primary bg-primary/5" : "hover:bg-zinc-50")}>
+                          <RadioGroupItem value="standard" id="std" className="sr-only" />
+                          <Label htmlFor="std" className="flex-grow cursor-pointer font-bold text-sm">Standard</Label>
+                          {!isPersonalized && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        </div>
                         <div className={cn("flex-1 p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-all", isPersonalized ? "border-primary bg-primary/5" : "hover:bg-zinc-50")}>
                           <RadioGroupItem value="personalized" id="perso" className="sr-only" />
                           <Label htmlFor="perso" className="flex-grow cursor-pointer font-bold text-sm">Personnalisé</Label>
@@ -406,7 +417,7 @@ export default function ClientCatalogPage() {
                   </div>
                   <div className="pt-4 border-t border-zinc-200 flex justify-between items-center">
                     <span className="font-bold text-zinc-500 uppercase text-[10px]">Sous-total estimé :</span>
-                    {renderPrice(selectedProduct.price * productQuantity, "text-2xl font-black text-zinc-900")}
+                    {renderPrice(selectedProduct, productQuantity, "text-2xl font-black text-zinc-900")}
                   </div>
                   <Button className="w-full h-14 bg-zinc-950 text-white font-black hover:bg-primary transition-all rounded-xl" onClick={handleAddToCart}>
                     <ShoppingCart className="mr-2 h-5 w-5" /> AJOUTER AU PANIER
@@ -424,6 +435,7 @@ export default function ClientCatalogPage() {
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               <ShoppingCart className="text-primary" /> Mon Panier
             </DialogTitle>
+            <DialogDescription>Validez votre commande pour lancer la préparation.</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-6">
             <div className="border rounded-xl overflow-hidden shadow-sm">
@@ -466,7 +478,7 @@ export default function ClientCatalogPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        {renderPrice(item.total, "font-black text-zinc-900")}
+                        {renderPrice(item, item.quantity, "font-black text-zinc-900")}
                       </TableCell>
                       <TableCell className="text-right pr-6">
                         <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.key)} className="text-zinc-300 hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></Button>
@@ -508,7 +520,7 @@ export default function ClientCatalogPage() {
               <Card className="bg-zinc-950 text-white p-6 h-fit rounded-3xl border-none shadow-2xl">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Articles</span>
                 <div className="mt-1">
-                  {renderPrice(cartTotalCny, "text-3xl font-black text-primary")}
+                  {renderPrice({ price: cartTotalCny }, 1, "text-3xl font-black text-primary")}
                 </div>
                 <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
                   <p className="text-[10px] text-zinc-400 italic">Note : Les frais de transport seront calculés par nos agents après validation du poids total.</p>

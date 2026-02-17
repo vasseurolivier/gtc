@@ -109,9 +109,6 @@ export async function updateOrder(id: string, values: Partial<Order>) {
     }
 }
 
-/**
- * Updates financials and propagates to linked invoice if it exists.
- */
 export async function updateOrderFinancials(id: string, financials: { transportCost?: number, commissionRate?: number, commissionBasis?: 'products_only' | 'total' }) {
     try {
         const orderRef = doc(db, 'orders', id);
@@ -143,7 +140,6 @@ export async function updateOrderFinancials(id: string, financials: { transportC
 
         await updateDoc(orderRef, updatePayload);
 
-        // PROPAGATE TO INVOICE
         const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
         const invoiceSnap = await getDocs(invoiceQuery);
         if (!invoiceSnap.empty) {
@@ -157,9 +153,6 @@ export async function updateOrderFinancials(id: string, financials: { transportC
     }
 }
 
-/**
- * Alias for build compatibility
- */
 export async function updateOrderTransportCost(id: string, cost: number) {
     return updateOrderFinancials(id, { transportCost: cost });
 }
@@ -200,7 +193,6 @@ export async function updateOrderFromQuote(quote: Quote) {
 
         await updateDoc(orderRef, updatedOrderData);
         
-        // Auto-update Invoice if it exists
         const finalOrder = { 
             ...updatedOrderData, 
             id: orderDoc.id, 
@@ -215,9 +207,8 @@ export async function updateOrderFromQuote(quote: Quote) {
             await addInvoiceFromOrder(finalOrder, invoiceSnap.docs[0].id);
         }
         
-        return { success: true, message: 'Order and linked documents updated!', orderId: orderDoc.id };
+        return { success: true, message: 'Order updated!', orderId: orderDoc.id };
     } catch (error: any) {
-        console.error("Sync Order error:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

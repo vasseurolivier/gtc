@@ -14,7 +14,7 @@ export interface RegisteredClient {
     orderPrefix?: string;
     currencyPreference?: 'EUR' | 'CNY' | 'BOTH';
     commissionBasis?: 'products_only' | 'total';
-    exchangeRate?: number; // Per-client specific rate
+    exchangeRate?: number;
     status?: 'pending' | 'validated';
     createdAt: string;
     phone?: string;
@@ -145,6 +145,17 @@ export async function updateClientProfile(id: string, data: Partial<RegisteredCl
         return { success: true, message: 'Profil mis à jour.' };
     } catch (e: any) {
         return { success: false, message: 'Erreur.' };
+    }
+}
+
+export async function updateClientProduct(clientId: string, listId: string, productId: string, data: any) {
+    try {
+        const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', productId);
+        await updateDoc(productRef, data);
+        return { success: true, message: 'Produit mis à jour.' };
+    } catch (e: any) {
+        console.error("Update client product error:", e);
+        return { success: false, message: 'Erreur lors de la mise à jour.' };
     }
 }
 

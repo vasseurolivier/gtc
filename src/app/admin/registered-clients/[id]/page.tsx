@@ -12,6 +12,7 @@ import {
   deleteClientProduct,
   updateClientShippingRates,
   updateClientExchangeRate,
+  updateClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -54,7 +55,8 @@ import {
   Truck,
   Sparkles,
   CircleAlert,
-  Globe
+  Globe,
+  Package
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -96,7 +98,8 @@ export default function ClientDetailPage() {
   const [calcFixed, setCalcFixed] = useState(0);
   const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
 
-  const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
+  const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -262,15 +265,26 @@ export default function ClientDetailPage() {
 
   const aggregateProducts = async () => {
     if (!db || !clientId || !productLists) return;
-    const published: any[] = [];
+    const all: any[] = [];
     for (const list of productLists!) {
-      const snap = await getDocs(query(collection(db!, 'clients', clientId, 'productLists', list.id, 'products'), where('status', '==', 'published')));
-      snap.forEach(d => published.push({ ...d.data(), id: d.id, listId: list.id }));
+      const prodCol = collection(db!, 'clients', clientId, 'productLists', list.id, 'products');
+      const snap = await getDocs(prodCol);
+      snap.forEach(d => all.push({ ...d.data(), id: d.id, listId: list.id }));
     }
-    setPublishedProducts(published);
+    setAllSourcingProducts(all);
   };
 
   useEffect(() => { aggregateProducts(); }, [db, clientId, productLists]);
+
+  const handleUpdateProductData = async (productId: string, listId: string, data: any) => {
+    setIsUpdatingProduct(productId);
+    const res = await updateClientProduct(clientId, listId, productId, data);
+    setIsUpdatingProduct(null);
+    if (res.success) {
+      toast({ title: "Produit mis à jour" });
+      aggregateProducts();
+    }
+  };
 
   const openCalculator = (order: Order) => {
     const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
@@ -402,15 +416,15 @@ export default function ClientDetailPage() {
 
         <div className="lg:col-span-2">
           <Tabs defaultValue="orders">
-            <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start">
+            <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start overflow-x-auto">
               <TabsTrigger value="orders">Commandes</TabsTrigger>
               <TabsTrigger value="quotes">Proformas</TabsTrigger>
               <TabsTrigger value="invoices">Factures</TabsTrigger>
-              <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
+              <TabsTrigger value="catalogue">Sourcing & Catalogue</TabsTrigger>
             </TabsList>
 
             <TabsContent value="orders">
-              <Card className="border-none shadow-md bg-white">
+              <Card className="border-none shadow-md bg-white overflow-hidden">
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader className="bg-zinc-50">
@@ -569,14 +583,75 @@ export default function ClientDetailPage() {
             <TabsContent value="catalogue">
               <Card className="border-none shadow-md bg-white">
                 <Table>
-                  <TableHeader className="bg-zinc-50"><TableRow><TableHead className="pl-6">Produit</TableHead><TableHead>Prix (CNY)</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow></TableHeader>
+                  <TableHeader className="bg-zinc-50">
+                    <TableRow>
+                      <TableHead className="pl-6">Produit</TableHead>
+                      <TableHead>Prix Manuels (¥ / €)</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
-                    {publishedProducts.map(p => (
+                    {allSourcingProducts.map(p => (
                       <TableRow key={p.id}>
-                        <TableCell className="font-bold pl-6">{p.name}</TableCell>
-                        <TableCell className="font-black">¥{p.price?.toFixed(2)}</TableCell>
+                        <TableCell className="py-4 pl-6">
+                          <div className="flex items-center gap-3">
+                            {p.images?.[0] && <div className="w-10 h-10 rounded border overflow-hidden"><img src={p.images[0]} className="object-cover w-full h-full" alt="" /></div>}
+                            <div>
+                              <div className="font-bold text-sm">{p.name}</div>
+                              <div className="text-[10px] text-zinc-400 font-mono">{p.sku || 'SANS SKU'}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2 items-center">
+                            <div className="relative w-24">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400">¥</span>
+                              <Input 
+                                type="number" 
+                                step="0.01" 
+                                placeholder="CNY"
+                                className="h-8 pl-5 text-xs font-bold" 
+                                defaultValue={p.price || ''} 
+                                onBlur={(e) => handleUpdateProductData(p.id, p.listId, { price: parseFloat(e.target.value) || 0 })}
+                              />
+                            </div>
+                            <div className="relative w-24">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400">€</span>
+                              <Input 
+                                type="number" 
+                                step="0.01" 
+                                placeholder="EUR"
+                                className="h-8 pl-5 text-xs font-bold text-blue-600" 
+                                defaultValue={p.priceEur || ''} 
+                                onBlur={(e) => handleUpdateProductData(p.id, p.listId, { priceEur: parseFloat(e.target.value) || 0 })}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Select 
+                            defaultValue={p.status || 'pending'} 
+                            onValueChange={(val) => handleUpdateProductData(p.id, p.listId, { status: val })}
+                          >
+                            <SelectTrigger className="h-8 w-32 text-[10px] font-bold uppercase">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">En analyse</SelectItem>
+                              <SelectItem value="published">Publié (Catalog)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
                         <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}><Trash2 className="h-4 w-4" /></Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-red-500" 
+                            onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -590,7 +665,10 @@ export default function ClientDetailPage() {
 
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Détails Commande</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Détails Commande</DialogTitle>
+            <DialogDescription>Aperçu des articles et de la livraison.</DialogDescription>
+          </DialogHeader>
           {selectedOrderPreview && (
             <div className="space-y-4 py-4">
               <p className="font-bold">Commande {selectedOrderPreview.orderNumber}</p>
@@ -616,9 +694,7 @@ export default function ClientDetailPage() {
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Calculateur de Frais d'Envoi</DialogTitle>
-            <DialogDescription>
-              Calculez le coût basé sur le poids total de la commande.
-            </DialogDescription>
+            <DialogDescription>Calculez le coût basé sur le poids total de la commande.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
