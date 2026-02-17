@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -37,6 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -56,12 +56,16 @@ import {
   Sparkles,
   CircleAlert,
   Globe,
-  Package
+  Package,
+  Pencil,
+  UploadCloud,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
+import { uploadImage } from '@/actions/upload';
 import { cn } from '@/lib/utils';
 
 export default function ClientDetailPage() {
@@ -100,6 +104,9 @@ export default function ClientDetailPage() {
 
   const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
+  const [editingProductData, setEditingProductData] = useState<any | null>(null);
+  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -284,6 +291,40 @@ export default function ClientDetailPage() {
       toast({ title: "Produit mis à jour" });
       aggregateProducts();
     }
+  };
+
+  const handleOpenEditProduct = (product: any) => {
+    setEditingProductData({ ...product, images: product.images || [] });
+    setIsEditProductOpen(true);
+  };
+
+  const handleSaveProductEdit = async () => {
+    if (!editingProductData) return;
+    setIsSaving(true);
+    const res = await updateClientProduct(clientId, editingProductData.listId, editingProductData.id, editingProductData);
+    if (res.success) {
+      toast({ title: "Fiche produit enregistrée" });
+      setIsEditProductOpen(false);
+      aggregateProducts();
+    }
+    setIsSaving(false);
+  };
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', `clients/${clientId}/sourcing`);
+    const res = await uploadImage(formData);
+    if (res.success && res.url) {
+      setEditingProductData((prev: any) => ({
+        ...prev,
+        images: [...(prev.images || []), res.url]
+      }));
+    }
+    setIsUploading(false);
   };
 
   const openCalculator = (order: Order) => {
@@ -643,7 +684,8 @@ export default function ClientDetailPage() {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell className="text-right pr-6">
+                        <TableCell className="text-right pr-6 space-x-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditProduct(p)} title="Modifier la fiche"><Pencil className="h-4 w-4" /></Button>
                           <Button 
                             variant="ghost" 
                             size="icon" 
@@ -662,6 +704,82 @@ export default function ClientDetailPage() {
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier le Produit Client</DialogTitle>
+            <DialogDescription>Modifiez les détails de l'article pour le catalogue privé du client.</DialogDescription>
+          </DialogHeader>
+          {editingProductData && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Nom du produit</Label>
+                  <Input value={editingProductData.name} onChange={e => setEditingProductData({...editingProductData, name: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>SKU</Label>
+                    <Input value={editingProductData.sku} onChange={e => setEditingProductData({...editingProductData, sku: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>MOQ (Perso)</Label>
+                    <Input type="number" value={editingProductData.moq} onChange={e => setEditingProductData({...editingProductData, moq: parseInt(e.target.value) || 1})} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Description technique</Label>
+                  <Textarea rows={4} value={editingProductData.description} onChange={e => setEditingProductData({...editingProductData, description: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="space-y-2"><Label>Prix CNY (¥)</Label><Input type="number" step="0.01" value={editingProductData.price} onChange={e => setEditingProductData({...editingProductData, price: parseFloat(e.target.value) || 0})} /></div>
+                  <div className="space-y-2"><Label>Prix EUR (€)</Label><Input type="number" step="0.01" value={editingProductData.priceEur} onChange={e => setEditingProductData({...editingProductData, priceEur: parseFloat(e.target.value) || 0})} /></div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <Label>Images du produit</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {editingProductData.images?.map((img: string, idx: number) => (
+                    <div key={idx} className="relative aspect-square rounded border bg-muted group">
+                      <img src={img} className="w-full h-full object-contain" alt="" />
+                      <button 
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setEditingProductData({...editingProductData, images: editingProductData.images.filter((_:any, i:number) => i !== idx)})}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="aspect-square rounded border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-50 transition-colors">
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 text-zinc-400" />}
+                    <span className="text-[8px] font-bold mt-1 text-zinc-400">AJOUTER</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleProductImageUpload} disabled={isUploading} />
+                  </label>
+                </div>
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label className="text-xs">Poids (kg)</Label><Input type="number" step="0.01" value={editingProductData.weight} onChange={e => setEditingProductData({...editingProductData, weight: parseFloat(e.target.value) || 0})} /></div>
+                    <div className="space-y-1"><Label className="text-xs">HS Code</Label><Input value={editingProductData.hsCode} onChange={e => setEditingProductData({...editingProductData, hsCode: e.target.value})} /></div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1"><Label className="text-[10px]">L (cm)</Label><Input type="number" value={editingProductData.length} onChange={e => setEditingProductData({...editingProductData, length: parseFloat(e.target.value) || 0})} /></div>
+                    <div className="space-y-1"><Label className="text-[10px]">W (cm)</Label><Input type="number" value={editingProductData.width} onChange={e => setEditingProductData({...editingProductData, width: parseFloat(e.target.value) || 0})} /></div>
+                    <div className="space-y-1"><Label className="text-[10px]">H (cm)</Label><Input type="number" value={editingProductData.height} onChange={e => setEditingProductData({...editingProductData, height: parseFloat(e.target.value) || 0})} /></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="border-t pt-4">
+            <DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose>
+            <Button onClick={handleSaveProductEdit} disabled={isSaving || isUploading}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Sauvegarder les modifications
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
