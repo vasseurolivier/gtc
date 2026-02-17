@@ -91,6 +91,7 @@ export default function ClientDetailPage() {
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   
+  // Strict typing for indexable objects
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
   const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
@@ -248,6 +249,21 @@ export default function ClientDetailPage() {
     const res = await updateRegisteredClientNumber(clientId, clientNumber);
     if (res.success) toast({ title: "Numéro client enregistré" });
     setIsSaving(false);
+  };
+
+  const handleDeleteOrderAction = async (id: string) => {
+    const res = await deleteOrder(id);
+    if (res.success) toast({ title: "Commande supprimée" });
+  };
+
+  const handleDeleteQuoteAction = async (id: string) => {
+    const res = await deleteQuote(id);
+    if (res.success) toast({ title: "Proforma supprimée" });
+  };
+
+  const handleDeleteInvoiceAction = async (id: string) => {
+    const res = await deleteInvoice(id);
+    if (res.success) toast({ title: "Facture supprimée" });
   };
 
   const aggregateProducts = async () => {
@@ -417,6 +433,16 @@ export default function ClientDetailPage() {
                               <Button size="icon" variant="ghost" className="h-7 w-7 bg-green-50" onClick={() => handleUpdateFinance(o.id)} disabled={isUpdatingFinance === o.id}><Check className="h-4 w-4 text-green-600" /></Button>
                               {linkedPI && <Button variant="ghost" size="icon" className="text-primary" onClick={() => handleSyncPI(o.id)} disabled={isSyncingPI === o.id}><RefreshCw className="h-4 w-4" /></Button>}
                               <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(o); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteOrderAction(o.id)}>Supprimer</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </TableCell>
                           </TableRow>
                         )
@@ -437,7 +463,19 @@ export default function ClientDetailPage() {
                         <TableCell className="font-black pl-6">{q.quoteNumber}</TableCell>
                         <TableCell className="text-xs">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
                         <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button></TableCell>
+                        <TableCell className="text-right pr-6 space-x-1">
+                          <Button variant="ghost" size="icon" asChild title="Voir PDF"><Link href={`/admin/quotes/${q.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader><AlertDialogTitle>Supprimer la proforma ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteQuoteAction(q.id)}>Supprimer</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -455,7 +493,19 @@ export default function ClientDetailPage() {
                         <TableCell className="font-black pl-6">{inv.invoiceNumber}</TableCell>
                         <TableCell className="text-xs">{format(parseSafeDate(inv.issueDate), 'dd/MM/yyyy')}</TableCell>
                         <TableCell><Badge variant={inv.status === 'paid' ? 'default' : 'outline'}>{inv.status}</Badge></TableCell>
-                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${inv.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button></TableCell>
+                        <TableCell className="text-right pr-6 space-x-1">
+                          <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${inv.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader><AlertDialogTitle>Supprimer la facture ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteInvoiceAction(inv.id)}>Supprimer</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -494,7 +544,7 @@ export default function ClientDetailPage() {
               <Table>
                 <TableHeader><TableRow><TableHead>Description</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total (¥)</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {selectedOrderPreview.items.map((item, idx) => (
+                  {selectedOrderPreview.items.map((item: any, idx: number) => (
                     <TableRow key={idx}>
                       <TableCell>{item.description}</TableCell>
                       <TableCell className="text-center">{item.quantity}</TableCell>
