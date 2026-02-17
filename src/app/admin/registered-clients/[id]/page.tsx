@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo } from 'react';
@@ -517,7 +516,18 @@ export default function ClientDetailPage() {
                                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCalculator(o)}><Calculator className="h-3 w-3" /></Button>
                               </div>
                             </TableCell>
-                            <TableCell><Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} /></TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} />
+                                <Select value={basisInputs[o.id] || 'products_only'} onValueChange={(v: 'products_only'|'total') => setBasisInputs({...basisInputs, [o.id]: v})}>
+                                  <SelectTrigger className="w-8 h-7 p-0 flex justify-center"><PercentIcon className="h-3 w-3" /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="products_only" className="text-[10px]">Sur produits</SelectItem>
+                                    <SelectItem value="total" className="text-[10px]">Sur total (+port)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </TableCell>
                             <TableCell>
                                 <Select 
                                     defaultValue={o.paymentStatus} 
@@ -926,4 +936,25 @@ export default function ClientDetailPage() {
       </Dialog>
     </div>
   );
+}
+
+function PercentIcon(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="19" x2="5" y1="5" y2="19" />
+      <circle cx="6.5" cy="6.5" r="2.5" />
+      <circle cx="17.5" cy="17.5" r="2.5" />
+    </svg>
+  )
 }
