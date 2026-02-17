@@ -117,9 +117,21 @@ export default function ClientCatalogPage() {
     );
   }, [sourcedProducts, searchTerm]);
 
-  const cartTotalCny = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.total, 0);
-  }, [cart]);
+  // CALCULE DES TOTAUX DU PANIER
+  // On calcule séparément en CNY et en EUR pour respecter les prix manuels sans décalage
+  const cartTotals = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      const itemTotalCny = item.quantity * item.unitPrice;
+      // Si un prix EUR manuel existe, on l'utilise directement, sinon on convertit le CNY
+      const itemTotalEur = (item.unitPriceEur && item.unitPriceEur > 0)
+        ? item.quantity * item.unitPriceEur 
+        : itemTotalCny * rate;
+      
+      acc.cny += itemTotalCny;
+      acc.eur += itemTotalEur;
+      return acc;
+    }, { cny: 0, eur: 0 });
+  }, [cart, rate]);
 
   const handleOpenProduct = (product: any) => {
     setSelectedProduct(product);
@@ -228,7 +240,7 @@ export default function ClientCatalogPage() {
           isPersonalized: item.isPersonalized || false,
           weight: item.weight || 0
         })),
-        totalAmount: cartTotalCny,
+        totalAmount: cartTotals.cny,
         status: 'processing' as const,
         shippingAddress,
         orderDate: new Date().toISOString(),
@@ -248,10 +260,11 @@ export default function ClientCatalogPage() {
     }
   };
 
-  const renderPrice = (product: any, quantity = 1, mainClass = "text-primary font-black") => {
-    const manualEur = Number(product.priceEur || product.unitPriceEur || 0);
-    const manualCny = Number(product.price || product.unitPrice || 0);
+  const renderPrice = (item: any, quantity = 1, mainClass = "text-primary font-black") => {
+    const manualEur = Number(item.priceEur || item.unitPriceEur || 0);
+    const manualCny = Number(item.price || item.unitPrice || 0);
     
+    // On utilise le prix EUR manuel s'il existe, sinon on convertit
     const finalEur = manualEur > 0 ? manualEur * quantity : (manualCny * quantity * rate);
     const finalCny = manualCny * quantity;
 
@@ -265,7 +278,7 @@ export default function ClientCatalogPage() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-zinc-900">Mon Catalogue Privé</h1>
           <p className="text-zinc-500 mt-2">Retrouvez ici les produits que nous avons sourcés et validés pour vous.</p>
@@ -273,7 +286,7 @@ export default function ClientCatalogPage() {
         {cart.length > 0 && (
           <Button className="h-12 px-6 bg-primary text-white font-bold rounded-xl shadow-lg" onClick={() => setIsCartDialogOpen(true)}>
             <ShoppingCart className="mr-2 h-5 w-5" /> 
-            Panier ({currencyPreference === 'CNY' ? `¥${cartTotalCny.toFixed(2)}` : `€${(cartTotalCny * rate).toFixed(2)}`})
+            Panier ({currencyPreference === 'CNY' ? `¥${cartTotals.cny.toFixed(2)}` : `€${cartTotals.eur.toFixed(2)}`})
           </Button>
         )}
       </div>
@@ -517,7 +530,16 @@ export default function ClientCatalogPage() {
               <Card className="bg-zinc-950 text-white p-6 h-fit rounded-3xl border-none shadow-2xl">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Articles</span>
                 <div className="mt-1">
-                  {renderPrice({ price: cartTotalCny }, 1, "text-3xl font-black text-primary")}
+                  {currencyPreference === 'EUR' ? (
+                    <div className="text-3xl font-black text-primary">€{cartTotals.eur.toFixed(2)}</div>
+                  ) : currencyPreference === 'CNY' ? (
+                    <div className="text-3xl font-black text-primary">¥{cartTotals.cny.toFixed(2)}</div>
+                  ) : (
+                    <div className="flex flex-col">
+                      <div className="text-3xl font-black text-primary">€{cartTotals.eur.toFixed(2)}</div>
+                      <div className="text-xs text-zinc-400 font-bold">¥{cartTotals.cny.toFixed(2)}</div>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
                   <p className="text-[10px] text-zinc-400 italic">Note : Les frais de transport seront calculés par nos agents après validation du poids total.</p>

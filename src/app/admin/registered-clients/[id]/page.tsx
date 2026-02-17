@@ -373,8 +373,8 @@ export default function ClientDetailPage() {
     switch (status) {
         case 'paid': return <Badge className="bg-green-500 text-[10px] h-5">PAYÉ</Badge>;
         case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 text-[10px] h-5">ACOMPTE OK</Badge>;
-        case 'unpaid': return <Badge variant="outline" className="text-zinc-400 text-[10px] h-5">NON PAYÉ</Badge>;
-        default: return null;
+        case 'unpaid': return <Badge variant="outline" className="text-red-500">NON PAYÉ</Badge>;
+        default: return <Badge variant="outline">NON PAYÉ</Badge>;
     }
   };
 
