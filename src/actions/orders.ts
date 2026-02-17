@@ -23,7 +23,6 @@ const orderItemSchema = z.object({
 });
 
 export type OrderItem = z.infer<typeof orderItemSchema>;
-
 export type PaymentStatus = "unpaid" | "deposit_paid" | "paid";
 
 export interface Order {
@@ -90,15 +89,12 @@ export async function addOrder(quote: Quote) {
         };
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
-        
         if (newOrderData.paymentStatus === 'paid') {
             const finalOrder = { ...newOrderData, id: docRef.id } as unknown as Order;
             await addInvoiceFromOrder(finalOrder);
         }
-
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
-        console.error('Error adding order:', error);
         return { success: false, message: 'An unexpected error occurred while creating the order.' };
     }
 }
@@ -106,13 +102,9 @@ export async function addOrder(quote: Quote) {
 export async function updateOrder(id: string, values: Partial<Order>) {
     try {
         const orderRef = doc(db, 'orders', id);
-        await updateDoc(orderRef, {
-            ...values,
-            updatedAt: serverTimestamp(),
-        });
+        await updateDoc(orderRef, { ...values, updatedAt: serverTimestamp() });
         return { success: true, message: 'Order updated successfully!' };
     } catch (error: any) {
-        console.error('Error updating order:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -132,26 +124,21 @@ export async function updateOrderFinancials(id: string, financials: { transportC
 
         let newTotal = 0;
         if (basis === 'total') {
-            // Commission on both products AND transport
             newTotal = (itemsTotal + cost) * (1 + rate / 100);
         } else {
-            // Commission on products ONLY
             const commissionAmount = itemsTotal * (rate / 100);
             newTotal = itemsTotal + commissionAmount + cost;
         }
 
-        const updatePayload = { 
+        await updateDoc(orderRef, { 
             transportCost: cost,
             commissionRate: rate,
             commissionBasis: basis,
             totalAmount: newTotal,
             updatedAt: serverTimestamp()
-        };
-
-        await updateDoc(orderRef, updatePayload);
+        });
         return { success: true, message: 'Finance updated.', newTotal };
     } catch (error: any) {
-        console.error('Error updating order financials:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -160,10 +147,7 @@ export async function updateOrderFromQuote(quote: Quote) {
     try {
         const ordersQuery = query(collection(db, "orders"), where("quoteId", "==", quote.id));
         const ordersSnapshot = await getDocs(ordersQuery);
-
-        if (ordersSnapshot.empty) {
-            return { success: true, message: "No matching order found to update." };
-        }
+        if (ordersSnapshot.empty) return { success: true, message: "No matching order." };
 
         const orderDoc = ordersSnapshot.docs[0];
         const orderRef = doc(db, 'orders', orderDoc.id);
@@ -194,11 +178,17 @@ export async function updateOrderFromQuote(quote: Quote) {
 
         await updateDoc(orderRef, updatedOrderData);
         
-        return { success: true, message: 'Order updated successfully from proforma!', orderId: orderDoc.id };
-
+        // Auto-update Invoice if it exists
+        const finalOrder = { ...updatedOrderData, id: orderDoc.id, orderNumber: orderDoc.data().orderNumber, paymentStatus: orderDoc.data().paymentStatus } as unknown as Order;
+        const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', orderDoc.id));
+        const invoiceSnap = await getDocs(invoiceQuery);
+        if (!invoiceSnap.empty) {
+            await addInvoiceFromOrder(finalOrder);
+        }
+        
+        return { success: true, message: 'Order and linked documents updated!', orderId: orderDoc.id };
     } catch (error: any) {
-        console.error('Error updating order from quote:', error);
-        return { success: false, message: 'An unexpected error occurred while updating the order.' };
+        return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
@@ -206,7 +196,6 @@ export async function getOrders(): Promise<Order[]> {
   try {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
-    
     const orders: Order[] = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -218,10 +207,8 @@ export async function getOrders(): Promise<Order[]> {
           paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
         } as Order);
     });
-
     return orders;
   } catch (error) {
-    console.error("Error fetching orders:", error);
     return [];
   }
 }
@@ -230,13 +217,8 @@ export async function getOrderById(id: string): Promise<Order | null> {
     try {
         const orderRef = doc(db, 'orders', id);
         const orderSnap = await getDoc(orderRef);
-
-        if (!orderSnap.exists()) {
-            return null;
-        }
-
+        if (!orderSnap.exists()) return null;
         const data = orderSnap.data();
-
         return {
             id: orderSnap.id,
             ...data,
@@ -244,9 +226,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
             createdAt: parseDate(data.createdAt),
             paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
         } as Order;
-
     } catch (error) {
-        console.error("Error fetching order details:", error);
         return null;
     }
 }
@@ -256,7 +236,6 @@ export async function deleteOrder(id: string) {
         await deleteDoc(doc(db, 'orders', id));
         return { success: true, message: 'Order deleted successfully!' };
     } catch (error: any) {
-        console.error('Error deleting order:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -267,7 +246,6 @@ export async function updateOrderStatus(id: string, status: string) {
         await updateDoc(orderRef, { status: status });
         return { success: true, message: 'Order status updated successfully!' };
     } catch (error: any) {
-        console.error('Error updating order status:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -276,36 +254,25 @@ export async function updateOrderPaymentStatus(id: string, paymentStatus: Paymen
     try {
         const orderRef = doc(db, 'orders', id);
         const orderSnap = await getDoc(orderRef);
-        
         if (!orderSnap.exists()) return { success: false, message: "Order not found" };
         
         const currentData = orderSnap.data();
         const updatePayload: any = { paymentStatus };
-
         if (paymentStatus === 'paid' && currentData.status === 'processing') {
             updatePayload.status = 'validated';
         }
-
         await updateDoc(orderRef, updatePayload);
 
         if (paymentStatus === 'paid') {
             const orderData = { ...currentData, ...updatePayload, id: orderSnap.id } as unknown as Order;
-            
             const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', id));
             const invoiceSnap = await getDocs(invoiceQuery);
-            
             if (invoiceSnap.empty) {
                 await addInvoiceFromOrder(orderData);
             }
         }
-
         return { success: true, message: 'Payment status updated successfully!' };
     } catch (error: any) {
-        console.error('Error updating payment status:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
-}
-
-export async function updateOrderTransportCost(id: string, cost: number) {
-    return updateOrderFinancials(id, { transportCost: cost });
 }

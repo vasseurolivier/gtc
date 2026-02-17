@@ -3,7 +3,6 @@
 
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, getDoc, where, setDoc } from 'firebase/firestore';
-import { z } from 'zod';
 import { addOrder, updateOrderFromQuote, Order, getOrderById, updateOrderStatus, updateOrderPaymentStatus } from './orders';
 import { addInvoiceFromOrder } from './invoices';
 
@@ -39,7 +38,7 @@ export interface Quote {
     updatedAt?: string;
     depositRequired?: boolean;
     depositPercentage?: number;
-    exchangeRate: number; // Freeze EUR price
+    exchangeRate: number; 
 }
 
 const parseDate = (val: any) => {
@@ -52,8 +51,15 @@ const parseDate = (val: any) => {
     return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 };
 
-async function getGlobalExchangeRate(): Promise<number> {
+async function getExchangeRateForClient(clientId?: string): Promise<number> {
     try {
+        if (clientId) {
+            const clientRef = doc(db, 'clients', clientId);
+            const clientSnap = await getDoc(clientRef);
+            if (clientSnap.exists() && clientSnap.data().exchangeRate) {
+                return Number(clientSnap.data().exchangeRate);
+            }
+        }
         const configRef = doc(db, 'config', 'finance');
         const snap = await getDoc(configRef);
         if (snap.exists()) {
@@ -65,15 +71,11 @@ async function getGlobalExchangeRate(): Promise<number> {
     }
 }
 
-/**
- * Adds a new Proforma to both global and client subcollection.
- */
 export async function addQuote(values: any) {
     try {
-        const currentRate = await getGlobalExchangeRate();
+        const currentRate = await getExchangeRateForClient(values.customerId);
         const quoteId = `QT-${Date.now()}`;
         
-        // Calculate correctly based on basis
         const subTotal = values.items.reduce((sum: number, i: any) => sum + (Number(i.quantity) * Number(i.unitPrice)), 0);
         const transport = Number(values.transportCost) || 0;
         const commRate = Number(values.commissionRate) || 0;
@@ -98,10 +100,7 @@ export async function addQuote(values: any) {
             validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil),
         };
 
-        // Admin Master Copy
         await setDoc(doc(db, 'quotes', quoteId), data);
-        
-        // Client Distinct Copy
         if (values.customerId) {
             await setDoc(doc(db, 'clients', values.customerId, 'quotes', quoteId), data);
         }
@@ -117,11 +116,9 @@ export async function updateQuote(id: string, values: any) {
     try {
         const quoteRef = doc(db, 'quotes', id);
         const quoteSnap = await getDoc(quoteRef);
-        
         if (!quoteSnap.exists()) return { success: false, message: "Quote not found" };
+        
         const quoteData = quoteSnap.data();
-
-        // Recalculate totals
         const items = values.items || quoteData.items;
         const subTotal = items.reduce((sum: number, i: any) => sum + (Number(i.quantity) * Number(i.unitPrice)), 0);
         const transport = values.transportCost !== undefined ? Number(values.transportCost) : (quoteData.transportCost || 0);
@@ -145,8 +142,6 @@ export async function updateQuote(id: string, values: any) {
         };
 
         await updateDoc(quoteRef, updateData);
-
-        // Update Client Copy
         if (quoteData.customerId) {
             const clientQuoteRef = doc(db, 'clients', quoteData.customerId, 'quotes', id);
             await updateDoc(clientQuoteRef, updateData);
@@ -163,9 +158,6 @@ export async function updateQuote(id: string, values: any) {
     }
 }
 
-/**
- * Synchronizes an existing Quote with current Order data.
- */
 export async function syncQuoteFromOrder(orderId: string) {
     try {
         const order = await getOrderById(orderId);
@@ -174,13 +166,9 @@ export async function syncQuoteFromOrder(orderId: string) {
         const quotesQuery = query(collection(db, "quotes"), where("orderId", "==", orderId));
         const quotesSnapshot = await getDocs(quotesQuery);
 
-        if (quotesSnapshot.empty) {
-            return { success: false, message: "Aucune PI liée à cette commande." };
-        }
+        if (quotesSnapshot.empty) return { success: false, message: "Aucune PI liée." };
 
         const quoteDoc = quotesSnapshot.docs[0];
-        const quoteId = quoteDoc.id;
-
         const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
         const transport = Number(order.transportCost) || 0;
         const commRate = Number(order.commissionRate) || 0;
@@ -213,11 +201,9 @@ export async function syncQuoteFromOrder(orderId: string) {
             updatedAt: serverTimestamp(),
         };
 
-        await updateQuote(quoteId, updatedQuoteData);
-
-        return { success: true, message: "PI mise à jour et renvoyée pour validation." };
+        await updateQuote(quoteDoc.id, updatedQuoteData);
+        return { success: true, message: "PI mise à jour." };
     } catch (error: any) {
-        console.error("Sync quote error:", error);
         return { success: false, message: "Erreur lors de la synchronisation." };
     }
 }
@@ -227,7 +213,7 @@ export async function createQuoteFromOrder(orderId: string) {
         const order = await getOrderById(orderId);
         if (!order) return { success: false, message: "Commande introuvable." };
         
-        const currentRate = await getGlobalExchangeRate();
+        const currentRate = await getExchangeRateForClient(order.customerId);
         const quoteId = `PI-AUTO-${Date.now()}`;
 
         const itemsSubTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
@@ -275,13 +261,11 @@ export async function createQuoteFromOrder(orderId: string) {
             updatedAt: serverTimestamp(),
         };
 
-        // Double save
         await setDoc(doc(db, 'quotes', quoteId), newQuoteData);
         await setDoc(doc(db, 'clients', order.customerId, 'quotes', quoteId), newQuoteData);
 
-        return { success: true, message: 'Proforma générée automatiquement !', id: quoteId };
+        return { success: true, message: 'Proforma générée !', id: quoteId };
     } catch (error: any) {
-        console.error("Auto quote generation error:", error);
         return { success: false, message: 'Échec de la génération automatique.' };
     }
 }
@@ -318,7 +302,6 @@ export async function getQuoteById(id: string, clientId?: string): Promise<Quote
             : doc(db, 'quotes', id);
             
         const quoteSnap = await getDoc(quoteRef);
-
         if (!quoteSnap.exists()) return null;
 
         const data = quoteSnap.data();
@@ -340,14 +323,12 @@ export async function deleteQuote(id: string) {
     try {
         const quoteRef = doc(db, 'quotes', id);
         const quoteSnap = await getDoc(quoteRef);
-        
         if (quoteSnap.exists()) {
             const data = quoteSnap.data();
             if (data.customerId) {
                 await deleteDoc(doc(db, 'clients', data.customerId, 'quotes', id));
             }
         }
-        
         await deleteDoc(quoteRef);
         return { success: true, message: 'Proforma Invoice deleted successfully!' };
     } catch (error: any) {
@@ -364,17 +345,9 @@ export async function updateQuoteStatus(id: string, status: string) {
         const quoteData = quoteSnap.data();
         const previousStatus = quoteData.status;
 
-        await updateDoc(quoteRef, { 
-            status,
-            updatedAt: serverTimestamp()
-        });
-        
-        // Sync Client Copy
+        await updateDoc(quoteRef, { status, updatedAt: serverTimestamp() });
         if (quoteData.customerId) {
-            await updateDoc(doc(db, 'clients', quoteData.customerId, 'quotes', id), { 
-                status,
-                updatedAt: serverTimestamp()
-            });
+            await updateDoc(doc(db, 'clients', quoteData.customerId, 'quotes', id), { status, updatedAt: serverTimestamp() });
         }
         
         const isPositiveStatus = status === 'accepted' || status === 'paid';
@@ -386,10 +359,7 @@ export async function updateQuoteStatus(id: string, status: string) {
                 if (fullQuote.orderId) {
                     await updateOrderFromQuote(fullQuote);
                     await updateOrderStatus(fullQuote.orderId, 'validated');
-                    
-                    if (status === 'paid') {
-                        await updateOrderPaymentStatus(fullQuote.orderId, 'paid');
-                    }
+                    if (status === 'paid') await updateOrderPaymentStatus(fullQuote.orderId, 'paid');
                 } else {
                     const orderResult = await addOrder(fullQuote);
                     if (orderResult.success && orderResult.id && status === 'paid') {
@@ -406,7 +376,6 @@ export async function updateQuoteStatus(id: string, status: string) {
         
         return { success: true, message: 'Proforma status updated successfully!' };
     } catch (error: any) {
-        console.error("Error updating quote status:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }

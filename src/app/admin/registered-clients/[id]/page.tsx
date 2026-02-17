@@ -13,6 +13,7 @@ import {
   updateRegisteredClientCurrencyPreference,
   updateClientShippingRates,
   updateClientCommissionBasis,
+  updateClientExchangeRate,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -100,6 +101,7 @@ export default function ClientDetailPage() {
   const [isUploading, setIsUploading] = useState(false);
   
   const [clientNumber, setClientNumber] = useState('');
+  const [clientRate, setClientRate] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
@@ -108,7 +110,6 @@ export default function ClientDetailPage() {
   const [shippingFee, setShippingFee] = useState<string>('0');
   const [commissionBasis, setCommissionBasis] = useState<'products_only' | 'total'>('products_only');
 
-  // States for Orders Management
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<Order | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
@@ -122,7 +123,6 @@ export default function ClientDetailPage() {
   const [calcFixed, setCalcFixed] = useState(0);
   const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
 
-  // States for Catalogue
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -145,10 +145,10 @@ export default function ClientDetailPage() {
           getRegisteredClientById(clientId),
           getProducts()
         ]);
-        
         if (clientData) {
           setClient(clientData);
           setClientNumber(clientData.clientNumber || '');
+          setClientRate(clientData.exchangeRate?.toString() || '');
           setLoginEmail(clientData.email || '');
           setLoginPassword(clientData.password || '');
           setShippingRate((clientData.shippingRatePerKg || 0).toString());
@@ -156,16 +156,11 @@ export default function ClientDetailPage() {
           setCommissionBasis(clientData.commissionBasis || 'products_only');
         }
         setGlobalProducts(productsData || []);
-      } catch (error) {
-        console.error("Fetch client error:", error);
-      } finally {
-        setIsLoading(false);
-      }
+      } finally { setIsLoading(false); }
     }
     fetchData();
   }, [clientId]);
 
-  // Queries
   const quotesQuery = useMemoFirebase(() => {
     if (!db || !clientId) return null;
     return query(collection(db, 'quotes'), where('customerId', '==', clientId));
@@ -190,31 +185,12 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
 
-  // Stats Calculation
-  const stats = useMemo(() => {
-    if (!orders || !invoices) return { totalOrders: 0, processingOrders: 0, totalRevenue: 0, pendingBalance: 0 };
-    
-    const totalOrders = orders.length;
-    const processingOrders = orders.filter(o => o.status === 'processing').length;
-    
-    const totalRevenue = invoices
-      .filter(i => i.status === 'paid')
-      .reduce((sum, i) => sum + (Number(i.totalAmount) || 0), 0);
-      
-    const pendingBalance = invoices
-      .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
-      .reduce((sum, i) => sum + ((Number(i.totalAmount) || 0) - (Number(i.amountPaid) || 0)), 0);
-      
-    return { totalOrders, processingOrders, totalRevenue, pendingBalance };
-  }, [orders, invoices]);
-
-  // Priority Sorting
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
     return [...orders].sort((a, b) => {
-      const priorityA = a.status === 'processing' ? 0 : 1;
-      const priorityB = b.status === 'processing' ? 0 : 1;
-      if (priorityA !== priorityB) return priorityA - priorityB;
+      const pA = a.status === 'processing' ? 0 : 1;
+      const pB = b.status === 'processing' ? 0 : 1;
+      if (pA !== pB) return pA - pB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [orders]);
@@ -222,9 +198,9 @@ export default function ClientDetailPage() {
   const sortedQuotes = useMemo(() => {
     if (!quotes) return [];
     return [...quotes].sort((a, b) => {
-      const priorityA = (a.status === 'draft' || a.status === 'sent') ? 0 : 1;
-      const priorityB = (b.status === 'draft' || b.status === 'sent') ? 0 : 1;
-      if (priorityA !== priorityB) return priorityA - priorityB;
+      const pA = (a.status === 'draft' || a.status === 'sent') ? 0 : 1;
+      const pB = (b.status === 'draft' || b.status === 'sent') ? 0 : 1;
+      if (pA !== pB) return pA - pB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [quotes]);
@@ -232,30 +208,25 @@ export default function ClientDetailPage() {
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
-      const priorityA = a.status !== 'paid' ? 0 : 1;
-      const priorityB = a.status !== 'paid' ? 0 : 1;
-      if (priorityA !== priorityB) return priorityA - priorityB;
+      const pA = a.status !== 'paid' ? 0 : 1;
+      const pB = a.status !== 'paid' ? 0 : 1;
+      if (pA !== pB) return pA - pB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [invoices]);
 
   useEffect(() => {
     if (orders) {
-      const tInputs: Record<string, string> = {};
-      const cInputs: Record<string, string> = {};
-      const bInputs: Record<string, 'products_only' | 'total'> = {};
+      const t = {}; const c = {}; const b = {};
       orders.forEach(o => {
-        tInputs[o.id] = (o.transportCost || 0).toString();
-        cInputs[o.id] = (o.commissionRate || 0).toString();
-        bInputs[o.id] = o.commissionBasis || 'products_only';
+        t[o.id] = (o.transportCost || 0).toString();
+        c[o.id] = (o.commissionRate || 0).toString();
+        b[o.id] = o.commissionBasis || 'products_only';
       });
-      setTransportInputs(tInputs);
-      setCommissionInputs(cInputs);
-      setBasisInputs(bInputs);
+      setTransportInputs(t); setCommissionInputs(c); setBasisInputs(b);
     }
   }, [orders]);
 
-  // Handlers
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     const result = await updateOrderStatus(orderId, newStatus);
     if (result.success) toast({ title: 'Statut mis à jour' });
@@ -270,308 +241,89 @@ export default function ClientDetailPage() {
   };
 
   const handleUpdateFinance = async (orderId: string) => {
-    const tVal = parseFloat(transportInputs[orderId] || '0');
-    const cVal = parseFloat(commissionInputs[orderId] || '0');
-    const bVal = basisInputs[orderId] || 'products_only';
-
+    const t = parseFloat(transportInputs[orderId] || '0');
+    const c = parseFloat(commissionInputs[orderId] || '0');
+    const b = basisInputs[orderId] || 'products_only';
     setIsUpdatingFinance(orderId);
-    const result = await updateOrderFinancials(orderId, {
-        transportCost: tVal,
-        commissionRate: cVal,
-        commissionBasis: bVal
-    });
+    const res = await updateOrderFinancials(orderId, { transportCost: t, commissionRate: c, commissionBasis: b });
     setIsUpdatingFinance(null);
-    if (result.success) toast({ title: "Données financières enregistrées" });
+    if (res.success) toast({ title: "Données financières sauvées" });
   };
 
   const handleSyncPI = async (orderId: string) => {
     setIsSyncingPI(orderId);
-    const result = await syncQuoteFromOrder(orderId);
+    const res = await syncQuoteFromOrder(orderId);
     setIsSyncingPI(null);
-    if (result.success) {
-      toast({ 
-        title: "PI mise à jour", 
-        description: "Les modifications ont été synchronisées sur la Proforma et elle a été renvoyée pour validation." 
-      });
-    } else {
-      toast({ variant: "destructive", title: "Erreur Sync", description: result.message });
-    }
+    if (res.success) toast({ title: "PI mise à jour et renvoyée" });
   };
 
-  const handleDeleteOrderRow = async (id: string) => {
-    const result = await deleteOrder(id);
-    if (result.success) toast({ title: "Commande supprimée" });
-  };
-
-  const handleDeleteQuoteRow = async (id: string) => {
-    const result = await deleteQuote(id);
-    if (result.success) toast({ title: "Proforma supprimée" });
-  };
-
-  const handleDeleteInvoiceRow = async (id: string) => {
-    const result = await deleteInvoice(id);
-    if (result.success) toast({ title: "Facture supprimée" });
-  };
-
-  const openCalculator = (order: Order) => {
-    const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
-    setCalcWeight(totalWeight);
-    setCalcTargetId(order.id);
-    setCalcRate(parseFloat(shippingRate) || 0);
-    setCalcFixed(parseFloat(shippingFee) || 0);
-    setIsCalcOpen(true);
-  };
-
-  const applyCalculatedCost = () => {
-    if (!calcTargetId) return;
-    const total = (calcWeight * calcRate) + calcFixed;
-    setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
-    setIsCalcOpen(false);
-    toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône (V) pour enregistrer." });
-  };
-
-  const aggregateProducts = async () => {
-    if (!db || !clientId || !productLists) return;
-    try {
-      const published: any[] = [];
-      for (const list of productLists!) {
-        const prodCol = collection(db!, 'clients', clientId, 'productLists', list.id, 'products');
-        const q = query(prodCol, where('status', '==', 'published'));
-        const snap = await getDocs(q);
-        snap.forEach(doc => {
-          const data = doc.data();
-          published.push({ ...data, id: doc.id, listName: list.name, listId: list.id });
-        });
-      }
-      setPublishedProducts(published);
-    } catch (e) { console.error(e); }
-  };
-
-  useEffect(() => {
-    aggregateProducts();
-  }, [db, clientId, productLists]);
-
-  const handleEditProduct = (product: any) => {
-    setEditingProduct({ 
-      ...product, 
-      hasSizeSelection: product.hasSizeSelection ?? false,
-      availableSizes: product.availableSizes ?? [],
-      availability: product.availability ?? 'both',
-      moq: product.moq ?? 1,
-      images: product.images ?? []
-    });
-    setIsProductDialogOpen(true);
-  };
-
-  const handleSaveToGlobal = async (product: any) => {
-    setIsExportingToGlobal(product.id);
-    try {
-      const result = await addProduct({
-        name: product.name,
-        sku: product.sku || `SKU-${Date.now().toString().slice(-6)}`,
-        description: product.description || '',
-        price: Number(product.price || 0),
-        purchasePrice: 0,
-        stock: 0,
-        category: 'Importé du client ' + (client?.firstName || ''),
-        imageUrl: product.images?.[0] || '',
-        weight: Number(product.weight || 0),
-        height: 0,
-        width: 0,
-        length: 0,
-      });
-      if (result.success) {
-        toast({ title: "Produit copié !", description: "L'article est désormais dans votre inventaire global." });
-      } else {
-        toast({ variant: "destructive", title: "Erreur", description: result.message });
-      }
-    } finally {
-      setIsExportingToGlobal(null);
-    }
-  };
-
-  const handleAddNewProduct = async () => {
-    let listIdToUse = '';
-    
-    if (!productLists || productLists.length === 0) {
-      setIsSaving(true);
-      try {
-        const listId = `LST-AUTO-${Date.now()}`;
-        const listRef = doc(db!, 'clients', clientId, 'productLists', listId);
-        await setDoc(listRef, {
-          id: listId,
-          clientId: clientId,
-          name: 'Catalogue par défaut',
-          description: 'Liste générée automatiquement',
-          createdAt: new Date().toISOString(),
-        });
-        listIdToUse = listId;
-      } catch (e) {
-        toast({ variant: "destructive", title: "Erreur", description: "Impossible de créer le catalogue par défaut." });
-        setIsSaving(false);
-        return;
-      }
-      setIsSaving(false);
-    } else {
-      listIdToUse = productLists[0].id;
-    }
-
-    setEditingProduct({
-      id: `PROD-MANUAL-${Date.now()}`,
-      name: '',
-      sku: `SKU-${Date.now().toString().slice(-6)}`,
-      price: 0,
-      description: '',
-      images: [],
-      availableSizes: [],
-      hasSizeSelection: false,
-      availability: 'both',
-      moq: 1,
-      listId: listIdToUse,
-      status: 'published',
-      clientId: clientId
-    });
-    setIsProductDialogOpen(true);
-  };
-
-  const handleImportFromGlobal = (productId: string) => {
-    const p = globalProducts.find(gp => gp.id === productId);
-    if (p && editingProduct) {
-      setEditingProduct({
-        ...editingProduct,
-        name: p.name,
-        sku: p.sku,
-        price: p.price,
-        description: p.description || '',
-        images: p.imageUrl ? [p.imageUrl] : [],
-        weight: p.weight || 0,
-      });
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setIsUploading(true);
-    try {
-      const newUrls = [...(editingProduct.images || [])];
-      for (let i = 0; i < files.length; i++) {
-        const formData = new FormData();
-        formData.append('file', files[i]);
-        formData.append('folder', `clients/${clientId}/catalogue`);
-        const result = await uploadImage(formData);
-        if (result.success && result.url) newUrls.push(result.url);
-      }
-      setEditingProduct({ ...editingProduct, images: newUrls });
-    } finally { setIsUploading(false); }
-  };
-
-  const handleSaveProduct = async () => {
-    if (!editingProduct || !db) return;
+  const handleUpdateClientRate = async () => {
     setIsSaving(true);
-    try {
-      const listId = editingProduct.listId || editingProduct.productListId;
-      const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', editingProduct.id);
-      await setDoc(productRef, { 
-        ...editingProduct, 
-        status: 'published', 
-        validatedAt: new Date().toISOString() 
-      }, { merge: true });
-      setIsProductDialogOpen(false);
-      aggregateProducts();
-      toast({ title: "Catalogue mis à jour" });
-    } catch (e: any) {
-      toast({ variant: "destructive", title: "Erreur", description: e.message });
-    } finally { setIsSaving(false); }
-  };
-
-  const handleUpdateCredentials = async () => {
-    if (!client || !loginEmail || !loginPassword) return;
-    setIsUpdatingCredentials(true);
-    const secondaryAppName = `update-auth-${Date.now()}`;
-    const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-    const secondaryAuth = getAuth(secondaryApp);
-    try {
-      await signInWithEmailAndPassword(secondaryAuth, client.email, client.password!);
-      const secondaryUser = secondaryAuth.currentUser;
-      if (secondaryUser) {
-        if (loginEmail !== client.email) await updateEmail(secondaryUser, loginEmail);
-        if (loginPassword !== client.password) await updatePassword(secondaryUser, loginPassword);
-      }
-      const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
-      if (result.success) {
-        toast({ title: "Identifiants à jour" });
-        setClient({ ...client, email: loginEmail, password: loginPassword });
-      }
-    } catch (e: any) {
-      const result = await updateClientCredentials(clientId, loginEmail, loginPassword);
-      if (result.success) {
-        toast({ title: "Profil Firestore à jour", description: "L'auth n'a pas pu être modifiée (option console)." });
-        setClient({ ...client, email: loginEmail, password: loginPassword });
-      }
-    } finally {
-      await deleteApp(secondaryApp);
-      setIsUpdatingCredentials(false);
-    }
-  };
-
-  const handleUpdateShippingRates = async () => {
-    setIsSaving(true);
-    const result = await updateClientShippingRates(clientId, parseFloat(shippingRate), parseFloat(shippingFee));
-    if (result.success) {
-      toast({ title: "Tarifs transport enregistrés" });
-      setClient(prev => prev ? { ...prev, shippingRatePerKg: parseFloat(shippingRate), shippingFixedFee: parseFloat(shippingFee) } : null);
-    }
-    setIsSaving(false);
-  };
-
-  const handleUpdateCommissionBasis = async (basis: 'products_only' | 'total') => {
-    setIsSaving(true);
-    const result = await updateClientCommissionBasis(clientId, basis);
-    if (result.success) {
-      toast({ title: "Base de commission mise à jour" });
-      setCommissionBasis(basis);
-      setClient(prev => prev ? { ...prev, commissionBasis: basis } : null);
-    }
+    const res = await updateClientExchangeRate(clientId, parseFloat(clientRate));
+    if (res.success) toast({ title: "Taux client mis à jour" });
     setIsSaving(false);
   };
 
   const handleToggleStatus = async () => {
-    if (!client) return;
-    const newStatus = client.status === 'validated' ? 'pending' : 'validated';
-    const result = await updateRegisteredClientStatus(clientId, newStatus);
-    if (result.success) setClient({ ...client, status: newStatus } as RegisteredClient);
+    const newStatus = client?.status === 'validated' ? 'pending' : 'validated';
+    const res = await updateRegisteredClientStatus(clientId, newStatus);
+    if (res.success) setClient({ ...client, status: newStatus } as RegisteredClient);
   };
 
-  const handleUpdateNumber = async (id: string) => {
-    const newNumber = clientNumber;
+  const handleUpdateNumber = async () => {
     setIsSaving(true);
-    const result = await updateRegisteredClientNumber(id, newNumber);
-    if (result.success) toast({ title: "Numéro client sauvé" });
+    const res = await updateRegisteredClientNumber(clientId, clientNumber);
+    if (res.success) toast({ title: "N° client sauvé" });
     setIsSaving(false);
   };
 
-  const handleCurrencyPrefChange = async (pref: 'EUR' | 'CNY' | 'BOTH') => {
-    const result = await updateRegisteredClientCurrencyPreference(clientId, pref);
-    if (result.success) {
+  const handleCurrencyPrefChange = async (pref: any) => {
+    const res = await updateRegisteredClientCurrencyPreference(clientId, pref);
+    if (res.success) {
       toast({ title: "Devise mise à jour" });
-      setClient(prev => prev ? { ...prev, currencyPreference: pref } : null);
+      setClient({ ...client, currencyPreference: pref } as RegisteredClient);
     }
   };
 
-  const handleNavigateToQuote = (orderId: string) => {
-    router.push(`/admin/quotes?fromOrder=${orderId}`);
+  const handleAddNewProduct = async () => {
+    let listId = '';
+    if (!productLists || productLists.length === 0) {
+      setIsSaving(true);
+      const lId = `LST-AUTO-${Date.now()}`;
+      await setDoc(doc(db!, 'clients', clientId, 'productLists', lId), { id: lId, clientId, name: 'Catalogue par défaut', createdAt: new Date().toISOString() });
+      listId = lId;
+      setIsSaving(false);
+    } else { listId = productLists[0].id; }
+    setEditingProduct({ id: `PROD-${Date.now()}`, name: '', sku: `SKU-${Date.now().toString().slice(-6)}`, price: 0, listId, status: 'published', clientId });
+    setIsProductDialogOpen(true);
   };
 
-  const handleCreateDirectQuote = () => {
-    router.push(`/admin/quotes?clientId=${clientId}`);
+  const aggregateProducts = async () => {
+    if (!db || !clientId || !productLists) return;
+    const published: any[] = [];
+    for (const list of productLists!) {
+      const snap = await getDocs(query(collection(db!, 'clients', clientId, 'productLists', list.id, 'products'), where('status', '==', 'published')));
+      snap.forEach(d => published.push({ ...d.data(), id: d.id, listId: list.id }));
+    }
+    setPublishedProducts(published);
+  };
+
+  useEffect(() => { aggregateProducts(); }, [db, clientId, productLists]);
+
+  const handleSaveProduct = async () => {
+    setIsSaving(true);
+    try {
+      const ref = doc(db!, 'clients', clientId, 'productLists', editingProduct.listId, 'products', editingProduct.id);
+      await setDoc(ref, { ...editingProduct, status: 'published' }, { merge: true });
+      setIsProductDialogOpen(false);
+      aggregateProducts();
+      toast({ title: "Catalogue à jour" });
+    } finally { setIsSaving(false); }
   };
 
   useEffect(() => {
     const authStatus = localStorage.getItem('isAdminAuthenticated');
-    if (authStatus !== 'true') {
-      router.push('/admin/login');
-    }
+    if (authStatus !== 'true') router.push('/admin/login');
   }, [router]);
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -581,145 +333,34 @@ export default function ClientDetailPage() {
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild><Link href="/admin/registered-clients"><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Link></Button>
         <div className="flex items-center gap-3">
-          <Button onClick={handleCreateDirectQuote} className="bg-primary hover:bg-primary/90 font-black uppercase text-[10px] tracking-widest">
+          <Button onClick={() => router.push(`/admin/quotes?clientId=${clientId}`)} className="bg-primary hover:bg-primary/90 font-black uppercase text-[10px] tracking-widest">
             <Plus className="h-4 w-4 mr-2" /> Créer Proforma
           </Button>
-          {client?.status === 'validated' ? <Badge className="bg-green-500">Compte Validé</Badge> : <Badge variant="outline">En attente de validation</Badge>}
+          {client?.status === 'validated' ? <Badge className="bg-green-500">Compte Validé</Badge> : <Badge variant="outline">En attente</Badge>}
           <Button size="sm" variant="outline" onClick={handleToggleStatus}>{client?.status === 'validated' ? 'Suspendre' : 'Valider'}</Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild><Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</Button></AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader><AlertDialogTitle>Confirmer la suppression ?</AlertDialogTitle><AlertDialogDescription>Cette action supprimera également l'accès Auth du client s'il est possible de s'y connecter.</AlertDialogDescription></AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={async () => {
-                  const secondaryAppName = `del-auth-${Date.now()}`;
-                  const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-                  const secondaryAuth = getAuth(secondaryApp);
-                  try {
-                    await signInWithEmailAndPassword(secondaryAuth, client!.email, client!.password!);
-                    if (secondaryAuth.currentUser) await deleteUser(secondaryAuth.currentUser);
-                  } catch(e) {} finally { await deleteApp(secondaryApp); }
-                  await deleteRegisteredClient(clientId); 
-                  router.push('/admin/registered-clients'); 
-                }}>Supprimer</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-l-4 border-l-primary shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground">Total Commandes</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black">{stats.totalOrders}</div>
-            <p className="text-[10px] text-zinc-400 mt-1">Depuis l'inscription</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-green-500 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground">Chiffre d'Affaires</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black">¥{stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-[10px] text-zinc-400 mt-1">Sur factures payées</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-red-600 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground">Solde à percevoir</CardTitle>
-            <Euro className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black text-red-600">¥{stats.pendingBalance.toFixed(2)}</div>
-            <p className="text-[10px] text-zinc-400 mt-1">En-cours client total</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-orange-500 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground">Demandes actives</CardTitle>
-            <CircleAlert className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black text-orange-600">{stats.processingOrders}</div>
-            <p className="text-[10px] text-zinc-400 mt-1">Commandes en traitement</p>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="space-y-6">
           <Card className="shadow-md border-none overflow-hidden">
-            <CardHeader className="bg-zinc-50 border-b border-zinc-100"><CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400">Identité Client</CardTitle></CardHeader>
+            <CardHeader className="bg-zinc-50 border-b border-zinc-100"><CardTitle className="text-sm font-black uppercase text-zinc-400">Identité Client</CardTitle></CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">{client?.firstName?.charAt(0)}</div>
-                <div>
-                  <div className="font-black text-xl text-zinc-900 leading-none">{client?.firstName} {client?.lastName}</div>
-                  <div className="text-xs text-zinc-400 mt-1 font-bold italic">Client depuis {client?.createdAt ? format(new Date(client.createdAt), 'yyyy') : '-'}</div>
-                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xl">{client?.firstName?.charAt(0)}</div>
+                <div className="font-black text-xl">{client?.firstName} {client?.lastName}</div>
               </div>
               <div className="space-y-3 pt-4 border-t">
-                <div className="flex items-center gap-3 text-sm font-medium"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
-                <div className="flex items-center gap-3 text-sm font-medium"><Phone className="h-4 w-4 text-zinc-300" /> {client?.phone || 'Non renseigné'}</div>
-                
+                <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
                 <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Préférence Devise</Label>
-                  <Select value={client?.currencyPreference || 'EUR'} onValueChange={(val: any) => handleCurrencyPrefChange(val)}>
-                    <SelectTrigger className="h-8 text-xs font-bold">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EUR">Euros (€) uniquement</SelectItem>
-                      <SelectItem value="CNY">Yuans (¥) uniquement</SelectItem>
-                      <SelectItem value="BOTH">Les deux (EUR & ¥)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Dossier</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={() => handleUpdateNumber(clientId)} disabled={isSaving} className="h-8 w-8 p-0"><Save className="h-4 w-4" /></Button></div>
-                
-                <div className="space-y-4 pt-6 border-t">
-                  <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2"><Truck className="h-3 w-3" /> Base de calcul transport</h4>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-[9px] font-bold text-zinc-500">Calcul Commission sur :</Label>
-                    <RadioGroup 
-                      value={commissionBasis} 
-                      onValueChange={(val: 'products_only' | 'total') => handleUpdateCommissionBasis(val)}
-                      className="flex flex-col gap-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="products_only" id="basis-prod" />
-                        <Label htmlFor="basis-prod" className="text-[10px] font-medium cursor-pointer">Articles uniquement</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="total" id="basis-total" />
-                        <Label htmlFor="basis-total" className="text-[10px] font-medium cursor-pointer">Total (Articles + Transport)</Label>
-                      </div>
-                    </RadioGroup>
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY -> Devise)</Label>
+                  <div className="flex gap-2">
+                    <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" placeholder="ex: 0.1320" />
+                    <Button size="sm" variant="outline" className="h-8" onClick={handleUpdateClientRate} disabled={isSaving}><Save className="h-4 w-4" /></Button>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="space-y-1">
-                      <Label className="text-[9px] font-bold text-zinc-500">Prix / kg (CNY)</Label>
-                      <Input type="number" step="0.01" value={shippingRate} onChange={e => setShippingRate(e.target.value)} className="h-8 text-xs font-bold" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[9px] font-bold text-zinc-500">Fixe (CNY)</Label>
-                      <Input type="number" step="0.01" value={shippingFee} onChange={e => setShippingFee(e.target.value)} className="h-8 text-xs font-bold" />
-                    </div>
-                  </div>
-                  <Button size="sm" className="w-full h-8 text-[10px] font-black" onClick={handleUpdateShippingRates} disabled={isSaving}>
-                    {isSaving ? <Loader2 className="animate-spin h-3 w-3 mr-2" /> : <Save className="h-3 w-3 mr-2" />}
-                    SAUVER BASES TRANSPORT
-                  </Button>
+                  <p className="text-[9px] text-zinc-400 italic">* Utilisé pour les PI et Factures de ce client.</p>
                 </div>
+                <div className="flex items-center gap-2 pt-4"><Label className="text-[10px] font-black uppercase text-zinc-400">N° Client</Label><Input value={clientNumber} onChange={e => setClientNumber(e.target.value)} className="h-8 font-black text-primary" /><Button size="sm" variant="outline" onClick={handleUpdateNumber} className="h-8"><Save className="h-4 w-4" /></Button></div>
               </div>
             </CardContent>
           </Card>
@@ -727,12 +368,11 @@ export default function ClientDetailPage() {
 
         <div className="lg:col-span-2">
           <Tabs defaultValue="orders">
-            <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start overflow-x-auto shadow-sm">
+            <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start overflow-x-auto">
               <TabsTrigger value="orders">Commandes</TabsTrigger>
               <TabsTrigger value="quotes">Proformas</TabsTrigger>
               <TabsTrigger value="invoices">Factures</TabsTrigger>
               <TabsTrigger value="catalogue">Catalogue</TabsTrigger>
-              <TabsTrigger value="security">Sécurité</TabsTrigger>
             </TabsList>
 
             <TabsContent value="orders">
@@ -742,119 +382,41 @@ export default function ClientDetailPage() {
                     <TableHeader className="bg-zinc-50">
                       <TableRow>
                         <TableHead className="pl-6">Order #</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead className="text-center">Port (CNY)</TableHead>
-                        <TableHead className="text-center">Comm (%)</TableHead>
-                        <TableHead className="text-center">Base</TableHead>
-                        <TableHead className="text-center">Paiement</TableHead>
+                        <TableHead>Port (CNY)</TableHead>
+                        <TableHead>Comm (%)</TableHead>
+                        <TableHead>Base</TableHead>
                         <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-right pr-6">Actions</TableHead>
+                        <TableHead className="text-right pr-6">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sortedOrders.map(order => {
-                        const isFinanceDirty = 
-                            (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString() ||
-                            (commissionInputs[order.id] || "0") !== (order.commissionRate || 0).toString() ||
-                            (basisInputs[order.id] || "products_only") !== (order.commissionBasis || "products_only");
-
-                        const linkedQuote = sortedQuotes.find(q => q.orderId === order.id);
-                        const isLocked = linkedQuote && (linkedQuote.status === 'accepted' || linkedQuote.status === 'paid');
+                      {sortedOrders.map(o => {
+                        const linkedPI = sortedQuotes.find(q => q.orderId === o.id);
+                        const isLocked = linkedPI && (linkedPI.status === 'accepted' || linkedPI.status === 'paid');
                         return (
-                          <TableRow key={order.id} className={cn(order.status === 'processing' && "bg-primary/5")}>
-                            <TableCell className="font-black pl-6">
-                              <div className="flex items-center gap-2">{order.orderNumber}{isLocked && <ShieldCheck className="h-3 w-3 text-green-600" />}</div>
-                            </TableCell>
+                          <TableRow key={o.id}>
+                            <TableCell className="font-black pl-6">{o.orderNumber}</TableCell>
                             <TableCell>
-                              <Select onValueChange={(val: any) => handleStatusChange(order.id, val)} defaultValue={order.status}>
-                                <SelectTrigger className="h-8 w-28 text-[9px] font-bold uppercase"><Badge variant="outline" className="border-none">{order.status}</Badge></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="processing">Processing</SelectItem>
-                                  <SelectItem value="validated">Validated</SelectItem>
-                                  <SelectItem value="shipped">Shipped</SelectItem>
-                                  <SelectItem value="delivered">Delivered</SelectItem>
-                                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                                </SelectContent>
+                              <div className="flex gap-1">
+                                <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInputs[o.id]} onChange={e => setTransportInputs({...transportInputs, [o.id]: e.target.value})} />
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCalculator(o)}><Calculator className="h-3 w-3" /></Button>
+                              </div>
+                            </TableCell>
+                            <TableCell><Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id]} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} /></TableCell>
+                            <TableCell>
+                              <Select value={basisInputs[o.id]} onValueChange={v => setBasisInputs({...basisInputs, [o.id]: v})}>
+                                <SelectTrigger className="h-7 w-16 text-[8px] font-black uppercase"><SelectValue /></SelectTrigger>
+                                <SelectContent><SelectItem value="products_only" className="text-[10px]">Prod</SelectItem><SelectItem value="total" className="text-[10px]">Total</SelectItem></SelectContent>
                               </Select>
                             </TableCell>
-                            <TableCell className="text-center">
-                              {!isLocked ? (
-                                <div className="flex items-center justify-center gap-1">
-                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400" onClick={() => openCalculator(order)}><Calculator className="h-3.5 w-3.5" /></Button>
-                                  <Input type="number" className="w-14 h-7 text-xs text-center font-bold" value={transportInputs[order.id] || ''} onChange={e => setTransportInputs({...transportInputs, [order.id]: e.target.value})} />
-                                </div>
-                              ) : <span className="font-black text-[10px]">¥{order.transportCost?.toFixed(2)}</span>}
-                            </TableCell>
-                            <TableCell className="text-center">
-                               {!isLocked ? (
-                                  <Input type="number" className="w-12 h-7 text-xs text-center font-bold" value={commissionInputs[order.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [order.id]: e.target.value})} />
-                               ) : <span className="text-[10px] font-bold">{order.commissionRate}%</span>}
-                            </TableCell>
-                            <TableCell className="text-center">
-                               {!isLocked ? (
-                                  <Select value={basisInputs[order.id]} onValueChange={(val: any) => setBasisInputs({...basisInputs, [order.id]: val})}>
-                                    <SelectTrigger className="h-7 w-16 text-[8px] font-black uppercase">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="products_only" className="text-[10px]">Prod</SelectItem>
-                                        <SelectItem value="total" className="text-[10px]">All</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                               ) : <span className="text-[8px] uppercase text-zinc-400">{order.commissionBasis === 'total' ? 'All' : 'Prod'}</span>}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Select onValueChange={(val: PaymentStatus) => handlePaymentStatusChange(order.id, val)} defaultValue={order.paymentStatus}>
-                                <SelectTrigger className="h-8 w-24 text-[9px] font-black">
-                                  {order.paymentStatus === 'paid' ? <Badge className="bg-green-500 text-[7px]">PAYÉ</Badge> : order.paymentStatus === 'deposit_paid' ? <Badge variant="outline" className="text-blue-600 text-[7px] border-blue-200">ACOMPTE</Badge> : <Badge variant="outline" className="text-zinc-400 text-[7px]">WAIT</Badge>}
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unpaid">Non payé</SelectItem>
-                                  <SelectItem value="deposit_paid">Acompte payé</SelectItem>
-                                  <SelectItem value="paid">Total payé</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell className="text-right text-xs font-black">¥{order.totalAmount.toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-black">¥{o.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
-                              {!isLocked && (
-                                <Button 
-                                    size="icon" 
-                                    variant={isFinanceDirty ? "default" : "ghost"} 
-                                    className={cn("h-7 w-7 transition-all", isFinanceDirty && "bg-green-600 text-white shadow-lg")} 
-                                    onClick={() => handleUpdateFinance(order.id)} 
-                                    disabled={isUpdatingFinance === order.id}
-                                >
-                                    {isUpdatingFinance === order.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                                </Button>
-                              )}
-                              {linkedQuote && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="text-primary animate-pulse" 
-                                  title="Mettre à jour la PI" 
-                                  onClick={() => handleSyncPI(order.id)}
-                                  disabled={isSyncingPI === order.id}
-                                >
-                                  {isSyncingPI === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                                </Button>
-                              )}
-                              <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(order); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
-                              <Button variant="secondary" size="sm" className="h-8 text-[9px] font-black uppercase tracking-tighter" onClick={() => handleNavigateToQuote(order.id)}><Sparkles className="h-3 w-3 mr-1" /> {linkedQuote ? "Gérer PI" : "PI"}</Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Cela supprimera la commande définitivement du système.</AlertDialogDescription></AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteOrderRow(order.id)}>Supprimer</AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 bg-green-50" onClick={() => handleUpdateFinance(o.id)} disabled={isUpdatingFinance === o.id}><Check className="h-4 w-4 text-green-600" /></Button>
+                              {linkedPI && <Button variant="ghost" size="icon" className="text-primary animate-pulse" onClick={() => handleSyncPI(o.id)} disabled={isSyncingPI === o.id}><RefreshCw className="h-4 w-4" /></Button>}
+                              <Button variant="ghost" size="icon" onClick={() => { setSelectedOrderPreview(o); setIsOrderPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
                             </TableCell>
                           </TableRow>
-                        );
+                        )
                       })}
                     </TableBody>
                   </Table>
@@ -864,100 +426,15 @@ export default function ClientDetailPage() {
 
             <TabsContent value="quotes">
               <Card className="border-none shadow-md bg-white">
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader className="bg-zinc-50">
-                      <TableRow><TableHead className="pl-6">N° PI</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedQuotes.map(q => (
-                        <TableRow key={q.id} className={cn((q.status === 'draft' || q.status === 'sent') && "bg-primary/5")}>
-                          <TableCell className="font-black pl-6">{q.quoteNumber}</TableCell>
-                          <TableCell className="text-xs font-medium text-zinc-400">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'} className="text-[9px] uppercase font-black">{q.status}</Badge></TableCell>
-                          <TableCell className="text-right font-black">¥{q.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right pr-6 space-x-1">
-                            <Button variant="ghost" size="icon" asChild title="Aperçu Admin"><Link href={`/admin/quotes/${q.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Supprimer la Proforma ?</AlertDialogTitle><AlertDialogDescription>Ce document sera supprimé partout.</AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteQuoteRow(q.id)}>Supprimer</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="invoices">
-              <Card className="border-none shadow-md bg-white">
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader className="bg-zinc-50">
-                      <TableRow><TableHead className="pl-6">N° INV</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedInvoices.map(i => (
-                        <TableRow key={i.id} className={cn(i.status !== 'paid' && "bg-red-50/20")}>
-                          <TableCell className="font-black pl-6">{i.invoiceNumber}</TableCell>
-                          <TableCell className="text-xs font-medium text-zinc-400">{format(parseSafeDate(i.issueDate), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell><Badge className={cn("text-[9px] font-black uppercase", i.status === 'paid' ? 'bg-green-500' : 'bg-red-500')}>{i.status === 'paid' ? 'Acquittée' : 'À régler'}</Badge></TableCell>
-                          <TableCell className="text-right font-black">¥{i.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right pr-6 space-x-1">
-                            <Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${i.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader><AlertDialogTitle>Supprimer la Facture ?</AlertDialogTitle><AlertDialogDescription>Ce document sera supprimé partout.</AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteInvoiceRow(i.id)}>Supprimer</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="catalogue">
-              <div className="flex justify-end mb-4"><Button onClick={handleAddNewProduct} className="bg-primary hover:bg-primary/90 font-black uppercase text-[10px] tracking-widest"><Plus className="h-4 w-4 mr-2" /> Ajouter manuel</Button></div>
-              <Card className="border-none shadow-md bg-white">
                 <Table>
-                  <TableHeader className="bg-zinc-50"><TableRow><TableHead className="w-16 pl-6">Photo</TableHead><TableHead>Produit</TableHead><TableHead>Prix</TableHead><TableHead>Tailles</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow></TableHeader>
+                  <TableHeader className="bg-zinc-50"><TableRow><TableHead className="pl-6">PI #</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {publishedProducts.map(p => (
-                      <TableRow key={p.id}>
-                        <TableCell className="pl-6"><div className="w-10 h-10 rounded-lg border overflow-hidden shadow-inner">{p.images?.[0] ? <img src={p.images[0]} className="object-contain w-full h-full" alt="" /> : <Package className="h-4 w-4 text-zinc-200 mx-auto mt-3" />}</div></TableCell>
-                        <TableCell className="font-black text-sm"><div className="flex flex-col"><span>{p.name}</span><span className="text-[9px] text-zinc-400 font-mono tracking-tighter mt-1">{p.sku}</span></div></TableCell>
-                        <TableCell className="font-bold">¥{Number(p.price || 0).toFixed(2)}</TableCell>
-                        <TableCell>{p.hasSizeSelection ? <div className="flex flex-wrap gap-1">{p.availableSizes?.map((s:string) => <Badge key={s} variant="secondary" className="text-[8px] h-4 font-black">{s}</Badge>)}</div> : <span className="text-zinc-300 text-xs italic">Taille unique</span>}</TableCell>
-                        <TableCell className="text-right pr-6 space-x-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-blue-500" 
-                            onClick={() => handleSaveToGlobal(p)}
-                            disabled={isExportingToGlobal === p.id}
-                            title="Copier vers catalogue global"
-                          >
-                            {isExportingToGlobal === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleEditProduct(p)} title="Modifier"><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }} title="Supprimer"><Trash2 className="h-4 w-4" /></Button>
-                        </TableCell>
+                    {sortedQuotes.map(q => (
+                      <TableRow key={q.id}>
+                        <TableCell className="font-black pl-6">{q.quoteNumber}</TableCell>
+                        <TableCell className="text-xs">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
+                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/quotes/${q.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -965,157 +442,53 @@ export default function ClientDetailPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="security">
+            <TabsContent value="catalogue">
+              <div className="flex justify-end mb-4"><Button onClick={handleAddNewProduct} size="sm"><Plus className="h-4 w-4 mr-2" /> Ajouter manuel</Button></div>
               <Card className="border-none shadow-md bg-white">
-                <CardHeader><CardTitle className="text-lg">Accès Client</CardTitle><CardDescription>Identifiants de connexion du client.</CardDescription></CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="font-black text-[10px] uppercase text-zinc-400">Email Login</Label><Input value={loginEmail} onChange={e => setLoginEmail(e.target.value)} /></div>
-                    <div className="space-y-2"><Label className="font-black text-[10px] uppercase text-zinc-400">Mot de passe</Label><Input value={loginPassword} onChange={e => setLoginPassword(e.target.value)} /></div>
-                  </div>
-                  <Button onClick={handleUpdateCredentials} disabled={isUpdatingCredentials} className="font-black uppercase text-[10px] tracking-widest">{isUpdatingCredentials ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />} Enregistrer les modifications</Button>
-                </CardContent>
+                <Table>
+                  <TableHeader className="bg-zinc-50"><TableRow><TableHead className="pl-6">Produit</TableHead><TableHead>Prix (CNY)</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {publishedProducts.map(p => (
+                      <TableRow key={p.id}>
+                        <TableCell className="font-bold pl-6">{p.name}</TableCell>
+                        <TableCell className="font-black">¥{p.price?.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </Card>
             </TabsContent>
           </Tabs>
         </div>
       </div>
 
-      {/* DIALOGS */}
+      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader><DialogTitle>Édition Catalogue Client</DialogTitle></DialogHeader>
+          {editingProduct && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2"><Label>Nom Commercial</Label><Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>SKU</Label><Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} /></div>
+                <div className="space-y-2"><Label>Prix Vente (CNY)</Label><Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} /></div>
+              </div>
+            </div>
+          )}
+          <DialogFooter><Button onClick={handleSaveProduct} disabled={isSaving}>Enregistrer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isCalcOpen} onOpenChange={setIsCalcOpen}>
         <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader><DialogTitle className="font-black uppercase tracking-tighter text-xl">Calculateur Transport</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4 text-sm font-medium">
+          <DialogHeader><DialogTitle>Calculateur Transport</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4 text-sm">
             <div className="space-y-2"><Label>Poids Total (kg)</Label><Input type="number" value={calcWeight} onChange={e => setCalcWeight(parseFloat(e.target.value) || 0)} /></div>
-            <div className="space-y-2">
-              <Label>Tarif par kg (CNY)</Label>
-              <Input type="number" value={calcRate} onChange={e => setCalcRate(parseFloat(e.target.value) || 0)} />
-              {client?.shippingRatePerKg && calcRate === client.shippingRatePerKg && <p className="text-[10px] text-green-600 font-bold italic">Utilisation du tarif client par défaut</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Frais fixes (CNY)</Label>
-              <Input type="number" value={calcFixed} onChange={e => setCalcFixed(parseFloat(e.target.value) || 0)} />
-              {client?.shippingFixedFee && calcFixed === client.shippingFixedFee && <p className="text-[10px] text-green-600 font-bold italic">Utilisation des frais client par défaut</p>}
-            </div>
-            <div className="pt-4 border-t font-black flex justify-between items-center text-lg"><span>TOTAL :</span><span className="text-primary text-2xl">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span></div>
+            <div className="space-y-2"><Label>Tarif par kg (CNY)</Label><Input type="number" value={calcRate} onChange={e => setCalcRate(parseFloat(e.target.value) || 0)} /></div>
+            <div className="space-y-2"><Label>Frais fixes (CNY)</Label><Input type="number" value={calcFixed} onChange={e => setCalcFixed(parseFloat(e.target.value) || 0)} /></div>
+            <div className="pt-4 border-t font-black flex justify-between items-center text-lg"><span>TOTAL :</span><span className="text-primary">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span></div>
           </div>
-          <DialogFooter><Button onClick={applyCalculatedCost} className="w-full font-black uppercase text-xs h-12">Appliquer le montant</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="flex items-center gap-2 font-black uppercase tracking-tighter text-2xl"><FileText className="text-primary h-6 w-6" /> Détail Commande {selectedOrderPreview?.orderNumber}</DialogTitle></DialogHeader>
-          {selectedOrderPreview && (
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-zinc-50 rounded-3xl border shadow-inner">
-                <div><Label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Client</Label><div className="font-black text-xl">{selectedOrderPreview.customerName}</div></div>
-                <div className="text-right"><Label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Total Final</Label><div className="text-3xl font-black text-primary">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div></div>
-              </div>
-              <div className="border rounded-2xl overflow-hidden bg-white shadow-sm">
-                <Table>
-                  <TableHeader className="bg-zinc-50"><TableRow><TableHead className="w-16 pl-6">Photo</TableHead><TableHead>Article</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right pr-6">Total</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {selectedOrderPreview.items?.map((item: any, idx: number) => (
-                      <TableRow key={idx}>
-                        <TableCell className="pl-6"><div className="w-12 h-12 border rounded-lg flex items-center justify-center bg-white shadow-sm">{item.photo ? <img src={item.photo} className="object-contain w-full h-full" alt="" /> : <Package className="h-4 w-4 text-zinc-200" />}</div></TableCell>
-                        <TableCell className="font-bold text-sm"><div>{item.description}</div>{item.sku && <div className="text-[10px] text-zinc-400 font-mono tracking-tighter mt-1">{item.sku}</div>}</TableCell>
-                        <TableCell className="text-center font-black">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-black pr-6">¥{item.total.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2"><Label className="font-black text-[10px] uppercase text-zinc-400 tracking-widest flex items-center gap-2"><MapPin className="h-3 w-3 text-primary" /> Adresse Livraison</Label><div className="p-4 bg-white border rounded-xl text-sm font-medium whitespace-pre-wrap shadow-sm">{selectedOrderPreview.shippingAddress}</div></div>
-                <div className="space-y-2"><Label className="font-black text-[10px] uppercase text-zinc-400 tracking-widest flex items-center gap-2"><CreditCard className="h-3 w-3 text-primary" /> Paiement</Label><div className="p-4 bg-white border rounded-xl flex items-center gap-3 font-black shadow-sm">{selectedOrderPreview.paymentStatus === 'paid' ? <Badge className="bg-green-500">PAYÉ</Badge> : <Badge variant="outline">{selectedOrderPreview.paymentStatus}</Badge>}</div></div>
-              </div>
-            </div>
-          )}
-          <DialogFooter><Button variant="outline" className="w-full font-black h-12" onClick={() => setIsOrderPreviewOpen(false)}>Fermer l'aperçu</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="font-black uppercase tracking-tighter text-2xl">Catalogue Client</DialogTitle></DialogHeader>
-          {editingProduct && (
-            <div className="space-y-8 py-4">
-              <div className="p-6 bg-primary/5 border-2 border-primary/10 rounded-3xl flex flex-col sm:flex-row items-center gap-6 shadow-sm">
-                <div className="flex items-center gap-3 text-primary shrink-0"><Sparkles className="h-6 w-6" /><Label className="font-black text-xs uppercase tracking-widest">Importer Global :</Label></div>
-                <Select onValueChange={handleImportFromGlobal}>
-                  <SelectTrigger className="bg-white border-zinc-200 h-12 font-bold"><SelectValue placeholder="Choisir un produit de l'inventaire principal..." /></SelectTrigger>
-                  <SelectContent>{globalProducts.map(gp => <SelectItem key={gp.id} value={gp.id}>{gp.name} ({gp.sku})</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-6">
-                  <div><Label className="font-black text-[10px] uppercase text-zinc-400">Nom Commercial</Label><Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="h-12 font-bold" /></div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><Label className="font-black text-[10px] uppercase text-zinc-400">SKU</Label><Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} className="h-12 font-mono" /></div>
-                    <div><Label className="font-black text-[10px] uppercase text-zinc-400">Prix Vente (CNY)</Label><Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="h-12 font-black text-primary" /></div>
-                  </div>
-
-                  <div className="space-y-4 pt-6 border-t">
-                    <Label className="font-black text-xs uppercase text-zinc-600">Configuration Options</Label>
-                    <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase text-zinc-400">Disponibilité</Label>
-                        <RadioGroup 
-                          value={editingProduct.availability} 
-                          onValueChange={(val) => setEditingProduct({...editingProduct, availability: val})}
-                          className="flex flex-col gap-2"
-                        >
-                          <div className="flex items-center space-x-2"><RadioGroupItem value="both" id="both" /><Label htmlFor="both" className="text-xs cursor-pointer">Les deux (Standard &amp; Perso)</Label></div>
-                          <div className="flex items-center space-x-2"><RadioGroupItem value="standard_only" id="std_only" /><Label htmlFor="std_only" className="text-xs cursor-pointer">Standard uniquement</Label></div>
-                          <div className="flex items-center space-x-2"><RadioGroupItem value="personalized_only" id="perso_only" /><Label htmlFor="perso_only" className="text-xs cursor-pointer">Personnalisé uniquement</Label></div>
-                        </RadioGroup>
-                      </div>
-                      <div className="space-y-2 pt-2 border-t">
-                        <Label className="text-[10px] font-bold uppercase text-zinc-400">MOQ Personnalisation</Label>
-                        <Input type="number" value={editingProduct.moq} onChange={e => setEditingProduct({...editingProduct, moq: Number(e.target.value)})} className="h-8" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-6 border-t">
-                    <div className="flex items-center justify-between"><Label className="font-black text-xs uppercase text-zinc-600">Activer choix tailles ?</Label><Switch checked={editingProduct.hasSizeSelection} onCheckedChange={checked => setEditingProduct({...editingProduct, hasSizeSelection: checked})} /></div>
-                    {editingProduct.hasSizeSelection && (
-                      <div className="flex flex-wrap gap-3 p-4 bg-zinc-50 rounded-2xl border">
-                        {SIZES.map(s => (
-                          <div key={s} className="flex items-center gap-2"><Checkbox id={`sz-${s}`} checked={editingProduct.availableSizes?.includes(s)} onCheckedChange={checked => {
-                            const sizes = [...(editingProduct.availableSizes || [])];
-                            if (checked) { if (!sizes.includes(s)) sizes.push(s); }
-                            else { const i = sizes.indexOf(s); if (i > -1) sizes.splice(i, 1); }
-                            setEditingProduct({...editingProduct, availableSizes: sizes});
-                          }} /><Label htmlFor={`sz-${s}`} className="font-black text-xs cursor-pointer">{s}</Label></div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <Label className="font-black text-[10px] uppercase text-zinc-400">Visuels &amp; Media</Label>
-                  <div className="grid grid-cols-3 gap-3 p-4 bg-zinc-50 rounded-2xl border">
-                    {editingProduct.images?.map((url: string, i: number) => (
-                      <div key={i} className="relative aspect-square border-2 border-white rounded-xl bg-white group shadow-sm overflow-hidden">
-                        <img src={url} className="w-full h-full object-contain" alt="" />
-                        <button type="button" onClick={() => { const ni = [...editingProduct.images]; ni.splice(i, 1); setEditingProduct({...editingProduct, images: ni}); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
-                      </div>
-                    ))}
-                    <label className="aspect-square border-2 border-dashed border-zinc-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-primary transition-all group">
-                      <UploadCloud className="h-6 w-6 text-zinc-300 group-hover:text-primary transition-colors" /><span className="text-[8px] font-black uppercase mt-1 text-zinc-400 group-hover:text-primary">Upload</span>
-                      <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} />
-                    </label>
-                  </div>
-                  {isUploading && <div className="flex items-center gap-2 text-xs text-primary font-bold animate-pulse"><Loader2 className="h-3 w-3 animate-spin" /> Téléchargement des images...</div>}
-                  <div><Label className="font-black text-[10px] uppercase text-zinc-400">Description Technique</Label><Textarea rows={6} value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} className="font-medium text-sm" /></div>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-6"><DialogClose asChild><Button variant="ghost" className="font-bold">Annuler</Button></DialogClose><Button onClick={handleSaveProduct} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-black uppercase text-xs h-12 px-10 shadow-lg shadow-primary/20">{isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />} Publier au Catalogue Client</Button></DialogFooter>
+          <DialogFooter><Button onClick={applyCalculatedCost} className="w-full">Appliquer</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -215,23 +215,23 @@ function QuotesPageContent() {
             router.replace('/admin/quotes');
           }
         } else if (directClientId) {
-            const client = fetchedRegistered.find(c => c.id === directClientId) || fetchedCustomers.find(c => c.id === directClientId);
-            if (client) {
-                const isReg = 'firstName' in client;
+            const cl = fetchedRegistered.find(c => c.id === directClientId) || fetchedCustomers.find(c => c.id === directClientId);
+            if (cl) {
+                const isReg = 'firstName' in cl;
                 form.reset({
                     quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
                     customerId: directClientId,
-                    customerName: isReg ? `${(client as any).firstName} ${(client as any).lastName}` : (client as any).name,
+                    customerName: isReg ? `${(cl as any).firstName} ${(cl as any).lastName}` : (cl as any).name,
                     issueDate: new Date(),
                     validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
                     items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
                     subTotal: 0,
                     transportCost: 0,
                     commissionRate: 0,
-                    commissionBasis: isReg ? (client as any).commissionBasis : 'products_only',
+                    commissionBasis: isReg ? (cl as any).commissionBasis : 'products_only',
                     totalAmount: 0,
                     status: "draft",
-                    shippingAddress: (client as any).address || "",
+                    shippingAddress: (cl as any).address || "",
                     depositRequired: true,
                     depositPercentage: 30,
                 });
@@ -434,9 +434,9 @@ function QuotesPageContent() {
                           <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase bg-zinc-50">COMPTES CLIENTS</div>
-                            {registeredClients.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}
+                            {registeredClients.map(cl => <SelectItem key={cl.id} value={cl.id}>{cl.firstName} {cl.lastName}</SelectItem>)}
                             <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase bg-zinc-50 mt-2">PROSPECTS CRM</div>
-                            {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            {customers.map(cu => <SelectItem key={cl.id} value={cl.id}>{cl.name}</SelectItem>)}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />

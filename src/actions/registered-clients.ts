@@ -13,7 +13,8 @@ export interface RegisteredClient {
     clientNumber?: string;
     orderPrefix?: string;
     currencyPreference?: 'EUR' | 'CNY' | 'BOTH';
-    commissionBasis?: 'products_only' | 'total'; // New field
+    commissionBasis?: 'products_only' | 'total';
+    exchangeRate?: number; // Per-client specific rate
     status?: 'pending' | 'validated';
     createdAt: string;
     phone?: string;
@@ -66,6 +67,16 @@ export async function updateRegisteredClientNumber(id: string, clientNumber: str
         const clientRef = doc(db, 'clients', id);
         await updateDoc(clientRef, { clientNumber });
         return { success: true, message: 'Numéro client mis à jour.' };
+    } catch (e: any) {
+        return { success: false, message: e.message };
+    }
+}
+
+export async function updateClientExchangeRate(id: string, rate: number) {
+    try {
+        const clientRef = doc(db, 'clients', id);
+        await updateDoc(clientRef, { exchangeRate: Number(rate) });
+        return { success: true, message: 'Taux de change client mis à jour.' };
     } catch (e: any) {
         return { success: false, message: e.message };
     }
