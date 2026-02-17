@@ -183,7 +183,7 @@ export async function updateOrderFromQuote(quote: Quote) {
         const invoiceQuery = query(collection(db, 'invoices'), where('orderId', '==', orderDoc.id));
         const invoiceSnap = await getDocs(invoiceQuery);
         if (!invoiceSnap.empty) {
-            await addInvoiceFromOrder(finalOrder);
+            await addInvoiceFromOrder(finalOrder, invoiceSnap.docs[0].id);
         }
         
         return { success: true, message: 'Order and linked documents updated!', orderId: orderDoc.id };
@@ -269,6 +269,8 @@ export async function updateOrderPaymentStatus(id: string, paymentStatus: Paymen
             const invoiceSnap = await getDocs(invoiceQuery);
             if (invoiceSnap.empty) {
                 await addInvoiceFromOrder(orderData);
+            } else {
+                await addInvoiceFromOrder(orderData, invoiceSnap.docs[0].id);
             }
         }
         return { success: true, message: 'Payment status updated successfully!' };

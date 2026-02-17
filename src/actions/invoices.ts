@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -65,14 +66,35 @@ async function getGlobalExchangeRate(): Promise<number> {
     }
 }
 
-export async function addInvoiceFromOrder(order: Order) {
+async function getExchangeRateForClient(clientId?: string): Promise<number> {
     try {
-        const currentRate = await getGlobalExchangeRate();
+        if (clientId) {
+            const clientRef = doc(db, 'clients', clientId);
+            const clientSnap = await getDoc(clientRef);
+            if (clientSnap.exists() && clientSnap.data().exchangeRate) {
+                return Number(clientSnap.data().exchangeRate);
+            }
+        }
+        return await getGlobalExchangeRate();
+    } catch (e) {
+        return 0.13;
+    }
+}
+
+/**
+ * Creates or Updates an invoice from an order.
+ * If existingInvoiceId is provided, it updates that document.
+ */
+export async function addInvoiceFromOrder(order: Order, existingInvoiceId?: string) {
+    try {
+        const currentRate = await getExchangeRateForClient(order.customerId);
         const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
         const subTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
-        const invoiceId = `INV-DOC-${Date.now()}`;
+        
+        // Use deterministic ID based on order if not provided
+        const invoiceId = existingInvoiceId || `INV-DOC-${order.id}`;
 
-        // Si la commande est déjà notée comme payée, on génère une facture acquittée
+        // If order is paid, generate a receipt (paid invoice)
         const isPaid = order.paymentStatus === 'paid';
 
         const newInvoiceData = {
@@ -104,11 +126,11 @@ export async function addInvoiceFromOrder(order: Order) {
         };
         
         // Master Copy
-        await setDoc(doc(db, 'invoices', invoiceId), newInvoiceData);
+        await setDoc(doc(db, 'invoices', invoiceId), newInvoiceData, { merge: true });
         // Client Copy
-        await setDoc(doc(db, 'clients', order.customerId, 'invoices', invoiceId), newInvoiceData);
+        await setDoc(doc(db, 'clients', order.customerId, 'invoices', invoiceId), newInvoiceData, { merge: true });
 
-        return { success: true, message: 'Invoice created successfully!', id: invoiceId };
+        return { success: true, message: 'Invoice updated successfully!', id: invoiceId };
     } catch (error: any) {
         console.error('Error adding invoice:', error);
         return { success: false, message: 'An unexpected error occurred.' };

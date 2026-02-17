@@ -308,6 +308,30 @@ export default function ClientDetailPage() {
     setPublishedProducts(published);
   };
 
+  const openCalculator = (order: Order) => {
+    const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
+    setCalcWeight(totalWeight);
+    setCalcTargetId(order.id);
+    
+    if (client) {
+      setCalcRate(client.shippingRatePerKg || 0);
+      setCalcFixed(client.shippingFixedFee || 0);
+    } else {
+      setCalcRate(0);
+      setCalcFixed(0);
+    }
+    
+    setIsCalcOpen(true);
+  };
+
+  const applyCalculatedCost = () => {
+    if (!calcTargetId) return;
+    const total = (calcWeight * calcRate) + calcFixed;
+    setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+    setIsCalcOpen(false);
+    toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer." });
+  };
+
   useEffect(() => { aggregateProducts(); }, [db, clientId, productLists]);
 
   const handleSaveProduct = async () => {
@@ -353,7 +377,7 @@ export default function ClientDetailPage() {
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
                 <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY -> Devise)</Label>
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY {"->"} Devise)</Label>
                   <div className="flex gap-2">
                     <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" placeholder="ex: 0.1320" />
                     <Button size="sm" variant="outline" className="h-8" onClick={handleUpdateClientRate} disabled={isSaving}><Save className="h-4 w-4" /></Button>
@@ -442,6 +466,24 @@ export default function ClientDetailPage() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="invoices">
+              <Card className="border-none shadow-md bg-white">
+                <Table>
+                  <TableHeader className="bg-zinc-50"><TableRow><TableHead className="pl-6">Invoice #</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right pr-6">Action</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {sortedInvoices.map(inv => (
+                      <TableRow key={inv.id}>
+                        <TableCell className="font-black pl-6">{inv.invoiceNumber}</TableCell>
+                        <TableCell className="text-xs">{format(parseSafeDate(inv.issueDate), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell><Badge variant={inv.status === 'paid' ? 'default' : 'outline'}>{inv.status}</Badge></TableCell>
+                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" asChild><Link href={`/admin/invoices/${inv.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="catalogue">
               <div className="flex justify-end mb-4"><Button onClick={handleAddNewProduct} size="sm"><Plus className="h-4 w-4 mr-2" /> Ajouter manuel</Button></div>
               <Card className="border-none shadow-md bg-white">
@@ -489,6 +531,71 @@ export default function ClientDetailPage() {
             <div className="pt-4 border-t font-black flex justify-between items-center text-lg"><span>TOTAL :</span><span className="text-primary">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span></div>
           </div>
           <DialogFooter><Button onClick={applyCalculatedCost} className="w-full">Appliquer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" /> Détails Commande {selectedOrderPreview?.orderNumber}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedOrderPreview && (
+            <div className="space-y-8 py-4">
+              <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400">Statut</span>
+                  <div><Badge variant="outline">{selectedOrderPreview.status}</Badge></div>
+                </div>
+                <div className="text-right space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400">Total</span>
+                  <div className="text-xl font-black">¥{selectedOrderPreview.totalAmount.toFixed(2)}</div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-bold flex items-center gap-2"><Package className="h-4 w-4 text-zinc-400" /> Articles</h4>
+                <div className="border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead className="w-16">Photo</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell className="py-2">
+                            <div className="w-10 h-10 rounded border bg-zinc-50 flex items-center justify-center overflow-hidden">
+                              {item.photo ? (
+                                <img src={item.photo} alt="Produit" className="w-full h-full object-contain" />
+                              ) : (
+                                <Package className="h-4 w-4 text-zinc-300" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="font-medium text-sm">{item.description}</div>
+                            {item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}
+                          </TableCell>
+                          <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
+                          <TableCell className="py-2 text-right font-black">¥{item.total.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2"><h4 className="font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-zinc-400" /> Livraison</h4><div className="p-4 bg-white border rounded-xl text-sm min-h-[80px] whitespace-pre-wrap">{selectedOrderPreview.shippingAddress}</div></div>
+                <div className="space-y-2"><h4 className="font-bold flex items-center gap-2"><CreditCard className="h-4 w-4 text-zinc-400" /> Paiement</h4><div className="p-4 bg-white border rounded-xl flex items-center gap-3">{selectedOrderPreview.paymentStatus}</div></div>
+              </div>
+            </div>
+          )}
+          <DialogFooter><Button variant="outline" className="w-full font-bold h-12" onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
