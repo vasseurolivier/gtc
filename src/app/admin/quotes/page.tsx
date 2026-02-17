@@ -436,7 +436,7 @@ function QuotesPageContent() {
                             <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase bg-zinc-50">COMPTES CLIENTS</div>
                             {registeredClients.map(cl => <SelectItem key={cl.id} value={cl.id}>{cl.firstName} {cl.lastName}</SelectItem>)}
                             <div className="p-2 text-[10px] font-bold text-zinc-400 uppercase bg-zinc-50 mt-2">PROSPECTS CRM</div>
-                            {customers.map(cu => <SelectItem key={cl.id} value={cl.id}>{cl.name}</SelectItem>)}
+                            {customers.map(cu => <SelectItem key={cu.id} value={cu.id}>{cu.name}</SelectItem>)}
                           </SelectContent>
                       </Select><FormMessage /></FormItem>
                   )} />

@@ -143,6 +143,10 @@ export async function updateOrderFinancials(id: string, financials: { transportC
     }
 }
 
+export async function updateOrderTransportCost(id: string, cost: number) {
+    return updateOrderFinancials(id, { transportCost: cost });
+}
+
 export async function updateOrderFromQuote(quote: Quote) {
     try {
         const ordersQuery = query(collection(db, "orders"), where("quoteId", "==", quote.id));

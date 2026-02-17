@@ -416,7 +416,6 @@ export default function ClientDetailPage() {
                     <TableBody>
                       {sortedOrders.map(o => {
                         const linkedPI = sortedQuotes.find(q => q.orderId === o.id);
-                        const isLocked = linkedPI && (linkedPI.status === 'accepted' || linkedPI.status === 'paid');
                         return (
                           <TableRow key={o.id}>
                             <TableCell className="font-black pl-6">{o.orderNumber}</TableCell>
@@ -428,7 +427,7 @@ export default function ClientDetailPage() {
                             </TableCell>
                             <TableCell><Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id]} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} /></TableCell>
                             <TableCell>
-                              <Select value={basisInputs[o.id]} onValueChange={v => setBasisInputs({...basisInputs, [o.id]: v})}>
+                              <Select value={basisInputs[o.id]} onValueChange={v => setBasisInputs({...basisInputs, [o.id]: v as 'products_only' | 'total'})}>
                                 <SelectTrigger className="h-7 w-16 text-[8px] font-black uppercase"><SelectValue /></SelectTrigger>
                                 <SelectContent><SelectItem value="products_only" className="text-[10px]">Prod</SelectItem><SelectItem value="total" className="text-[10px]">Total</SelectItem></SelectContent>
                               </Select>
@@ -494,7 +493,9 @@ export default function ClientDetailPage() {
                       <TableRow key={p.id}>
                         <TableCell className="font-bold pl-6">{p.name}</TableCell>
                         <TableCell className="font-black">¥{p.price?.toFixed(2)}</TableCell>
-                        <TableCell className="text-right pr-6"><Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button variant="ghost" size="icon" className="text-red-500" onClick={async () => { await deleteClientProduct(clientId, p.listId, p.id); aggregateProducts(); }}><Trash2 className="h-4 w-4" /></Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
