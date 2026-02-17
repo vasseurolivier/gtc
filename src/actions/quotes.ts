@@ -100,7 +100,9 @@ export async function addQuote(values: any) {
             validUntil: values.validUntil instanceof Date ? values.validUntil.toISOString() : parseDate(values.validUntil),
         };
 
+        // Master Copy
         await setDoc(doc(db, 'quotes', quoteId), data);
+        // Client Copy
         if (values.customerId) {
             await setDoc(doc(db, 'clients', values.customerId, 'quotes', quoteId), data);
         }
