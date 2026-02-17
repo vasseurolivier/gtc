@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -22,7 +21,6 @@ import {
   Loader2, 
   Package, 
   ShoppingCart, 
-  Star, 
   MapPin, 
   Plus, 
   Minus, 
@@ -36,7 +34,6 @@ import { useState, useMemo, useEffect, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
@@ -252,8 +249,8 @@ export default function ClientCatalogPage() {
   };
 
   const renderPrice = (product: any, quantity = 1, mainClass = "text-primary font-black") => {
-    const manualEur = Number(product.priceEur || 0);
-    const manualCny = Number(product.price || 0);
+    const manualEur = Number(product.priceEur || product.unitPriceEur || 0);
+    const manualCny = Number(product.price || product.unitPrice || 0);
     
     const finalEur = manualEur > 0 ? manualEur * quantity : (manualCny * quantity * rate);
     const finalCny = manualCny * quantity;
