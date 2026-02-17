@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -157,21 +156,34 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
     const displayLogo = companyInfo.logoDocument; 
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
+    
+    // Calcul EUR précis respectant les prix manuels EUR
+    const calculatedSubTotalEur = quote.items.reduce((sum, item) => {
+        const manualEur = (item as any).unitPriceEur || 0;
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
+        return sum + lineEur;
+    }, 0);
+
     const transportCny = Number(quote.transportCost || 0);
+    const transportEur = transportCny * quoteRate;
+
     const commissionRate = Number(quote.commissionRate || 0);
     const basis = quote.commissionBasis || 'products_only';
 
     let commissionCny = 0;
+    let commissionEur = 0;
     if (basis === 'total') {
         commissionCny = (calculatedSubTotalCny + transportCny) * (commissionRate / 100);
+        commissionEur = (calculatedSubTotalEur + transportEur) * (commissionRate / 100);
     } else {
         commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+        commissionEur = calculatedSubTotalEur * (commissionRate / 100);
     }
 
     const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
+    const totalFinalEur = calculatedSubTotalEur + commissionEur + transportEur;
 
-    const renderPrice = (cnyValue: number, isMain = false) => {
-        const eurValue = cnyValue * quoteRate;
+    const renderPrice = (cnyValue: number, eurValue: number, isMain = false) => {
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
@@ -365,6 +377,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <tbody className="divide-y divide-zinc-100">
                                 {quote.items.map((item, idx) => {
                                     const displayImage = item.photo;
+                                    const manualEur = (item as any).unitPriceEur || 0;
+                                    const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
                                     return (
                                         <tr key={idx}>
                                             <td className="p-2 text-center">
@@ -381,8 +395,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                                 {item.sku && <p className="text-[8px] text-zinc-400 font-mono mt-1">{item.sku}</p>}
                                             </td>
                                             <td className="p-2 text-center font-medium">{item.quantity}</td>
-                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
+                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice, manualEur || (item.unitPrice * quoteRate))}</td>
+                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice), lineEur)}</td>
                                         </tr>
                                     );
                                 })}
@@ -393,23 +407,23 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                             <div className="w-full max-w-[220px] space-y-1 text-[10px]">
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
-                                    <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
+                                    <span className="font-bold">{renderPrice(calculatedSubTotalCny, calculatedSubTotalEur)}</span>
                                 </div>
                                 {transportCny > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
-                                        <span className="font-bold">{renderPrice(transportCny)}</span>
+                                        <span className="font-bold">{renderPrice(transportCny, transportEur)}</span>
                                     </div>
                                 )}
                                 {commissionRate > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
-                                        <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                        <span className="font-bold">{renderPrice(commissionCny, commissionEur)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL FINAL</span>
-                                    <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
+                                    <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, totalFinalEur, true)}</div>
                                 </div>
                             </div>
                         </div>
@@ -420,12 +434,12 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 {quote.depositRequired ? (
                                     <div className="p-3 bg-primary/5 rounded border border-primary/10">
                                         <div className="font-bold text-primary mb-1 uppercase">
-                                            <div className="flex items-center gap-1">Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100)}</div>
+                                            <div className="flex items-center gap-1">Acompte à la commande ({quote.depositPercentage || 30}%): {renderPrice(totalFinalCny * (quote.depositPercentage || 30) / 100, totalFinalEur * (quote.depositPercentage || 30) / 100)}</div>
                                         </div>
                                         <p>Le solde restant est payable après le contrôle qualité (AQL) et avant l'expédition.</p>
                                     </div>
                                 ) : (
-                                    <div className="font-bold text-primary flex items-center gap-1">Paiement intégral de {renderPrice(totalFinalCny)} à réception de la proforma.</div>
+                                    <div className="font-bold text-primary flex items-center gap-1">Paiement intégral de {renderPrice(totalFinalCny, totalFinalEur)} à réception de la proforma.</div>
                                 )}
                                 
                                 <div className="grid grid-cols-2 gap-8 p-3 bg-zinc-50 rounded border border-zinc-100 mt-4">

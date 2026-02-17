@@ -61,6 +61,7 @@ import {
   Pencil,
   UploadCloud,
   X,
+  XCircle,
   Image as ImageIcon
 } from 'lucide-react';
 import Link from 'next/link';

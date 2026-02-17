@@ -117,12 +117,9 @@ export default function ClientCatalogPage() {
     );
   }, [sourcedProducts, searchTerm]);
 
-  // CALCULE DES TOTAUX DU PANIER
-  // On calcule séparément en CNY et en EUR pour respecter les prix manuels sans décalage
   const cartTotals = useMemo(() => {
     return cart.reduce((acc, item) => {
       const itemTotalCny = item.quantity * item.unitPrice;
-      // Si un prix EUR manuel existe, on l'utilise directement, sinon on convertit le CNY
       const itemTotalEur = (item.unitPriceEur && item.unitPriceEur > 0)
         ? item.quantity * item.unitPriceEur 
         : itemTotalCny * rate;
@@ -233,6 +230,7 @@ export default function ClientCatalogPage() {
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          unitPriceEur: item.unitPriceEur || 0, // Sauvegarde du prix manuel EUR
           purchasePrice: 0, 
           total: item.total,
           photo: item.photo,
@@ -264,7 +262,6 @@ export default function ClientCatalogPage() {
     const manualEur = Number(item.priceEur || item.unitPriceEur || 0);
     const manualCny = Number(item.price || item.unitPrice || 0);
     
-    // On utilise le prix EUR manuel s'il existe, sinon on convertit
     const finalEur = manualEur > 0 ? manualEur * quantity : (manualCny * quantity * rate);
     const finalCny = manualCny * quantity;
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Invoice } from '@/actions/invoices';
@@ -105,13 +104,32 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     const displayLogo = companyInfo.logoDocument; 
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
-    const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
-    const commissionCny = subTotalCny * (commissionRate / 100);
-    const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
-    const totalFinalCny = subTotalCny + commissionCny + transportCny;
+    
+    // Calcul EUR précis respectant les prix manuels
+    const subTotalEur = invoice.items.reduce((sum, item) => {
+        const manualEur = (item as any).unitPriceEur || 0;
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
+        return sum + lineEur;
+    }, 0);
 
-    const renderPrice = (cnyValue: number, isMain = false) => {
-        const eurValue = cnyValue * invoiceRate;
+    const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
+    const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
+    const transportEur = transportCny * invoiceRate;
+
+    let commissionCny = 0;
+    let commissionEur = 0;
+    if (order?.commissionBasis === 'total') {
+        commissionCny = (subTotalCny + transportCny) * (commissionRate / 100);
+        commissionEur = (subTotalEur + transportEur) * (commissionRate / 100);
+    } else {
+        commissionCny = subTotalCny * (commissionRate / 100);
+        commissionEur = subTotalEur * (commissionRate / 100);
+    }
+
+    const totalFinalCny = subTotalCny + commissionCny + transportCny;
+    const totalFinalEur = subTotalEur + commissionEur + transportEur;
+
+    const renderPrice = (cnyValue: number, eurValue: number, isMain = false) => {
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
@@ -201,6 +219,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <tbody className="divide-y divide-zinc-100">
                                 {invoice.items.map((item, idx) => {
                                     const displayImage = item.photo;
+                                    const manualEur = (item as any).unitPriceEur || 0;
+                                    const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
                                     return (
                                         <tr key={idx}>
                                             <td className="p-2 text-center">
@@ -217,8 +237,8 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                                 {item.sku && <p className="text-[8px] text-zinc-400 font-mono mt-1">{item.sku}</p>}
                                             </td>
                                             <td className="p-2 text-center font-medium">{item.quantity}</td>
-                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice)}</td>
-                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
+                                            <td className="p-2 text-right font-medium">{renderPrice(item.unitPrice, manualEur || (item.unitPrice * invoiceRate))}</td>
+                                            <td className="p-2 text-right font-bold text-zinc-900">{renderPrice(Number(item.quantity) * Number(item.unitPrice), lineEur)}</td>
                                         </tr>
                                     );
                                 })}
@@ -229,23 +249,23 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <div className="w-full max-w-[220px] space-y-1 text-[10px]">
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 font-medium">Articles</span>
-                                    <span className="font-bold">{renderPrice(subTotalCny)}</span>
+                                    <span className="font-bold">{renderPrice(subTotalCny, subTotalEur)}</span>
                                 </div>
                                 {commissionRate > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium">Commission ({commissionRate}%)</span>
-                                        <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                        <span className="font-bold">{renderPrice(commissionCny, commissionEur)}</span>
                                     </div>
                                 )}
                                 {transportCny > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3"/> Port</span>
-                                        <span className="font-bold">{renderPrice(transportCny)}</span>
+                                        <span className="font-bold">{renderPrice(transportCny, transportEur)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                     <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL RÉGLÉ</span>
-                                    <div className="text-[12px] font-black text-green-600">{renderPrice(totalFinalCny, true)}</div>
+                                    <div className="text-[12px] font-black text-green-600">{renderPrice(totalFinalCny, totalFinalEur, true)}</div>
                                 </div>
                             </div>
                         </div>

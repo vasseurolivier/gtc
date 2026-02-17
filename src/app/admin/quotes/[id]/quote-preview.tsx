@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Quote } from '@/actions/quotes';
@@ -101,21 +100,34 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const currencyPref = customer?.currencyPreference || 'BOTH';
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
+    
+    // Calcul précis du sous-total EUR en respectant les prix manuels EUR des articles
+    const calculatedSubTotalEur = quote.items.reduce((sum, item) => {
+        const manualEur = (item as any).unitPriceEur || 0;
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
+        return sum + lineEur;
+    }, 0);
+
     const transportCny = Number(quote.transportCost || 0);
+    const transportEur = transportCny * quoteRate;
+
     const commissionRate = Number(quote.commissionRate || 0);
     const basis = quote.commissionBasis || 'products_only';
 
     let commissionCny = 0;
+    let commissionEur = 0;
     if (basis === 'total') {
         commissionCny = (calculatedSubTotalCny + transportCny) * (commissionRate / 100);
+        commissionEur = (calculatedSubTotalEur + transportEur) * (commissionRate / 100);
     } else {
         commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+        commissionEur = calculatedSubTotalEur * (commissionRate / 100);
     }
 
     const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;
+    const totalFinalEur = calculatedSubTotalEur + commissionEur + transportEur;
 
-    const renderPrice = (cnyValue: number, isMain = false) => {
-        const eurValue = cnyValue * quoteRate;
+    const renderPrice = (cnyValue: number, eurValue: number, isMain = false) => {
         if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
         if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
@@ -198,6 +210,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <tbody>
                         {quote.items.map((item, itemIndex) => {
                             const displayImage = item.photo;
+                            const manualEur = (item as any).unitPriceEur || 0;
+                            const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
                             return (
                                 <tr key={itemIndex} className="border-b">
                                     <td className="p-1 align-top border text-center">
@@ -214,8 +228,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                         {item.sku && <p className="text-[8px] text-zinc-400 font-mono mt-1">{item.sku}</p>}
                                     </td>
                                     <td className="p-2 align-top text-center border">{item.quantity}</td>
-                                    <td className="p-2 align-top text-right border">{renderPrice(item.unitPrice)}</td>
-                                    <td className="p-2 align-top text-right font-bold border">{renderPrice(Number(item.quantity) * Number(item.unitPrice))}</td>
+                                    <td className="p-2 align-top text-right border">{renderPrice(item.unitPrice, manualEur || (item.unitPrice * quoteRate))}</td>
+                                    <td className="p-2 align-top text-right font-bold border">{renderPrice(Number(item.quantity) * Number(item.unitPrice), lineEur)}</td>
                                 </tr>
                             )
                         })}
@@ -226,23 +240,23 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <div className="w-full max-w-[220px] space-y-1 text-[10px]">
                             <div className="flex justify-between items-center">
                                 <span className="text-zinc-500">Sous-total articles</span>
-                                <span className="font-bold">{renderPrice(calculatedSubTotalCny)}</span>
+                                <span className="font-bold">{renderPrice(calculatedSubTotalCny, calculatedSubTotalEur)}</span>
                             </div>
                             {transportCny > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
-                                    <span className="font-bold">{renderPrice(transportCny)}</span>
+                                    <span className="font-bold">{renderPrice(transportCny, transportEur)}</span>
                                 </div>
                             )}
                             {commissionRate > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500">Commission ({commissionRate}%)</span>
-                                    <span className="font-bold">{renderPrice(commissionCny)}</span>
+                                    <span className="font-bold">{renderPrice(commissionCny, commissionEur)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
                                 <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL FINAL</span>
-                                <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, true)}</div>
+                                <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, totalFinalEur, true)}</div>
                             </div>
                         </div>
                     </div>
@@ -275,11 +289,11 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             {quote.depositRequired ? (
                                 <div className="grid grid-cols-2 gap-8">
                                     <div className="text-zinc-500 leading-tight">
-                                        <div className="flex items-center gap-1">Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100))}</strong></div>
+                                        <div className="flex items-center gap-1">Acompte ({quote.depositPercentage || 30}%): <strong>{renderPrice(totalFinalCny * ((quote.depositPercentage || 30) / 100), totalFinalEur * ((quote.depositPercentage || 30) / 100))}</strong></div>
                                         <br />Payable sous 3 jours.
                                     </div>
                                     <div className="text-zinc-500 leading-tight">
-                                        <div className="flex items-center gap-1">Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100))}</strong></div>
+                                        <div className="flex items-center gap-1">Solde ({100 - (quote.depositPercentage || 30)}%): <strong>{renderPrice(totalFinalCny * ((100 - (quote.depositPercentage || 30)) / 100), totalFinalEur * ((100 - (quote.depositPercentage || 30)) / 100))}</strong></div>
                                         <br />Payable après contrôle qualité (AQL).
                                     </div>
                                 </div>
