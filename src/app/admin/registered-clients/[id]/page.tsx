@@ -22,7 +22,8 @@ import {
   updateOrderFinancials,
   deleteOrder,
   Order,
-  PaymentStatus
+  PaymentStatus,
+  updateOrderTransportCost
 } from '@/actions/orders';
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
@@ -55,6 +56,7 @@ import {
   Check,
   RefreshCw,
   Mail,
+  Lock,
   Globe,
   Truck
 } from 'lucide-react';
@@ -77,6 +79,9 @@ export default function ClientDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Client Identity states
+  const [clientEmail, setClientEmail] = useState('');
+  const [clientPassword, setClientPassword] = useState('');
   const [clientNumber, setClientNumber] = useState('');
   const [clientRate, setClientRate] = useState('');
   const [shippingRate, setShippingRate] = useState('');
@@ -87,7 +92,7 @@ export default function ClientDetailPage() {
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   
-  // Typed states for dynamic indexing
+  // Indexed states with explicit types for TS build
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
   const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
   const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
@@ -99,8 +104,6 @@ export default function ClientDetailPage() {
   const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
 
   const [publishedProducts, setPublishedProducts] = useState<any[]>([]);
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
-  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -118,6 +121,8 @@ export default function ClientDetailPage() {
         const clientData = await getRegisteredClientById(clientId);
         if (clientData) {
           setClient(clientData);
+          setClientEmail(clientData.email || '');
+          setClientPassword(clientData.password || '');
           setClientNumber(clientData.clientNumber || '');
           setClientRate(clientData.exchangeRate?.toString() || '');
           setShippingRate(clientData.shippingRatePerKg?.toString() || '0');
@@ -177,7 +182,9 @@ export default function ClientDetailPage() {
         c[o.id] = (o.commissionRate || 0).toString();
         b[o.id] = o.commissionBasis || 'products_only';
       });
-      setTransportInputs(t); setCommissionInputs(c); setBasisInputs(b);
+      setTransportInputs(t); 
+      setCommissionInputs(c); 
+      setBasisInputs(b);
     }
   }, [orders]);
 
@@ -209,6 +216,13 @@ export default function ClientDetailPage() {
     const res = await syncQuoteFromOrder(orderId);
     setIsSyncingPI(null);
     if (res.success) toast({ title: "PI mise à jour et renvoyée" });
+  };
+
+  const handleUpdateCredentials = async () => {
+    setIsSaving(true);
+    const res = await updateClientCredentials(clientId, clientEmail, clientPassword);
+    if (res.success) toast({ title: "Identifiants mis à jour" });
+    setIsSaving(false);
   };
 
   const handleUpdateClientRate = async () => {
@@ -250,18 +264,6 @@ export default function ClientDetailPage() {
 
   useEffect(() => { aggregateProducts(); }, [db, clientId, productLists]);
 
-  const handleSaveProduct = async () => {
-    if (!editingProduct) return;
-    setIsSaving(true);
-    try {
-      const ref = doc(db!, 'clients', clientId, 'productLists', editingProduct.listId, 'products', editingProduct.id);
-      await setDoc(ref, { ...editingProduct, status: 'published' }, { merge: true });
-      setIsProductDialogOpen(false);
-      aggregateProducts();
-      toast({ title: "Catalogue mis à jour" });
-    } finally { setIsSaving(false); }
-  };
-
   const openCalculator = (order: Order) => {
     const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
     setCalcWeight(totalWeight);
@@ -301,25 +303,48 @@ export default function ClientDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="space-y-6">
           <Card className="shadow-md border-none overflow-hidden">
-            <CardHeader className="bg-zinc-50 border-b border-zinc-100"><CardTitle className="text-sm font-black uppercase text-zinc-400">Identité Client</CardTitle></CardHeader>
+            <CardHeader className="bg-zinc-50 border-b border-zinc-100"><CardTitle className="text-sm font-black uppercase text-zinc-400">Identité & Sécurité</CardTitle></CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xl">{client?.firstName?.charAt(0)}</div>
                 <div className="font-black text-xl">{client?.firstName} {client?.lastName}</div>
               </div>
-              <div className="space-y-3 pt-4 border-t">
-                <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-zinc-300" /> {client?.email}</div>
-                
-                <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change (CNY &rarr; Devise)</Label>
+              
+              <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Email de connexion</Label>
                   <div className="flex gap-2">
-                    <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" />
+                    <div className="relative flex-grow">
+                      <Mail className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400" />
+                      <Input value={clientEmail} onChange={e => setClientEmail(e.target.value)} className="h-8 pl-7 text-xs font-bold" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Mot de passe</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-grow">
+                      <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400" />
+                      <Input type="text" value={clientPassword} onChange={e => setClientPassword(e.target.value)} className="h-8 pl-7 text-xs font-bold" placeholder="Nouveau mot de passe" />
+                    </div>
+                  </div>
+                </div>
+
+                <Button size="sm" className="w-full h-8 bg-zinc-900 text-white" onClick={handleUpdateCredentials} disabled={isSaving}>
+                  <Save className="h-3 w-3 mr-2" /> Mettre à jour les accès
+                </Button>
+
+                <div className="space-y-2 pt-4 border-t">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY &rarr; Devise)</Label>
+                  <div className="flex gap-2">
+                    <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" placeholder="ex: 0.1320" />
                     <Button size="sm" variant="outline" className="h-8" onClick={handleUpdateClientRate} disabled={isSaving}><Save className="h-4 w-4" /></Button>
                   </div>
                 </div>
 
                 <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Tarifs Transport Référents</Label>
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Paramètres Transport</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <Label className="text-[8px] uppercase">Prix / kg (¥)</Label>
@@ -461,22 +486,6 @@ export default function ClientDetailPage() {
           </Tabs>
         </div>
       </div>
-
-      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader><DialogTitle>Édition Catalogue Client</DialogTitle></DialogHeader>
-          {editingProduct && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2"><Label>Nom Commercial</Label><Input value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>SKU</Label><Input value={editingProduct.sku} onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})} /></div>
-                <div className="space-y-2"><Label>Prix Vente (CNY)</Label><Input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} /></div>
-              </div>
-            </div>
-          )}
-          <DialogFooter><Button onClick={handleSaveProduct} disabled={isSaving}>Enregistrer</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
