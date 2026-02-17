@@ -162,7 +162,9 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     if (orders) {
-      const t = {}; const c = {}; const b = {};
+      const t: Record<string, string> = {}; 
+      const c: Record<string, string> = {}; 
+      const b: Record<string, 'products_only' | 'total'> = {};
       orders.forEach(o => {
         t[o.id] = (o.transportCost || 0).toString();
         c[o.id] = (o.commissionRate || 0).toString();
@@ -205,7 +207,7 @@ export default function ClientDetailPage() {
   const handleUpdateClientRate = async () => {
     setIsSaving(true);
     const res = await updateClientExchangeRate(clientId, parseFloat(clientRate));
-    if (res.success) toast({ title: "Taux client mis à jour" });
+    if (res.success) toast({ title: "Taux de change client mis à jour" });
     setIsSaving(false);
   };
 
@@ -218,7 +220,7 @@ export default function ClientDetailPage() {
   const handleUpdateNumber = async () => {
     setIsSaving(true);
     const res = await updateRegisteredClientNumber(clientId, clientNumber);
-    if (res.success) toast({ title: "N° client sauvé" });
+    if (res.success) toast({ title: "Numéro client enregistré" });
     setIsSaving(false);
   };
 
@@ -241,7 +243,7 @@ export default function ClientDetailPage() {
       await setDoc(ref, { ...editingProduct, status: 'published' }, { merge: true });
       setIsProductDialogOpen(false);
       aggregateProducts();
-      toast({ title: "Catalogue à jour" });
+      toast({ title: "Catalogue mis à jour" });
     } finally { setIsSaving(false); }
   };
 
@@ -336,13 +338,13 @@ export default function ClientDetailPage() {
                             <TableCell className="font-black pl-6">{o.orderNumber}</TableCell>
                             <TableCell>
                               <div className="flex gap-1">
-                                <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInputs[o.id]} onChange={e => setTransportInputs({...transportInputs, [o.id]: e.target.value})} />
+                                <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInputs[o.id] || ''} onChange={e => setTransportInputs({...transportInputs, [o.id]: e.target.value})} />
                                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCalculator(o)}><Calculator className="h-3 w-3" /></Button>
                               </div>
                             </TableCell>
-                            <TableCell><Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id]} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} /></TableCell>
+                            <TableCell><Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} /></TableCell>
                             <TableCell>
-                              <Select value={basisInputs[o.id]} onValueChange={v => setBasisInputs({...basisInputs, [o.id]: v as 'products_only' | 'total'})}>
+                              <Select value={basisInputs[o.id] || 'products_only'} onValueChange={v => setBasisInputs({...basisInputs, [o.id]: v as 'products_only' | 'total'})}>
                                 <SelectTrigger className="h-7 w-16 text-[8px] font-black uppercase"><SelectValue /></SelectTrigger>
                                 <SelectContent><SelectItem value="products_only" className="text-[10px]">Prod</SelectItem><SelectItem value="total" className="text-[10px]">Total</SelectItem></SelectContent>
                               </Select>
@@ -445,6 +447,56 @@ export default function ClientDetailPage() {
             </div>
           )}
           <DialogFooter><Button onClick={() => setIsOrderPreviewOpen(false)}>Fermer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCalcOpen} onOpenChange={setIsCalcOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Calculateur de Frais d'Envoi</DialogTitle>
+            <DialogDescription>
+              Calculez le coût basé sur le poids total de la commande.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Poids Total (kg)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcWeight} 
+                onChange={(e) => setCalcWeight(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Tarif fixe par kg (CNY)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcRate} 
+                onChange={(e) => setCalcRate(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Frais fixes dossier (CNY)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={calcFixed} 
+                onChange={(e) => setCalcFixed(parseFloat(e.target.value) || 0)} 
+              />
+            </div>
+            <div className="pt-4 border-t mt-4">
+              <div className="flex justify-between items-center font-bold">
+                <span>Total calculé :</span>
+                <span className="text-xl text-primary">¥{((calcWeight * calcRate) + calcFixed).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCalcOpen(false)}>Annuler</Button>
+            <Button onClick={applyCalculatedCost}>Appliquer</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
