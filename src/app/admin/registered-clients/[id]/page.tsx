@@ -24,7 +24,7 @@ import {
 } from '@/actions/orders';
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -60,7 +61,9 @@ import {
   Hash,
   ShoppingCart,
   CheckCircle2,
-  X
+  X,
+  MapPin,
+  Building2
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -68,6 +71,8 @@ import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
 import { cn } from '@/lib/utils';
+
+const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -107,6 +112,10 @@ export default function ClientDetailPage() {
   const [isAdminCreatingOrder, setIsAdminCreatingOrder] = useState(false);
   const [adminBasket, setAdminBasket] = useState<any[]>([]);
   const [orderSuffix, setOrderSuffix] = useState('');
+  const [adminOrderTransport, setAdminOrderTransport] = useState('0');
+  const [adminOrderCommission, setAdminOrderCommission] = useState('0');
+  const [adminOrderBasis, setAdminOrderBasis] = useState<'products_only' | 'total'>('products_only');
+  const [adminOrderAddress, setAdminOrderAddress] = useState('');
   const [isSubmittingAdminOrder, setIsSubmittingAdminOrder] = useState(false);
 
   const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
@@ -137,6 +146,8 @@ export default function ClientDetailPage() {
           setClientRate(clientData.exchangeRate?.toString() || '');
           setShippingRate(clientData.shippingRatePerKg?.toString() || '0');
           setShippingFixed(clientData.shippingFixedFee?.toString() || '0');
+          setAdminOrderAddress(clientData.address || '');
+          setAdminOrderCommission(clientData.commissionBasis === 'total' ? '0' : '0'); // Placeholder or specific logic
         }
       } finally { setIsLoading(false); }
     }
@@ -370,7 +381,10 @@ export default function ClientDetailPage() {
         unitPrice: product.price || 0,
         unitPriceEur: product.priceEur || 0,
         photo: product.images?.[0] || '',
-        weight: product.weight || 0
+        weight: product.weight || 0,
+        hasSizeSelection: product.hasSizeSelection,
+        availableSizes: product.availableSizes || [],
+        selectedSize: product.availableSizes?.[0] || null
       }]);
     }
     toast({ title: "Produit ajouté au panier admin" });
@@ -383,14 +397,23 @@ export default function ClientDetailPage() {
       const prefix = client?.orderPrefix || 'ORD';
       const orderNumber = `${prefix}${orderSuffix.toUpperCase()}`;
       
-      const totalAmountCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+      const itemsTotalCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+      const transport = parseFloat(adminOrderTransport) || 0;
+      const commissionRate = parseFloat(adminOrderCommission) || 0;
+      
+      let finalTotal = 0;
+      if (adminOrderBasis === 'total') {
+        finalTotal = (itemsTotalCny + transport) * (1 + commissionRate / 100);
+      } else {
+        finalTotal = itemsTotalCny * (1 + commissionRate / 100) + transport;
+      }
 
       const orderData = {
         orderNumber,
         customerId: clientId,
         customerName: `${client?.firstName} ${client?.lastName}`,
         items: adminBasket.map(item => ({
-          description: item.name,
+          description: item.name + (item.selectedSize ? ` (${item.selectedSize})` : ''),
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
@@ -398,16 +421,19 @@ export default function ClientDetailPage() {
           purchasePrice: 0,
           total: item.quantity * item.unitPrice,
           photo: item.photo,
-          size: null,
+          size: item.selectedSize || null,
           isPersonalized: false,
           weight: item.weight || 0
         })),
-        totalAmount: totalAmountCny,
+        totalAmount: finalTotal,
         status: 'processing' as const,
-        shippingAddress: client?.address || '',
+        shippingAddress: adminOrderAddress,
         orderDate: new Date().toISOString(),
         createdAt: serverTimestamp() as any,
         paymentStatus: 'unpaid' as any,
+        transportCost: transport,
+        commissionRate: commissionRate,
+        commissionBasis: adminOrderBasis
       };
 
       await addDoc(collection(db, 'orders'), orderData);
@@ -416,7 +442,7 @@ export default function ClientDetailPage() {
       setOrderSuffix('');
       setIsAdminCreatingOrder(false);
     } catch (e) {
-      toast({ variant: "destructive", title: "Erreur" });
+      toast({ variant: "destructive", title: "Erreur lors de la création" });
     } finally {
       setIsSubmittingAdminOrder(false);
     }
@@ -800,26 +826,27 @@ export default function ClientDetailPage() {
 
       {/* Admin Creating Order Dialog */}
       <Dialog open={isAdminCreatingOrder} onOpenChange={setIsAdminCreatingOrder}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl font-black">
-              <ShoppingCart className="text-primary" /> Créer une commande pour le client
+              <ShoppingCart className="text-primary" /> Nouvelle Commande pour {client?.firstName}
             </DialogTitle>
-            <DialogDescription>Sélectionnez les produits du catalogue privé du client.</DialogDescription>
+            <DialogDescription>Sélectionnez les produits et configurez les détails logistiques et financiers.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-4">
             <div className="space-y-4">
-              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Catalogue du client</h4>
-              <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2">
+              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Catalogue Privé</h4>
+              <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-2">
                 {allSourcingProducts.filter(p => p.status === 'published').map(p => (
                   <Card key={p.id} className="p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
+                      <div className="w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
                         {p.images?.[0] && <img src={p.images[0]} className="w-full h-full object-contain" alt="" />}
                       </div>
                       <div>
                         <div className="font-bold text-xs">{p.name}</div>
                         <div className="text-[10px] text-zinc-400 font-mono">{p.sku}</div>
+                        <div className="text-[10px] font-bold text-primary mt-1">¥{p.price} / €{p.priceEur || (p.price * (currencyContext?.exchangeRate || 0.13)).toFixed(2)}</div>
                       </div>
                     </div>
                     <Button size="sm" variant="outline" onClick={() => addToAdminBasket(p)} className="h-8 text-[10px] font-black">AJOUTER</Button>
@@ -829,23 +856,59 @@ export default function ClientDetailPage() {
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Panier de la commande</h4>
-              <Card className="border-2 border-zinc-100">
+              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Détails de la Commande</h4>
+              
+              <Card className="border-2 border-zinc-100 overflow-hidden">
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader className="bg-zinc-50"><TableRow><TableHead className="pl-4">Article</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right pr-4">Total</TableHead></TableRow></TableHeader>
+                    <TableHeader className="bg-zinc-50">
+                      <TableRow>
+                        <TableHead className="pl-4">Article</TableHead>
+                        <TableHead className="text-center">Taille</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right pr-4">Total</TableHead>
+                        <TableHead className="w-8"></TableHead>
+                      </TableRow>
+                    </TableHeader>
                     <TableBody>
-                      {adminBasket.map(item => (
+                      {adminBasket.map((item, idx) => (
                         <TableRow key={item.id}>
-                          <TableCell className="pl-4 py-2"><div className="font-bold text-xs">{item.name}</div></TableCell>
+                          <TableCell className="pl-4 py-2">
+                            <div className="font-bold text-xs">{item.name}</div>
+                            <div className="text-[9px] text-zinc-400 font-mono">{item.sku}</div>
+                          </TableCell>
                           <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-2">
+                            {item.hasSizeSelection ? (
+                              <Select 
+                                value={item.selectedSize || ''} 
+                                onValueChange={(val) => {
+                                  const newBasket = [...adminBasket];
+                                  newBasket[idx].selectedSize = val;
+                                  setAdminBasket(newBasket);
+                                }}
+                              >
+                                <SelectTrigger className="h-7 w-16 text-[9px] font-bold">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {item.availableSizes.map((s: string) => (
+                                    <SelectItem key={s} value={s} className="text-[9px]">{s}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : '-'}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1">
                               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))}><MinusIcon className="h-3 w-3"/></Button>
                               <span className="text-xs font-bold">{item.quantity}</span>
                               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))}><PlusIcon className="h-3 w-3"/></Button>
                             </div>
                           </TableCell>
-                          <TableCell className="text-right pr-4 font-bold text-xs">¥{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                          <TableCell className="text-right font-bold text-xs">¥{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                          <TableCell className="pr-2">
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-zinc-300 hover:text-red-500" onClick={() => setAdminBasket(adminBasket.filter(i => i.id !== item.id))}><Trash2 className="h-3 w-3"/></Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -853,22 +916,92 @@ export default function ClientDetailPage() {
                 </CardContent>
               </Card>
 
-              <div className="space-y-4 bg-zinc-950 p-6 rounded-2xl text-white">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Référence Commande</Label>
-                  <div className="flex items-center">
-                    <div className="h-10 px-3 bg-white/10 border border-r-0 border-white/20 rounded-l-md flex items-center justify-center font-black text-zinc-400">
-                      {client?.orderPrefix || 'ORD'}
+              <div className="space-y-4 p-6 bg-zinc-50 rounded-2xl border border-zinc-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-400">Référence (Suffixe)</Label>
+                    <div className="flex items-center">
+                      <div className="h-9 px-2 bg-zinc-200 border border-r-0 rounded-l-md flex items-center justify-center font-black text-zinc-500 text-[10px]">
+                        {client?.orderPrefix || 'ORD'}
+                      </div>
+                      <Input className="h-9 rounded-l-none font-bold uppercase text-xs" placeholder="ex: 2024-001" value={orderSuffix} onChange={(e) => setOrderSuffix(e.target.value)} />
                     </div>
-                    <Input className="bg-white/5 border-white/20 rounded-l-none font-bold uppercase text-white" placeholder="ex: ADMIN-001" value={orderSuffix} onChange={(e) => setOrderSuffix(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-400">Transport (¥)</Label>
+                    <Input type="number" className="h-9 font-bold text-xs" value={adminOrderTransport} onChange={e => setAdminOrderTransport(e.target.value)} />
                   </div>
                 </div>
-                <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-                  <span className="font-black text-xs uppercase text-zinc-400">Total Commande:</span>
-                  <span className="text-2xl font-black text-primary">¥{adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toFixed(2)}</span>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400 flex items-center gap-2"><MapPin className="h-3 w-3" /> Lieu de Livraison</Label>
+                  <div className="flex gap-2 mb-2">
+                    <Button 
+                      variant={adminOrderAddress === WAREHOUSE_3PL_ADDRESS ? "default" : "outline"} 
+                      size="sm" 
+                      className="h-7 text-[9px] font-black uppercase"
+                      onClick={() => setAdminOrderAddress(WAREHOUSE_3PL_ADDRESS)}
+                    >
+                      <Building2 className="h-3 w-3 mr-1" /> Service 3PL
+                    </Button>
+                    <Button 
+                      variant={adminOrderAddress === client?.address ? "default" : "outline"} 
+                      size="sm" 
+                      className="h-7 text-[9px] font-black uppercase"
+                      onClick={() => setAdminOrderAddress(client?.address || '')}
+                    >
+                      <Home className="h-3 w-3 mr-1" /> Client (Defaut)
+                    </Button>
+                  </div>
+                  <Textarea className="text-xs bg-white h-16" value={adminOrderAddress} onChange={e => setAdminOrderAddress(e.target.value)} placeholder="Adresse complète..." />
                 </div>
-                <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black" onClick={handleConfirmAdminOrder} disabled={isSubmittingAdminOrder || adminBasket.length === 0 || !orderSuffix}>
-                  {isSubmittingAdminOrder ? <Loader2 className="animate-spin" /> : "CRÉER LA COMMANDE"}
+
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-400">Commission (%)</Label>
+                    <Input type="number" className="h-9 font-bold text-xs" value={adminOrderCommission} onChange={e => setAdminOrderCommission(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-400">Base Commission</Label>
+                    <Select value={adminOrderBasis} onValueChange={(val: any) => setAdminOrderBasis(val)}>
+                      <SelectTrigger className="h-9 text-[10px] font-bold">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="products_only" className="text-[10px]">Produits uniquement</SelectItem>
+                        <SelectItem value="total" className="text-[10px]">Total (Prod + Port)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-zinc-200 flex justify-between items-end">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase text-zinc-400">Total Final Estimé</span>
+                    <span className="text-xs text-zinc-400">Taux global: {currencyContext?.exchangeRate}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-primary">
+                      ¥{(() => {
+                        const it = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+                        const t = parseFloat(adminOrderTransport) || 0;
+                        const cr = parseFloat(adminOrderCommission) || 0;
+                        return adminOrderBasis === 'total' ? ((it + t) * (1 + cr / 100)).toFixed(2) : (it * (1 + cr / 100) + t).toFixed(2);
+                      })()}
+                    </div>
+                    <div className="text-[10px] font-bold text-blue-600">
+                      €{(() => {
+                        const itEur = adminBasket.reduce((sum, i) => sum + (i.quantity * (i.unitPriceEur || (i.unitPrice * (currencyContext?.exchangeRate || 0.13)))), 0);
+                        const tEur = (parseFloat(adminOrderTransport) || 0) * (currencyContext?.exchangeRate || 0.13);
+                        const cr = parseFloat(adminOrderCommission) || 0;
+                        return adminOrderBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full h-12 bg-zinc-950 hover:bg-zinc-900 text-white font-black rounded-xl shadow-xl transition-all" onClick={handleConfirmAdminOrder} disabled={isSubmittingAdminOrder || adminBasket.length === 0 || !orderSuffix || !adminOrderAddress}>
+                  {isSubmittingAdminOrder ? <Loader2 className="animate-spin h-5 w-5" /> : <><CheckCircle2 className="h-5 w-5 mr-2" /> CRÉER LA COMMANDE</>}
                 </Button>
               </div>
             </div>
