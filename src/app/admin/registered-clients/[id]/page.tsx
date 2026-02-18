@@ -25,7 +25,8 @@ import {
 } from '@/actions/orders';
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { getProducts, Product as GlobalProduct } from '@/actions/products';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, getDocs, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,7 +68,8 @@ import {
   Building2,
   Home,
   Image as ImageIcon,
-  UploadCloud
+  UploadCloud,
+  Search
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -112,7 +114,6 @@ export default function ClientDetailPage() {
   const [calcFixed, setCalcFixed] = useState(0);
   const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
 
-  // States for Admin creating order for client
   const [isAdminCreatingOrder, setIsAdminCreatingOrder] = useState(false);
   const [adminBasket, setAdminBasket] = useState<any[]>([]);
   const [orderSuffix, setOrderSuffix] = useState('');
@@ -122,11 +123,13 @@ export default function ClientDetailPage() {
   const [adminOrderAddress, setAdminOrderAddress] = useState('');
   const [isSubmittingAdminOrder, setIsSubmittingAdminOrder] = useState(false);
 
+  const [globalProducts, setGlobalProducts] = useState<GlobalProduct[]>([]);
   const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
   const [editingProductData, setEditingProductData] = useState<any | null>(null);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [isCreatingNewProduct, setIsCreatingNewProduct] = useState(false);
+  const [addProductMode, setAddProductMode] = useState<'global' | 'manual'>('global');
   const [isUploading, setIsUploading] = useState(false);
 
   const parseSafeDate = (val: any): Date => {
@@ -142,7 +145,11 @@ export default function ClientDetailPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const clientData = await getRegisteredClientById(clientId);
+        const [clientData, fetchedGlobalProducts] = await Promise.all([
+          getRegisteredClientById(clientId),
+          getProducts()
+        ]);
+        
         if (clientData) {
           setClient(clientData);
           setClientEmail(clientData.email || '');
@@ -154,6 +161,7 @@ export default function ClientDetailPage() {
           setAdminOrderAddress(clientData.address || '');
           setAdminOrderCommission('0'); 
         }
+        setGlobalProducts(fetchedGlobalProducts || []);
       } finally { setIsLoading(false); }
     }
     fetchData();
@@ -330,6 +338,7 @@ export default function ClientDetailPage() {
 
   const handleOpenAddProduct = () => {
     setIsCreatingNewProduct(true);
+    setAddProductMode('global');
     setEditingProductData({
       name: '',
       sku: '',
@@ -351,13 +360,32 @@ export default function ClientDetailPage() {
     setIsEditProductOpen(true);
   };
 
+  const handleGlobalProductSelect = (productId: string) => {
+    const p = globalProducts.find(gp => gp.id === productId);
+    if (p) {
+      setEditingProductData({
+        ...editingProductData,
+        name: p.name,
+        sku: p.sku,
+        description: p.description || '',
+        price: p.price,
+        priceEur: p.price * (parseFloat(clientRate) || currencyContext?.exchangeRate || 0.13),
+        images: p.imageUrl ? [p.imageUrl] : [],
+        weight: p.weight || 0,
+        hsCode: p.hsCode || '',
+        length: p.length || 0,
+        width: p.width || 0,
+        height: p.height || 0
+      });
+    }
+  };
+
   const handleSaveProductEdit = async () => {
     if (!editingProductData || !db) return;
     setIsSaving(true);
     
     try {
       if (isCreatingNewProduct) {
-        // Find or create a default list for manual products
         let targetListId = productLists?.[0]?.id;
         if (!targetListId) {
           const newListId = `LST-MANUAL-${Date.now()}`;
@@ -425,7 +453,6 @@ export default function ClientDetailPage() {
     setIsCalcOpen(false);
   };
 
-  // Create order logic for Admin
   const addToAdminBasket = (product: any) => {
     const existing = adminBasket.find(i => i.id === product.id);
     if (existing) {
@@ -678,7 +705,9 @@ export default function ClientDetailPage() {
                               <div className="flex items-center gap-1">
                                 <Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} />
                                 <Select value={basisInputs[o.id] || 'products_only'} onValueChange={(v: 'products_only'|'total') => setBasisInputs({...basisInputs, [o.id]: v})}>
-                                  <SelectTrigger className="w-8 h-7 p-0 flex justify-center"><PercentIcon className="h-3 w-3" /></SelectTrigger>
+                                  <SelectTrigger className="w-8 h-7 p-0 flex justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3"><line x1="19" x2="5" y1="5" y2="19" /><circle cx="6.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /></svg>
+                                  </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="products_only" className="text-[10px]">Sur produits</SelectItem>
                                     <SelectItem value="total" className="text-[10px]">Sur total (+port)</SelectItem>
@@ -747,7 +776,7 @@ export default function ClientDetailPage() {
                       <TableRow key={q.id}>
                         <TableCell className="font-black pl-6">{q.quoteNumber}</TableCell>
                         <TableCell className="text-xs">{format(parseSafeDate(q.issueDate), 'dd/MM/yyyy')}</TableCell>
-                        <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : 'outline'}>{q.status}</Badge></TableCell>
+                        <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'}>{q.status}</Badge></TableCell>
                         <TableCell className="text-right pr-6 space-x-1">
                           <Button variant="ghost" size="icon" asChild title="Voir PDF"><Link href={`/admin/quotes/${q.id}`} target="_blank"><Eye className="h-4 w-4" /></Link></Button>
                           <AlertDialog>
@@ -801,7 +830,7 @@ export default function ClientDetailPage() {
             <TabsContent value="catalogue">
               <div className="mb-4 flex justify-end">
                 <Button onClick={handleOpenAddProduct} className="bg-primary hover:bg-primary/90 text-white font-bold h-9 text-xs">
-                  <Plus className="h-4 w-4 mr-2" /> Nouveau Produit Manuel
+                  <Plus className="h-4 w-4 mr-2" /> Ajouter un Produit
                 </Button>
               </div>
               <Card className="border-none shadow-md bg-white">
@@ -1075,12 +1104,44 @@ export default function ClientDetailPage() {
       <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isCreatingNewProduct ? 'Ajouter un Produit Client' : 'Modifier le Produit Client'}</DialogTitle>
-            <DialogDescription>Modifiez les détails techniques et options.</DialogDescription>
+            <DialogTitle>{isCreatingNewProduct ? 'Ajouter au Catalogue Client' : 'Modifier le Produit Client'}</DialogTitle>
+            <DialogDescription>Configurez les détails techniques et options tarifaires.</DialogDescription>
           </DialogHeader>
+          
+          {isCreatingNewProduct && (
+            <div className="bg-zinc-50 p-4 rounded-xl mb-4 border border-zinc-200">
+              <RadioGroup value={addProductMode} onValueChange={(v:any) => setAddProductMode(v)} className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="global" id="mode-global" />
+                  <Label htmlFor="mode-global" className="font-bold cursor-pointer">Depuis le Catalogue Global</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="manual" id="mode-manual" />
+                  <Label htmlFor="mode-manual" className="font-bold cursor-pointer">Saisie Manuelle</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
           {editingProductData && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
               <div className="space-y-6">
+                {isCreatingNewProduct && addProductMode === 'global' && (
+                  <div className="space-y-2 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <Label className="font-black text-[10px] uppercase text-primary">Sélectionner un produit global</Label>
+                    <Select onValueChange={handleGlobalProductSelect}>
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Choisir un produit..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {globalProducts.map(gp => (
+                          <SelectItem key={gp.id} value={gp.id}>{gp.name} ({gp.sku})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="font-bold">Nom du produit</Label>
@@ -1202,7 +1263,7 @@ export default function ClientDetailPage() {
             <DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose>
             <Button onClick={handleSaveProductEdit} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-bold">
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              {isCreatingNewProduct ? 'Créer le produit' : 'Enregistrer'}
+              {isCreatingNewProduct ? 'Ajouter au catalogue' : 'Enregistrer'}
             </Button>
           </DialogFooter>
         </DialogContent>
