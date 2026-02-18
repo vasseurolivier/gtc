@@ -1,8 +1,7 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, orderBy, getDoc, where, deleteDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export interface RegisteredClient {
     id: string;
@@ -148,10 +147,30 @@ export async function updateClientProfile(id: string, data: Partial<RegisteredCl
     }
 }
 
+export async function addClientProduct(clientId: string, listId: string, data: any) {
+    try {
+        const productRef = doc(collection(db, 'clients', clientId, 'productLists', listId, 'products'));
+        await setDoc(productRef, {
+            ...data,
+            id: productRef.id,
+            clientId,
+            productListId: listId,
+            createdAt: serverTimestamp(),
+            status: data.status || 'pending'
+        });
+        return { success: true, message: 'Produit ajouté au catalogue client.', id: productRef.id };
+    } catch (e: any) {
+        return { success: false, message: e.message };
+    }
+}
+
 export async function updateClientProduct(clientId: string, listId: string, productId: string, data: any) {
     try {
         const productRef = doc(db, 'clients', clientId, 'productLists', listId, 'products', productId);
-        await updateDoc(productRef, data);
+        await updateDoc(productRef, {
+            ...data,
+            updatedAt: serverTimestamp()
+        });
         return { success: true, message: 'Produit mis à jour.' };
     } catch (e: any) {
         console.error("Update client product error:", e);

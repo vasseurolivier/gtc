@@ -12,6 +12,7 @@ import {
   updateClientShippingRates,
   updateClientExchangeRate,
   updateClientProduct,
+  addClientProduct,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -25,7 +26,7 @@ import {
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, doc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,7 +65,9 @@ import {
   X,
   MapPin,
   Building2,
-  Home
+  Home,
+  Image as ImageIcon,
+  UploadCloud
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -123,6 +126,7 @@ export default function ClientDetailPage() {
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
   const [editingProductData, setEditingProductData] = useState<any | null>(null);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
+  const [isCreatingNewProduct, setIsCreatingNewProduct] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const parseSafeDate = (val: any): Date => {
@@ -313,6 +317,7 @@ export default function ClientDetailPage() {
   };
 
   const handleOpenEditProduct = (product: any) => {
+    setIsCreatingNewProduct(false);
     setEditingProductData({ 
       ...product, 
       images: product.images || [],
@@ -323,16 +328,68 @@ export default function ClientDetailPage() {
     setIsEditProductOpen(true);
   };
 
+  const handleOpenAddProduct = () => {
+    setIsCreatingNewProduct(true);
+    setEditingProductData({
+      name: '',
+      sku: '',
+      description: '',
+      price: 0,
+      priceEur: 0,
+      images: [],
+      status: 'published',
+      availability: 'both',
+      hasSizeSelection: false,
+      availableSizes: [],
+      moq: 1,
+      weight: 0,
+      hsCode: '',
+      length: 0,
+      width: 0,
+      height: 0
+    });
+    setIsEditProductOpen(true);
+  };
+
   const handleSaveProductEdit = async () => {
-    if (!editingProductData) return;
+    if (!editingProductData || !db) return;
     setIsSaving(true);
-    const res = await updateClientProduct(clientId, editingProductData.listId, editingProductData.id, editingProductData);
-    if (res.success) {
-      toast({ title: "Fiche produit enregistrée" });
-      setIsEditProductOpen(false);
-      aggregateProducts();
+    
+    try {
+      if (isCreatingNewProduct) {
+        // Find or create a default list for manual products
+        let targetListId = productLists?.[0]?.id;
+        if (!targetListId) {
+          const newListId = `LST-MANUAL-${Date.now()}`;
+          await setDoc(doc(db, 'clients', clientId, 'productLists', newListId), {
+            id: newListId,
+            clientId,
+            name: "Catalogue Privé",
+            description: "Produits ajoutés manuellement par l'administrateur.",
+            createdAt: new Date().toISOString()
+          });
+          targetListId = newListId;
+        }
+        
+        const res = await addClientProduct(clientId, targetListId, editingProductData);
+        if (res.success) {
+          toast({ title: "Produit créé et ajouté au catalogue" });
+          setIsEditProductOpen(false);
+          aggregateProducts();
+        } else {
+          toast({ variant: "destructive", title: "Erreur", description: res.message });
+        }
+      } else {
+        const res = await updateClientProduct(clientId, editingProductData.listId, editingProductData.id, editingProductData);
+        if (res.success) {
+          toast({ title: "Fiche produit mise à jour" });
+          setIsEditProductOpen(false);
+          aggregateProducts();
+        }
+      }
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -742,6 +799,11 @@ export default function ClientDetailPage() {
             </TabsContent>
 
             <TabsContent value="catalogue">
+              <div className="mb-4 flex justify-end">
+                <Button onClick={handleOpenAddProduct} className="bg-primary hover:bg-primary/90 text-white font-bold h-9 text-xs">
+                  <Plus className="h-4 w-4 mr-2" /> Nouveau Produit Manuel
+                </Button>
+              </div>
               <Card className="border-none shadow-md bg-white">
                 <Table>
                   <TableHeader className="bg-zinc-50">
@@ -1013,7 +1075,7 @@ export default function ClientDetailPage() {
       <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier le Produit Client</DialogTitle>
+            <DialogTitle>{isCreatingNewProduct ? 'Ajouter un Produit Client' : 'Modifier le Produit Client'}</DialogTitle>
             <DialogDescription>Modifiez les détails techniques et options.</DialogDescription>
           </DialogHeader>
           {editingProductData && (
@@ -1140,7 +1202,7 @@ export default function ClientDetailPage() {
             <DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose>
             <Button onClick={handleSaveProductEdit} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-bold">
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              Enregistrer
+              {isCreatingNewProduct ? 'Créer le produit' : 'Enregistrer'}
             </Button>
           </DialogFooter>
         </DialogContent>
