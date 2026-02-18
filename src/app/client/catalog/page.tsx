@@ -28,13 +28,21 @@ import {
   Building2,
   Trash2,
   CheckCircle2,
-  Search
+  Search,
+  SortAsc
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
@@ -57,6 +65,7 @@ export default function ClientCatalogPage() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
 
   const [cart, setCart] = useState<any[]>([]);
   const [sourcedProducts, setSourcedProducts] = useState<any[]>([]);
@@ -107,15 +116,37 @@ export default function ClientCatalogPage() {
     fetchAllSourced();
   }, [db, user, clientLists]);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) return sourcedProducts;
-    const s = searchTerm.toLowerCase();
-    return sourcedProducts.filter(p => 
-      p.name.toLowerCase().includes(s) || 
-      p.sku?.toLowerCase().includes(s) ||
-      p.description?.toLowerCase().includes(s)
-    );
-  }, [sourcedProducts, searchTerm]);
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = [...sourcedProducts];
+    
+    // Filtrage
+    if (searchTerm) {
+      const s = searchTerm.toLowerCase();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(s) || 
+        p.sku?.toLowerCase().includes(s) ||
+        p.description?.toLowerCase().includes(s)
+      );
+    }
+
+    // Tri
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'sku':
+          return (a.sku || '').localeCompare(b.sku || '');
+        case 'price_asc':
+          return (a.price || 0) - (b.price || 0);
+        case 'price_desc':
+          return (b.price || 0) - (a.price || 0);
+        default:
+          return 0;
+      }
+    });
+    
+    return result;
+  }, [sourcedProducts, searchTerm, sortBy]);
 
   const cartTotals = useMemo(() => {
     return cart.reduce((acc, item) => {
@@ -230,7 +261,7 @@ export default function ClientCatalogPage() {
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          unitPriceEur: item.unitPriceEur || 0, // Sauvegarde du prix manuel EUR
+          unitPriceEur: item.unitPriceEur || 0,
           purchasePrice: 0, 
           total: item.total,
           photo: item.photo,
@@ -288,19 +319,35 @@ export default function ClientCatalogPage() {
         )}
       </div>
 
-      <div className="relative max-w-xl">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-        <Input 
-          placeholder="Rechercher un produit dans votre catalogue..." 
-          className="pl-11 h-12 shadow-sm bg-white rounded-xl border-zinc-200"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex flex-col sm:flex-row gap-4 max-w-3xl">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+          <Input 
+            placeholder="Rechercher un produit..." 
+            className="pl-11 h-12 shadow-sm bg-white rounded-xl border-zinc-200"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <SortAsc className="h-5 w-5 text-zinc-400 shrink-0" />
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="h-12 w-[180px] bg-white rounded-xl border-zinc-200 font-bold text-zinc-700">
+              <SelectValue placeholder="Trier par..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name" className="font-bold">Nom (A-Z)</SelectItem>
+              <SelectItem value="price_asc" className="font-bold">Prix croissant</SelectItem>
+              <SelectItem value="price_desc" className="font-bold">Prix décroissant</SelectItem>
+              <SelectItem value="sku" className="font-bold">SKU</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {isSourcedLoading ? [1,2,3,4].map(i => <div key={i} className="h-64 bg-zinc-100 animate-pulse rounded-2xl" />) : filteredProducts.length > 0 ? (
-          filteredProducts.map((p) => (
+        {isSourcedLoading ? [1,2,3,4].map(i => <div key={i} className="h-64 bg-zinc-100 animate-pulse rounded-2xl" />) : filteredAndSortedProducts.length > 0 ? (
+          filteredAndSortedProducts.map((p) => (
             <Card key={p.id} className="border-none shadow-md overflow-hidden bg-white hover:ring-2 hover:ring-primary/50 cursor-pointer relative" onClick={() => handleOpenProduct(p)}>
               {Number(p.moq || 1) > 1 && (p.availability !== 'standard_only') && (
                 <Badge className="absolute top-2 right-2 z-10 bg-primary/90 text-[10px] font-black">MOQ PERSO: {p.moq}</Badge>
