@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -51,6 +50,7 @@ export interface SupplierContract {
     leadTime: string;
     specificClauses?: string;
     createdAt: string;
+    updatedAt?: string;
 }
 
 export async function addSupplierContract(values: z.infer<typeof contractSchema>) {
@@ -74,7 +74,10 @@ export async function updateSupplierContract(id: string, values: z.infer<typeof 
     try {
         const validatedData = contractSchema.parse(values);
         const contractRef = doc(db, 'supplierContracts', id);
-        await updateDoc(contractRef, validatedData);
+        await updateDoc(contractRef, {
+            ...validatedData,
+            updatedAt: serverTimestamp()
+        });
         return { success: true, message: 'Supplier Contract updated successfully!' };
     } catch (error: any) {
         console.error('Error updating supplier contract:', error);
@@ -96,8 +99,9 @@ export async function getSupplierContracts(): Promise<SupplierContract[]> {
         contracts.push({
           id: doc.id,
           ...data,
-          date: data.date?.toDate().toISOString() || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          date: data.date?.toDate?.()?.toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || undefined,
         } as SupplierContract);
     });
 
@@ -122,8 +126,9 @@ export async function getSupplierContractById(id: string): Promise<SupplierContr
         return {
             id: contractSnap.id,
             ...data,
-            date: data.date?.toDate().toISOString() || new Date().toISOString(),
-            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            date: data.date?.toDate?.()?.toISOString() || new Date().toISOString(),
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || undefined,
         } as SupplierContract;
 
     } catch (error) {

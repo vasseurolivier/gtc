@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -39,6 +38,7 @@ export interface Product {
     countryOfOrigin?: string;
     imageUrl?: string;
     createdAt: string;
+    updatedAt?: string;
 }
 
 export async function addProduct(values: z.infer<typeof productSchema>) {
@@ -64,7 +64,10 @@ export async function updateProduct(id: string, values: z.infer<typeof productSc
         const productRef = doc(db, 'products', id);
         
         // 1. Update Global Product
-        await updateDoc(productRef, validatedData);
+        await updateDoc(productRef, {
+            ...validatedData,
+            updatedAt: serverTimestamp()
+        });
 
         // 2. PROPAGATION: Find all instances of this SKU in client subcollections
         const skuQuery = query(collectionGroup(db, 'products'), where('sku', '==', validatedData.sku));
@@ -110,7 +113,8 @@ export async function getProducts(): Promise<Product[]> {
         products.push({
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || undefined,
         } as Product);
     });
 
@@ -130,7 +134,8 @@ export async function getProductById(id: string): Promise<Product | null> {
         return {
             id: productSnap.id,
             ...data,
-            createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || undefined,
         } as Product;
     } catch (error) {
         return null;

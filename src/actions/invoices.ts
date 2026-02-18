@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -34,6 +33,7 @@ export interface Invoice {
     dueDate: string;
     paymentDate?: string;
     createdAt: string;
+    updatedAt?: string;
     supplierCostTotal?: number;
     supplierCostPaid?: number;
     transportCost?: number;
@@ -152,6 +152,7 @@ export async function getInvoices(): Promise<Invoice[]> {
           dueDate: parseDate(data.dueDate),
           paymentDate: data.paymentDate ? parseDate(data.paymentDate) : undefined,
           createdAt: parseDate(data.createdAt),
+          updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
           exchangeRate: data.exchangeRate || 0.13,
         } as Invoice);
     });
@@ -184,6 +185,7 @@ export async function getInvoiceById(id: string, clientId?: string): Promise<Inv
             dueDate: parseDate(data.dueDate),
             paymentDate: data.paymentDate ? parseDate(data.paymentDate) : undefined,
             createdAt: parseDate(data.createdAt),
+            updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
             exchangeRate: data.exchangeRate || 0.13,
         } as Invoice;
 
@@ -219,7 +221,7 @@ export async function updateInvoiceStatus(id: string, status: string) {
         const invSnap = await getDoc(invoiceRef);
         if (!invSnap.exists()) return { success: false, message: 'Not found' };
         
-        const updateData: any = { status };
+        const updateData: any = { status, updatedAt: serverTimestamp() };
         if (status === 'paid') {
             updateData.paymentDate = serverTimestamp();
         }
@@ -254,6 +256,7 @@ export async function updateInvoiceAmountPaid(id: string, amount: number, curren
 
         const updateData: any = {
             amountPaid: newTotalAmountPaidInCny,
+            updatedAt: serverTimestamp(),
         };
 
         if (newTotalAmountPaidInCny >= totalAmount) {
@@ -287,7 +290,7 @@ export async function updateInvoiceSupplierCostPaid(id: string, amount: number) 
         
         const invoiceData = invoiceSnap.data();
         const newSupplierCostPaid = (invoiceData.supplierCostPaid || 0) + amount;
-        await updateDoc(invoiceRef, { supplierCostPaid: newSupplierCostPaid });
+        await updateDoc(invoiceRef, { supplierCostPaid: newSupplierCostPaid, updatedAt: serverTimestamp() });
         return { success: true, message: `Paiement fournisseur enregistré.`, newSupplierCostPaid: newSupplierCostPaid };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };
@@ -297,7 +300,7 @@ export async function updateInvoiceSupplierCostPaid(id: string, amount: number) 
 export async function updateInvoiceSupplierCostTotal(id: string, cost: number) {
     try {
         const invoiceRef = doc(db, 'invoices', id);
-        await updateDoc(invoiceRef, { supplierCostTotal: cost });
+        await updateDoc(invoiceRef, { supplierCostTotal: cost, updatedAt: serverTimestamp() });
         return { success: true, message: 'Coût usine mis à jour.' };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };
@@ -312,7 +315,7 @@ export async function updateInvoiceTransportCostPaid(id: string, amount: number)
         
         const invoiceData = invoiceSnap.data();
         const newTransportCostPaid = (invoiceData.transportCostPaid || 0) + amount;
-        await updateDoc(invoiceRef, { transportCostPaid: newTransportCostPaid });
+        await updateDoc(invoiceRef, { transportCostPaid: newTransportCostPaid, updatedAt: serverTimestamp() });
         return { success: true, message: `Paiement transporteur enregistré.`, newTransportCostPaid: newTransportCostPaid };
     } catch (error: any) {
         return { success: false, message: 'An unexpected error occurred.' };

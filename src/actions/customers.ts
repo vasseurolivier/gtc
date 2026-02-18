@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -33,6 +32,7 @@ export interface Customer {
     source?: string;
     notes?: string;
     createdAt: string;
+    updatedAt?: string;
     orders?: Order[];
     totalRevenue?: number;
 }
@@ -66,7 +66,10 @@ export async function updateCustomer(id: string, values: CustomerFormValues) {
         const oldSnap = await getDoc(customerRef);
         const oldData = oldSnap.data();
         
-        await updateDoc(customerRef, validatedData);
+        await updateDoc(customerRef, {
+            ...validatedData,
+            updatedAt: serverTimestamp()
+        });
 
         // SYNC: Find and update registered client document
         // We look by the current email or the old email to ensure we catch them
@@ -89,6 +92,7 @@ export async function updateCustomer(id: string, values: CustomerFormValues) {
                     phone: validatedData.phone || '',
                     companyName: validatedData.company || '',
                     address: validatedData.address || '',
+                    updatedAt: serverTimestamp()
                 });
             }
         }
@@ -158,7 +162,8 @@ export async function getCustomers(): Promise<Customer[]> {
           status: data.status || 'lead',
           source: data.source || '',
           notes: data.notes || '',
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || undefined,
         } as Customer);
     });
 
@@ -191,8 +196,9 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
                 const order = { 
                     ...orderData, 
                     id: doc.id, 
-                    orderDate: orderData.orderDate?.toDate().toISOString() || new Date().toISOString(),
-                    createdAt: orderData.createdAt?.toDate().toISOString() || new Date().toISOString()
+                    orderDate: orderData.orderDate?.toDate?.()?.toISOString() || new Date().toISOString(),
+                    createdAt: orderData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+                    updatedAt: orderData.updatedAt?.toDate?.()?.toISOString() || undefined
                 } as Order
                 orders.push(order);
                 totalRevenue += orderData.totalAmount || 0;
@@ -202,7 +208,8 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
         const customer = {
             id: customerSnap.id,
             ...customerData,
-            createdAt: customerData.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            createdAt: customerData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            updatedAt: customerData.updatedAt?.toDate?.()?.toISOString() || undefined,
             orders,
             totalRevenue,
         } as unknown as Customer;

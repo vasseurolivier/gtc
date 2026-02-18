@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -32,6 +31,7 @@ export interface PackingList {
     date: string;
     items: PackingListItem[];
     createdAt: string;
+    updatedAt?: string;
 }
 
 const parseDate = (val: any) => {
@@ -60,7 +60,10 @@ export async function addPackingList(values: z.infer<typeof packingListSchema>) 
 export async function updatePackingList(id: string, values: z.infer<typeof packingListSchema>) {
     try {
         const listRef = doc(db, 'packingLists', id);
-        await updateDoc(listRef, values);
+        await updateDoc(listRef, {
+            ...values,
+            updatedAt: serverTimestamp()
+        });
         return { success: true, message: 'Packing List updated successfully!' };
     } catch (error: any) {
         console.error('Error updating packing list:', error);
@@ -81,6 +84,7 @@ export async function getPackingLists(): Promise<PackingList[]> {
           ...data,
           date: parseDate(data.date),
           createdAt: parseDate(data.createdAt),
+          updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
         } as PackingList);
     });
 
@@ -107,6 +111,7 @@ export async function getPackingListById(id: string): Promise<PackingList | null
             ...data,
             date: parseDate(data.date),
             createdAt: parseDate(data.createdAt),
+            updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
         } as PackingList;
 
     } catch (error) {

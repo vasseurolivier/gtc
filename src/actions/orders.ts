@@ -224,6 +224,7 @@ export async function getOrders(): Promise<Order[]> {
           ...data,
           orderDate: parseDate(data.orderDate),
           createdAt: parseDate(data.createdAt),
+          updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
           paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
         } as Order);
     });
@@ -244,6 +245,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
             ...data,
             orderDate: parseDate(data.orderDate),
             createdAt: parseDate(data.createdAt),
+            updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
             paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
         } as Order;
     } catch (error) {
