@@ -25,7 +25,7 @@ import {
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, doc, getDocs } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,17 +52,15 @@ import {
   RefreshCw,
   Mail,
   Lock,
-  Euro,
   Truck,
   Sparkles,
-  CircleAlert,
-  Globe,
   Package,
   Pencil,
-  UploadCloud,
-  X,
-  XCircle,
-  Image as ImageIcon
+  PlusCircle,
+  Hash,
+  ShoppingCart,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -104,6 +102,12 @@ export default function ClientDetailPage() {
   const [calcRate, setCalcRate] = useState(0);
   const [calcFixed, setCalcFixed] = useState(0);
   const [calcTargetId, setCalcTargetId] = useState<string | null>(null);
+
+  // States for Admin creating order for client
+  const [isAdminCreatingOrder, setIsAdminCreatingOrder] = useState(false);
+  const [adminBasket, setAdminBasket] = useState<any[]>([]);
+  const [orderSuffix, setOrderSuffix] = useState('');
+  const [isSubmittingAdminOrder, setIsSubmittingAdminOrder] = useState(false);
 
   const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
@@ -352,6 +356,72 @@ export default function ClientDetailPage() {
     setIsCalcOpen(false);
   };
 
+  // Create order logic for Admin
+  const addToAdminBasket = (product: any) => {
+    const existing = adminBasket.find(i => i.id === product.id);
+    if (existing) {
+      setAdminBasket(adminBasket.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
+    } else {
+      setAdminBasket([...adminBasket, {
+        id: product.id,
+        name: product.name,
+        sku: product.sku || '',
+        quantity: 1,
+        unitPrice: product.price || 0,
+        unitPriceEur: product.priceEur || 0,
+        photo: product.images?.[0] || '',
+        weight: product.weight || 0
+      }]);
+    }
+    toast({ title: "Produit ajouté au panier admin" });
+  };
+
+  const handleConfirmAdminOrder = async () => {
+    if (!db || adminBasket.length === 0 || !orderSuffix) return;
+    setIsSubmittingAdminOrder(true);
+    try {
+      const prefix = client?.orderPrefix || 'ORD';
+      const orderNumber = `${prefix}${orderSuffix.toUpperCase()}`;
+      
+      const totalAmountCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+
+      const orderData = {
+        orderNumber,
+        customerId: clientId,
+        customerName: `${client?.firstName} ${client?.lastName}`,
+        items: adminBasket.map(item => ({
+          description: item.name,
+          sku: item.sku,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          unitPriceEur: item.unitPriceEur || 0,
+          purchasePrice: 0,
+          total: item.quantity * item.unitPrice,
+          photo: item.photo,
+          size: null,
+          isPersonalized: false,
+          weight: item.weight || 0
+        })),
+        totalAmount: totalAmountCny,
+        status: 'processing' as const,
+        shippingAddress: client?.address || '',
+        orderDate: new Date().toISOString(),
+        createdAt: serverTimestamp() as any,
+        paymentStatus: 'unpaid' as any,
+      };
+
+      await addDoc(collection(db, 'orders'), orderData);
+      toast({ title: "Commande créée pour le client" });
+      setAdminBasket([]);
+      setOrderSuffix('');
+      setIsAdminCreatingOrder(false);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erreur" });
+    } finally {
+      setIsSubmittingAdminOrder(false);
+    }
+  };
+
   useEffect(() => {
     const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') router.push('/admin/login');
@@ -384,7 +454,10 @@ export default function ClientDetailPage() {
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild><Link href="/admin/registered-clients"><ArrowLeft className="mr-2 h-4 w-4" /> Retour</Link></Button>
         <div className="flex items-center gap-3">
-          <Button onClick={() => router.push(`/admin/quotes?clientId=${clientId}`)} className="bg-primary hover:bg-primary/90 font-black uppercase text-[10px] tracking-widest">
+          <Button onClick={() => setIsAdminCreatingOrder(true)} className="bg-zinc-900 text-white font-bold h-10 px-4 text-[10px] uppercase tracking-widest">
+            <PlusCircle className="h-4 w-4 mr-2" /> Nouvelle Commande
+          </Button>
+          <Button onClick={() => router.push(`/admin/quotes?clientId=${clientId}`)} className="bg-primary hover:bg-primary/90 font-black uppercase text-[10px] tracking-widest h-10">
             <Plus className="h-4 w-4 mr-2" /> Créer Proforma
           </Button>
           {client?.status === 'validated' ? <Badge className="bg-green-500">Compte Validé</Badge> : <Badge variant="outline">En attente</Badge>}
@@ -564,7 +637,7 @@ export default function ClientDetailPage() {
                               <AlertDialog>
                                 <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500 h-7 w-7"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                 <AlertDialogContent>
-                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Cette action est irréversible et supprimera définitivement les données.</AlertDialogDescription></AlertDialogHeader>
+                                  <AlertDialogHeader><AlertDialogTitle>Supprimer la commande ?</AlertDialogTitle><AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription></AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => handleDeleteOrderAction(o.id)}>Supprimer</AlertDialogAction>
@@ -725,11 +798,89 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
+      {/* Admin Creating Order Dialog */}
+      <Dialog open={isAdminCreatingOrder} onOpenChange={setIsAdminCreatingOrder}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl font-black">
+              <ShoppingCart className="text-primary" /> Créer une commande pour le client
+            </DialogTitle>
+            <DialogDescription>Sélectionnez les produits du catalogue privé du client.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-4">
+            <div className="space-y-4">
+              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Catalogue du client</h4>
+              <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2">
+                {allSourcingProducts.filter(p => p.status === 'published').map(p => (
+                  <Card key={p.id} className="p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded border bg-zinc-50 overflow-hidden shrink-0">
+                        {p.images?.[0] && <img src={p.images[0]} className="w-full h-full object-contain" alt="" />}
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs">{p.name}</div>
+                        <div className="text-[10px] text-zinc-400 font-mono">{p.sku}</div>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => addToAdminBasket(p)} className="h-8 text-[10px] font-black">AJOUTER</Button>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Panier de la commande</h4>
+              <Card className="border-2 border-zinc-100">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-zinc-50"><TableRow><TableHead className="pl-4">Article</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right pr-4">Total</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {adminBasket.map(item => (
+                        <TableRow key={item.id}>
+                          <TableCell className="pl-4 py-2"><div className="font-bold text-xs">{item.name}</div></TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))}><MinusIcon className="h-3 w-3"/></Button>
+                              <span className="text-xs font-bold">{item.quantity}</span>
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))}><PlusIcon className="h-3 w-3"/></Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right pr-4 font-bold text-xs">¥{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4 bg-zinc-950 p-6 rounded-2xl text-white">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Référence Commande</Label>
+                  <div className="flex items-center">
+                    <div className="h-10 px-3 bg-white/10 border border-r-0 border-white/20 rounded-l-md flex items-center justify-center font-black text-zinc-400">
+                      {client?.orderPrefix || 'ORD'}
+                    </div>
+                    <Input className="bg-white/5 border-white/20 rounded-l-none font-bold uppercase text-white" placeholder="ex: ADMIN-001" value={orderSuffix} onChange={(e) => setOrderSuffix(e.target.value)} />
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-white/10 flex justify-between items-center">
+                  <span className="font-black text-xs uppercase text-zinc-400">Total Commande:</span>
+                  <span className="text-2xl font-black text-primary">¥{adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toFixed(2)}</span>
+                </div>
+                <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black" onClick={handleConfirmAdminOrder} disabled={isSubmittingAdminOrder || adminBasket.length === 0 || !orderSuffix}>
+                  {isSubmittingAdminOrder ? <Loader2 className="animate-spin" /> : "CRÉER LA COMMANDE"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le Produit Client</DialogTitle>
-            <DialogDescription>Modifiez les détails techniques, les tailles et les options de personnalisation.</DialogDescription>
+            <DialogDescription>Modifiez les détails techniques et options.</DialogDescription>
           </DialogHeader>
           {editingProductData && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
@@ -762,7 +913,7 @@ export default function ClientDetailPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-bold">Sélection de taille</Label>
-                      <p className="text-[10px] text-zinc-500">Autoriser le client à choisir une taille</p>
+                      <p className="text-[10px] text-zinc-500">Autoriser le choix d'une taille</p>
                     </div>
                     <Switch 
                       checked={editingProductData.hasSizeSelection} 
@@ -771,9 +922,9 @@ export default function ClientDetailPage() {
                   </div>
                   {editingProductData.hasSizeSelection && (
                     <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2">
-                      <Label className="text-[10px] font-bold uppercase">Tailles disponibles (séparées par virgule)</Label>
+                      <Label className="text-[10px] font-bold uppercase">Tailles disponibles</Label>
                       <Input 
-                        placeholder="ex: S, M, L, XL ou 38, 39, 40" 
+                        placeholder="ex: S, M, L, XL" 
                         value={editingProductData.availableSizes?.join(', ') || ''} 
                         onChange={(e) => setEditingProductData({
                           ...editingProductData, 
@@ -794,7 +945,7 @@ export default function ClientDetailPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="standard_only">Standard uniquement</SelectItem>
-                        <SelectItem value="personalized_only">Personnalisation uniquement</SelectItem>
+                        <SelectItem value="personalized_only">Personnalisé uniquement</SelectItem>
                         <SelectItem value="both">Standard & Personnalisé</SelectItem>
                       </SelectContent>
                     </Select>
@@ -855,7 +1006,7 @@ export default function ClientDetailPage() {
             <DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose>
             <Button onClick={handleSaveProductEdit} disabled={isSaving || isUploading} className="bg-primary hover:bg-primary/90 font-bold">
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              Enregistrer dans le catalogue
+              Enregistrer
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -865,7 +1016,7 @@ export default function ClientDetailPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Détails Commande</DialogTitle>
-            <DialogDescription>Consultez les articles, les options de personnalisation et les adresses.</DialogDescription>
+            <DialogDescription>Consultez les articles et adresses.</DialogDescription>
           </DialogHeader>
           {selectedOrderPreview && (
             <div className="space-y-4 py-4">
@@ -892,7 +1043,7 @@ export default function ClientDetailPage() {
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Calculateur de Frais d'Envoi</DialogTitle>
-            <DialogDescription>Calculez le coût basé sur le poids total de la commande.</DialogDescription>
+            <DialogDescription>Calculez le coût basé sur le poids total.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -957,5 +1108,17 @@ function PercentIcon(props: any) {
       <circle cx="6.5" cy="6.5" r="2.5" />
       <circle cx="17.5" cy="17.5" r="2.5" />
     </svg>
+  )
+}
+
+function PlusIcon(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+  )
+}
+
+function MinusIcon(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>
   )
 }

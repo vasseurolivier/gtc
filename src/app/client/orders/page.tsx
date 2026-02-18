@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -9,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Loader2, 
   Package, 
@@ -19,7 +19,9 @@ import {
   CreditCard,
   AlertCircle,
   ArrowRight,
-  Clock
+  Clock,
+  CheckCircle2,
+  ListChecks
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useMemo, useContext } from 'react';
@@ -27,15 +29,22 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CurrencyContext } from '@/context/currency-context';
+import { updateQuoteStatus } from '@/actions/quotes';
 
 export default function ClientOrdersPage() {
   const { user } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
   const currencyContext = useContext(CurrencyContext);
   const rate = currencyContext?.exchangeRate || 0.13;
   
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
+
+  // Bulk and Quick actions states
+  const [selectedQuoteIds, setSelectedQuoteIds] = useState<string[]>([]);
+  const [isBulkValidating, setIsBulkValidating] = useState(false);
+  const [isQuickValidating, setIsQuickValidating] = useState<string | null>(null);
 
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
@@ -88,9 +97,9 @@ export default function ClientOrdersPage() {
   const sortedQuotes = useMemo(() => {
     if (!linkedQuotes) return [];
     return [...linkedQuotes].sort((a, b) => {
-      const isPendingA = (a.status !== 'accepted' && a.status !== 'paid') ? 1 : 0;
-      const isPendingB = (b.status !== 'accepted' && b.status !== 'paid') ? 1 : 0;
-      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      const isPendingA = (a.status === 'sent') ? 0 : 1;
+      const isPendingB = (b.status === 'sent') ? 0 : 1;
+      if (isPendingA !== isPendingB) return isPendingA - isPendingB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [linkedQuotes]);
@@ -98,12 +107,43 @@ export default function ClientOrdersPage() {
   const sortedInvoices = useMemo(() => {
     if (!invoices) return [];
     return [...invoices].sort((a, b) => {
-      const isPendingA = a.status !== 'paid' ? 1 : 0;
-      const isPendingB = a.status !== 'paid' ? 1 : 0;
-      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      const isPendingA = a.status !== 'paid' ? 0 : 1;
+      const isPendingB = a.status !== 'paid' ? 0 : 1;
+      if (isPendingA !== isPendingB) return isPendingA - isPendingB;
       return parseSafeDate(b.createdAt).getTime() - parseSafeDate(a.createdAt).getTime();
     });
   }, [invoices]);
+
+  const handleQuickValidate = async (id: string) => {
+    setIsQuickValidating(id);
+    try {
+      const res = await updateQuoteStatus(id, 'accepted');
+      if (res.success) {
+        toast({ title: "Proforma Validée", description: "La commande est désormais validée." });
+      }
+    } finally {
+      setIsQuickValidating(null);
+    }
+  };
+
+  const handleBulkValidate = async () => {
+    if (selectedQuoteIds.length === 0) return;
+    setIsBulkValidating(true);
+    try {
+      const promises = selectedQuoteIds.map(id => updateQuoteStatus(id, 'accepted'));
+      await Promise.all(promises);
+      toast({ title: `${selectedQuoteIds.length} devis validés avec succès !` });
+      setSelectedQuoteIds([]);
+    } finally {
+      setIsBulkValidating(false);
+    }
+  };
+
+  const toggleQuoteSelection = (id: string) => {
+    setSelectedQuoteIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -225,25 +265,65 @@ export default function ClientOrdersPage() {
         </TabsContent>
 
         <TabsContent value="quotes" className="mt-6">
+          <div className="mb-4 flex items-center justify-between px-2">
+            <h3 className="font-bold text-zinc-500 uppercase text-xs tracking-widest flex items-center gap-2">
+              <ListChecks className="h-4 w-4" /> Devis en attente
+            </h3>
+            {selectedQuoteIds.length > 0 && (
+              <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4">
+                <span className="text-xs font-black text-primary">{selectedQuoteIds.length} sélectionné(s)</span>
+                <Button 
+                  size="sm" 
+                  className="bg-zinc-900 hover:bg-black text-white font-black h-9 px-6 rounded-xl"
+                  onClick={handleBulkValidate}
+                  disabled={isBulkValidating}
+                >
+                  {isBulkValidating ? <Loader2 className="animate-spin h-4 w-4" /> : <><CheckCircle2 className="h-4 w-4 mr-2" /> TOUT VALIDER</>}
+                </Button>
+              </div>
+            )}
+          </div>
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
               {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : sortedQuotes.length > 0 ? (
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-zinc-50/50"><TableHead className="pl-6">N° Proforma</TableHead><TableHead>Date</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right pr-6">Actions</TableHead></TableRow>
+                    <TableRow className="bg-zinc-50/50">
+                      <TableHead className="w-12 pl-6"></TableHead>
+                      <TableHead>N° Proforma</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right pr-6">Actions</TableHead>
+                    </TableRow>
                   </TableHeader>
                   <TableBody>
                     {sortedQuotes.map((q) => (
-                      <TableRow key={q.id}>
-                        <TableCell className="pl-6 py-4 font-bold">{q.quoteNumber}</TableCell>
+                      <TableRow key={q.id} className={cn(selectedQuoteIds.includes(q.id) && "bg-primary/5")}>
+                        <TableCell className="pl-6">
+                          {q.status === 'sent' && (
+                            <Checkbox 
+                              checked={selectedQuoteIds.includes(q.id)} 
+                              onCheckedChange={() => toggleQuoteSelection(q.id)} 
+                              className="h-5 w-5 rounded-md"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="py-4 font-bold">{q.quoteNumber}</TableCell>
                         <TableCell className="text-xs">{q.issueDate ? format(parseSafeDate(q.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'}>{q.status}</Badge></TableCell>
                         <TableCell className="text-right">{renderPrice(q.totalAmount, "font-black text-primary")}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             {q.status === 'sent' && (
-                              <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold h-8 text-[10px]" asChild>
-                                <Link href={`/client/quotes/${q.id}`}>VALIDER</Link>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="border-primary text-primary font-bold h-8 text-[10px] hover:bg-primary hover:text-white"
+                                onClick={() => handleQuickValidate(q.id)}
+                                disabled={isQuickValidating === q.id}
+                              >
+                                {isQuickValidating === q.id ? <Loader2 className="animate-spin h-3 w-3" /> : "VALIDATION RAPIDE"}
                               </Button>
                             )}
                             <Button variant="ghost" size="icon" asChild><Link href={`/client/quotes/${q.id}`}><Eye className="h-4 w-4" /></Link></Button>
