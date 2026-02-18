@@ -63,7 +63,8 @@ import {
   CheckCircle2,
   X,
   MapPin,
-  Building2
+  Building2,
+  Home
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -147,7 +148,7 @@ export default function ClientDetailPage() {
           setShippingRate(clientData.shippingRatePerKg?.toString() || '0');
           setShippingFixed(clientData.shippingFixedFee?.toString() || '0');
           setAdminOrderAddress(clientData.address || '');
-          setAdminOrderCommission(clientData.commissionBasis === 'total' ? '0' : '0'); // Placeholder or specific logic
+          setAdminOrderCommission('0'); 
         }
       } finally { setIsLoading(false); }
     }
