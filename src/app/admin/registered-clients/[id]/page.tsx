@@ -69,7 +69,8 @@ import {
   Home,
   Image as ImageIcon,
   UploadCloud,
-  Search
+  Search,
+  Minus
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -286,21 +287,6 @@ export default function ClientDetailPage() {
     setIsSaving(false);
   };
 
-  const handleDeleteOrderAction = async (id: string) => {
-    const res = await deleteOrder(id);
-    if (res.success) toast({ title: "Commande supprimée" });
-  };
-
-  const handleDeleteQuoteAction = async (id: string) => {
-    const res = await deleteQuote(id);
-    if (res.success) toast({ title: "Proforma supprimée" });
-  };
-
-  const handleDeleteInvoiceAction = async (id: string) => {
-    const res = await deleteInvoice(id);
-    if (res.success) toast({ title: "Facture supprimée" });
-  };
-
   const aggregateProducts = async () => {
     if (!db || !clientId || !productLists) return;
     const all: any[] = [];
@@ -309,6 +295,14 @@ export default function ClientDetailPage() {
       const snap = await getDocs(prodCol);
       snap.forEach(d => all.push({ ...d.data(), id: d.id, listId: list.id }));
     }
+    
+    // Trier par date de création décroissante (plus récent en haut)
+    all.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+
     setAllSourcingProducts(all);
   };
 
@@ -439,12 +433,10 @@ export default function ClientDetailPage() {
 
   const openCalculator = (orderOrBasket: Order | any[]) => {
     if (Array.isArray(orderOrBasket)) {
-      // It's the basket for a new order
       const totalWeight = orderOrBasket.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
       setCalcWeight(totalWeight);
-      setCalcTargetId(null); // special value for new order
+      setCalcTargetId(null);
     } else {
-      // It's an existing order
       const totalWeight = orderOrBasket.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
       setCalcWeight(totalWeight);
       setCalcTargetId(orderOrBasket.id);
@@ -525,7 +517,7 @@ export default function ClientDetailPage() {
         status: 'processing' as const,
         shippingAddress: adminOrderAddress,
         orderDate: new Date().toISOString(),
-        createdAt: serverTimestamp() as any,
+        createdAt: new Date().toISOString(),
         paymentStatus: 'unpaid' as any,
         transportCost: transport,
         commissionRate: commissionRate,
@@ -542,6 +534,21 @@ export default function ClientDetailPage() {
     } finally {
       setIsSubmittingAdminOrder(false);
     }
+  };
+
+  const handleDeleteOrderAction = async (id: string) => {
+    const res = await deleteOrder(id);
+    if (res.success) toast({ title: "Commande supprimée" });
+  };
+
+  const handleDeleteQuoteAction = async (id: string) => {
+    const res = await deleteQuote(id);
+    if (res.success) toast({ title: "Proforma supprimée" });
+  };
+
+  const handleDeleteInvoiceAction = async (id: string) => {
+    const res = await deleteInvoice(id);
+    if (res.success) toast({ title: "Facture supprimée" });
   };
 
   useEffect(() => {
@@ -1003,9 +1010,9 @@ export default function ClientDetailPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-1">
-                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))}><MinusIcon className="h-3 w-3"/></Button>
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))}><Minus className="h-3 w-3"/></Button>
                               <span className="text-xs font-bold">{item.quantity}</span>
-                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))}><PlusIcon className="h-3 w-3"/></Button>
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))}><Plus className="h-3 w-3"/></Button>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-bold text-xs">¥{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
