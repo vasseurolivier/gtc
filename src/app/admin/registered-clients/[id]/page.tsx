@@ -437,19 +437,30 @@ export default function ClientDetailPage() {
     setIsUploading(false);
   };
 
-  const openCalculator = (order: Order) => {
-    const totalWeight = order.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
-    setCalcWeight(totalWeight);
-    setCalcTargetId(order.id);
+  const openCalculator = (orderOrBasket: Order | any[]) => {
+    if (Array.isArray(orderOrBasket)) {
+      // It's the basket for a new order
+      const totalWeight = orderOrBasket.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
+      setCalcWeight(totalWeight);
+      setCalcTargetId(null); // special value for new order
+    } else {
+      // It's an existing order
+      const totalWeight = orderOrBasket.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
+      setCalcWeight(totalWeight);
+      setCalcTargetId(orderOrBasket.id);
+    }
     setCalcRate(parseFloat(shippingRate) || 0);
     setCalcFixed(parseFloat(shippingFixed) || 0);
     setIsCalcOpen(true);
   };
 
   const applyCalculatedCost = () => {
-    if (!calcTargetId) return;
     const total = (calcWeight * calcRate) + calcFixed;
-    setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+    if (calcTargetId) {
+      setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+    } else {
+      setAdminOrderTransport(total.toFixed(2));
+    }
     setIsCalcOpen(false);
   };
 
@@ -503,7 +514,7 @@ export default function ClientDetailPage() {
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           unitPriceEur: item.unitPriceEur || 0,
-          purchasePrice: 0,
+          purchasePrice: 0, 
           total: item.quantity * item.unitPrice,
           photo: item.photo,
           size: item.selectedSize || null,
@@ -544,7 +555,7 @@ export default function ClientDetailPage() {
     switch (status) {
         case 'delivered': return 'default';
         case 'shipped': return 'secondary';
-        case 'validated': return 'default';
+        case 'validated': return 'default'; 
         case 'processing': return 'outline';
         case 'cancelled': return 'destructive';
         default: return 'outline';
@@ -706,7 +717,7 @@ export default function ClientDetailPage() {
                                 <Input type="number" className="w-12 h-7 text-xs font-bold" value={commissionInputs[o.id] || ''} onChange={e => setCommissionInputs({...commissionInputs, [o.id]: e.target.value})} />
                                 <Select value={basisInputs[o.id] || 'products_only'} onValueChange={(v: 'products_only'|'total') => setBasisInputs({...basisInputs, [o.id]: v})}>
                                   <SelectTrigger className="w-8 h-7 p-0 flex justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3"><line x1="19" x2="5" y1="5" y2="19" /><circle cx="6.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /></svg>
+                                    <PercentIcon className="h-3 w-3" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="products_only" className="text-[10px]">Sur produits</SelectItem>
@@ -1021,7 +1032,12 @@ export default function ClientDetailPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-zinc-400">Transport (¥)</Label>
-                    <Input type="number" className="h-9 font-bold text-xs" value={adminOrderTransport} onChange={e => setAdminOrderTransport(e.target.value)} />
+                    <div className="flex gap-1">
+                      <Input type="number" className="h-9 font-bold text-xs" value={adminOrderTransport} onChange={e => setAdminOrderTransport(e.target.value)} />
+                      <Button size="icon" variant="ghost" className="h-9 w-9 bg-white border" onClick={() => openCalculator(adminBasket)}>
+                        <Calculator className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
