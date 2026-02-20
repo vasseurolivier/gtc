@@ -63,7 +63,7 @@ export function Header() {
   const logoUrl = companyInfoContext?.companyInfo?.logoCommercial || 
                   companyInfoContext?.companyInfo?.logoDocument || 
                   companyInfoContext?.companyInfo?.logoAdmin || 
-                  "https://placehold.co/600x200/e11d48/white?text=Global+Trading+China";
+                  "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=300&h=100&auto=format&fit=crop";
 
   const navItems = [
     { href: '/', label: dictionary.home },
@@ -104,13 +104,13 @@ export function Header() {
             <div className="relative h-14 w-auto flex items-center">
               <Image 
                 src={logoUrl} 
-                alt="Logo" 
+                alt="Logo Global Trading China" 
                 width={180}
                 height={56}
                 key={logoUrl}
                 className="h-14 w-auto object-contain" 
                 priority
-                unoptimized
+                fetchPriority="high"
               />
             </div>
         </Link>
