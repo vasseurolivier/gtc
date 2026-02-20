@@ -13,11 +13,11 @@ import html2canvas from 'html2canvas';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle, Trash2, Printer, Save, Eye, Pencil, ArrowLeft, GripVertical, FileText } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Printer, Save, Eye, Pencil, ArrowLeft, GripVertical, FileText, UploadCloud, Image as ImageIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -29,6 +29,7 @@ import { CompanyInfoContext } from '@/context/company-info-context';
 import { getProducts, Product } from '@/actions/products';
 import { getSuppliers, Supplier } from '@/actions/suppliers';
 import { addSupplierContract, getSupplierContracts, updateSupplierContract, deleteSupplierContract, SupplierContract } from '@/actions/supplier-contracts';
+import { uploadImage } from '@/actions/upload';
 
 const contractItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
@@ -62,6 +63,7 @@ type ContractFormValues = z.infer<typeof formSchema>;
 function ContractGenerator({ editingContract, onFinished, products, suppliers }: { editingContract: SupplierContract | null, onFinished: () => void, products: Product[], suppliers: Supplier[] }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
   const getInitialValues = () => {
@@ -130,6 +132,31 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
         form.setValue('supplierName', supplier.name);
         form.setValue('supplierAddress', supplier.address || '');
         form.setValue('supplierContact', supplier.contactName || '');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingIdx(index);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'supplier-contracts');
+
+    try {
+      const result = await uploadImage(formData);
+      if (result.success && result.url) {
+        form.setValue(`items.${index}.photo`, result.url);
+        toast({ title: "Image chargée" });
+      } else {
+        toast({ variant: "destructive", title: "Erreur", description: result.message });
+      }
+    } catch (err) {
+      toast({ variant: "destructive", title: "Erreur système" });
+    } finally {
+      setUploadingIdx(null);
+      e.target.value = '';
     }
   };
 
@@ -206,12 +233,29 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                       <Label className="text-sm font-black uppercase text-primary">Articles du contrat</Label>
                       <Button type="button" variant="outline" size="sm" onClick={() => appendItem({ description: '', quantity: 1, unitPrice: 0, total: 0, photo: '' })}>+ Article</Button>
                     </div>
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                       {itemFields.map((field, index) => (
                         <Card key={field.id} className="p-3 relative bg-zinc-50 border-zinc-200">
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                               <Select onValueChange={(v) => handleProductSelect(v, index)}><SelectTrigger className="h-8 text-[10px]"><SelectValue placeholder="Lier un produit global" /></SelectTrigger><SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}</SelectContent></Select>
+                              
+                              <div className="space-y-2">
+                                <Label className="text-[9px] uppercase font-black text-zinc-400">Photo</Label>
+                                <div className="flex gap-3">
+                                  <div className="w-16 h-16 rounded border bg-white flex items-center justify-center overflow-hidden shrink-0">
+                                    {uploadingIdx === index ? <Loader2 className="h-4 w-4 animate-spin" /> : watchedValues.items[index]?.photo ? <img src={watchedValues.items[index].photo} className="w-full h-full object-contain" /> : <ImageIcon className="h-6 w-6 text-zinc-200" />}
+                                  </div>
+                                  <div className="flex-grow space-y-1">
+                                    <FormField control={form.control} name={`items.${index}.photo`} render={({ field: f }) => ( <FormItem><FormControl><Input className="h-7 text-[10px]" placeholder="URL..." {...f} /></FormControl></FormItem> )} />
+                                    <label className="flex items-center gap-2 cursor-pointer bg-white border border-zinc-200 hover:bg-zinc-100 px-3 h-7 rounded text-[9px] font-black transition-colors uppercase">
+                                      <UploadCloud className="h-3 w-3" /> {uploadingIdx === index ? "Envoi..." : "Envoyer"}
+                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, index)} disabled={uploadingIdx !== null} />
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+
                               <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Input className="h-8 text-xs font-bold" {...f} /></FormControl></FormItem> )} />
                               <div className="grid grid-cols-2 gap-2">
                                 <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => ( <FormItem><Label className="text-[9px] uppercase font-bold text-zinc-400">Qté</Label><FormControl><Input type="number" className="h-8 text-xs" {...f} /></FormControl></FormItem> )} />
