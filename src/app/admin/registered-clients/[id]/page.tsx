@@ -70,7 +70,9 @@ import {
   Image as ImageIcon,
   UploadCloud,
   Search,
-  Minus
+  Minus,
+  Percent as PercentIcon,
+  SortAsc
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -126,6 +128,7 @@ export default function ClientDetailPage() {
 
   const [globalProducts, setGlobalProducts] = useState<GlobalProduct[]>([]);
   const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
+  const [sortBySourcing, setSortBySourcing] = useState('date_desc');
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<string | null>(null);
   const [editingProductData, setEditingProductData] = useState<any | null>(null);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
@@ -295,18 +298,29 @@ export default function ClientDetailPage() {
       const snap = await getDocs(prodCol);
       snap.forEach(d => all.push({ ...d.data(), id: d.id, listId: list.id }));
     }
-    
-    // Trier par date de création décroissante (plus récent en haut)
-    all.sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    });
-
     setAllSourcingProducts(all);
   };
 
   useEffect(() => { aggregateProducts(); }, [db, clientId, productLists]);
+
+  const sortedSourcingProducts = useMemo(() => {
+    let result = [...allSourcingProducts];
+    result.sort((a, b) => {
+      switch (sortBySourcing) {
+        case 'date_desc':
+          return (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        case 'date_asc':
+          return (a.createdAt ? new Date(a.createdAt).getTime() : 0) - (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'sku':
+          return (a.sku || '').localeCompare(b.sku || '');
+        default:
+          return 0;
+      }
+    });
+    return result;
+  }, [allSourcingProducts, sortBySourcing]);
 
   const handleUpdateProductData = async (productId: string, listId: string, data: any) => {
     setIsUpdatingProduct(productId);
@@ -846,7 +860,21 @@ export default function ClientDetailPage() {
             </TabsContent>
 
             <TabsContent value="catalogue">
-              <div className="mb-4 flex justify-end">
+              <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
+                <div className="flex items-center gap-3">
+                  <SortAsc className="h-4 w-4 text-zinc-400" />
+                  <Select value={sortBySourcing} onValueChange={setSortBySourcing}>
+                    <SelectTrigger className="h-9 w-40 bg-white border-zinc-200 font-bold text-xs">
+                      <SelectValue placeholder="Trier par..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date_desc" className="font-bold">Date (Récent)</SelectItem>
+                      <SelectItem value="date_asc" className="font-bold">Date (Ancien)</SelectItem>
+                      <SelectItem value="name" className="font-bold">Nom (A-Z)</SelectItem>
+                      <SelectItem value="sku" className="font-bold">SKU</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button onClick={handleOpenAddProduct} className="bg-primary hover:bg-primary/90 text-white font-bold h-9 text-xs">
                   <Plus className="h-4 w-4 mr-2" /> Ajouter un Produit
                 </Button>
@@ -862,7 +890,7 @@ export default function ClientDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allSourcingProducts.map(p => (
+                    {sortedSourcingProducts.map(p => (
                       <TableRow key={p.id}>
                         <TableCell className="py-4 pl-6">
                           <div className="flex items-center gap-3">
@@ -1368,27 +1396,6 @@ export default function ClientDetailPage() {
       </Dialog>
     </div>
   );
-}
-
-function PercentIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="19" x2="5" y1="5" y2="19" />
-      <circle cx="6.5" cy="6.5" r="2.5" />
-      <circle cx="17.5" cy="17.5" r="2.5" />
-    </svg>
-  )
 }
 
 function PlusIcon(props: any) {
