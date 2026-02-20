@@ -13,6 +13,7 @@ import {
   updateClientExchangeRate,
   updateClientProduct,
   addClientProduct,
+  updateRegisteredClientCurrencyPreference,
   RegisteredClient 
 } from '@/actions/registered-clients';
 import { 
@@ -75,7 +76,8 @@ import {
   Percent as PercentIcon,
   SortAsc,
   MessageSquare,
-  Send
+  Send,
+  Coins
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -103,6 +105,7 @@ export default function ClientDetailPage() {
   const [clientPassword, setClientPassword] = useState('');
   const [clientNumber, setClientNumber] = useState('');
   const [clientRate, setClientRate] = useState('');
+  const [currencyPref, setCurrencyPref] = useState<'EUR' | 'CNY' | 'BOTH'>('BOTH');
   const [shippingRate, setShippingRate] = useState('');
   const [shippingFixed, setShippingFixed] = useState('');
 
@@ -140,7 +143,6 @@ export default function ClientDetailPage() {
   const [addProductMode, setAddProductMode] = useState<'global' | 'manual'>('global');
   const [isUploading, setIsUploading] = useState(false);
 
-  // Chat states
   const [chatInput, setChatInput] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [activeTab, setActiveTab] = useState('orders');
@@ -170,6 +172,7 @@ export default function ClientDetailPage() {
           setClientPassword(clientData.password || '');
           setClientNumber(clientData.clientNumber || '');
           setClientRate(clientData.exchangeRate?.toString() || '');
+          setCurrencyPref(clientData.currencyPreference || 'BOTH');
           setShippingRate(clientData.shippingRatePerKg?.toString() || '0');
           setShippingFixed(clientData.shippingFixedFee?.toString() || '0');
           setAdminOrderAddress(clientData.address || '');
@@ -211,7 +214,6 @@ export default function ClientDetailPage() {
   }, [db, clientId]);
   const { data: chatMessages } = useCollection(messagesQuery);
 
-  // Mark as read when tab is messages
   useEffect(() => {
     if (activeTab === 'messages' && clientId && chatMessages && chatMessages.some(m => !m.isAdmin && !m.read)) {
       markMessagesAsRead(clientId, true);
@@ -296,6 +298,16 @@ export default function ClientDetailPage() {
     setIsSaving(true);
     const res = await updateClientExchangeRate(clientId, parseFloat(clientRate));
     if (res.success) toast({ title: "Taux de change client mis à jour" });
+    setIsSaving(false);
+  };
+
+  const handleUpdateCurrencyPreference = async (val: 'EUR' | 'CNY' | 'BOTH') => {
+    setIsSaving(true);
+    const res = await updateRegisteredClientCurrencyPreference(clientId, val);
+    if (res.success) {
+      setCurrencyPref(val);
+      toast({ title: "Préférence de devise mise à jour" });
+    }
     setIsSaving(false);
   };
 
@@ -692,7 +704,24 @@ export default function ClientDetailPage() {
                 </Button>
 
                 <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change spécifique (CNY &rarr; Devise)</Label>
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Affichage des Devises</Label>
+                  <div className="flex gap-2">
+                    <Select value={currencyPref} onValueChange={(val: any) => handleUpdateCurrencyPreference(val)}>
+                      <SelectTrigger className="h-8 text-xs font-bold">
+                        <Coins className="h-3 w-3 mr-2 text-primary" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EUR">EURO (€)</SelectItem>
+                        <SelectItem value="CNY">YUAN (¥)</SelectItem>
+                        <SelectItem value="BOTH">LES DEUX (€ / ¥)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-400">Taux de change (CNY &rarr; Devise)</Label>
                   <div className="flex gap-2">
                     <Input type="number" step="0.0001" value={clientRate} onChange={e => setClientRate(e.target.value)} className="h-8 font-black text-blue-600" placeholder="ex: 0.1320" />
                     <Button size="sm" variant="outline" className="h-8" onClick={handleUpdateClientRate} disabled={isSaving}><Save className="h-4 w-4" /></Button>
@@ -1064,7 +1093,6 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* Admin Creating Order Dialog */}
       <Dialog open={isAdminCreatingOrder} onOpenChange={setIsAdminCreatingOrder}>
         <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
