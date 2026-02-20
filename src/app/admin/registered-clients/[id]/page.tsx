@@ -1013,7 +1013,7 @@ export default function ClientDetailPage() {
                       <div key={msg.id} className={cn("flex flex-col max-w-[85%]", msg.isAdmin ? "ml-auto items-end" : "mr-auto items-start")}>
                         <div className="flex items-center gap-2 mb-1 px-1">
                           <span className="text-[9px] font-bold uppercase text-zinc-400">{msg.isAdmin ? "Vous" : client?.firstName}</span>
-                          <span className="text-[8px] text-zinc-300">{format(new Date(msg.createdAt), 'dd/MM HH:mm', { locale: fr })}</span>
+                          <span className="text-[8px] text-zinc-300">{format(parseSafeDate(msg.createdAt), 'dd/MM HH:mm', { locale: fr })}</span>
                         </div>
                         <div className={cn(
                           "p-3 rounded-xl text-xs leading-relaxed",

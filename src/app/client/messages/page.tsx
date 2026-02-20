@@ -21,6 +21,14 @@ export default function ClientMessagesPage() {
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const parseSafeDate = (val: any): Date => {
+    if (!val) return new Date();
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'clients', user.uid);
@@ -85,7 +93,7 @@ export default function ClientMessagesPage() {
               <div key={msg.id} className={cn("flex flex-col max-w-[80%]", msg.isAdmin ? "mr-auto items-start" : "ml-auto items-end")}>
                 <div className="flex items-center gap-2 mb-1 px-1">
                   <span className="text-[10px] font-black uppercase text-zinc-400">{msg.isAdmin ? "Agent GTC" : "Vous"}</span>
-                  <span className="text-[9px] text-zinc-300">{msg.createdAt ? format(new Date(msg.createdAt), 'HH:mm', { locale: fr }) : ''}</span>
+                  <span className="text-[9px] text-zinc-300">{msg.createdAt ? format(parseSafeDate(msg.createdAt), 'HH:mm', { locale: fr }) : ''}</span>
                 </div>
                 <div className={cn(
                   "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
