@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext, useMemo } from 'react';
@@ -15,6 +14,7 @@ import { CurrencyContext } from '@/context/currency-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type Period = 'last_30_days' | 'this_month' | 'last_quarter' | 'this_year' | 'all_time';
 
