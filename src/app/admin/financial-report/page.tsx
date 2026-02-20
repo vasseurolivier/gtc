@@ -22,6 +22,7 @@ export default function FinancialReportPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('this_month');
 
@@ -40,12 +41,14 @@ export default function FinancialReportPage() {
 
     async function fetchData() {
       try {
-        const [invs, ords] = await Promise.all([
+        const [invs, ords, prods] = await Promise.all([
             getInvoices(),
             getOrders(),
+            getProducts(),
         ]);
         setInvoices(invs);
         setOrders(ords);
+        setProducts(prods);
       } catch (error) {
         console.error("Failed to fetch financial data:", error);
       } finally {
@@ -77,6 +80,15 @@ export default function FinancialReportPage() {
   
   const ordersById = useMemo(() => new Map(orders.map(o => [o.id, o])), [orders]);
 
+  // Map of SKU -> current Purchase Price from global catalog
+  const productsBySku = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach(p => {
+      if (p.sku) map.set(p.sku, p.purchasePrice || 0);
+    });
+    return map;
+  }, [products]);
+
   const filteredInvoices = useMemo(() => {
     return invoices.filter(inv => {
       if (inv.status === 'cancelled') return false;
@@ -103,7 +115,14 @@ export default function FinancialReportPage() {
       if (inv.orderId) {
         const order = ordersById.get(inv.orderId);
         if (order) {
-          const orderCost = order.items.reduce((sum, item) => sum + ((item.purchasePrice || 0) * item.quantity), 0);
+          // Calculate COGS using CURRENT purchase price from catalog if SKU matches
+          // otherwise fallback to the snapshot price stored in the order
+          const orderCost = order.items.reduce((sum, item) => {
+            const currentGlobalPurchasePrice = item.sku ? productsBySku.get(item.sku) : undefined;
+            const priceToUse = currentGlobalPurchasePrice !== undefined ? currentGlobalPurchasePrice : (item.purchasePrice || 0);
+            return sum + (priceToUse * item.quantity);
+          }, 0);
+          
           costOfGoodsSold += orderCost;
           transportExpenses += (order.transportCost || 0);
           
@@ -134,7 +153,7 @@ export default function FinancialReportPage() {
       netProfit,
       margin
     };
-  }, [filteredInvoices, ordersById]);
+  }, [filteredInvoices, ordersById, productsBySku]);
 
   const accountsReceivable = useMemo(() => {
     return invoices
@@ -142,15 +161,9 @@ export default function FinancialReportPage() {
       .reduce((sum, inv) => sum + (inv.totalAmount - (inv.amountPaid || 0)), 0);
   }, [invoices]);
 
-  const [inventoryValue, setInventoryValue] = useState(0);
-  useEffect(() => {
-    async function calculateInventory() {
-        const products = await getProducts();
-        const totalValue = products.reduce((sum, p) => sum + (p.stock * (p.purchasePrice || 0)), 0);
-        setInventoryValue(totalValue);
-    }
-    calculateInventory();
-  }, []);
+  const inventoryValue = useMemo(() => {
+    return products.reduce((sum, p) => sum + (p.stock * (p.purchasePrice || 0)), 0);
+  }, [products]);
 
   const formatCurrency = (amount: number) => {
     return (
@@ -202,7 +215,7 @@ export default function FinancialReportPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tighter">Rapport Financier</h1>
-          <p className="text-muted-foreground text-sm">Analyse de la performance et de la rentabilité.</p>
+          <p className="text-muted-foreground text-sm">Analyse de la performance et de la rentabilité réelle.</p>
         </div>
         <div className="flex items-center gap-2">
             <Select value={period} onValueChange={(value: Period) => setPeriod(value)}>
@@ -256,7 +269,7 @@ export default function FinancialReportPage() {
             <div className={cn("text-2xl font-black", metrics.netProfit >= 0 ? 'text-green-600' : 'text-red-600')}>
                 ¥{metrics.netProfit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold">Après COGS, Transport et Comms</p>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold">Basé sur prix d'achat catalogue</p>
           </CardContent>
         </Card>
 
@@ -276,7 +289,7 @@ export default function FinancialReportPage() {
         <Card className="shadow-md border-none">
           <CardHeader className="bg-zinc-50 border-b">
             <CardTitle className="text-lg">Compte de Résultat (P&L)</CardTitle>
-            <CardDescription>Flux financiers basés sur les factures émises.</CardDescription>
+            <CardDescription>Flux financiers indexés sur les prix d'achat actuels.</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
              <div className="space-y-4">
@@ -350,7 +363,7 @@ export default function FinancialReportPage() {
                         <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600"><Warehouse className="h-5 w-5"/></div>
                         <div>
                           <p className="font-bold">Valeur du Stock</p>
-                          <p className="text-[10px] text-zinc-400 uppercase">Basé sur prix d'achat</p>
+                          <p className="text-[10px] text-zinc-400 uppercase">Basé sur prix d'achat actuel</p>
                         </div>
                       </div>
                       {formatCurrency(inventoryValue)}
