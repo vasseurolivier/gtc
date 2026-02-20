@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useContext, useMemo } from 'react';
+import { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   getRegisteredClientById, 
@@ -26,8 +26,9 @@ import {
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { getProducts, Product as GlobalProduct } from '@/actions/products';
+import { sendChatMessage } from '@/actions/messages';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, doc, getDocs, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs, addDoc, serverTimestamp, setDoc, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,10 +73,13 @@ import {
   Search,
   Minus,
   Percent as PercentIcon,
-  SortAsc
+  SortAsc,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyContext } from '@/context/currency-context';
 import { uploadImage } from '@/actions/upload';
@@ -136,6 +140,11 @@ export default function ClientDetailPage() {
   const [addProductMode, setAddProductMode] = useState<'global' | 'manual'>('global');
   const [isUploading, setIsUploading] = useState(false);
 
+  // Chat states
+  const [chatInput, setChatInput] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+
   const parseSafeDate = (val: any): Date => {
     if (!val) return new Date();
     if (typeof val.toDate === 'function') return val.toDate();
@@ -194,6 +203,18 @@ export default function ClientDetailPage() {
     return query(collection(db, 'orders'), where('customerId', '==', clientId));
   }, [db, clientId]);
   const { data: orders } = useCollection(ordersQuery);
+
+  const messagesQuery = useMemoFirebase(() => {
+    if (!db || !clientId) return null;
+    return query(collection(db, 'clients', clientId, 'messages'), orderBy('createdAt', 'asc'));
+  }, [db, clientId]);
+  const { data: chatMessages } = useCollection(messagesQuery);
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
@@ -288,6 +309,20 @@ export default function ClientDetailPage() {
     const res = await updateRegisteredClientNumber(clientId, clientNumber);
     if (res.success) toast({ title: "Numéro client enregistré" });
     setIsSaving(false);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isSendingMessage) return;
+    setIsSendingMessage(true);
+    const result = await sendChatMessage(clientId, {
+      senderId: 'admin',
+      senderName: 'Agent GTC',
+      text: chatInput.trim(),
+      isAdmin: true
+    });
+    if (result.success) setChatInput('');
+    setIsSendingMessage(false);
   };
 
   const aggregateProducts = async () => {
@@ -687,6 +722,12 @@ export default function ClientDetailPage() {
               <TabsTrigger value="quotes">Proformas</TabsTrigger>
               <TabsTrigger value="invoices">Factures</TabsTrigger>
               <TabsTrigger value="catalogue">Sourcing & Catalogue</TabsTrigger>
+              <TabsTrigger value="messages" className="relative">
+                Messages
+                {chatMessages && chatMessages.some((m:any) => !m.isAdmin && (Date.now() - new Date(m.createdAt).getTime() < 86400000)) && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                )}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="orders">
@@ -956,6 +997,51 @@ export default function ClientDetailPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="messages">
+              <Card className="border-none shadow-md bg-white flex flex-col h-[60vh]">
+                <CardHeader className="bg-zinc-50 border-b p-4">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary" /> Conversation avec {client?.firstName}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow overflow-y-auto p-4 space-y-4" ref={chatScrollRef}>
+                  {chatMessages && chatMessages.length > 0 ? (
+                    chatMessages.map((msg: any) => (
+                      <div key={msg.id} className={cn("flex flex-col max-w-[85%]", msg.isAdmin ? "ml-auto items-end" : "mr-auto items-start")}>
+                        <div className="flex items-center gap-2 mb-1 px-1">
+                          <span className="text-[9px] font-bold uppercase text-zinc-400">{msg.isAdmin ? "Vous" : client?.firstName}</span>
+                          <span className="text-[8px] text-zinc-300">{format(new Date(msg.createdAt), 'dd/MM HH:mm', { locale: fr })}</span>
+                        </div>
+                        <div className={cn(
+                          "p-3 rounded-xl text-xs leading-relaxed",
+                          msg.isAdmin ? "bg-zinc-900 text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none border"
+                        )}>
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-zinc-300 italic text-sm">
+                      Aucun historique de conversation.
+                    </div>
+                  )}
+                </CardContent>
+                <div className="p-4 border-t bg-zinc-50">
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <Input 
+                      placeholder="Répondre au client..." 
+                      className="bg-white h-10 text-xs" 
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                    />
+                    <Button type="submit" size="icon" disabled={!chatInput.trim() || isSendingMessage} className="bg-primary hover:bg-primary/90 h-10 w-10">
+                      {isSendingMessage ? <Loader2 className="animate-spin h-4 w-4" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </form>
+                </div>
               </Card>
             </TabsContent>
           </Tabs>

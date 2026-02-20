@@ -26,7 +26,8 @@ import {
   Clock,
   ShieldAlert,
   ShoppingBag,
-  Star
+  Star,
+  MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -42,9 +43,9 @@ function ClientMobileNav({ counts }: { counts: any }) {
   const navItems = [
     { href: '/client', icon: <Home className="h-6 w-6" />, label: 'Accueil' },
     { href: '/client/catalog', icon: <Star className="h-6 w-6" />, label: 'Catalogue', badge: counts.catalog },
+    { href: '/client/messages', icon: <MessageSquare className="h-6 w-6" />, label: 'Messages', badge: counts.messages },
     { href: '/client/product-lists', icon: <ClipboardList className="h-6 w-6" />, label: 'Sourcing', badge: counts.sourcing },
     { href: '/client/orders', icon: <ShoppingBag className="h-6 w-6" />, label: 'Commandes', badge: counts.orders + counts.quotes + counts.invoices },
-    { href: '/client/profile', icon: <User className="h-6 w-6" />, label: 'Profil' },
   ];
 
   return (
@@ -104,13 +105,20 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }, [db, user]);
   const { data: publishedProducts } = useCollection(sourcingProductsQuery);
 
+  const messagesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'clients', user.uid, 'messages'), where('isAdmin', '==', true));
+  }, [db, user]);
+  const { data: adminMessages } = useCollection(messagesQuery);
+
   const counts = useMemo(() => ({
     quotes: pendingQuotes?.length || 0,
     invoices: (linkedInvoices || []).filter((i: any) => i.status === 'unpaid').length,
     orders: 0,
     sourcing: (publishedProducts || []).length,
-    catalog: (publishedProducts || []).length
-  }), [pendingQuotes, linkedInvoices, publishedProducts]);
+    catalog: (publishedProducts || []).length,
+    messages: adminMessages?.length || 0
+  }), [pendingQuotes, linkedInvoices, publishedProducts, adminMessages]);
 
   useEffect(() => {
     if (mounted && !isUserLoading && !user && pathname !== '/client/login') {
@@ -174,6 +182,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/client', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Tableau de bord' },
     { href: '/client/catalog', icon: <Star className="h-5 w-5" />, label: 'Mon Catalogue', badge: counts.catalog },
+    { href: '/client/messages', icon: <MessageSquare className="h-5 w-5" />, label: 'Messages' },
     { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes Projets Sourcing' },
     { href: '/client/orders', icon: <Receipt className="h-5 w-5" />, label: 'Commandes & Factures', badge: counts.quotes + counts.invoices },
     { href: '/client/profile', icon: <User className="h-5 w-5" />, label: 'Mon Profil' },
