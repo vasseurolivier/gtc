@@ -9,7 +9,7 @@ import { getOrders, Order } from '@/actions/orders';
 import { getProducts, Product } from '@/actions/products';
 import { format, subDays, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Loader2, ArrowDownUp, TrendingUp, TrendingDown, Package, Banknote, Warehouse, Scale, Receipt, FileSpreadsheet, Wallet } from 'lucide-react';
+import { Loader2, ArrowDownUp, TrendingUp, TrendingDown, Package, Banknote, Warehouse, Scale, Receipt, FileSpreadsheet, Wallet, Truck } from 'lucide-react';
 import { CurrencyContext } from '@/context/currency-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -75,10 +75,8 @@ export default function FinancialReportPage() {
 
   const { start, end } = getPeriodDateRange();
   
-  // Use a map for fast O(1) order lookup
   const ordersById = useMemo(() => new Map(orders.map(o => [o.id, o])), [orders]);
 
-  // Filter invoices for the period based on Issue Date (Accrual basis)
   const filteredInvoices = useMemo(() => {
     return invoices.filter(inv => {
       if (inv.status === 'cancelled') return false;
@@ -91,10 +89,9 @@ export default function FinancialReportPage() {
     });
   }, [invoices, start, end]);
 
-  // Financial Calculations
   const metrics = useMemo(() => {
-    let revenue = 0; // Total Invoiced (Accrual)
-    let cashCollected = 0; // Total actually paid
+    let revenue = 0;
+    let cashCollected = 0;
     let costOfGoodsSold = 0;
     let transportExpenses = 0;
     let commissionExpenses = 0;
@@ -103,16 +100,13 @@ export default function FinancialReportPage() {
       revenue += (inv.totalAmount || 0);
       cashCollected += (inv.amountPaid || 0);
       
-      // Calculate COGS if linked to an order
       if (inv.orderId) {
         const order = ordersById.get(inv.orderId);
         if (order) {
           const orderCost = order.items.reduce((sum, item) => sum + ((item.purchasePrice || 0) * item.quantity), 0);
           costOfGoodsSold += orderCost;
-          
           transportExpenses += (order.transportCost || 0);
           
-          // Commission calculation
           const subTotal = order.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
           if (order.commissionBasis === 'total') {
             commissionExpenses += (subTotal + (order.transportCost || 0)) * ((order.commissionRate || 0) / 100);
@@ -121,10 +115,8 @@ export default function FinancialReportPage() {
           }
         }
       } else {
-        // Handle manual invoices (best effort)
         costOfGoodsSold += (inv.supplierCostTotal || 0);
         transportExpenses += (inv.transportCost || 0);
-        // Note: commission logic for manual invoices is simplified to total - cost - profit
       }
     });
 
@@ -144,7 +136,6 @@ export default function FinancialReportPage() {
     };
   }, [filteredInvoices, ordersById]);
 
-  // Balance Sheet Metrics (Current status, regardless of period)
   const accountsReceivable = useMemo(() => {
     return invoices
       .filter(inv => ['unpaid', 'partially_paid', 'overdue'].includes(inv.status))
