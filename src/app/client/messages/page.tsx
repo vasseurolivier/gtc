@@ -6,10 +6,10 @@ import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, MessageSquare, User, ShieldCheck } from 'lucide-react';
+import { Loader2, Send, MessageSquare, User, ShieldCheck, Trash2, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { sendChatMessage } from '@/actions/messages';
+import { sendChatMessage, deleteChatMessage, markMessagesAsRead } from '@/actions/messages';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +41,13 @@ export default function ClientMessagesPage() {
   }, [db, user]);
   const { data: messages, isLoading } = useCollection(messagesQuery);
 
+  // Mark messages as read when they arrive and component is active
+  useEffect(() => {
+    if (user && messages && messages.some(m => m.isAdmin && !m.read)) {
+      markMessagesAsRead(user.uid, false);
+    }
+  }, [user, messages]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -67,6 +74,14 @@ export default function ClientMessagesPage() {
     setIsSending(false);
   };
 
+  const handleDeleteMessage = async (msgId: string) => {
+    if (!user) return;
+    const res = await deleteChatMessage(user.uid, msgId);
+    if (res.success) {
+      toast({ title: "Message supprimé" });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
@@ -90,10 +105,15 @@ export default function ClientMessagesPage() {
             <div className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
           ) : messages && messages.length > 0 ? (
             messages.map((msg: any) => (
-              <div key={msg.id} className={cn("flex flex-col max-w-[80%]", msg.isAdmin ? "mr-auto items-start" : "ml-auto items-end")}>
+              <div key={msg.id} className={cn("flex flex-col max-w-[80%] group", msg.isAdmin ? "mr-auto items-start" : "ml-auto items-end")}>
                 <div className="flex items-center gap-2 mb-1 px-1">
                   <span className="text-[10px] font-black uppercase text-zinc-400">{msg.isAdmin ? "Agent GTC" : "Vous"}</span>
                   <span className="text-[9px] text-zinc-300">{msg.createdAt ? format(parseSafeDate(msg.createdAt), 'HH:mm', { locale: fr }) : ''}</span>
+                  {!msg.isAdmin && (
+                    <button onClick={() => handleDeleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all ml-2">
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
                 <div className={cn(
                   "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",

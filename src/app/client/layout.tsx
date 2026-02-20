@@ -107,7 +107,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'clients', user.uid, 'messages'), where('isAdmin', '==', true));
+    return query(collection(db, 'clients', user.uid, 'messages'), where('isAdmin', '==', true), where('read', '==', false));
   }, [db, user]);
   const { data: adminMessages } = useCollection(messagesQuery);
 
@@ -182,7 +182,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/client', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Tableau de bord' },
     { href: '/client/catalog', icon: <Star className="h-5 w-5" />, label: 'Mon Catalogue', badge: counts.catalog },
-    { href: '/client/messages', icon: <MessageSquare className="h-5 w-5" />, label: 'Messages' },
+    { href: '/client/messages', icon: <MessageSquare className="h-5 w-5" />, label: 'Messages', badge: counts.messages },
     { href: '/client/product-lists', icon: <ClipboardList className="h-5 w-5" />, label: 'Mes Projets Sourcing' },
     { href: '/client/orders', icon: <Receipt className="h-5 w-5" />, label: 'Commandes & Factures', badge: counts.quotes + counts.invoices },
     { href: '/client/profile', icon: <User className="h-5 w-5" />, label: 'Mon Profil' },

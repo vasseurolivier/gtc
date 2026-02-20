@@ -26,7 +26,7 @@ import {
 import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/actions/quotes';
 import { deleteInvoice } from '@/actions/invoices';
 import { getProducts, Product as GlobalProduct } from '@/actions/products';
-import { sendChatMessage } from '@/actions/messages';
+import { sendChatMessage, deleteChatMessage, markMessagesAsRead } from '@/actions/messages';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, getDocs, addDoc, serverTimestamp, setDoc, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -143,6 +143,7 @@ export default function ClientDetailPage() {
   // Chat states
   const [chatInput, setChatInput] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [activeTab, setActiveTab] = useState('orders');
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const parseSafeDate = (val: any): Date => {
@@ -209,6 +210,13 @@ export default function ClientDetailPage() {
     return query(collection(db, 'clients', clientId, 'messages'), orderBy('createdAt', 'asc'));
   }, [db, clientId]);
   const { data: chatMessages } = useCollection(messagesQuery);
+
+  // Mark as read when tab is messages
+  useEffect(() => {
+    if (activeTab === 'messages' && clientId && chatMessages && chatMessages.some(m => !m.isAdmin && !m.read)) {
+      markMessagesAsRead(clientId, true);
+    }
+  }, [activeTab, clientId, chatMessages]);
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -323,6 +331,11 @@ export default function ClientDetailPage() {
     });
     if (result.success) setChatInput('');
     setIsSendingMessage(false);
+  };
+
+  const handleDeleteMessage = async (msgId: string) => {
+    const res = await deleteChatMessage(clientId, msgId);
+    if (res.success) toast({ title: "Message supprimé" });
   };
 
   const aggregateProducts = async () => {
@@ -716,7 +729,7 @@ export default function ClientDetailPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="orders">
+          <Tabs defaultValue="orders" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="bg-white border p-1 h-12 rounded-xl mb-6 w-full justify-start overflow-x-auto">
               <TabsTrigger value="orders">Commandes</TabsTrigger>
               <TabsTrigger value="quotes">Proformas</TabsTrigger>
@@ -724,7 +737,7 @@ export default function ClientDetailPage() {
               <TabsTrigger value="catalogue">Sourcing & Catalogue</TabsTrigger>
               <TabsTrigger value="messages" className="relative">
                 Messages
-                {chatMessages && chatMessages.some((m:any) => !m.isAdmin && (Date.now() - new Date(m.createdAt).getTime() < 86400000)) && (
+                {chatMessages && chatMessages.some((m:any) => !m.isAdmin && !m.read) && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
                 )}
               </TabsTrigger>
@@ -1010,10 +1023,13 @@ export default function ClientDetailPage() {
                 <CardContent className="flex-grow overflow-y-auto p-4 space-y-4" ref={chatScrollRef}>
                   {chatMessages && chatMessages.length > 0 ? (
                     chatMessages.map((msg: any) => (
-                      <div key={msg.id} className={cn("flex flex-col max-w-[85%]", msg.isAdmin ? "ml-auto items-end" : "mr-auto items-start")}>
+                      <div key={msg.id} className={cn("flex flex-col max-w-[85%] group", msg.isAdmin ? "ml-auto items-end" : "mr-auto items-start")}>
                         <div className="flex items-center gap-2 mb-1 px-1">
                           <span className="text-[9px] font-bold uppercase text-zinc-400">{msg.isAdmin ? "Vous" : client?.firstName}</span>
                           <span className="text-[8px] text-zinc-300">{format(parseSafeDate(msg.createdAt), 'dd/MM HH:mm', { locale: fr })}</span>
+                          <button onClick={() => handleDeleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all ml-2">
+                            <X className="h-3 w-3" />
+                          </button>
                         </div>
                         <div className={cn(
                           "p-3 rounded-xl text-xs leading-relaxed",
@@ -1482,16 +1498,4 @@ export default function ClientDetailPage() {
       </Dialog>
     </div>
   );
-}
-
-function PlusIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-  )
-}
-
-function MinusIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>
-  )
 }

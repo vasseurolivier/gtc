@@ -323,6 +323,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const [pendingOrders, setPendingOrders] = useState(0);
   const [pendingClients, setPendingClients] = useState(0);
   const [pendingSourcing, setPendingSourcing] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
@@ -353,10 +354,18 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
               sourcingCount = snap.size;
             } catch (e) {}
 
+            let chatCount = 0;
+            try {
+              const qChat = query(collectionGroup(db, 'messages'), where('isAdmin', '==', false), where('read', '==', false));
+              const snapChat = await getDocs(qChat);
+              chatCount = snapChat.size;
+            } catch (e) {}
+
             setUnreadMessages(subs.filter(s => !s.read).length);
             setPendingOrders(ords.filter(o => o.status === 'processing').length);
             setPendingClients(cls.filter(c => c.status === 'pending').length);
             setPendingSourcing(sourcingCount);
+            setUnreadChatCount(chatCount);
         } catch (error) {}
     }
     fetchCounts();
@@ -373,7 +382,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
-    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: (pendingOrders + pendingClients + pendingSourcing) },
+    { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: (pendingOrders + pendingClients + pendingSourcing + unreadChatCount) },
     { href: '/admin/customers', icon: <Users />, label: 'Leads CRM' },
     { href: '/admin/suppliers', icon: <Factory />, label: 'Suppliers' },
     { href: '/admin/packing-list', icon: <ClipboardList />, label: 'Packing List' },
@@ -411,7 +420,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
                     {item.badge !== undefined && item.badge > 0 && (
                       <SidebarMenuBadge className={cn(
                         "bg-primary text-white",
-                        (item.href === '/admin/orders' || item.href === '/admin/registered-clients') && "bg-red-600 animate-pulse"
+                        (item.href === '/admin/orders' || item.href === '/admin/registered-clients' || item.href === '/admin/submissions') && "bg-red-600 animate-pulse"
                       )}>
                         {item.badge}
                       </SidebarMenuBadge>
@@ -440,7 +449,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
         </div>
         <MobileBottomNav 
           unreadMessages={unreadMessages} 
-          pendingCount={(pendingOrders + pendingClients + pendingSourcing)} 
+          pendingCount={(pendingOrders + pendingClients + pendingSourcing + unreadChatCount)} 
         />
       </SidebarInset>
     </SidebarProvider>

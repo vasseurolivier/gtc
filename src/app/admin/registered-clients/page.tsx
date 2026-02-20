@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -42,6 +41,7 @@ export default function RegisteredClientsPage() {
   const [leads, setLeads] = useState<Customer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingSourcingIds, setPendingSourcingIds] = useState<Set<string>>(new Set());
+  const [unreadChatIds, setUnreadChatIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -82,6 +82,17 @@ export default function RegisteredClientsPage() {
         });
       } catch (e) {}
 
+      const unreadIds = new Set<string>();
+      try {
+        const qChat = query(collectionGroup(db, 'messages'), where('isAdmin', '==', false), where('read', '==', false));
+        const snapChat = await getDocs(qChat);
+        snapChat.forEach(doc => {
+          const path = doc.ref.path; // clients/{clientId}/messages/{msgId}
+          const cid = path.split('/')[1];
+          if (cid) unreadIds.add(cid);
+        });
+      } catch (e) {}
+
       const registeredEmails = new Set(clientList.map(c => (c.email || '').toLowerCase()));
       const availableLeads = leadList.filter(l => !l.email || !registeredEmails.has(l.email.toLowerCase()));
 
@@ -89,6 +100,7 @@ export default function RegisteredClientsPage() {
       setLeads(availableLeads || []);
       setOrders(ords || []);
       setPendingSourcingIds(sourcingIds);
+      setUnreadChatIds(unreadIds);
       
       const numbers: Record<string, string> = {};
       (clientList || []).forEach(c => { numbers[c.id] = c.clientNumber || ''; });
@@ -186,7 +198,8 @@ export default function RegisteredClientsPage() {
               {filteredClients.map((client) => {
                 const pendingOrdersCount = orders.filter(o => o.customerId === client.id && o.status === 'processing').length;
                 const isPendingSourcing = pendingSourcingIds.has(client.id);
-                const hasAlert = pendingOrdersCount > 0 || isPendingSourcing;
+                const hasUnreadChat = unreadChatIds.has(client.id);
+                const hasAlert = pendingOrdersCount > 0 || isPendingSourcing || hasUnreadChat;
 
                 return (
                   <TableRow key={client.id} className={cn("hover:bg-muted/30 transition-colors", hasAlert && "bg-primary/5")}>
@@ -196,11 +209,18 @@ export default function RegisteredClientsPage() {
                           {client.firstName} {client.lastName}
                           {hasAlert && <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />}
                         </Link>
-                        {pendingOrdersCount > 0 && (
-                          <span className="text-[10px] text-primary font-black flex items-center gap-1 uppercase">
-                            <CircleAlert className="h-3 w-3" /> {pendingOrdersCount} commande(s) à traiter
-                          </span>
-                        )}
+                        <div className="flex flex-col gap-0.5 mt-1">
+                          {pendingOrdersCount > 0 && (
+                            <span className="text-[10px] text-primary font-black flex items-center gap-1 uppercase">
+                              <CircleAlert className="h-3 w-3" /> {pendingOrdersCount} commande(s) à traiter
+                            </span>
+                          )}
+                          {hasUnreadChat && (
+                            <span className="text-[10px] text-blue-600 font-black flex items-center gap-1 uppercase">
+                              <CircleAlert className="h-3 w-3" /> Nouveau message
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-zinc-500">{client.email}</TableCell>
