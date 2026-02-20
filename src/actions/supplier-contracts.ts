@@ -12,6 +12,11 @@ const contractItemSchema = z.object({
   photo: z.string().optional(),
 });
 
+const contractClauseSchema = z.object({
+  label: z.string().min(1, 'Libellé requis'),
+  value: z.string().min(1, 'Contenu requis'),
+});
+
 const contractSchema = z.object({
   contractNumber: z.string().min(1, 'Contract number is required.'),
   date: z.date(),
@@ -22,15 +27,12 @@ const contractSchema = z.object({
   buyerAddress: z.string(),
   items: z.array(contractItemSchema).min(1, 'At least one item is required.'),
   totalAmount: z.coerce.number(),
-  depositPercentage: z.coerce.number().min(0).max(100).default(30),
-  balanceTerms: z.string().default('Payable before shipping after quality control'),
-  qualityControl: z.string().default('AQL 2.5/4.0'),
-  shippingTerms: z.string().default('FOB Ningbo'),
-  leadTime: z.string().default('30-35 days after deposit'),
+  clauses: z.array(contractClauseSchema).min(1, 'Au moins une clause est requise'),
   specificClauses: z.string().optional(),
 });
 
 export type SupplierContractItem = z.infer<typeof contractItemSchema>;
+export type SupplierContractClause = z.infer<typeof contractClauseSchema>;
 
 export interface SupplierContract {
     id: string;
@@ -43,11 +45,7 @@ export interface SupplierContract {
     buyerAddress: string;
     items: SupplierContractItem[];
     totalAmount: number;
-    depositPercentage: number;
-    balanceTerms: string;
-    qualityControl: string;
-    shippingTerms: string;
-    leadTime: string;
+    clauses: SupplierContractClause[];
     specificClauses?: string;
     createdAt: string;
     updatedAt?: string;
