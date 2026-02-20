@@ -23,6 +23,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { getProducts, Product } from '@/actions/products';
@@ -208,7 +209,7 @@ function ContractGenerator({ editingContract, onFinished, products, suppliers }:
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
                       {itemFields.map((field, index) => (
                         <Card key={field.id} className="p-3 relative bg-zinc-50 border-zinc-200">
-                          <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="absolute top-1 right-1 h-6 w-6"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                           <div className="space-y-2">
                               <Select onValueChange={(v) => handleProductSelect(v, index)}><SelectTrigger className="h-8 text-[10px]"><SelectValue placeholder="Lier un produit global" /></SelectTrigger><SelectContent>{products.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}</SelectContent></Select>
                               <FormField control={form.control} name={`items.${index}.description`} render={({ field: f }) => ( <FormItem><FormControl><Input className="h-8 text-xs font-bold" {...f} /></FormControl></FormItem> )} />
