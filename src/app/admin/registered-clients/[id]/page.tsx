@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, useMemo, useRef } from 'react';
@@ -546,7 +547,8 @@ export default function ClientDetailPage() {
         weight: product.weight || 0,
         hasSizeSelection: product.hasSizeSelection,
         availableSizes: product.availableSizes || [],
-        selectedSize: product.availableSizes?.[0] || null
+        selectedSize: product.availableSizes?.[0] || null,
+        customDescription: ''
       }]);
     }
     toast({ title: "Produit ajouté au panier admin" });
@@ -575,7 +577,7 @@ export default function ClientDetailPage() {
         customerId: clientId,
         customerName: `${client?.firstName} ${client?.lastName}`,
         items: adminBasket.map(item => ({
-          description: item.name + (item.selectedSize ? ` (${item.selectedSize})` : ''),
+          description: (item.customDescription || item.name) + (item.selectedSize ? ` (${item.selectedSize})` : ''),
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
@@ -1054,7 +1056,7 @@ export default function ClientDetailPage() {
                     chatMessages.map((msg: any) => (
                       <div key={msg.id} className={cn("flex flex-col max-w-[85%] group", msg.isAdmin ? "ml-auto items-end" : "mr-auto items-start")}>
                         <div className="flex items-center gap-2 mb-1 px-1">
-                          <span className="text-[9px] font-bold uppercase text-zinc-400">{msg.isAdmin ? "Vous" : client?.firstName}</span>
+                          <span className="text-[10px] font-bold uppercase text-zinc-400">{msg.isAdmin ? "Vous" : client?.firstName}</span>
                           <span className="text-[8px] text-zinc-300">{format(parseSafeDate(msg.createdAt), 'dd/MM HH:mm', { locale: fr })}</span>
                           <button onClick={() => handleDeleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all ml-2">
                             <X className="h-3 w-3" />
@@ -1131,7 +1133,7 @@ export default function ClientDetailPage() {
                   <Table>
                     <TableHeader className="bg-zinc-50">
                       <TableRow>
-                        <TableHead className="pl-4">Article</TableHead>
+                        <TableHead className="pl-4">Article & Description</TableHead>
                         <TableHead className="text-center">Taille</TableHead>
                         <TableHead className="text-center">Qté</TableHead>
                         <TableHead className="text-right pr-4">Total</TableHead>
@@ -1141,9 +1143,21 @@ export default function ClientDetailPage() {
                     <TableBody>
                       {adminBasket.map((item, idx) => (
                         <TableRow key={item.id}>
-                          <TableCell className="pl-4 py-2">
-                            <div className="font-bold text-xs">{item.name}</div>
-                            <div className="text-[9px] text-zinc-400 font-mono">{item.sku}</div>
+                          <TableCell className="pl-4 py-2 space-y-2">
+                            <div>
+                              <div className="font-bold text-xs">{item.name}</div>
+                              <div className="text-[9px] text-zinc-400 font-mono">{item.sku}</div>
+                            </div>
+                            <Input 
+                              placeholder="Description / Notes..." 
+                              className="h-7 text-[10px] bg-zinc-50"
+                              value={item.customDescription || ''}
+                              onChange={(e) => {
+                                const newBasket = [...adminBasket];
+                                newBasket[idx].customDescription = e.target.value;
+                                setAdminBasket(newBasket);
+                              }}
+                            />
                           </TableCell>
                           <TableCell className="text-center">
                             {item.hasSizeSelection ? (
@@ -1169,7 +1183,15 @@ export default function ClientDetailPage() {
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-1">
                               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))}><Minus className="h-3 w-3"/></Button>
-                              <span className="text-xs font-bold">{item.quantity}</span>
+                              <Input 
+                                type="number" 
+                                className="h-7 w-12 text-center font-bold text-xs p-0"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value) || 1;
+                                  setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: Math.max(1, val)} : i));
+                                }}
+                              />
                               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setAdminBasket(adminBasket.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))}><Plus className="h-3 w-3"/></Button>
                             </div>
                           </TableCell>
