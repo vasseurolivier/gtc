@@ -559,6 +559,7 @@ export default function ClientDetailPage() {
 
   const handleConfirmAdminOrder = async () => {
     if (!db || adminBasket.length === 0 || !orderSuffix) return;
+    if (!clientId) return;
     setIsSubmittingAdminOrder(true);
     try {
       const prefix = client?.orderPrefix || 'ORD';
@@ -566,13 +567,13 @@ export default function ClientDetailPage() {
       
       const itemsTotalCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
       const transport = parseFloat(adminOrderTransport) || 0;
-      const commissionRate = parseFloat(adminOrderCommission) || 0;
+      const commissionRateValue = parseFloat(adminOrderCommission) || 0;
       
       let finalTotal = 0;
       if (adminOrderBasis === 'total') {
-        finalTotal = (itemsTotalCny + transport) * (1 + commissionRate / 100);
+        finalTotal = (itemsTotalCny + transport) * (1 + commissionRateValue / 100);
       } else {
-        finalTotal = itemsTotalCny * (1 + commissionRate / 100) + transport;
+        finalTotal = itemsTotalCny * (1 + commissionRateValue / 100) + transport;
       }
 
       const orderData = {
@@ -599,7 +600,7 @@ export default function ClientDetailPage() {
         createdAt: new Date().toISOString(),
         paymentStatus: 'unpaid' as any,
         transportCost: transport,
-        commissionRate: commissionRate,
+        commissionRate: commissionRateValue,
         commissionBasis: adminOrderBasis
       };
 
@@ -630,7 +631,7 @@ export default function ClientDetailPage() {
     if (res.success) toast({ title: "Facture supprimée" });
   };
 
-  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
+  const renderPriceText = (priceCny: number, mainClass = "text-primary font-black") => {
     const priceEur = priceCny * exchangeRate;
     return (
       <div className="flex flex-col">
@@ -646,26 +647,6 @@ export default function ClientDetailPage() {
   }, [router]);
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
-
-  const getStatusBadgeVariant = (status: Order['status']) => {
-    switch (status) {
-        case 'delivered': return 'default';
-        case 'shipped': return 'secondary';
-        case 'validated': return 'default'; 
-        case 'processing': return 'outline';
-        case 'cancelled': return 'destructive';
-        default: return 'outline';
-    }
-  };
-
-  const getPaymentBadge = (status: PaymentStatus) => {
-    switch (status) {
-        case 'paid': return <Badge className="bg-green-500 text-[10px] h-5">PAYÉ</Badge>;
-        case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 text-[10px] h-5">ACOMPTE OK</Badge>;
-        case 'unpaid': return <Badge variant="outline" className="text-red-500">NON PAYÉ</Badge>;
-        default: return <Badge variant="outline">NON PAYÉ</Badge>;
-    }
-  };
 
   return (
     <div className="container py-8 space-y-8">
@@ -942,7 +923,7 @@ export default function ClientDetailPage() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>
-                              <AlertDialogHeader><AlertDialogTitle>Supprimer la facture ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AccordionHeader>
+                              <AlertDialogHeader><AlertDialogTitle>Supprimer la facture ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => handleDeleteInvoiceAction(inv.id)}>Supprimer</AlertDialogAction>
@@ -1502,7 +1483,7 @@ export default function ClientDetailPage() {
                 </div>
                 <div className="text-right space-y-1.5">
                   <span className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Total Facturé</span>
-                  <div>{renderPrice(selectedOrderPreview.totalAmount, "text-3xl font-black text-primary")}</div>
+                  <div>{renderPriceText(selectedOrderPreview.totalAmount, "text-3xl font-black text-primary")}</div>
                 </div>
               </div>
 
@@ -1578,11 +1559,11 @@ export default function ClientDetailPage() {
                       <span className="text-zinc-400">Commission ({selectedOrderPreview.commissionRate || 0}%) :</span>
                       <span className="font-black text-primary">¥{(() => {
                         const itemsTotal = selectedOrderPreview.items.reduce((sum: number, i: any) => sum + (i.total || 0), 0);
-                        const rate = (selectedOrderPreview.commissionRate || 0) / 100;
+                        const rateValue = (selectedOrderPreview.commissionRate || 0) / 100;
                         if (selectedOrderPreview.commissionBasis === 'total') {
-                          return ((itemsTotal + (selectedOrderPreview.transportCost || 0)) * rate).toFixed(2);
+                          return ((itemsTotal + (selectedOrderPreview.transportCost || 0)) * rateValue).toFixed(2);
                         }
-                        return (itemsTotal * rate).toFixed(2);
+                        return (itemsTotal * rateValue).toFixed(2);
                       })()}</span>
                     </div>
                     <Separator className="bg-white/10" />
