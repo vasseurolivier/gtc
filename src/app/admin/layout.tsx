@@ -31,6 +31,7 @@ import {
   Settings,
   Factory,
   Loader2,
+  ListTodo,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -48,6 +49,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getSubmissions } from '@/actions/submissions';
 import { getOrders } from '@/actions/orders';
 import { getRegisteredClients } from '@/actions/registered-clients';
+import { getTodos } from '@/actions/todos';
 import { uploadFile } from '@/actions/upload';
 import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
@@ -324,6 +326,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const [pendingClients, setPendingClients] = useState(0);
   const [pendingSourcing, setPendingSourcing] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [todoCount, setTodoCount] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const companyInfoContext = useContext(CompanyInfoContext);
   
@@ -341,10 +344,11 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
     if (isAuthenticated !== true || !db) return;
     async function fetchCounts() {
         try {
-            const [subs, ords, cls] = await Promise.all([
+            const [subs, ords, cls, todos] = await Promise.all([
               getSubmissions(),
               getOrders(),
-              getRegisteredClients()
+              getRegisteredClients(),
+              getTodos()
             ]);
             
             let sourcingCount = 0;
@@ -362,10 +366,15 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
             } catch (e) {}
 
             setUnreadMessages(subs.filter(s => !s.read).length);
-            setPendingOrders(ords.filter(o => o.status === 'processing').length);
+            const activeOrders = ords.filter(o => o.status === 'processing');
+            setPendingOrders(activeOrders.length);
             setPendingClients(cls.filter(c => c.status === 'pending').length);
             setPendingSourcing(sourcingCount);
             setUnreadChatCount(chatCount);
+            
+            // Todo count = manual pending todos + pending orders
+            const pendingTodos = todos.filter(t => t.status === 'pending').length;
+            setTodoCount(pendingTodos + activeOrders.length);
         } catch (error) {}
     }
     fetchCounts();
@@ -380,6 +389,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: '/admin/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
+    { href: '/admin/todo', icon: <ListTodo />, label: 'To-Do', badge: todoCount },
     { href: '/admin/financial-report', icon: <Landmark />, label: 'Financial Report' },
     { href: '/admin/submissions', icon: <Mail />, label: 'Messages', badge: unreadMessages },
     { href: '/admin/registered-clients', icon: <UserCheck />, label: 'Comptes Clients', badge: (pendingOrders + pendingClients + pendingSourcing + unreadChatCount) },
@@ -420,7 +430,7 @@ function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
                     {item.badge !== undefined && item.badge > 0 && (
                       <SidebarMenuBadge className={cn(
                         "bg-primary text-white",
-                        (item.href === '/admin/orders' || item.href === '/admin/registered-clients' || item.href === '/admin/submissions') && "bg-red-600 animate-pulse"
+                        (item.href === '/admin/orders' || item.href === '/admin/registered-clients' || item.href === '/admin/submissions' || item.href === '/admin/todo') && "bg-red-600 animate-pulse"
                       )}>
                         {item.badge}
                       </SidebarMenuBadge>
