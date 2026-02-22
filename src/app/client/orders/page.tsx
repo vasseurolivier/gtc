@@ -41,7 +41,6 @@ export default function ClientOrdersPage() {
   const [selectedOrderPreview, setSelectedOrderPreview] = useState<any | null>(null);
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
-  // Bulk and Quick actions states
   const [selectedQuoteIds, setSelectedQuoteIds] = useState<string[]>([]);
   const [isBulkValidating, setIsBulkValidating] = useState(false);
   const [isQuickValidating, setIsQuickValidating] = useState<string | null>(null);
@@ -165,12 +164,45 @@ export default function ClientOrdersPage() {
     }
   };
 
-  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
-    const priceEur = priceCny * rate;
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any) => {
+    // Determine the exchange rate to use: stored rate in item or global rate
+    const itemRate = sourceItem?.exchangeRate || rate;
+    
+    // Check if there is a manual EUR price stored in the item
+    // For Orders and Quotes, we need to handle line items vs header totals
+    // If it's a total, we sum up the correct unit prices
+    let priceEur = priceCny * itemRate;
+    
+    if (sourceItem?.items) {
+      // It's a header total
+      priceEur = sourceItem.items.reduce((sum: number, item: any) => {
+        const manualEur = Number(item.unitPriceEur || 0);
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
+        return sum + lineEur;
+      }, 0);
+      
+      // Add commission and transport
+      const commissionRate = Number(sourceItem.commissionRate || 0);
+      const transportCny = Number(sourceItem.transportCost || 0);
+      const transportEur = transportCny * itemRate;
+      
+      let commEur = 0;
+      if (sourceItem.commissionBasis === 'total') {
+        commEur = (priceEur + transportEur) * (commissionRate / 100);
+      } else {
+        commEur = priceEur * (commissionRate / 100);
+      }
+      priceEur = priceEur + commEur + transportEur;
+    } else if (sourceItem?.unitPriceEur !== undefined) {
+      // It's a line item or a direct unit price
+      const manualEur = Number(sourceItem.unitPriceEur || 0);
+      priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
+    }
+
     if (currencyPreference === 'EUR') return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
     if (currencyPreference === 'CNY') return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
     return (
-      <div className="flex flex-col items-end">
+      <div className="flex flex-col items-end leading-none">
         <div className={mainClass}>€{priceEur.toFixed(2)}</div>
         <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
       </div>
@@ -243,7 +275,7 @@ export default function ClientOrdersPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-center">{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
-                          <TableCell className="text-right">{renderPrice(order.totalAmount, "font-black text-zinc-900")}</TableCell>
+                          <TableCell className="text-right">{renderPrice(order.totalAmount, "font-black text-zinc-900", order)}</TableCell>
                           <TableCell className="text-right pr-6">
                             <div className="flex justify-end gap-2">
                               {linkedQuote && (
@@ -312,7 +344,7 @@ export default function ClientOrdersPage() {
                         <TableCell className="py-4 font-bold">{q.quoteNumber}</TableCell>
                         <TableCell className="text-xs">{q.issueDate ? format(parseSafeDate(q.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell><Badge variant={q.status === 'accepted' || q.status === 'paid' ? 'default' : q.status === 'rejected' ? 'destructive' : 'outline'}>{q.status}</Badge></TableCell>
-                        <TableCell className="text-right">{renderPrice(q.totalAmount, "font-black text-primary")}</TableCell>
+                        <TableCell className="text-right">{renderPrice(q.totalAmount, "font-black text-primary", q)}</TableCell>
                         <TableCell className="text-right pr-6">
                           <div className="flex justify-end gap-2">
                             {q.status === 'sent' && (
@@ -352,7 +384,7 @@ export default function ClientOrdersPage() {
                         <TableCell className="pl-6 py-4 font-bold">{inv.invoiceNumber}</TableCell>
                         <TableCell className="text-xs">{inv.issueDate ? format(parseSafeDate(inv.issueDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell className="text-center"><Badge className={inv.status === 'paid' ? 'bg-green-500' : 'bg-red-500'}>{inv.status === 'paid' ? 'Acquittée' : 'À régler'}</Badge></TableCell>
-                        <TableCell className="text-right">{renderPrice(inv.totalAmount, "font-black text-primary")}</TableCell>
+                        <TableCell className="text-right">{renderPrice(inv.totalAmount, "font-black text-primary", inv)}</TableCell>
                         <TableCell className="text-right pr-6">
                           <Button variant="ghost" size="icon" asChild disabled={inv.status !== 'paid'}>
                             <Link href={`/client/invoices/${inv.id}`}><Eye className="h-4 w-4" /></Link>
@@ -379,7 +411,7 @@ export default function ClientOrdersPage() {
             <div className="space-y-8 py-4">
               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border">
                 <div className="space-y-1"><span className="text-[10px] uppercase font-bold text-zinc-400">Statut</span><div>{getOrderStatusBadge(selectedOrderPreview.status)}</div></div>
-                <div className="text-right space-y-1"><span className="text-[10px] uppercase font-bold text-zinc-400">Total</span><div>{renderPrice(selectedOrderPreview.totalAmount, "text-2xl font-black text-primary")}</div></div>
+                <div className="text-right space-y-1"><span className="text-[10px] uppercase font-bold text-zinc-400">Total</span><div>{renderPrice(selectedOrderPreview.totalAmount, "text-2xl font-black text-primary", selectedOrderPreview)}</div></div>
               </div>
               <div className="space-y-4">
                 <h4 className="font-bold flex items-center gap-2"><Package className="h-4 w-4 text-zinc-400" /> Articles</h4>
@@ -410,7 +442,7 @@ export default function ClientOrdersPage() {
                             {item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
-                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900")}</TableCell>
+                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: selectedOrderPreview.exchangeRate })}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

@@ -559,13 +559,16 @@ export default function ClientDetailPage() {
     if (existing) {
       setAdminBasket(adminBasket.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
     } else {
+      const manualEur = Number(product.priceEur || 0);
+      const manualCny = Number(product.price || 0);
+      
       setAdminBasket([...adminBasket, {
         id: product.id,
         name: product.name,
         sku: product.sku || '',
         quantity: 1,
-        unitPrice: product.price || 0,
-        unitPriceEur: product.priceEur || 0,
+        unitPrice: manualCny,
+        unitPriceEur: manualEur,
         photo: product.images?.[0] || '',
         weight: product.weight || 0,
         hasSizeSelection: product.hasSizeSelection,
@@ -621,7 +624,8 @@ export default function ClientDetailPage() {
         paymentStatus: 'unpaid' as any,
         transportCost: transport,
         commissionRate: commissionRateValue,
-        commissionBasis: adminOrderBasis
+        commissionBasis: adminOrderBasis,
+        exchangeRate: parseFloat(clientRate) || exchangeRate
       };
 
       await addDoc(collection(db, 'orders'), orderData);
@@ -651,8 +655,36 @@ export default function ClientDetailPage() {
     if (res.success) toast({ title: "Facture supprimée" });
   };
 
-  const renderPriceText = (priceCny: number, mainClass = "text-primary font-black") => {
-    const priceEur = priceCny * exchangeRate;
+  const renderPriceText = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any) => {
+    const clientExchangeRate = parseFloat(clientRate) || exchangeRate;
+    
+    // Header totals must use manual pricing if available
+    let priceEur = priceCny * clientExchangeRate;
+    
+    if (sourceItem?.items) {
+      // Calculate from lines
+      priceEur = sourceItem.items.reduce((sum: number, item: any) => {
+        const manualEur = Number(item.unitPriceEur || 0);
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * clientExchangeRate);
+        return sum + lineEur;
+      }, 0);
+      
+      const transportCny = Number(sourceItem.transportCost || 0);
+      const transportEur = transportCny * clientExchangeRate;
+      const commRate = Number(sourceItem.commissionRate || 0);
+      
+      let commEur = 0;
+      if (sourceItem.commissionBasis === 'total') {
+        commEur = (priceEur + transportEur) * (commRate / 100);
+      } else {
+        commEur = priceEur * (commRate / 100);
+      }
+      priceEur = priceEur + commEur + transportEur;
+    } else if (sourceItem?.unitPriceEur !== undefined) {
+      const manualEur = Number(sourceItem.unitPriceEur || 0);
+      priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * clientExchangeRate);
+    }
+
     return (
       <div className="flex flex-col">
         <div className={mainClass}>€{priceEur.toFixed(2)}</div>
@@ -861,7 +893,9 @@ export default function ClientDetailPage() {
                                     </SelectContent>
                                 </Select>
                             </TableCell>
-                            <TableCell className="text-right font-black text-xs">¥{o.totalAmount.toFixed(2)}</TableCell>
+                            <TableCell className="text-right">
+                              {renderPriceText(o.totalAmount, "font-black text-xs text-zinc-900", o)}
+                            </TableCell>
                             <TableCell className="text-right pr-6 space-x-1">
                               <Button size="icon" variant="ghost" className="h-7 w-7 bg-green-50" onClick={() => handleUpdateFinance(o.id)} disabled={isUpdatingFinance === o.id} title="Sauver"><Check className="h-4 w-4 text-green-600" /></Button>
                               
@@ -1130,7 +1164,7 @@ export default function ClientDetailPage() {
                       <div>
                         <div className="font-bold text-xs">{p.name}</div>
                         <div className="text-[10px] text-zinc-400 font-mono">{p.sku}</div>
-                        <div className="text-[10px] font-bold text-primary mt-1">¥{p.price} / €{p.priceEur || (p.price * (currencyContext?.exchangeRate || 0.13)).toFixed(2)}</div>
+                        <div className="text-[10px] font-bold text-primary mt-1">¥{p.price} / €{p.priceEur || (p.price * (parseFloat(clientRate) || exchangeRate)).toFixed(2)}</div>
                       </div>
                     </div>
                     <Button size="sm" variant="outline" onClick={() => addToAdminBasket(p)} className="h-8 text-[10px] font-black">AJOUTER</Button>
@@ -1287,7 +1321,7 @@ export default function ClientDetailPage() {
                 <div className="pt-4 mt-4 border-t border-zinc-200 flex justify-between items-end">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black uppercase text-zinc-400">Total Final Estimé</span>
-                    <span className="text-xs text-zinc-400">Taux global: {currencyContext?.exchangeRate}</span>
+                    <span className="text-xs text-zinc-400">Taux client: {clientRate || exchangeRate}</span>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-black text-primary">
@@ -1300,8 +1334,13 @@ export default function ClientDetailPage() {
                     </div>
                     <div className="text-[10px] font-bold text-blue-600">
                       €{(() => {
-                        const itEur = adminBasket.reduce((sum, i) => sum + (i.quantity * (i.unitPriceEur || (i.unitPrice * (currencyContext?.exchangeRate || 0.13)))), 0);
-                        const tEur = (parseFloat(adminOrderTransport) || 0) * (currencyContext?.exchangeRate || 0.13);
+                        const effectiveRate = parseFloat(clientRate) || exchangeRate;
+                        const itEur = adminBasket.reduce((sum, i) => {
+                          const manualEur = Number(i.unitPriceEur || 0);
+                          const lineEur = manualEur > 0 ? manualEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate);
+                          return sum + lineEur;
+                        }, 0);
+                        const tEur = (parseFloat(adminOrderTransport) || 0) * effectiveRate;
                         const cr = parseFloat(adminOrderCommission) || 0;
                         return adminOrderBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
                       })()}
@@ -1503,7 +1542,7 @@ export default function ClientDetailPage() {
                 </div>
                 <div className="text-right space-y-1.5">
                   <span className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Total Facturé</span>
-                  <div>{renderPriceText(selectedOrderPreview.totalAmount, "text-3xl font-black text-primary")}</div>
+                  <div>{renderPriceText(selectedOrderPreview.totalAmount, "text-3xl font-black text-primary", selectedOrderPreview)}</div>
                 </div>
               </div>
 
@@ -1518,7 +1557,7 @@ export default function ClientDetailPage() {
                         <TableHead className="w-20 pl-6">Photo</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-center">Qté</TableHead>
-                        <TableHead className="text-right pr-6">Total (¥)</TableHead>
+                        <TableHead className="text-right pr-6">Total</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1538,7 +1577,9 @@ export default function ClientDetailPage() {
                             {item.sku && <div className="text-[10px] text-zinc-400 font-mono mt-1">{item.sku}</div>}
                           </TableCell>
                           <TableCell className="py-3 text-center font-black text-zinc-700">{item.quantity}</TableCell>
-                          <TableCell className="py-3 text-right pr-6 font-bold text-zinc-900">¥{item.total?.toFixed(2)}</TableCell>
+                          <TableCell className="py-3 text-right pr-6">
+                            {renderPriceText(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: selectedOrderPreview.exchangeRate })}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1591,7 +1632,18 @@ export default function ClientDetailPage() {
                       <span className="font-black uppercase text-xs">Total TTC</span>
                       <div className="text-right">
                         <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount?.toFixed(2)}</div>
-                        <div className="text-xs font-bold text-zinc-400">€{(selectedOrderPreview.totalAmount * exchangeRate).toFixed(2)}</div>
+                        <div className="text-xs font-bold text-zinc-400">
+                          €{(() => {
+                            const effectiveRate = selectedOrderPreview.exchangeRate || exchangeRate;
+                            const itEur = selectedOrderPreview.items.reduce((sum: number, i: any) => {
+                              const mEur = Number(i.unitPriceEur || 0);
+                              return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
+                            }, 0);
+                            const tEur = (selectedOrderPreview.transportCost || 0) * effectiveRate;
+                            const cr = Number(selectedOrderPreview.commissionRate || 0);
+                            return selectedOrderPreview.commissionBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>

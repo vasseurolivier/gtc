@@ -119,7 +119,6 @@ export default function ClientCatalogPage() {
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...sourcedProducts];
     
-    // Filtrage
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
       result = result.filter(p => 
@@ -129,7 +128,6 @@ export default function ClientCatalogPage() {
       );
     }
 
-    // Tri
     result.sort((a, b) => {
       switch (sortBy) {
         case 'name':
