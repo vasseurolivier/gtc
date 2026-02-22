@@ -1,4 +1,4 @@
-'use server';
+'use client';
 
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, where, getDoc } from 'firebase/firestore';
@@ -13,6 +13,7 @@ const orderItemSchema = z.object({
   description: z.string().min(1, "Description cannot be empty."),
   quantity: z.coerce.number().positive("Quantity must be positive."),
   unitPrice: z.coerce.number().nonnegative("Unit price cannot be negative."),
+  unitPriceEur: z.coerce.number().nonnegative().optional().default(0),
   purchasePrice: z.coerce.number().nonnegative("Purchase price cannot be negative.").optional().default(0),
   total: z.coerce.number().nonnegative("Total cannot be negative."),
   photo: z.string().optional(),
@@ -43,6 +44,7 @@ export interface Order {
     paymentStatus: PaymentStatus;
     depositRequired?: boolean;
     depositPercentage?: number;
+    exchangeRate: number; // Stored at creation to freeze EUR price
 }
 
 const parseDate = (val: any) => {
@@ -67,6 +69,7 @@ export async function addOrder(quote: Quote) {
             sku: item.sku || '',
             quantity: item.quantity,
             unitPrice: item.unitPrice,
+            unitPriceEur: item.unitPriceEur || 0,
             purchasePrice: item.purchasePrice || 0,
             total: item.total,
             photo: item.photo || '',
@@ -85,6 +88,7 @@ export async function addOrder(quote: Quote) {
           paymentStatus: (quote.status === 'paid' ? 'paid' : 'unpaid') as PaymentStatus,
           depositRequired: quote.depositRequired || false,
           depositPercentage: quote.depositPercentage || 30,
+          exchangeRate: quote.exchangeRate || 0.13,
         };
 
         const docRef = await addDoc(collection(db, 'orders'), newOrderData);
@@ -173,6 +177,7 @@ export async function updateOrderFromQuote(quote: Quote) {
                 sku: item.sku || '',
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
+                unitPriceEur: item.unitPriceEur || 0,
                 purchasePrice: (item as any).purchasePrice || 0,
                 total: item.total,
                 photo: (item as any).photo || '',
@@ -187,6 +192,7 @@ export async function updateOrderFromQuote(quote: Quote) {
             commissionBasis: quote.commissionBasis || 'products_only',
             depositRequired: quote.depositRequired || false,
             depositPercentage: quote.depositPercentage || 30,
+            exchangeRate: quote.exchangeRate || 0.13,
             updatedAt: serverTimestamp(),
         };
 
@@ -226,6 +232,7 @@ export async function getOrders(): Promise<Order[]> {
           createdAt: parseDate(data.createdAt),
           updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
           paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
+          exchangeRate: data.exchangeRate || 0.13,
         } as Order);
     });
     return orders;
@@ -247,6 +254,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
             createdAt: parseDate(data.createdAt),
             updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
             paymentStatus: data.paymentStatus || (data.isPaid ? 'paid' : 'unpaid'),
+            exchangeRate: data.exchangeRate || 0.13,
         } as Order;
     } catch (error) {
         return null;

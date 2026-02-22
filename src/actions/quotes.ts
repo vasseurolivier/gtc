@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -11,6 +10,7 @@ export interface QuoteItem {
   description: string;
   quantity: number;
   unitPrice: number;
+  unitPriceEur?: number;
   purchasePrice?: number;
   total: number;
   photo?: string;
@@ -189,6 +189,7 @@ export async function syncQuoteFromOrder(orderId: string) {
                 description: item.description,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
+                unitPriceEur: item.unitPriceEur || 0,
                 purchasePrice: (item as any).purchasePrice || 0,
                 total: item.total,
                 photo: (item as any).photo || "",
@@ -243,6 +244,7 @@ export async function createQuoteFromOrder(orderId: string) {
                 description: item.description,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice || 0,
+                unitPriceEur: item.unitPriceEur || 0,
                 purchasePrice: (item as any).purchasePrice || 0,
                 total: item.total || 0,
                 photo: (item as any).photo || "",

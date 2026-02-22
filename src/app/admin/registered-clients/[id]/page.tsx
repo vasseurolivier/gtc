@@ -657,20 +657,21 @@ export default function ClientDetailPage() {
 
   const renderPriceText = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any) => {
     const clientExchangeRate = parseFloat(clientRate) || exchangeRate;
+    const itemRate = sourceItem?.exchangeRate || clientExchangeRate;
     
     // Header totals must use manual pricing if available
-    let priceEur = priceCny * clientExchangeRate;
+    let priceEur = priceCny * itemRate;
     
     if (sourceItem?.items) {
       // Calculate from lines
       priceEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
-        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * clientExchangeRate);
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
         return sum + lineEur;
       }, 0);
       
       const transportCny = Number(sourceItem.transportCost || 0);
-      const transportEur = transportCny * clientExchangeRate;
+      const transportEur = transportCny * itemRate;
       const commRate = Number(sourceItem.commissionRate || 0);
       
       let commEur = 0;
@@ -682,7 +683,7 @@ export default function ClientDetailPage() {
       priceEur = priceEur + commEur + transportEur;
     } else if (sourceItem?.unitPriceEur !== undefined) {
       const manualEur = Number(sourceItem.unitPriceEur || 0);
-      priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * clientExchangeRate);
+      priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
     }
 
     return (

@@ -165,23 +165,17 @@ export default function ClientOrdersPage() {
   };
 
   const renderPrice = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any) => {
-    // Determine the exchange rate to use: stored rate in item or global rate
     const itemRate = sourceItem?.exchangeRate || rate;
     
-    // Check if there is a manual EUR price stored in the item
-    // For Orders and Quotes, we need to handle line items vs header totals
-    // If it's a total, we sum up the correct unit prices
     let priceEur = priceCny * itemRate;
     
     if (sourceItem?.items) {
-      // It's a header total
       priceEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
         return sum + lineEur;
       }, 0);
       
-      // Add commission and transport
       const commissionRate = Number(sourceItem.commissionRate || 0);
       const transportCny = Number(sourceItem.transportCost || 0);
       const transportEur = transportCny * itemRate;
@@ -194,7 +188,6 @@ export default function ClientOrdersPage() {
       }
       priceEur = priceEur + commEur + transportEur;
     } else if (sourceItem?.unitPriceEur !== undefined) {
-      // It's a line item or a direct unit price
       const manualEur = Number(sourceItem.unitPriceEur || 0);
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
     }
@@ -268,7 +261,7 @@ export default function ClientOrdersPage() {
                           <TableCell className="text-center">
                             {order.transportCost >= 0 ? (
                               <div className="inline-flex">
-                                {renderPrice(order.transportCost, "font-bold text-blue-600")}
+                                {renderPrice(order.transportCost, "font-bold text-blue-600", order)}
                               </div>
                             ) : (
                               <span className="text-zinc-300 italic">En attente</span>
