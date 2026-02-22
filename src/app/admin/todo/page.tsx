@@ -48,7 +48,10 @@ import {
   ArrowRight,
   ListTodo,
   Calendar as CalendarIcon,
-  Filter
+  Filter,
+  Eye,
+  Info,
+  CalendarDays
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -64,6 +67,9 @@ export default function TodoPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterClientId, setFilterClientId] = useState<string>('all');
+
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [isTaskPreviewOpen, setIsTaskPreviewOpen] = useState(false);
 
   const { toast } = useToast();
   const router = useRouter();
@@ -111,7 +117,7 @@ export default function TodoPage() {
       .map(o => ({
         id: `auto-${o.id}`,
         title: `Commande en attente : ${o.orderNumber}`,
-        description: `La commande nécessite une validation ou une proforma.`,
+        description: `La commande nécessite une validation ou l'envoi d'une Proforma Invoice (PI) pour démarrer la production.`,
         clientId: o.customerId,
         clientName: o.customerName,
         status: 'pending' as const,
@@ -160,7 +166,8 @@ export default function TodoPage() {
     setIsAdding(false);
   };
 
-  const handleToggleStatus = async (task: any) => {
+  const handleToggleStatus = async (e: React.MouseEvent, task: any) => {
+    e.stopPropagation();
     if (task.isAuto) {
       router.push(`/admin/registered-clients/${task.clientId}`);
       return;
@@ -169,15 +176,27 @@ export default function TodoPage() {
     const res = await updateTodoStatus(task.id, newStatus);
     if (res.success) {
       setTodos(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
+      if (selectedTask?.id === task.id) {
+        setSelectedTask({ ...selectedTask, status: newStatus });
+      }
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     const res = await deleteTodo(id);
     if (res.success) {
       setTodos(prev => prev.filter(t => t.id !== id));
       toast({ title: "Tâche supprimée" });
+      if (selectedTask?.id === id) {
+        setIsTaskPreviewOpen(false);
+      }
     }
+  };
+
+  const handleTaskClick = (task: any) => {
+    setSelectedTask(task);
+    setIsTaskPreviewOpen(true);
   };
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin h-12 w-12 text-primary" /></div>;
@@ -241,10 +260,11 @@ export default function TodoPage() {
                     <Card 
                       key={task.id} 
                       className={cn(
-                        "group border-none shadow-sm transition-all hover:shadow-md",
+                        "group border-none shadow-sm transition-all hover:shadow-md cursor-pointer",
                         task.isAuto ? "bg-primary/5 border-l-4 border-l-primary" : "bg-white",
                         task.status === 'completed' && "opacity-50 grayscale"
                       )}
+                      onClick={() => handleTaskClick(task)}
                     >
                       <CardContent className="p-5">
                         <div className="flex items-start justify-between gap-4">
@@ -270,7 +290,7 @@ export default function TodoPage() {
 
                           <div className="flex flex-col gap-2">
                             <button 
-                              onClick={() => handleToggleStatus(task)}
+                              onClick={(e) => handleToggleStatus(e, task)}
                               className={cn(
                                 "h-8 w-8 rounded-full flex items-center justify-center transition-all",
                                 task.status === 'completed' 
@@ -282,7 +302,7 @@ export default function TodoPage() {
                             </button>
                             {!task.isAuto && (
                               <button 
-                                onClick={() => handleDelete(task.id)}
+                                onClick={(e) => handleDelete(e, task.id)}
                                 className="h-8 w-8 rounded-full bg-red-50 text-red-300 hover:text-red-600 flex items-center justify-center transition-all"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -299,6 +319,79 @@ export default function TodoPage() {
           })
         )}
       </div>
+
+      {/* Detail Preview Dialog */}
+      <Dialog open={isTaskPreviewOpen} onOpenChange={setIsTaskPreviewOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <div className="flex items-center justify-between pr-6">
+              <div className="flex items-center gap-3">
+                <div className={cn("p-2 rounded-xl", selectedTask?.isAuto ? "bg-primary/10 text-primary" : "bg-blue-100 text-blue-600")}>
+                  {selectedTask?.isAuto ? <ShoppingCart className="h-6 w-6" /> : <ListTodo className="h-6 w-6" />}
+                </div>
+                <DialogTitle className="text-xl font-black">{selectedTask?.title}</DialogTitle>
+              </div>
+              <Badge variant={selectedTask?.status === 'completed' ? 'default' : 'outline'} className={cn(selectedTask?.status === 'completed' ? "bg-green-500" : "text-zinc-400")}>
+                {selectedTask?.status === 'completed' ? "Terminée" : "En cours"}
+              </Badge>
+            </div>
+            <DialogDescription className="pt-2">Détails complets de la mission opérationnelle.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-6">
+            {selectedTask?.clientName && (
+              <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border">
+                <User className="h-5 w-5 text-zinc-400" />
+                <div>
+                  <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Client associé</p>
+                  <p className="font-bold text-zinc-900">{selectedTask.clientName}</p>
+                </div>
+                <Button size="sm" variant="ghost" className="ml-auto text-primary font-black text-[10px]" asChild>
+                  <Link href={`/admin/${leads.some(l => l.id === selectedTask.clientId) ? 'customers' : 'registered-clients'}/${selectedTask.clientId}`}>
+                    VOIR DOSSIER <ArrowRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-zinc-50 rounded-2xl border flex items-center gap-3">
+                <CalendarDays className="h-5 w-5 text-zinc-400" />
+                <div>
+                  <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Échéance</p>
+                  <p className="font-bold text-zinc-900">{selectedTask?.dueDate ? format(new Date(selectedTask.dueDate), 'dd MMMM yyyy', { locale: fr }) : "Aucune"}</p>
+                </div>
+              </div>
+              <div className="p-4 bg-zinc-50 rounded-2xl border flex items-center gap-3">
+                <Clock className="h-5 w-5 text-zinc-400" />
+                <div>
+                  <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Créée le</p>
+                  <p className="font-bold text-zinc-900">{selectedTask?.createdAt ? format(new Date(selectedTask.createdAt), 'dd/MM/yyyy HH:mm') : "-"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-zinc-400 flex items-center gap-2"><Info className="h-3 w-3" /> Description & Notes</Label>
+              <div className="p-5 bg-white border rounded-2xl min-h-[120px] text-sm leading-relaxed text-zinc-600 whitespace-pre-wrap">
+                {selectedTask?.description || "Aucun détail supplémentaire."}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-4 flex gap-3">
+            {!selectedTask?.isAuto && (
+              <Button variant="outline" className="text-red-500 border-red-100 hover:bg-red-50 font-bold" onClick={(e) => handleDelete(e, selectedTask?.id)}>
+                Supprimer
+              </Button>
+            )}
+            <DialogClose asChild><Button variant="secondary" className="font-bold">Fermer</Button></DialogClose>
+            <Button className={cn("font-bold flex-grow", selectedTask?.status === 'completed' ? "bg-zinc-200 text-zinc-500" : "bg-green-600 hover:bg-green-700")} onClick={(e) => handleToggleStatus(e, selectedTask)}>
+              {selectedTask?.status === 'completed' ? "Rétablir" : "Marquer comme terminée"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
