@@ -170,24 +170,26 @@ export default function ClientOrdersPage() {
     let priceEur = priceCny * itemRate;
     
     if (sourceItem?.items) {
-      priceEur = sourceItem.items.reduce((sum: number, item: any) => {
+      // Logic identical to the PI preview: Sum of items (respecting manual EUR) + Transport + Commission
+      const itemsSubTotalEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
         return sum + lineEur;
       }, 0);
       
-      const commissionRate = Number(sourceItem.commissionRate || 0);
-      const transportCny = Number(sourceItem.transportCost || 0);
-      const transportEur = transportCny * itemRate;
+      const transportEur = (sourceItem.transportCost || 0) * itemRate;
+      const commissionRateValue = Number(sourceItem.commissionRate || 0);
       
-      let commEur = 0;
+      let commissionEur = 0;
       if (sourceItem.commissionBasis === 'total') {
-        commEur = (priceEur + transportEur) * (commissionRate / 100);
+        commissionEur = (itemsSubTotalEur + transportEur) * (commissionRateValue / 100);
       } else {
-        commEur = priceEur * (commissionRate / 100);
+        commissionEur = itemsSubTotalEur * (commissionRateValue / 100);
       }
-      priceEur = priceEur + commEur + transportEur;
+      
+      priceEur = itemsSubTotalEur + transportEur + commissionEur;
     } else if (sourceItem?.unitPriceEur !== undefined) {
+      // For single line item displays
       const manualEur = Number(sourceItem.unitPriceEur || 0);
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
     }

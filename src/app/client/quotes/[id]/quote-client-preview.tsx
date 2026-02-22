@@ -157,7 +157,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     
-    // Calcul EUR précis respectant les prix manuels EUR des articles
+    // Exact calculation using stored manual unitPriceEur where available
     const calculatedSubTotalEur = quote.items.reduce((sum, item) => {
         const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
