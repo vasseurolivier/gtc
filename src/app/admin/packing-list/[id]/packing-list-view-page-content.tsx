@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -21,7 +20,7 @@ export default function PackingListViewPageContent() {
     const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
-        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
         if (isAuthenticated !== 'true') {
           router.push('/admin/login');
           return;

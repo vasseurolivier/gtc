@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -38,7 +37,7 @@ export default function CustomerProfilePage() {
     const [isAlreadyClient, setIsAlreadyClient] = useState(false);
 
     useEffect(() => {
-        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
         if (isAuthenticated !== 'true') {
           router.push('/admin/login');
           return;

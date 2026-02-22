@@ -25,7 +25,7 @@ export default function QuotePreviewPageContent() {
     const companyInfoContext = useContext(CompanyInfoContext);
 
     useEffect(() => {
-        const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+        const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
         if (isAuthenticated !== 'true') {
           router.push('/admin/login');
           return;

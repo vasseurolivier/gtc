@@ -113,7 +113,7 @@ export default function RegisteredClientsPage() {
   }
 
   useEffect(() => {
-    const authStatus = sessionStorage.getItem('isAdminAuthenticated');
+    const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus !== 'true') {
       router.push('/admin/login');
       return;

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useContext, useEffect, Suspense } from 'react';
@@ -344,6 +343,9 @@ function ContractHistory({ onEdit, refreshKey }: { onEdit: (contract: PackingLis
   const { toast } = useToast();
 
   useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
+    if (isAuthenticated !== 'true') return;
+
     async function fetchLists() {
       setIsLoading(true);
       try {
@@ -511,7 +513,7 @@ function PackingListPageContent() {
 export default function PackingListPage() {
   const router = useRouter();
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+    const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
     }
