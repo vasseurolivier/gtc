@@ -57,6 +57,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);

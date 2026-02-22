@@ -686,8 +686,10 @@ export default function ClientDetailPage() {
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
     }
 
+    if (currencyPref === 'EUR') return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
+    if (currencyPref === 'CNY') return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col items-end leading-none">
         <div className={mainClass}>€{priceEur.toFixed(2)}</div>
         <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
       </div>
@@ -1579,7 +1581,7 @@ export default function ClientDetailPage() {
                           </TableCell>
                           <TableCell className="py-3 text-center font-black text-zinc-700">{item.quantity}</TableCell>
                           <TableCell className="py-3 text-right pr-6">
-                            {renderPriceText(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: selectedOrderPreview.exchangeRate })}
+                            {renderPriceText(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: (selectedOrderPreview as any).exchangeRate })}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1635,7 +1637,7 @@ export default function ClientDetailPage() {
                         <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount?.toFixed(2)}</div>
                         <div className="text-xs font-bold text-zinc-400">
                           €{(() => {
-                            const effectiveRate = selectedOrderPreview.exchangeRate || exchangeRate;
+                            const effectiveRate = (selectedOrderPreview as any).exchangeRate || exchangeRate;
                             const itEur = selectedOrderPreview.items.reduce((sum: number, i: any) => {
                               const mEur = Number(i.unitPriceEur || 0);
                               return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
