@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo, useRef } from 'react';
@@ -44,6 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -70,7 +70,7 @@ import {
   MapPin,
   Building2,
   Home,
-  Image as ImageIcon,
+  ImageIcon,
   UploadCloud,
   Search,
   Minus,
@@ -942,7 +942,7 @@ export default function ClientDetailPage() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>
-                              <AlertDialogHeader><AlertDialogTitle>Supprimer la facture ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AlertDialogHeader>
+                              <AlertDialogHeader><AlertDialogTitle>Supprimer la facture ?</AlertDialogTitle><AlertDialogDescription>Action irréversible.</AlertDialogDescription></AccordionHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => handleDeleteInvoiceAction(inv.id)}>Supprimer</AlertDialogAction>
