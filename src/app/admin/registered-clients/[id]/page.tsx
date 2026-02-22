@@ -40,8 +40,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -158,6 +156,26 @@ export default function ClientDetailPage() {
     if (val && typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
     const d = new Date(val);
     return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const getStatusBadgeVariant = (status: Order['status']) => {
+    switch (status) {
+        case 'delivered': return 'default';
+        case 'shipped': return 'secondary';
+        case 'validated': return 'default';
+        case 'processing': return 'outline';
+        case 'cancelled': return 'destructive';
+        default: return 'outline';
+    }
+  };
+
+  const getPaymentBadge = (status: PaymentStatus) => {
+    switch (status) {
+        case 'paid': return <Badge className="bg-green-500 text-[10px] h-5">SOLDE PAYÉ</Badge>;
+        case 'deposit_paid': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 text-[10px] h-5">ACOMPTE OK</Badge>;
+        case 'unpaid': return <Badge variant="outline" className="text-zinc-400 text-[10px] h-5">NON PAYÉ</Badge>;
+        default: return null;
+    }
   };
 
   useEffect(() => {
