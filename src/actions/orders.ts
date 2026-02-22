@@ -1,4 +1,4 @@
-'use client';
+'use server';
 
 import { db } from '@/lib/firebase';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, where, getDoc } from 'firebase/firestore';
@@ -70,7 +70,7 @@ export async function addOrder(quote: Quote) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             unitPriceEur: item.unitPriceEur || 0,
-            purchasePrice: item.purchasePrice || 0,
+            purchasePrice: (item as any).purchasePrice || 0,
             total: item.total,
             photo: item.photo || '',
             size: (item as any).size || null,
@@ -98,6 +98,7 @@ export async function addOrder(quote: Quote) {
         }
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
+        console.error("Error creating order:", error);
         return { success: false, message: 'An unexpected error occurred while creating the order.' };
     }
 }

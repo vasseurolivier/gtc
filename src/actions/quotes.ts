@@ -361,13 +361,25 @@ export async function updateQuoteStatus(id: string, status: string) {
             const fullQuote = await getQuoteById(id);
             if(fullQuote) {
                 if (fullQuote.orderId) {
-                    await updateOrderFromQuote(fullQuote);
+                    const upRes = await updateOrderFromQuote(fullQuote);
+                    if (!upRes.success) return upRes;
+                    
                     await updateOrderStatus(fullQuote.orderId, 'validated');
                     if (status === 'paid') await updateOrderPaymentStatus(fullQuote.orderId, 'paid');
                 } else {
                     const orderResult = await addOrder(fullQuote);
-                    if (orderResult.success && orderResult.id && status === 'paid') {
-                         await updateOrderPaymentStatus(orderResult.id, 'paid');
+                    if (!orderResult.success) return orderResult;
+                    
+                    if (orderResult.id) {
+                        // Link quote to new order
+                        await updateDoc(quoteRef, { orderId: orderResult.id });
+                        if (quoteData.customerId) {
+                            await updateDoc(doc(db, 'clients', quoteData.customerId, 'quotes', id), { orderId: orderResult.id });
+                        }
+                        
+                        if (status === 'paid') {
+                            await updateOrderPaymentStatus(orderResult.id, 'paid');
+                        }
                     }
                 }
             }
@@ -380,6 +392,7 @@ export async function updateQuoteStatus(id: string, status: string) {
         
         return { success: true, message: 'Proforma status updated successfully!' };
     } catch (error: any) {
+        console.error("updateQuoteStatus error:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
