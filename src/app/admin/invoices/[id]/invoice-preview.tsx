@@ -96,7 +96,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
     
     // Calcul EUR précis respectant les prix manuels
     const subTotalEur = invoice.items.reduce((sum, item) => {
-        const manualEur = (item as any).unitPriceEur || 0;
+        const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
         return sum + lineEur;
     }, 0);
@@ -187,7 +187,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                         <tbody>
                             {invoice.items.map((item, index) => {
                                 const displayImage = item.photo;
-                                const manualEur = (item as any).unitPriceEur || 0;
+                                const manualEur = Number((item as any).unitPriceEur || 0);
                                 const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
                                 return (
                                     <tr key={index} className="border-b">

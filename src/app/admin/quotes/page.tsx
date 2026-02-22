@@ -32,12 +32,15 @@ import { Separator } from '@/components/ui/separator';
 import { CurrencyContext } from '@/context/currency-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useFirestore } from '@/firebase';
+import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
 
 const quoteItemSchema = z.object({
   sku: z.string().optional(),
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().positive("Qty must be > 0."),
   unitPrice: z.coerce.number().nonnegative("Price cannot be negative."),
+  unitPriceEur: z.coerce.number().nonnegative().optional().default(0),
   purchasePrice: z.coerce.number().nonnegative("Cost price cannot be negative.").optional().default(0),
   total: z.number(),
   photo: z.string().optional(),
@@ -70,10 +73,12 @@ function QuotesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const db = useFirestore();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [registeredClients, setRegisteredClients] = useState<RegisteredClient[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [clientProducts, setClientProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -92,7 +97,7 @@ function QuotesPageContent() {
       quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
       issueDate: new Date(),
       validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
+      items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, unitPriceEur: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
       subTotal: 0,
       transportCost: 0,
       commissionRate: 0,
@@ -144,6 +149,19 @@ function QuotesPageContent() {
     form.setValue("totalAmount", totalAmount, { shouldValidate: true });
   };
 
+  const fetchClientProducts = async (cid: string) => {
+    if (!db || !cid) return;
+    try {
+      const q = query(collectionGroup(db, 'products'), where('clientId', '==', cid), where('status', '==', 'published'));
+      const snap = await getDocs(q);
+      const prods: any[] = [];
+      snap.forEach(d => prods.push({...d.data(), id: d.id}));
+      setClientProducts(prods);
+    } catch (e) {
+      console.error("Error fetching client products", e);
+    }
+  };
+
   useEffect(() => {
     const subscription = form.watch((_value, { name }) => {
       if (name && (name.startsWith('items') || name === 'transportCost' || name === 'commissionRate' || name === 'commissionBasis')) {
@@ -181,11 +199,14 @@ function QuotesPageContent() {
           if (order) {
             const clientData = await getRegisteredClientById(order.customerId);
             const basis = clientData?.commissionBasis || 'products_only';
+            await fetchClientProducts(order.customerId);
+            
             const newItems = order.items.map(item => ({
               sku: item.sku || "",
               description: item.description,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
+              unitPriceEur: item.unitPriceEur || 0,
               purchasePrice: (item as any).purchasePrice || 0,
               total: item.total,
               photo: (item as any).photo || "",
@@ -217,13 +238,14 @@ function QuotesPageContent() {
             const cl = fetchedRegistered.find(c => c.id === directClientId) || fetchedCustomers.find(c => c.id === directClientId);
             if (cl) {
                 const isReg = 'firstName' in cl;
+                await fetchClientProducts(directClientId);
                 form.reset({
                     quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
                     customerId: directClientId,
                     customerName: isReg ? `${(cl as any).firstName} ${(cl as any).lastName}` : (cl as any).name,
                     issueDate: new Date(),
                     validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-                    items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
+                    items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, unitPriceEur: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
                     subTotal: 0,
                     transportCost: 0,
                     commissionRate: 0,
@@ -247,6 +269,7 @@ function QuotesPageContent() {
   const handleOpenDialog = (quote: Quote | null = null) => {
     setEditingQuote(quote);
     if (quote) {
+        fetchClientProducts(quote.customerId);
         form.reset({
             ...quote,
             issueDate: new Date(quote.issueDate),
@@ -257,11 +280,12 @@ function QuotesPageContent() {
             commissionBasis: quote.commissionBasis || 'products_only',
         });
     } else {
+        setClientProducts([]);
         form.reset({
             quoteNumber: `PI-${Date.now().toString().slice(-6)}`,
             issueDate: new Date(),
             validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
-            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
+            items: [{ sku: "", description: "", quantity: 1, unitPrice: 0, unitPriceEur: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 }],
             subTotal: 0,
             transportCost: 0,
             commissionRate: 0,
@@ -284,22 +308,27 @@ function QuotesPageContent() {
         form.setValue("customerId", registered.id);
         form.setValue("customerName", `${registered.firstName} ${registered.lastName}`);
         form.setValue("commissionBasis", registered.commissionBasis || 'products_only');
+        fetchClientProducts(registered.id);
     } else if (lead) {
         form.setValue("customerId", lead.id);
         form.setValue("customerName", lead.name);
         form.setValue("commissionBasis", 'products_only');
+        fetchClientProducts(lead.id);
     }
   };
 
   const handleProductSelect = (productId: string, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
+        const clientProd = clientProducts.find(cp => cp.sku === product.sku);
+        
         form.setValue(`items.${index}.sku`, product.sku);
-        form.setValue(`items.${index}.description`, product.description || product.name);
-        form.setValue(`items.${index}.unitPrice`, product.price);
+        form.setValue(`items.${index}.description`, clientProd?.description || product.description || product.name);
+        form.setValue(`items.${index}.unitPrice`, clientProd?.price || product.price);
+        form.setValue(`items.${index}.unitPriceEur`, clientProd?.priceEur || (clientProd?.price ? clientProd.price * exchangeRate : (product.price * exchangeRate)));
         form.setValue(`items.${index}.purchasePrice`, product.purchasePrice || 0);
-        form.setValue(`items.${index}.photo`, product.imageUrl || "");
-        form.setValue(`items.${index}.weight`, product.weight || 0);
+        form.setValue(`items.${index}.photo`, clientProd?.images?.[0] || product.imageUrl || "");
+        form.setValue(`items.${index}.weight`, clientProd?.weight || product.weight || 0);
         calculateTotals();
     }
   };
@@ -477,7 +506,7 @@ function QuotesPageContent() {
                           </div>
                         </div>
                       ))}
-                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>+ Ajouter une ligne manuelle</Button>
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => append({ sku: "", description: "", quantity: 1, unitPrice: 0, unitPriceEur: 0, purchasePrice: 0, total: 0, photo: "", weight: 0 })}>+ Ajouter une ligne manuelle</Button>
                   </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t pt-6">

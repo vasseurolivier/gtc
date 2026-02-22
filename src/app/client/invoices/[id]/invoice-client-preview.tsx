@@ -107,7 +107,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
     
     // Calcul EUR précis respectant les prix manuels
     const subTotalEur = invoice.items.reduce((sum, item) => {
-        const manualEur = (item as any).unitPriceEur || 0;
+        const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
         return sum + lineEur;
     }, 0);
@@ -219,7 +219,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                             <tbody className="divide-y divide-zinc-100">
                                 {invoice.items.map((item, idx) => {
                                     const displayImage = item.photo;
-                                    const manualEur = (item as any).unitPriceEur || 0;
+                                    const manualEur = Number((item as any).unitPriceEur || 0);
                                     const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
                                     return (
                                         <tr key={idx}>

@@ -5,7 +5,7 @@ import { getOrderById, Order } from '@/actions/orders';
 import { useContext, useEffect, useState } from 'react';
 import { CompanyInfoContext } from '@/context/company-info-context';
 import { CurrencyContext } from '@/context/currency-context';
-import { Loader2, Printer, Phone, Mail, Package, Truck, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Loader2, Printer, Phone, Mail, Package, Truck, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrintFooter } from '@/components/layout/print-footer';
 import { Button } from '@/components/ui/button';
@@ -103,7 +103,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     
     // Calcul précis du sous-total EUR en respectant les prix manuels EUR des articles
     const calculatedSubTotalEur = quote.items.reduce((sum, item) => {
-        const manualEur = (item as any).unitPriceEur || 0;
+        const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
         return sum + lineEur;
     }, 0);
@@ -210,7 +210,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                         <tbody>
                         {quote.items.map((item, itemIndex) => {
                             const displayImage = item.photo;
-                            const manualEur = (item as any).unitPriceEur || 0;
+                            const manualEur = Number((item as any).unitPriceEur || 0);
                             const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
                             return (
                                 <tr key={itemIndex} className="border-b">
