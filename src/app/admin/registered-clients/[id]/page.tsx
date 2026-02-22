@@ -78,7 +78,9 @@ import {
   SortAsc,
   MessageSquare,
   Send,
-  Coins
+  Coins,
+  CreditCard,
+  FileSearch
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -97,6 +99,7 @@ export default function ClientDetailPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const currencyContext = useContext(CurrencyContext);
+  const exchangeRate = currencyContext?.exchangeRate || 0.13;
 
   const [client, setClient] = useState<RegisteredClient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -625,6 +628,16 @@ export default function ClientDetailPage() {
   const handleDeleteInvoiceAction = async (id: string) => {
     const res = await deleteInvoice(id);
     if (res.success) toast({ title: "Facture supprimée" });
+  };
+
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
+    const priceEur = priceCny * exchangeRate;
+    return (
+      <div className="flex flex-col">
+        <div className={mainClass}>€{priceEur.toFixed(2)}</div>
+        <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -1475,27 +1488,119 @@ export default function ClientDetailPage() {
       <Dialog open={isOrderPreviewOpen} onOpenChange={setIsOrderPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Détails Commande</DialogTitle>
-            <DialogDescription>Consultez les articles et adresses.</DialogDescription>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <FileSearch className="h-6 w-6 text-primary" /> Détails Commande {selectedOrderPreview?.orderNumber}
+            </DialogTitle>
+            <DialogDescription>Visualisez les articles, la logistique et le détail financier.</DialogDescription>
           </DialogHeader>
           {selectedOrderPreview && (
-            <div className="space-y-4 py-4">
-              <p className="font-bold">Commande {selectedOrderPreview.orderNumber}</p>
-              <Table>
-                <TableHeader><TableRow><TableHead>Description</TableHead><TableHead className="text-center">Qté</TableHead><TableHead className="text-right">Total (¥)</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {selectedOrderPreview.items.map((item: any, idx: number) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell className="text-center">{item.quantity}</TableCell>
-                      <TableCell className="text-right">¥{item.total.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="space-y-8 py-4">
+              <div className="flex items-center justify-between p-6 bg-zinc-50 rounded-2xl border shadow-sm">
+                <div className="space-y-1.5">
+                  <span className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Statut Actuel</span>
+                  <div><Badge variant={getStatusBadgeVariant(selectedOrderPreview.status)} className="h-6 px-3 uppercase text-[10px] font-black">{selectedOrderPreview.status}</Badge></div>
+                </div>
+                <div className="text-right space-y-1.5">
+                  <span className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Total Facturé</span>
+                  <div>{renderPrice(selectedOrderPreview.totalAmount, "text-3xl font-black text-primary")}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                  <Package className="h-4 w-4" /> Articles de la commande
+                </h4>
+                <div className="border rounded-2xl overflow-hidden shadow-sm">
+                  <Table>
+                    <TableHeader className="bg-zinc-50/50">
+                      <TableRow>
+                        <TableHead className="w-20 pl-6">Photo</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qté</TableHead>
+                        <TableHead className="text-right pr-6">Total (¥)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrderPreview.items?.map((item: any, idx: number) => (
+                        <TableRow key={idx} className="hover:bg-zinc-50/30 transition-colors">
+                          <TableCell className="py-3 pl-6">
+                            <div className="w-14 h-14 rounded-xl border bg-white flex items-center justify-center overflow-hidden shadow-inner">
+                              {item.photo ? (
+                                <img src={item.photo} alt="Produit" className="w-full h-full object-contain" />
+                              ) : (
+                                <Package className="h-6 w-6 text-zinc-200" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <div className="font-bold text-zinc-900 leading-tight">{item.description}</div>
+                            {item.sku && <div className="text-[10px] text-zinc-400 font-mono mt-1">{item.sku}</div>}
+                          </TableCell>
+                          <TableCell className="py-3 text-center font-black text-zinc-700">{item.quantity}</TableCell>
+                          <TableCell className="py-3 text-right pr-6 font-bold text-zinc-900">¥{item.total?.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <MapPin className="h-4 w-4" /> Destination
+                  </h4>
+                  <div className={cn(
+                    "p-5 rounded-2xl border min-h-[100px] text-sm leading-relaxed",
+                    selectedOrderPreview.shippingAddress === WAREHOUSE_3PL_ADDRESS ? "bg-primary/5 border-primary/20" : "bg-white"
+                  )}>
+                    {selectedOrderPreview.shippingAddress === WAREHOUSE_3PL_ADDRESS && (
+                      <Badge className="bg-primary mb-2">SERVICE 3PL GTC</Badge>
+                    )}
+                    <p className="whitespace-pre-wrap font-medium text-zinc-700">{selectedOrderPreview.shippingAddress || "Non renseignée"}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <Coins className="h-4 w-4" /> Détail Financier
+                  </h4>
+                  <div className="p-5 bg-zinc-900 text-white rounded-2xl shadow-xl space-y-3 border-none">
+                    <div className="flex justify-between text-[10px] text-zinc-400 uppercase font-bold">
+                      <span>Statut Paiement</span>
+                      <span>{getPaymentBadge(selectedOrderPreview.paymentStatus)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-zinc-400">Frais de Port :</span>
+                      <span className="font-black text-blue-400">¥{selectedOrderPreview.transportCost?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-zinc-400">Commission ({selectedOrderPreview.commissionRate || 0}%) :</span>
+                      <span className="font-black text-primary">¥{(() => {
+                        const itemsTotal = selectedOrderPreview.items.reduce((sum: number, i: any) => sum + (i.total || 0), 0);
+                        const rate = (selectedOrderPreview.commissionRate || 0) / 100;
+                        if (selectedOrderPreview.commissionBasis === 'total') {
+                          return ((itemsTotal + (selectedOrderPreview.transportCost || 0)) * rate).toFixed(2);
+                        }
+                        return (itemsTotal * rate).toFixed(2);
+                      })()}</span>
+                    </div>
+                    <Separator className="bg-white/10" />
+                    <div className="flex justify-between items-end pt-1">
+                      <span className="font-black uppercase text-xs">Total TTC</span>
+                      <div className="text-right">
+                        <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount?.toFixed(2)}</div>
+                        <div className="text-xs font-bold text-zinc-400">€{(selectedOrderPreview.totalAmount * exchangeRate).toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-          <DialogFooter><DialogClose asChild><Button variant="outline">Fermer</Button></DialogClose></DialogFooter>
+          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 border-t mt-6">
+            <Button variant="outline" className="w-full font-black h-12 rounded-xl" onClick={() => setIsOrderPreviewOpen(false)}>FERMER L'APERÇU</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
