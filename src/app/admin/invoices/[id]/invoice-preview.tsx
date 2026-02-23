@@ -94,7 +94,6 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     
-    // Calcul EUR précis respectant les prix manuels
     const subTotalEur = invoice.items.reduce((sum, item) => {
         const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
@@ -166,7 +165,7 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">FACTURÉ À</h3>
                             {companyName && <p className="font-bold uppercase text-zinc-900">{companyName}</p>}
                             <div className={companyName ? "text-zinc-500" : "font-bold text-zinc-900"}>{contactName}</div>
-                            <p className="whitespace-pre-wrap mt-1 text-zinc-500 leading-tight">{invoice.shippingAddress || customer?.address}</p>
+                            <p className="whitespace-pre-wrap mt-1 text-zinc-500 leading-tight">{customer?.address}</p>
                             <div className="mt-2 space-y-1 flex flex-col">
                                 {customer?.phone && <span className="flex items-center gap-1 text-[9px]"><Phone className="h-3 w-3" /> {customer.phone}</span>}
                                 {customer?.email && <span className="flex items-center gap-1 text-[9px]"><Mail className="h-3 w-3" /> {customer.email}</span>}
@@ -218,24 +217,31 @@ export function InvoicePreview({ invoice, customer, products }: { invoice: Invoi
                             </div>
                             {commissionRate > 0 && (
                                 <div className="flex justify-between items-center">
-                                    <span className="text-zinc-500 font-medium">Commission ({commissionRate}%):</span>
+                                    <span className="text-zinc-500 font-medium">Commission ({commissionRate}%) :</span>
                                     <span className="font-bold">{renderPrice(commissionCny, commissionEur)}</span>
                                 </div>
                             )}
                             {transportCny > 0 && (
                                 <div className="flex justify-between items-center">
-                                    <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Port:</span>
+                                    <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Port :</span>
                                     <span className="font-bold">{renderPrice(transportCny, transportEur)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between items-center pt-1 border-t-2 border-zinc-900">
-                                <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL:</span>
+                                <span className="font-black text-zinc-900 uppercase text-[11px]">TOTAL :</span>
                                 <div className="text-[12px] font-black text-primary">{renderPrice(totalFinalCny, totalFinalEur, true)}</div>
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-6 p-3 bg-zinc-50 rounded border text-[9px]">
+                        {invoice.shippingAddress && (
+                            <div className="mb-4 border-b pb-2">
+                                <h3 className="font-black mb-1 uppercase text-zinc-400 tracking-widest text-[8px]">Lieu de Livraison :</h3>
+                                <p className="font-bold text-zinc-900 whitespace-pre-wrap">{invoice.shippingAddress}</p>
+                            </div>
+                        )}
+                        
                         <h3 className="font-bold mb-1 uppercase text-zinc-400">COORDONNÉES BANCAIRES</h3>
                         <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-1">

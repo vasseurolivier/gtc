@@ -157,7 +157,6 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     
-    // Exact calculation using stored manual unitPriceEur where available
     const calculatedSubTotalEur = quote.items.reduce((sum, item) => {
         const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
@@ -356,7 +355,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                 <div className={cn("text-zinc-900 leading-tight", profile?.companyName ? "text-zinc-500 font-medium" : "font-bold")}>
                                     {profile?.firstName} {profile?.lastName}
                                 </div>
-                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">{quote.shippingAddress || profile?.address || "Adresse de livraison standard"}</p>
+                                <p className="text-zinc-500 leading-tight whitespace-pre-wrap">{profile?.address}</p>
                                 <div className="mt-2 space-y-1 flex flex-col text-[9px]">
                                     {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
                                     {profile?.email && <div className="text-zinc-500 flex items-center gap-1"><Mail className="h-3 w-3" /> {profile.email}</div>}
@@ -429,8 +428,16 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                         </div>
 
                         <div className="mt-6 border-t pt-4">
-                            <h3 className="font-bold text-[10px] uppercase text-zinc-400 mb-2 tracking-widest">Conditions de Règlement</h3>
+                            <h3 className="font-bold text-[10px] uppercase text-zinc-400 mb-2 tracking-widest">Conditions de Règlement & Livraison</h3>
                             <div className="text-[10px] text-zinc-600 space-y-2">
+                                
+                                {quote.shippingAddress && (
+                                    <div className="mb-4 p-3 bg-zinc-50 border rounded-xl">
+                                        <span className="font-black text-[8px] uppercase text-zinc-400 block mb-1 tracking-widest">Adresse de Livraison :</span>
+                                        <p className="text-[10px] font-black text-zinc-900 whitespace-pre-wrap">{quote.shippingAddress}</p>
+                                    </div>
+                                )}
+
                                 {quote.depositRequired ? (
                                     <div className="p-3 bg-primary/5 rounded border border-primary/10">
                                         <div className="font-bold text-primary mb-1 uppercase">

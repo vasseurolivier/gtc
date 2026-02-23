@@ -105,7 +105,6 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
 
     const subTotalCny = invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     
-    // Calcul EUR précis respectant les prix manuels
     const subTotalEur = invoice.items.reduce((sum, item) => {
         const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * invoiceRate);
@@ -192,7 +191,7 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                                     {profile?.firstName} {profile?.lastName}
                                 </div>
                                 <p className="text-zinc-500 leading-tight whitespace-pre-wrap mt-1">
-                                    {invoice.shippingAddress || profile?.address || "Adresse standard"}
+                                    {profile?.address}
                                 </p>
                                 <div className="mt-2 space-y-1 text-[9px]">
                                     {profile?.phone && <div className="text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {profile.phone}</div>}
@@ -271,6 +270,13 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
                         </div>
 
                         <div className="mt-8 p-3 bg-zinc-50 rounded border border-zinc-100">
+                            {invoice.shippingAddress && (
+                                <div className="mb-4 border-b pb-2">
+                                    <h3 className="font-black text-[8px] uppercase text-zinc-400 mb-1 tracking-widest">Lieu de Livraison :</h3>
+                                    <p className="text-[10px] font-black text-zinc-900 whitespace-pre-wrap">{invoice.shippingAddress}</p>
+                                </div>
+                            )}
+
                             <h3 className="font-black text-[9px] uppercase text-zinc-400 mb-2 tracking-widest text-center">Coord. Bancaires</h3>
                             <div className="grid grid-cols-2 gap-8 text-[9px] text-zinc-600">
                                 <div>

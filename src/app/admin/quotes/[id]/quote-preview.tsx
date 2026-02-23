@@ -101,7 +101,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     
-    // Calcul précis du sous-total EUR en respectant les prix manuels EUR des articles
     const calculatedSubTotalEur = quote.items.reduce((sum, item) => {
         const manualEur = Number((item as any).unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * quoteRate);
@@ -184,7 +183,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             <h3 className="font-bold text-zinc-400 mb-1 uppercase tracking-wider">FACTURÉ À</h3>
                             {companyName && <p className="font-bold uppercase text-zinc-900">{companyName}</p>}
                             <div className={cn("leading-tight", companyName ? "text-zinc-500" : "font-bold text-zinc-900")}>{contactName}</div>
-                            <p className="whitespace-pre-wrap mt-1 text-zinc-500 leading-tight">{quote.shippingAddress || customer?.address}</p>
+                            <p className="whitespace-pre-wrap mt-1 text-zinc-500 leading-tight">{customer?.address}</p>
                             <div className="mt-2 space-y-1 flex flex-col text-[9px]">
                                 {customer?.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {customer.phone}</span>}
                                 {customer?.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {customer.email}</span>}
@@ -277,15 +276,16 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                             </div>
                         </div>
 
-                        {quote.notes && (
-                            <div className="mb-4">
-                                <h3 className="font-bold mb-1 text-[9px] text-zinc-400 uppercase">Notes:</h3>
-                                <p className="text-[9px] text-zinc-500 whitespace-pre-wrap leading-tight">{quote.notes}</p>
-                            </div>
-                        )}
-                        
                         <div className="pt-2 border-t text-[9px]">
                             <h3 className="font-bold mb-1 uppercase text-zinc-400">Conditions :</h3>
+                            
+                            {quote.shippingAddress && (
+                                <div className="mb-4 p-3 bg-white border rounded-lg shadow-sm">
+                                    <span className="font-black text-[8px] uppercase text-zinc-400 block mb-1">Lieu de Livraison :</span>
+                                    <p className="text-[10px] font-black text-zinc-900 whitespace-pre-wrap">{quote.shippingAddress}</p>
+                                </div>
+                            )}
+
                             {quote.depositRequired ? (
                                 <div className="grid grid-cols-2 gap-8">
                                     <div className="text-zinc-500 leading-tight">
@@ -301,6 +301,13 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <div className="text-zinc-500 leading-tight">Paiement intégral avant expédition.</div>
                             )}
                         </div>
+
+                        {quote.notes && (
+                            <div className="mt-4 pt-2 border-t">
+                                <h3 className="font-bold mb-1 text-[9px] text-zinc-400 uppercase">Notes additionnelles:</h3>
+                                <p className="text-[9px] text-zinc-500 whitespace-pre-wrap leading-tight">{quote.notes}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <PrintFooter />
