@@ -164,13 +164,13 @@ export default function ClientOrdersPage() {
     }
   };
 
-  const renderPrice = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any) => {
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any, forceSimple = false) => {
     const itemRate = sourceItem?.exchangeRate || rate;
     
     let priceEur = priceCny * itemRate;
     
-    if (sourceItem?.items) {
-      // Logic identical to the PI preview: Sum of items (respecting manual EUR) + Transport + Commission
+    // Complex calculation only for totals if sourceItem has items
+    if (!forceSimple && sourceItem?.items) {
       const itemsSubTotalEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
@@ -189,7 +189,6 @@ export default function ClientOrdersPage() {
       
       priceEur = itemsSubTotalEur + transportEur + commissionEur;
     } else if (sourceItem?.unitPriceEur !== undefined) {
-      // For single line item displays
       const manualEur = Number(sourceItem.unitPriceEur || 0);
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
     }
@@ -219,8 +218,8 @@ export default function ClientOrdersPage() {
             <AlertCircle className="h-6 w-6" />
           </div>
           <div className="flex-grow">
-            <p className="font-black uppercase text-xs tracking-widest">Facture(s) en attente</p>
-            <p className="text-sm font-bold">Veuillez régulariser vos paiements pour débloquer l'expédition de vos marchandises.</p>
+            <p className="font-black uppercase text-xs tracking-widest">Action requise !</p>
+            <p className="text-sm font-bold">Vous avez {notificationCounts.invoices} facture(s) en attente de règlement. Veuillez régulariser pour débloquer vos expéditions.</p>
           </div>
           <Button size="sm" variant="destructive" className="font-black" onClick={() => {
             const el = document.querySelector('[data-value="invoices"]');
@@ -263,7 +262,7 @@ export default function ClientOrdersPage() {
                           <TableCell className="text-center">
                             {order.transportCost >= 0 ? (
                               <div className="inline-flex">
-                                {renderPrice(order.transportCost, "font-bold text-blue-600", order)}
+                                {renderPrice(order.transportCost, "font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)}
                               </div>
                             ) : (
                               <span className="text-zinc-300 italic">En attente</span>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
@@ -20,7 +19,7 @@ import { addOrder, getOrders, deleteOrder, updateOrderStatus, updateOrderPayment
 import { getQuotes, Quote } from '@/actions/quotes';
 import { getCustomers, Customer } from '@/actions/customers';
 import { getRegisteredClients, RegisteredClient } from '@/actions/registered-clients';
-import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator, Package, MapPin, CreditCard, ArrowRight, ShieldCheck, FileText } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Eye, Check, Sparkles, Calculator, Package, MapPin, CreditCard, ArrowRight, ShieldCheck, FileText, Coins } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Badge } from '@/components/ui/badge';
 import { CurrencyContext } from '@/context/currency-context';
@@ -225,10 +224,36 @@ export default function OrdersPage() {
     }
   };
 
-  const renderPrice = (priceCny: number, mainClass = "text-primary font-black") => {
-    const priceEur = priceCny * exchangeRate;
+  const renderPrice = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any, forceSimple = false) => {
+    const itemRate = sourceItem?.exchangeRate || exchangeRate;
+    
+    let priceEur = priceCny * itemRate;
+    
+    if (!forceSimple && sourceItem?.items) {
+      const itemsSubTotalEur = sourceItem.items.reduce((sum: number, item: any) => {
+        const manualEur = Number(item.unitPriceEur || 0);
+        const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
+        return sum + lineEur;
+      }, 0);
+      
+      const transportEur = (sourceItem.transportCost || 0) * itemRate;
+      const commissionRateValue = Number(sourceItem.commissionRate || 0);
+      
+      let commissionEur = 0;
+      if (sourceItem.commissionBasis === 'total') {
+        commissionEur = (itemsSubTotalEur + transportEur) * (commissionRateValue / 100);
+      } else {
+        commissionEur = itemsSubTotalEur * (commissionRateValue / 100);
+      }
+      
+      priceEur = itemsSubTotalEur + transportEur + commissionEur;
+    } else if (sourceItem?.unitPriceEur !== undefined) {
+      const manualEur = Number(sourceItem.unitPriceEur || 0);
+      priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
+    }
+
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col items-end leading-none">
         <div className={mainClass}>€{priceEur.toFixed(2)}</div>
         <div className="text-[10px] text-zinc-400 font-bold">¥{priceCny.toFixed(2)}</div>
       </div>
@@ -257,7 +282,7 @@ export default function OrdersPage() {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead className="text-center">Frais Port (CNY)</TableHead>
+            <TableHead className="text-center">Frais Port</TableHead>
             <TableHead className="text-center">Paiement</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -313,12 +338,15 @@ export default function OrdersPage() {
                     >
                       <Calculator className="h-4 w-4" />
                     </Button>
-                    <Input 
-                      type="number" 
-                      className={cn("w-20 h-8 text-xs text-center font-bold", isTransportDirty && "border-primary ring-1 ring-primary")}
-                      value={transportInputs[order.id] || ''}
-                      onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: e.target.value })}
-                    />
+                    <div className="flex flex-col items-center">
+                      <Input 
+                        type="number" 
+                        className={cn("w-20 h-8 text-xs text-center font-bold", isTransportDirty && "border-primary ring-1 ring-primary")}
+                        value={transportInputs[order.id] || ''}
+                        onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: e.target.value })}
+                      />
+                      {renderPrice(parseFloat(transportInputs[order.id] || '0'), "text-[9px] font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)}
+                    </div>
                     <Button 
                       size="icon" 
                       variant={isTransportDirty ? "default" : "ghost"}
@@ -330,7 +358,7 @@ export default function OrdersPage() {
                     </Button>
                   </div>
                 ) : (
-                  <span className={cn("text-xs font-bold", isLocked && "text-zinc-400")}>¥{(order.transportCost || 0).toFixed(2)}</span>
+                  renderPrice(order.transportCost || 0, "text-xs font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)
                 )}
               </TableCell>
               <TableCell className="text-center">
@@ -349,7 +377,7 @@ export default function OrdersPage() {
                 </Select>
               </TableCell>
               <TableCell className="text-right">
-                  {renderPrice(order.totalAmount, "font-black text-zinc-900")}
+                  {renderPrice(order.totalAmount, "font-black text-zinc-900", order)}
               </TableCell>
               <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -509,7 +537,7 @@ export default function OrdersPage() {
                 </div>
                 <div className="text-right space-y-1">
                   <span className="text-[10px] uppercase font-bold text-zinc-400">Total</span>
-                  <div>{renderPrice(selectedOrderPreview.totalAmount, "text-2xl font-black text-primary")}</div>
+                  <div>{renderPrice(selectedOrderPreview.totalAmount, "text-2xl font-black text-primary", selectedOrderPreview)}</div>
                 </div>
               </div>
               <div className="space-y-4">
@@ -541,7 +569,7 @@ export default function OrdersPage() {
                             {item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
-                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900")}</TableCell>
+                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: selectedOrderPreview.exchangeRate })}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
