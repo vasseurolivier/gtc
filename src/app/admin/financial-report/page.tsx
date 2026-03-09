@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useContext, useMemo } from 'react';
@@ -33,7 +34,7 @@ export default function FinancialReportPage() {
   const { currency, exchangeRate: globalRate } = currencyContext;
 
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated') || localStorage.getItem('isAdminAuthenticated');
+    const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
       return;

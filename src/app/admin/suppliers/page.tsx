@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -59,7 +58,7 @@ export default function SuppliersPage() {
   });
 
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated');
+    const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
     if (isAuthenticated !== 'true') {
       router.push('/admin/login');
       return;
@@ -239,7 +238,7 @@ export default function SuppliersPage() {
                           <FormLabel>Notes</FormLabel>
                           <FormControl>
                               <Textarea
-                              placeholder="Any relevant notes about this supplier..."
+                              placeholder="Any relevant notes about this customer..."
                               className="resize-y"
                               rows={4}
                               {...field}
