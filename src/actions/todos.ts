@@ -28,7 +28,21 @@ export interface Todo {
     type: "manual" | "auto_order";
     orderId?: string;
     createdAt: string;
+    updatedAt?: string;
 }
+
+/**
+ * Normalise les dates Firestore en chaînes ISO pour le transport sécurisé vers les composants client.
+ */
+const parseDate = (val: any) => {
+    if (!val) return new Date().toISOString();
+    if (typeof val.toDate === 'function') return val.toDate().toISOString();
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object' && 'seconds' in val) {
+        return new Date(val.seconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+};
 
 export async function addTodo(values: TodoFormValues) {
     try {
@@ -53,17 +67,22 @@ export async function getTodos(): Promise<Todo[]> {
         return {
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          createdAt: parseDate(data.createdAt),
+          updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
         } as Todo;
     });
   } catch (error) {
+    console.error("Error fetching todos:", error);
     return [];
   }
 }
 
 export async function updateTodoStatus(id: string, status: "pending" | "completed") {
     try {
-        await updateDoc(doc(db, 'todos', id), { status, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'todos', id), { 
+            status, 
+            updatedAt: serverTimestamp() 
+        });
         return { success: true };
     } catch (error: any) {
         return { success: false };
