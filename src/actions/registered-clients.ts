@@ -16,6 +16,7 @@ export interface RegisteredClient {
     exchangeRate?: number;
     status?: 'pending' | 'validated';
     createdAt: string;
+    updatedAt?: string;
     phone?: string;
     companyName?: string;
     address?: string;
@@ -23,14 +24,32 @@ export interface RegisteredClient {
     shippingFixedFee?: number;
 }
 
+/**
+ * Normalizes Firestore dates/timestamps into ISO strings for safe transport between server and client.
+ */
+const parseDate = (val: any) => {
+    if (!val) return new Date().toISOString();
+    if (typeof val.toDate === 'function') return val.toDate().toISOString();
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object' && 'seconds' in val) {
+        return new Date(val.seconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+};
+
 export async function getRegisteredClients(): Promise<RegisteredClient[]> {
     try {
         const q = query(collection(db, 'clients'), orderBy('createdAt', 'desc'));
         const snap = await getDocs(q);
-        return snap.docs.map(d => ({
-            id: d.id,
-            ...d.data()
-        } as RegisteredClient));
+        return snap.docs.map(d => {
+            const data = d.data();
+            return {
+                ...data,
+                id: d.id,
+                createdAt: parseDate(data.createdAt),
+                updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
+            } as RegisteredClient;
+        });
     } catch (e) {
         console.error("Error fetching registered clients:", e);
         return [];
@@ -42,7 +61,14 @@ export async function getRegisteredClientById(id: string): Promise<RegisteredCli
         const clientRef = doc(db, 'clients', id);
         const snap = await getDoc(clientRef);
         if (!snap.exists()) return null;
-        return { id: snap.id, ...snap.data() } as RegisteredClient;
+        
+        const data = snap.data();
+        return { 
+            ...data,
+            id: snap.id, 
+            createdAt: parseDate(data.createdAt),
+            updatedAt: data.updatedAt ? parseDate(data.updatedAt) : undefined,
+        } as RegisteredClient;
     } catch (e) {
         console.error("Error fetching client by id:", e);
         return null;
