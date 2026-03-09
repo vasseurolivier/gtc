@@ -79,10 +79,17 @@ export default function ClientOrdersPage() {
   }, [db, user]);
   const { data: linkedQuotes, isLoading: isQuotesLoading } = useCollection(linkedQuotesQuery);
 
-  const hasUnpaidInvoices = useMemo(() => {
-    if (!invoices) return false;
-    return invoices.some((inv: any) => inv.status !== 'paid' && inv.status !== 'cancelled');
+  const unpaidInvoices = useMemo(() => {
+    if (!invoices) return [];
+    return invoices.filter((inv: any) => inv.status !== 'paid' && inv.status !== 'cancelled');
   }, [invoices]);
+
+  const hasUnpaidInvoices = unpaidInvoices.length > 0;
+
+  const notificationCounts = useMemo(() => ({
+    invoices: unpaidInvoices.length,
+    quotes: linkedQuotes?.filter((q: any) => q.status === 'sent').length || 0,
+  }), [unpaidInvoices, linkedQuotes]);
 
   const sortedOrders = useMemo(() => {
     if (!orders) return [];
