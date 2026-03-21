@@ -137,6 +137,8 @@ export default function ClientDetailPage() {
   const [adminOrderBasis, setAdminOrderBasis] = useState<'products_only' | 'total'>('products_only');
   const [adminOrderAddress, setAdminOrderAddress] = useState('');
   const [isSubmittingAdminOrder, setIsSubmittingAdminOrder] = useState(false);
+  const [searchProductInOrder, setSearchProductInOrder] = useState('');
+  const [sortProductInOrder, setSortProductInOrder] = useState<'name_asc' | 'name_desc' | 'newest'>('name_asc');
 
   const [globalProducts, setGlobalProducts] = useState<GlobalProduct[]>([]);
   const [allSourcingProducts, setAllSourcingProducts] = useState<any[]>([]);
@@ -415,6 +417,25 @@ export default function ClientDetailPage() {
     });
     return result;
   }, [allSourcingProducts, sortBySourcing]);
+
+  // Special filtered list for the Order Creation dialog
+  const filteredProductsForOrder = useMemo(() => {
+    let result = allSourcingProducts.filter(p => p.status === 'published');
+    
+    if (searchProductInOrder) {
+      const s = searchProductInOrder.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)));
+    }
+
+    result.sort((a, b) => {
+      if (sortProductInOrder === 'name_asc') return a.name.localeCompare(b.name);
+      if (sortProductInOrder === 'name_desc') return b.name.localeCompare(a.name);
+      if (sortProductInOrder === 'newest') return (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      return 0;
+    });
+
+    return result;
+  }, [allSourcingProducts, searchProductInOrder, sortProductInOrder]);
 
   const handleUpdateProductData = async (productId: string, listId: string, data: any) => {
     setIsUpdatingProduct(productId);
@@ -1187,9 +1208,35 @@ export default function ClientDetailPage() {
           </DialogHeader>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-4">
             <div className="space-y-4">
-              <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Catalogue Privé</h4>
-              <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-2">
-                {allSourcingProducts.filter(p => p.status === 'published').map(p => (
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm uppercase tracking-widest text-zinc-400">Catalogue Privé</h4>
+                <div className="flex items-center gap-2">
+                  <SortAsc className="h-4 w-4 text-zinc-400" />
+                  <Select value={sortProductInOrder} onValueChange={(v: any) => setSortProductInOrder(v)}>
+                    <SelectTrigger className="h-8 w-32 text-[10px] font-bold">
+                      <SelectValue placeholder="Trier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name_asc" className="text-[10px]">Nom (A-Z)</SelectItem>
+                      <SelectItem value="name_desc" className="text-[10px]">Nom (Z-A)</SelectItem>
+                      <SelectItem value="newest" className="text-[10px]">Plus récent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <Input 
+                  placeholder="Chercher par nom ou SKU..." 
+                  className="pl-8 h-9 text-xs" 
+                  value={searchProductInOrder}
+                  onChange={(e) => setSearchProductInOrder(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2">
+                {filteredProductsForOrder.map(p => (
                   <Card key={p.id} className="p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded border bg-zinc-50 overflow-hidden shrink-0">
@@ -1204,6 +1251,9 @@ export default function ClientDetailPage() {
                     <Button size="sm" variant="outline" onClick={() => addToAdminBasket(p)} className="h-8 text-[10px] font-black">AJOUTER</Button>
                   </Card>
                 ))}
+                {filteredProductsForOrder.length === 0 && (
+                  <div className="p-8 text-center text-zinc-400 italic text-xs">Aucun produit trouvé.</div>
+                )}
               </div>
             </div>
 
