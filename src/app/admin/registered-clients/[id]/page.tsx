@@ -118,7 +118,7 @@ export default function ClientDetailPage() {
   const [isUpdatingFinance, setIsUpdatingFinance] = useState<string | null>(null);
   const [isSyncingPI, setIsSyncingPI] = useState<string | null>(null);
   
-  const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
+  const [transportInputs, setTransportInputs] = useState<Record<string, { value: string, currency: 'CNY' | 'EUR' }>>({});
   const [commissionInputs, setCommissionInputs] = useState<Record<string, string>>({});
   const [basisInputs, setBasisInputs] = useState<Record<string, 'products_only' | 'total'>>({});
   
@@ -267,11 +267,11 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     if (orders) {
-      const t: Record<string, string> = {}; 
+      const t: Record<string, { value: string, currency: 'CNY' | 'EUR' }> = {}; 
       const c: Record<string, string> = {}; 
       const b: Record<string, 'products_only' | 'total'> = {};
       orders.forEach(o => {
-        t[o.id] = (o.transportCost || 0).toString();
+        t[o.id] = { value: (o.transportCost || 0).toString(), currency: 'CNY' };
         c[o.id] = (o.commissionRate || 0).toString();
         b[o.id] = o.commissionBasis || 'products_only';
       });
@@ -295,11 +295,18 @@ export default function ClientDetailPage() {
   };
 
   const handleUpdateFinance = async (orderId: string) => {
-    const t = parseFloat(transportInputs[orderId] || '0');
+    const transportInput = transportInputs[orderId];
+    const tValue = parseFloat(transportInput?.value || '0');
     const c = parseFloat(commissionInputs[orderId] || '0');
     const b = basisInputs[orderId] || 'products_only';
+    
     setIsUpdatingFinance(orderId);
-    const res = await updateOrderFinancials(orderId, { transportCost: t, commissionRate: c, commissionBasis: b });
+    const res = await updateOrderFinancials(orderId, { 
+        transportCost: tValue, 
+        transportCurrency: transportInput?.currency || 'CNY',
+        commissionRate: c, 
+        commissionBasis: b 
+    });
     setIsUpdatingFinance(null);
     if (res.success) toast({ title: "Données financières sauvées" });
   };
@@ -547,7 +554,7 @@ export default function ClientDetailPage() {
   const applyCalculatedCost = () => {
     const total = (calcWeight * calcRate) + calcFixed;
     if (calcTargetId) {
-      setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+      setTransportInputs(prev => ({ ...prev, [calcTargetId]: { ...prev[calcTargetId], value: total.toFixed(2), currency: 'CNY' } }));
     } else {
       setAdminOrderTransport(total.toFixed(2));
     }
@@ -659,28 +666,26 @@ export default function ClientDetailPage() {
     const clientExchangeRate = parseFloat(clientRate) || exchangeRate;
     const itemRate = sourceItem?.exchangeRate || clientExchangeRate;
     
-    // Header totals must use manual pricing if available
     let priceEur = priceCny * itemRate;
     
     if (sourceItem?.items) {
-      // Calculate from lines
       priceEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
         return sum + lineEur;
       }, 0);
       
-      const transportCny = Number(sourceItem.transportCost || 0);
-      const transportEur = transportCny * itemRate;
-      const commRate = Number(sourceItem.commissionRate || 0);
+      const transportCnyValue = Number(sourceItem.transportCost || 0);
+      const transportEurValue = transportCnyValue * itemRate;
+      const commRateValue = Number(sourceItem.commissionRate || 0);
       
-      let commEur = 0;
+      let commEurValue = 0;
       if (sourceItem.commissionBasis === 'total') {
-        commEur = (priceEur + transportEur) * (commRate / 100);
+        commEurValue = (priceEur + transportEurValue) * (commRateValue / 100);
       } else {
-        commEur = priceEur * (commRate / 100);
+        commEurValue = priceEur * (commRateValue / 100);
       }
-      priceEur = priceEur + commEur + transportEur;
+      priceEur = priceEur + commEurValue + transportEurValue;
     } else if (sourceItem?.unitPriceEur !== undefined) {
       const manualEur = Number(sourceItem.unitPriceEur || 0);
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
@@ -831,7 +836,7 @@ export default function ClientDetailPage() {
                       <TableRow>
                         <TableHead className="pl-6">Order #</TableHead>
                         <TableHead>Statut</TableHead>
-                        <TableHead>Port (CNY)</TableHead>
+                        <TableHead>Port</TableHead>
                         <TableHead>Comm (%)</TableHead>
                         <TableHead>Paiement</TableHead>
                         <TableHead className="text-right">Total</TableHead>
@@ -841,6 +846,7 @@ export default function ClientDetailPage() {
                     <TableBody>
                       {sortedOrders.map(o => {
                         const linkedPI = sortedQuotes.find(q => q.orderId === o.id);
+                        const transportInput = transportInputs[o.id];
                         return (
                           <TableRow key={o.id}>
                             <TableCell className="font-black pl-6">{o.orderNumber}</TableCell>
@@ -862,9 +868,20 @@ export default function ClientDetailPage() {
                                 </Select>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-1">
-                                <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInputs[o.id] || ''} onChange={e => setTransportInputs({...transportInputs, [o.id]: e.target.value})} />
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCalculator(o)}><Calculator className="h-3 w-3" /></Button>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex gap-1">
+                                  <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInput?.value || ''} onChange={e => setTransportInputs({...transportInputs, [o.id]: {...transportInput, value: e.target.value}})} />
+                                  <Select value={transportInput?.currency || 'CNY'} onValueChange={(val: any) => setTransportInputs({...transportInputs, [o.id]: {...transportInput, currency: val}})}>
+                                    <SelectTrigger className="w-10 h-7 p-1 text-[10px]">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="CNY">¥</SelectItem>
+                                      <SelectItem value="EUR">€</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <Button size="icon" variant="ghost" className="h-6 w-full text-zinc-400" onClick={() => openCalculator(o)}><Calculator className="h-3 w-3" /></Button>
                               </div>
                             </TableCell>
                             <TableCell>

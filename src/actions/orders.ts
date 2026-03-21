@@ -18,7 +18,7 @@ const orderItemSchema = z.object({
   total: z.coerce.number().nonnegative("Total cannot be negative."),
   photo: z.string().optional(),
   size: z.string().optional().nullable(),
-  isPersonalized: z.boolean().optional(),
+  isPersonalized: b.boolean().optional(),
   weight: z.coerce.number().optional().default(0),
 });
 
@@ -96,6 +96,15 @@ export async function addOrder(quote: Quote) {
             const finalOrder = { ...newOrderData, id: docRef.id } as unknown as Order;
             await addInvoiceFromOrder(finalOrder);
         }
+        
+        // Link quote to new order
+        await updateDoc(doc(db, 'quotes', quote.id), { orderId: docRef.id });
+        const clientQuoteRef = doc(db, 'clients', quote.customerId, 'quotes', quote.id);
+        const clientQuoteSnap = await getDoc(clientQuoteRef);
+        if (clientQuoteSnap.exists()) {
+            await updateDoc(clientQuoteRef, { orderId: docRef.id });
+        }
+
         return { success: true, message: 'Order created successfully!', id: docRef.id };
     } catch (error: any) {
         console.error("Error creating order:", error);
@@ -113,29 +122,43 @@ export async function updateOrder(id: string, values: Partial<Order>) {
     }
 }
 
-export async function updateOrderFinancials(id: string, financials: { transportCost?: number, commissionRate?: number, commissionBasis?: 'products_only' | 'total' }) {
+export async function updateOrderFinancials(id: string, financials: { 
+    transportCost?: number, 
+    transportCurrency?: 'CNY' | 'EUR',
+    commissionRate?: number, 
+    commissionBasis?: 'products_only' | 'total' 
+}) {
     try {
         const orderRef = doc(db, 'orders', id);
         const orderSnap = await getDoc(orderRef);
         if (!orderSnap.exists()) return { success: false, message: "Order not found." };
         
         const data = orderSnap.data();
+        const effectiveRate = data.exchangeRate || 0.13;
         const itemsTotal = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
         
-        const cost = financials.transportCost !== undefined ? financials.transportCost : (data.transportCost || 0);
+        let costCny = data.transportCost || 0;
+        if (financials.transportCost !== undefined) {
+            if (financials.transportCurrency === 'EUR') {
+                costCny = financials.transportCost / effectiveRate;
+            } else {
+                costCny = financials.transportCost;
+            }
+        }
+
         const rate = financials.commissionRate !== undefined ? financials.commissionRate : (data.commissionRate || 0);
         const basis = financials.commissionBasis !== undefined ? financials.commissionBasis : (data.commissionBasis || 'products_only');
 
         let newTotal = 0;
         if (basis === 'total') {
-            newTotal = (itemsTotal + cost) * (1 + rate / 100);
+            newTotal = (itemsTotal + costCny) * (1 + rate / 100);
         } else {
             const commissionAmount = itemsTotal * (rate / 100);
-            newTotal = itemsTotal + commissionAmount + cost;
+            newTotal = itemsTotal + commissionAmount + costCny;
         }
 
         const updatePayload = { 
-            transportCost: cost,
+            transportCost: costCny,
             commissionRate: rate,
             commissionBasis: basis,
             totalAmount: newTotal,
@@ -153,12 +176,13 @@ export async function updateOrderFinancials(id: string, financials: { transportC
 
         return { success: true, message: 'Finance updated.', newTotal };
     } catch (error: any) {
+        console.error("updateOrderFinancials error:", error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
 
-export async function updateOrderTransportCost(id: string, cost: number) {
-    return updateOrderFinancials(id, { transportCost: cost });
+export async function updateOrderTransportCost(id: string, cost: number, currency: 'CNY' | 'EUR' = 'CNY') {
+    return updateOrderFinancials(id, { transportCost: cost, transportCurrency: currency });
 }
 
 export async function updateOrderFromQuote(quote: Quote) {

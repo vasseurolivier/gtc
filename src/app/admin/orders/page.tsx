@@ -47,7 +47,7 @@ export default function OrdersPage() {
   const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false);
 
   const [isUpdatingTransport, setIsUpdatingTransport] = useState<string | null>(null);
-  const [transportInputs, setTransportInputs] = useState<Record<string, string>>({});
+  const [transportInputs, setTransportInputs] = useState<Record<string, { value: string, currency: 'CNY' | 'EUR' }>>({});
   
   const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [calcWeight, setCalcWeight] = useState(0);
@@ -96,9 +96,9 @@ export default function OrdersPage() {
         setCustomers(fetchedCustomers);
         setRegisteredClients(fetchedRegistered);
         
-        const inputs: Record<string, string> = {};
+        const inputs: Record<string, { value: string, currency: 'CNY' | 'EUR' }> = {};
         fetchedOrders.forEach(o => {
-          inputs[o.id] = (o.transportCost || 0).toString();
+          inputs[o.id] = { value: (o.transportCost || 0).toString(), currency: 'CNY' };
         });
         setTransportInputs(inputs);
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
@@ -159,17 +159,18 @@ export default function OrdersPage() {
   };
 
   const handleUpdateTransportCost = async (orderId: string) => {
-    const rawValue = transportInputs[orderId];
-    const cost = rawValue === "" ? 0 : parseFloat(rawValue || '0');
+    const input = transportInputs[orderId];
+    const cost = input?.value === "" ? 0 : parseFloat(input?.value || '0');
     if (isNaN(cost)) return;
 
     setIsUpdatingTransport(orderId);
-    const result = await updateOrderTransportCost(orderId, cost);
+    const result = await updateOrderTransportCost(orderId, cost, input?.currency || 'CNY');
     setIsUpdatingTransport(null);
 
     if (result.success) {
       toast({ title: "Succès", description: "Frais de transport mis à jour." });
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, transportCost: cost, totalAmount: (result.newTotal || o.totalAmount) as number } : o));
+      const refreshedOrders = await getOrders();
+      setOrders(refreshedOrders);
     } else {
       toast({ variant: "destructive", title: "Erreur", description: result.message });
     }
@@ -195,7 +196,7 @@ export default function OrdersPage() {
   const applyCalculatedCost = () => {
     if (!calcTargetId) return;
     const total = (calcWeight * calcRate) + calcFixed;
-    setTransportInputs(prev => ({ ...prev, [calcTargetId]: total.toFixed(2) }));
+    setTransportInputs(prev => ({ ...prev, [calcTargetId]: { value: total.toFixed(2), currency: 'CNY' } }));
     setIsCalcOpen(false);
     toast({ title: "Calcul appliqué", description: "Cliquez sur l'icône de validation (V) pour enregistrer." });
   };
@@ -294,7 +295,8 @@ export default function OrdersPage() {
           const orderCreatedDate = parseSafeDate(order.createdAt);
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
-          const isTransportDirty = (transportInputs[order.id] || "0") !== (order.transportCost || 0).toString();
+          const currentTransport = transportInputs[order.id];
+          const isTransportDirty = currentTransport?.value !== (order.transportCost || 0).toString();
           const linkedQuote = quotes.find(q => q.orderId === order.id);
           const isLocked = linkedQuote && (linkedQuote.status === 'accepted' || linkedQuote.status === 'paid');
 
@@ -338,14 +340,28 @@ export default function OrdersPage() {
                     >
                       <Calculator className="h-4 w-4" />
                     </Button>
-                    <div className="flex flex-col items-center">
-                      <Input 
-                        type="number" 
-                        className={cn("w-20 h-8 text-xs text-center font-bold", isTransportDirty && "border-primary ring-1 ring-primary")}
-                        value={transportInputs[order.id] || ''}
-                        onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: e.target.value })}
-                      />
-                      {renderPrice(parseFloat(transportInputs[order.id] || '0'), "text-[9px] font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-1">
+                        <Input 
+                          type="number" 
+                          className={cn("w-20 h-8 text-xs text-center font-bold", isTransportDirty && "border-primary ring-1 ring-primary")}
+                          value={currentTransport?.value || ''}
+                          onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: { ...currentTransport, value: e.target.value } })}
+                        />
+                        <Select 
+                          value={currentTransport?.currency || 'CNY'} 
+                          onValueChange={(val: any) => setTransportInputs({ ...transportInputs, [order.id]: { ...currentTransport, currency: val } })}
+                        >
+                          <SelectTrigger className="w-14 h-8 text-[10px] p-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CNY">¥</SelectItem>
+                            <SelectItem value="EUR">€</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {renderPrice(parseFloat(currentTransport?.value || '0'), "text-[9px] font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)}
                     </div>
                     <Button 
                       size="icon" 

@@ -21,7 +21,8 @@ import {
   ArrowRight,
   Clock,
   CheckCircle2,
-  ListChecks
+  ListChecks,
+  Coins
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useMemo, useContext } from 'react';
@@ -84,7 +85,38 @@ export default function ClientOrdersPage() {
     return invoices.filter((inv: any) => inv.status !== 'paid' && inv.status !== 'cancelled');
   }, [invoices]);
 
-  const hasUnpaidInvoices = unpaidInvoices.length > 0;
+  const validatedQuotes = useMemo(() => {
+    if (!linkedQuotes) return [];
+    return linkedQuotes.filter((q: any) => q.status === 'accepted');
+  }, [linkedQuotes]);
+
+  const totalToPay = useMemo(() => {
+    return validatedQuotes.reduce((acc, q) => {
+      const qRate = q.exchangeRate || rate;
+      const qCny = Number(q.totalAmount || 0);
+      
+      const qItemsEur = q.items.reduce((sum: number, i: any) => {
+        const mEur = Number(i.unitPriceEur || 0);
+        return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * qRate));
+      }, 0);
+      
+      const transportEur = (q.transportCost || 0) * qRate;
+      const commRate = Number(q.commissionRate || 0);
+      
+      let commEur = 0;
+      if (q.commissionBasis === 'total') {
+        commEur = (qItemsEur + transportEur) * (commRate / 100);
+      } else {
+        commEur = qItemsEur * (commRate / 100);
+      }
+      
+      const qEur = qItemsEur + transportEur + commEur;
+      
+      acc.cny += qCny;
+      acc.eur += qEur;
+      return acc;
+    }, { cny: 0, eur: 0 });
+  }, [validatedQuotes, rate]);
 
   const notificationCounts = useMemo(() => ({
     invoices: unpaidInvoices.length,
@@ -176,7 +208,6 @@ export default function ClientOrdersPage() {
     
     let priceEur = priceCny * itemRate;
     
-    // Complex calculation only for totals if sourceItem has items
     if (!forceSimple && sourceItem?.items) {
       const itemsSubTotalEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
@@ -219,7 +250,7 @@ export default function ClientOrdersPage() {
         </div>
       </div>
 
-      {hasUnpaidInvoices && (
+      {notificationCounts.invoices > 0 && (
         <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center gap-4 text-red-700 animate-in fade-in slide-in-from-top-4 duration-500 ring-2 ring-red-500 ring-offset-2 animate-pulse">
           <div className="h-10 w-10 bg-red-500 text-white rounded-full flex items-center justify-center shrink-0">
             <AlertCircle className="h-6 w-6" />
@@ -298,24 +329,51 @@ export default function ClientOrdersPage() {
         </TabsContent>
 
         <TabsContent value="quotes" className="mt-6">
-          <div className="mb-4 flex items-center justify-between px-2">
-            <h3 className="font-bold text-zinc-500 uppercase text-xs tracking-widest flex items-center gap-2">
-              <ListChecks className="h-4 w-4" /> Devis en attente
-            </h3>
-            {selectedQuoteIds.length > 0 && (
-              <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4">
-                <span className="text-xs font-black text-primary">{selectedQuoteIds.length} sélectionné(s)</span>
-                <Button 
-                  size="sm" 
-                  className="bg-zinc-900 hover:bg-black text-white font-black h-9 px-6 rounded-xl"
-                  onClick={handleBulkValidate}
-                  disabled={isBulkValidating}
-                >
-                  {isBulkValidating ? <Loader2 className="animate-spin h-4 w-4" /> : <><CheckCircle2 className="h-4 w-4 mr-2" /> TOUT VALIDER</>}
-                </Button>
-              </div>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <Card className="border-none shadow-sm bg-zinc-900 text-white overflow-hidden">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Total en attente de règlement</p>
+                  <p className="text-[8px] text-zinc-500 uppercase mt-1">Cumul des Proformas validées (Accepted)</p>
+                  <div className="mt-2">
+                    {currencyPreference === 'EUR' ? (
+                      <p className="text-2xl font-black text-primary">€{totalToPay.eur.toFixed(2)}</p>
+                    ) : currencyPreference === 'CNY' ? (
+                      <p className="text-2xl font-black text-primary">¥{totalToPay.cny.toFixed(2)}</p>
+                    ) : (
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-2xl font-black text-primary">€{totalToPay.eur.toFixed(2)}</span>
+                        <span className="text-sm font-bold text-zinc-400">¥{totalToPay.cny.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                  <Coins className="h-6 w-6 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex items-center justify-between px-2 self-end">
+              <h3 className="font-bold text-zinc-500 uppercase text-xs tracking-widest flex items-center gap-2">
+                <ListChecks className="h-4 w-4" /> Devis en attente de validation
+              </h3>
+              {selectedQuoteIds.length > 0 && (
+                <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4">
+                  <span className="text-xs font-black text-primary">{selectedQuoteIds.length} sélectionné(s)</span>
+                  <Button 
+                    size="sm" 
+                    className="bg-zinc-900 hover:bg-black text-white font-black h-9 px-6 rounded-xl"
+                    onClick={handleBulkValidate}
+                    disabled={isBulkValidating}
+                  >
+                    {isBulkValidating ? <Loader2 className="animate-spin h-4 w-4" /> : <><CheckCircle2 className="h-4 w-4 mr-2" /> TOUT VALIDER</>}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
+
           <Card className="border-none shadow-md bg-white">
             <CardContent className="p-0">
               {isQuotesLoading ? <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> : sortedQuotes.length > 0 ? (
