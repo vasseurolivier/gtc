@@ -1667,9 +1667,9 @@ export default function ClientDetailPage() {
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-400">Frais de Port :</span>
                       {currencyPref === 'EUR' ? (
-                        <span className="font-black text-blue-400">€{selectedOrderPreview.transportCostEur?.toFixed(2) || (selectedOrderPreview.transportCost * (selectedOrderPreview.exchangeRate || exchangeRate)).toFixed(2)}</span>
+                        <span className="font-black text-blue-400">€{selectedOrderPreview.transportCostEur?.toFixed(2) || ((selectedOrderPreview.transportCost || 0) * (selectedOrderPreview.exchangeRate || exchangeRate)).toFixed(2)}</span>
                       ) : (
-                        <span className="font-black text-blue-400">¥{selectedOrderPreview.transportCost?.toFixed(2) || '0.00'}</span>
+                        <span className="font-black text-blue-400">¥{(selectedOrderPreview.transportCost || 0).toFixed(2)}</span>
                       )}
                     </div>
                     <div className="flex justify-between items-center text-xs">
@@ -1688,7 +1688,7 @@ export default function ClientDetailPage() {
                       <span className="font-black uppercase text-xs">Total TTC</span>
                       <div className="text-right">
                         <div className="text-2xl font-black text-primary">
-                          {currencyPref === 'CNY' ? `¥${selectedOrderPreview.totalAmount?.toFixed(2)}` : (
+                          {currencyPref === 'CNY' ? `¥${(selectedOrderPreview.totalAmount || 0).toFixed(2)}` : (
                             <>
                               <div className="text-2xl font-black text-primary">€{(() => {
                                 const effectiveRate = (selectedOrderPreview as any).exchangeRate || exchangeRate;
@@ -1700,7 +1700,7 @@ export default function ClientDetailPage() {
                                 const cr = Number(selectedOrderPreview.commissionRate || 0);
                                 return selectedOrderPreview.commissionBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
                               })()}</div>
-                              {currencyPref === 'BOTH' && <div className="text-xs font-bold text-zinc-400">¥{selectedOrderPreview.totalAmount?.toFixed(2)}</div>}
+                              {currencyPref === 'BOTH' && <div className="text-xs font-bold text-zinc-400">¥{(selectedOrderPreview.totalAmount || 0).toFixed(2)}</div>}
                             </>
                           )}
                         </div>
