@@ -39,12 +39,13 @@ export interface Order {
     createdAt: string;
     updatedAt?: string;
     transportCost?: number;
+    transportCostEur?: number;
     commissionRate?: number;
     commissionBasis?: 'products_only' | 'total';
     paymentStatus: PaymentStatus;
     depositRequired?: boolean;
     depositPercentage?: number;
-    exchangeRate: number; // Stored at creation to freeze EUR price
+    exchangeRate: number; 
 }
 
 const parseDate = (val: any) => {
@@ -70,12 +71,12 @@ export async function addOrder(quote: Quote) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             unitPriceEur: item.unitPriceEur || 0,
-            purchasePrice: (item as any).purchasePrice || 0,
+            purchasePrice: item.purchasePrice || 0,
             total: item.total,
             photo: item.photo || '',
             size: (item as any).size || null,
             isPersonalized: (item as any).isPersonalized || false,
-            weight: (item as any).weight || 0
+            weight: item.weight || 0
           })),
           totalAmount: quote.totalAmount,
           status: "processing" as const,
@@ -83,6 +84,7 @@ export async function addOrder(quote: Quote) {
           orderDate: serverTimestamp(),
           createdAt: serverTimestamp(),
           transportCost: quote.transportCost || 0,
+          transportCostEur: (quote as any).transportCostEur || 0,
           commissionRate: quote.commissionRate || 0,
           commissionBasis: quote.commissionBasis || 'products_only',
           paymentStatus: (quote.status === 'paid' ? 'paid' : 'unpaid') as PaymentStatus,
@@ -97,7 +99,6 @@ export async function addOrder(quote: Quote) {
             await addInvoiceFromOrder(finalOrder);
         }
         
-        // Link quote to new order
         await updateDoc(doc(db, 'quotes', quote.id), { orderId: docRef.id });
         const clientQuoteRef = doc(db, 'clients', quote.customerId, 'quotes', quote.id);
         const clientQuoteSnap = await getDoc(clientQuoteRef);
@@ -135,33 +136,38 @@ export async function updateOrderFinancials(id: string, financials: {
         
         const data = orderSnap.data();
         const effectiveRate = data.exchangeRate || 0.13;
-        const itemsTotal = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
+        const itemsTotalCny = (data.items || []).reduce((sum: number, item: any) => sum + (Number(item.total) || 0), 0);
         
         let costCny = data.transportCost || 0;
+        let costEur = data.transportCostEur || 0;
+
         if (financials.transportCost !== undefined) {
             if (financials.transportCurrency === 'EUR') {
-                costCny = financials.transportCost / effectiveRate;
+                costEur = financials.transportCost;
+                costCny = costEur / effectiveRate;
             } else {
                 costCny = financials.transportCost;
+                costEur = costCny * effectiveRate;
             }
         }
 
         const rate = financials.commissionRate !== undefined ? financials.commissionRate : (data.commissionRate || 0);
         const basis = financials.commissionBasis !== undefined ? financials.commissionBasis : (data.commissionBasis || 'products_only');
 
-        let newTotal = 0;
+        let newTotalCny = 0;
         if (basis === 'total') {
-            newTotal = (itemsTotal + costCny) * (1 + rate / 100);
+            newTotalCny = (itemsTotalCny + costCny) * (1 + rate / 100);
         } else {
-            const commissionAmount = itemsTotal * (rate / 100);
-            newTotal = itemsTotal + commissionAmount + costCny;
+            const commissionAmount = itemsTotalCny * (rate / 100);
+            newTotalCny = itemsTotalCny + commissionAmount + costCny;
         }
 
         const updatePayload = { 
             transportCost: costCny,
+            transportCostEur: costEur,
             commissionRate: rate,
             commissionBasis: basis,
-            totalAmount: newTotal,
+            totalAmount: newTotalCny,
             updatedAt: serverTimestamp()
         };
 
@@ -174,7 +180,7 @@ export async function updateOrderFinancials(id: string, financials: {
             await addInvoiceFromOrder(finalOrder, invoiceSnap.docs[0].id);
         }
 
-        return { success: true, message: 'Finance updated.', newTotal };
+        return { success: true, message: 'Finance updated.', newTotal: newTotalCny };
     } catch (error: any) {
         console.error("updateOrderFinancials error:", error);
         return { success: false, message: 'An unexpected error occurred.' };
@@ -203,16 +209,17 @@ export async function updateOrderFromQuote(quote: Quote) {
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 unitPriceEur: item.unitPriceEur || 0,
-                purchasePrice: (item as any).purchasePrice || 0,
+                purchasePrice: item.purchasePrice || 0,
                 total: item.total,
-                photo: (item as any).photo || '',
+                photo: item.photo || '',
                 size: (item as any).size || null,
                 isPersonalized: (item as any).isPersonalized || false,
-                weight: (item as any).weight || 0
+                weight: item.weight || 0
             })),
             totalAmount: quote.totalAmount,
             shippingAddress: quote.shippingAddress || "",
             transportCost: quote.transportCost || 0,
+            transportCostEur: (quote as any).transportCostEur || 0,
             commissionRate: quote.commissionRate || 0,
             commissionBasis: quote.commissionBasis || 'products_only',
             depositRequired: quote.depositRequired || false,

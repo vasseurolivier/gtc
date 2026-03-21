@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -100,7 +99,7 @@ export default function ClientOrdersPage() {
         return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * qRate));
       }, 0);
       
-      const transportEur = (q.transportCost || 0) * qRate;
+      const transportEur = q.transportCostEur || (q.transportCost || 0) * qRate;
       const commRate = Number(q.commissionRate || 0);
       
       let commEur = 0;
@@ -111,7 +110,7 @@ export default function ClientOrdersPage() {
       }
       
       const qEur = qItemsEur + transportEur + commEur;
-      const qCny = qEur / qRate; // On reboucle sur le CNY total contractuel pour la PI
+      const qCny = qEur / qRate; 
       
       acc.cny += qCny;
       acc.eur += qEur;
@@ -216,7 +215,7 @@ export default function ClientOrdersPage() {
         return sum + lineEur;
       }, 0);
       
-      const transportEur = (sourceItem.transportCost || 0) * itemRate;
+      const transportEur = sourceItem.transportCostEur || (sourceItem.transportCost || 0) * itemRate;
       const commissionRateValue = Number(sourceItem.commissionRate || 0);
       
       let commissionEur = 0;
@@ -299,9 +298,9 @@ export default function ClientOrdersPage() {
                           <TableCell className="text-xs">{order.orderDate ? format(parseSafeDate(order.orderDate), 'dd/MM/yyyy') : '-'}</TableCell>
                           <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
                           <TableCell className="text-center">
-                            {order.transportCost >= 0 ? (
+                            {order.transportCost >= 0 || order.transportCostEur >= 0 ? (
                               <div className="inline-flex">
-                                {renderPrice(order.transportCost, "font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)}
+                                {renderPrice(order.transportCost || 0, "font-bold text-blue-600", { ...order, items: undefined }, true)}
                               </div>
                             ) : (
                               <span className="text-zinc-300 italic">En attente</span>
@@ -493,7 +492,7 @@ export default function ClientOrdersPage() {
                               {item.photo ? (
                                 <img src={item.photo} alt="Produit" className="w-full h-full object-contain" />
                               ) : (
-                                <Package className="h-4 w-4 text-zinc-300" />
+                                <Package className="h-4 w-4 text-zinc-200" />
                               )}
                             </div>
                           </TableCell>
@@ -502,7 +501,7 @@ export default function ClientOrdersPage() {
                             {item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
-                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: selectedOrderPreview.exchangeRate })}</TableCell>
+                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900", { ...item, customerId: selectedOrderPreview.customerId, exchangeRate: selectedOrderPreview.exchangeRate })}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

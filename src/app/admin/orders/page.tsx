@@ -98,14 +98,17 @@ export default function OrdersPage() {
         
         const inputs: Record<string, { value: string, currency: 'CNY' | 'EUR' }> = {};
         fetchedOrders.forEach(o => {
-          inputs[o.id] = { value: (o.transportCost || 0).toString(), currency: 'CNY' };
+          const client = fetchedRegistered.find(c => c.id === o.customerId);
+          const pref = client?.currencyPreference || 'BOTH';
+          const costValue = pref === 'EUR' ? (o.transportCostEur || (o.transportCost || 0) * (o.exchangeRate || exchangeRate)).toFixed(2) : (o.transportCost || 0).toString();
+          inputs[o.id] = { value: costValue, currency: pref === 'EUR' ? 'EUR' : 'CNY' };
         });
         setTransportInputs(inputs);
       } catch (error) { toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch data.' });
       } finally { setIsLoading(false); }
     }
     fetchData();
-  }, [router, toast]);
+  }, [router, toast, exchangeRate]);
   
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -227,6 +230,8 @@ export default function OrdersPage() {
 
   const renderPrice = (priceCny: number, mainClass = "text-primary font-black", sourceItem?: any, forceSimple = false) => {
     const itemRate = sourceItem?.exchangeRate || exchangeRate;
+    const client = registeredClients.find(c => c.id === sourceItem?.customerId);
+    const pref = client?.currencyPreference || 'BOTH';
     
     let priceEur = priceCny * itemRate;
     
@@ -237,7 +242,7 @@ export default function OrdersPage() {
         return sum + lineEur;
       }, 0);
       
-      const transportEur = (sourceItem.transportCost || 0) * itemRate;
+      const transportEur = sourceItem.transportCostEur || (sourceItem.transportCost || 0) * itemRate;
       const commissionRateValue = Number(sourceItem.commissionRate || 0);
       
       let commissionEur = 0;
@@ -252,6 +257,9 @@ export default function OrdersPage() {
       const manualEur = Number(sourceItem.unitPriceEur || 0);
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
     }
+
+    if (pref === 'EUR') return <div className={mainClass}>€{priceEur.toFixed(2)}</div>;
+    if (pref === 'CNY') return <div className={mainClass}>¥{priceCny.toFixed(2)}</div>;
 
     return (
       <div className="flex flex-col items-end leading-none">
@@ -296,9 +304,11 @@ export default function OrdersPage() {
           const isVeryRecent = (Date.now() - orderCreatedDate.getTime()) < 3600000;
           const isNewNotification = isVeryRecent && !isArchived && order.status === 'processing';
           const currentTransport = transportInputs[order.id];
-          const isTransportDirty = currentTransport?.value !== (order.transportCost || 0).toString();
+          const isTransportDirty = currentTransport?.value !== (order.transportCost || 0).toString() && currentTransport?.value !== (order.transportCostEur || 0).toString();
           const linkedQuote = quotes.find(q => q.orderId === order.id);
           const isLocked = linkedQuote && (linkedQuote.status === 'accepted' || linkedQuote.status === 'paid');
+          const client = registeredClients.find(c => c.id === order.customerId);
+          const pref = client?.currencyPreference || 'BOTH';
 
           return (
             <TableRow key={order.id} className={cn(isNewNotification && "bg-primary/5")}>
@@ -349,7 +359,7 @@ export default function OrdersPage() {
                           onChange={(e) => setTransportInputs({ ...transportInputs, [order.id]: { ...currentTransport, value: e.target.value } })}
                         />
                         <Select 
-                          value={currentTransport?.currency || 'CNY'} 
+                          value={currentTransport?.currency || (pref === 'EUR' ? 'EUR' : 'CNY')} 
                           onValueChange={(val: any) => setTransportInputs({ ...transportInputs, [order.id]: { ...currentTransport, currency: val } })}
                         >
                           <SelectTrigger className="w-14 h-8 text-[10px] p-1">
@@ -361,7 +371,6 @@ export default function OrdersPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {renderPrice(parseFloat(currentTransport?.value || '0'), "text-[9px] font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)}
                     </div>
                     <Button 
                       size="icon" 
@@ -374,7 +383,9 @@ export default function OrdersPage() {
                     </Button>
                   </div>
                 ) : (
-                  renderPrice(order.transportCost || 0, "text-xs font-bold text-blue-600", { exchangeRate: order.exchangeRate }, true)
+                  <div className="flex justify-center">
+                    {renderPrice(order.transportCost || 0, "text-xs font-bold text-blue-600", { ...order, items: undefined }, true)}
+                  </div>
                 )}
               </TableCell>
               <TableCell className="text-center">
@@ -576,7 +587,7 @@ export default function OrdersPage() {
                               {item.photo ? (
                                 <img src={item.photo} alt="Produit" className="w-full h-full object-contain" />
                               ) : (
-                                <Package className="h-4 w-4 text-zinc-300" />
+                                <Package className="h-4 w-4 text-zinc-200" />
                               )}
                             </div>
                           </TableCell>
@@ -585,7 +596,7 @@ export default function OrdersPage() {
                             {item.sku && <div className="text-[10px] text-zinc-400 font-mono">{item.sku}</div>}
                           </TableCell>
                           <TableCell className="py-2 text-center font-bold">{item.quantity}</TableCell>
-                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900", { ...item, exchangeRate: selectedOrderPreview.exchangeRate })}</TableCell>
+                          <TableCell className="py-2 text-right">{renderPrice(item.total, "font-bold text-zinc-900", { ...item, customerId: selectedOrderPreview.customerId, exchangeRate: selectedOrderPreview.exchangeRate })}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

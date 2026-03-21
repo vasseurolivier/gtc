@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from "@/lib/utils";
+import { getRegisteredClientById } from '@/actions/registered-clients';
 
 const WAREHOUSE_3PL_ADDRESS = "Entrepot GTC china";
 
@@ -20,6 +21,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const currencyContext = useContext(CurrencyContext);
     const companyInfoContext = useContext(CompanyInfoContext);
     const [order, setOrder] = useState<Order | null>(null);
+    const [clientPref, setClientPref] = useState<'EUR' | 'CNY' | 'BOTH'>('BOTH');
 
     const is3PL = quote.shippingAddress === WAREHOUSE_3PL_ADDRESS;
 
@@ -27,7 +29,12 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         if (quote.orderId) {
             getOrderById(quote.orderId).then(setOrder);
         }
-    }, [quote.orderId]);
+        if (customer?.id) {
+            getRegisteredClientById(customer.id).then(c => {
+                if (c) setClientPref(c.currencyPreference || 'BOTH');
+            });
+        }
+    }, [quote.orderId, customer.id]);
 
     const handleDownloadPdf = async () => {
         const element = document.getElementById('pdf-content');
@@ -97,7 +104,6 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const displayLogo = companyInfo.logoDocument; 
     
     const quoteRate = quote.exchangeRate || currencyContext.exchangeRate || 0.13;
-    const currencyPref = customer?.currencyPreference || 'BOTH';
 
     const calculatedSubTotalCny = quote.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
     
@@ -107,8 +113,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
         return sum + lineEur;
     }, 0);
 
+    const transportEur = (quote as any).transportCostEur || (Number(quote.transportCost || 0) * quoteRate);
     const transportCny = Number(quote.transportCost || 0);
-    const transportEur = transportCny * quoteRate;
 
     const commissionRate = Number(quote.commissionRate || 0);
     const basis = quote.commissionBasis || 'products_only';
@@ -127,8 +133,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
     const totalFinalEur = calculatedSubTotalEur + commissionEur + transportEur;
 
     const renderPrice = (cnyValue: number, eurValue: number, isMain = false) => {
-        if (currencyPref === 'EUR') return `€${eurValue.toFixed(2)}`;
-        if (currencyPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
+        if (clientPref === 'EUR') return `€${eurValue.toFixed(2)}`;
+        if (clientPref === 'CNY') return `¥${cnyValue.toFixed(2)}`;
         return (
             <div className="flex flex-col items-end leading-none">
                 <span className={cn(isMain ? "font-black" : "font-bold")}>€{eurValue.toFixed(2)}</span>
@@ -202,8 +208,8 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <th className="p-2 font-bold border w-12">Image</th>
                                 <th className="p-2 font-bold border">Description des articles</th>
                                 <th className="p-2 text-center font-bold border w-10">Qté</th>
-                                <th className="p-2 text-right font-bold border w-24">Unit. ({currencyPref === 'CNY' ? '¥' : '€'})</th>
-                                <th className="p-2 text-right font-bold border w-28">Total ({currencyPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-2 text-right font-bold border w-24">Unit. ({clientPref === 'CNY' ? '¥' : '€'})</th>
+                                <th className="p-2 text-right font-bold border w-28">Total ({clientPref === 'CNY' ? '¥' : '€'})</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -241,7 +247,7 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
                                 <span className="text-zinc-500">Sous-total articles</span>
                                 <span className="font-bold">{renderPrice(calculatedSubTotalCny, calculatedSubTotalEur)}</span>
                             </div>
-                            {transportCny > 0 && (
+                            {transportCny > 0 || transportEur > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500 flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
                                     <span className="font-bold">{renderPrice(transportCny, transportEur)}</span>

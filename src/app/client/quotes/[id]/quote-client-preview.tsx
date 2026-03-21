@@ -163,8 +163,8 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
         return sum + lineEur;
     }, 0);
 
+    const transportEur = (quote as any).transportCostEur || Number(quote.transportCost || 0) * quoteRate;
     const transportCny = Number(quote.transportCost || 0);
-    const transportEur = transportCny * quoteRate;
 
     const commissionRate = Number(quote.commissionRate || 0);
     const basis = quote.commissionBasis || 'products_only';
@@ -408,7 +408,7 @@ export function QuoteClientPreview({ quote, products = [] }: { quote: Quote, pro
                                     <span className="text-zinc-500 font-medium">Sous-total articles</span>
                                     <span className="font-bold">{renderPrice(calculatedSubTotalCny, calculatedSubTotalEur)}</span>
                                 </div>
-                                {transportCny > 0 && (
+                                {transportCny > 0 || transportEur > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-zinc-500 font-medium flex items-center gap-1"><Truck className="h-3 w-3" /> Port</span>
                                         <span className="font-bold">{renderPrice(transportCny, transportEur)}</span>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, useMemo, useRef } from 'react';
@@ -203,6 +202,7 @@ export default function ClientDetailPage() {
           setShippingFixed(clientData.shippingFixedFee?.toString() || '0');
           setAdminOrderAddress(clientData.address || '');
           setAdminOrderCommission('0'); 
+          setAdminOrderTransportCurrency(clientData.currencyPreference === 'EUR' ? 'EUR' : 'CNY');
         }
         setGlobalProducts(fetchedGlobalProducts || []);
       } finally { setIsLoading(false); }
@@ -273,7 +273,8 @@ export default function ClientDetailPage() {
       const c: Record<string, string> = {}; 
       const b: Record<string, 'products_only' | 'total'> = {};
       orders.forEach(o => {
-        t[o.id] = { value: (o.transportCost || 0).toString(), currency: 'CNY' };
+        const costValue = currencyPref === 'EUR' ? (o.transportCostEur || (o.transportCost || 0) * (o.exchangeRate || exchangeRate)).toFixed(2) : (o.transportCost || 0).toString();
+        t[o.id] = { value: costValue, currency: currencyPref === 'EUR' ? 'EUR' : 'CNY' };
         c[o.id] = (o.commissionRate || 0).toString();
         b[o.id] = o.commissionBasis || 'products_only';
       });
@@ -281,7 +282,7 @@ export default function ClientDetailPage() {
       setCommissionInputs(c); 
       setBasisInputs(b);
     }
-  }, [orders]);
+  }, [orders, currencyPref, exchangeRate]);
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     const result = await updateOrderStatus(orderId, newStatus);
@@ -600,9 +601,14 @@ export default function ClientDetailPage() {
       const itemsTotalCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
       
       let transportCny = parseFloat(adminOrderTransport) || 0;
+      let transportEur = 0;
       const effectiveRate = parseFloat(clientRate) || exchangeRate;
       if (adminOrderTransportCurrency === 'EUR') {
-        transportCny = transportCny / effectiveRate;
+        transportEur = parseFloat(adminOrderTransport) || 0;
+        transportCny = transportEur / effectiveRate;
+      } else {
+        transportCny = parseFloat(adminOrderTransport) || 0;
+        transportEur = transportCny * effectiveRate;
       }
 
       const commissionRateValue = parseFloat(adminOrderCommission) || 0;
@@ -638,6 +644,7 @@ export default function ClientDetailPage() {
         createdAt: new Date().toISOString(),
         paymentStatus: 'unpaid' as any,
         transportCost: transportCny,
+        transportCostEur: transportEur,
         commissionRate: commissionRateValue,
         commissionBasis: adminOrderBasis,
         exchangeRate: effectiveRate
@@ -677,23 +684,22 @@ export default function ClientDetailPage() {
     let priceEur = priceCny * itemRate;
     
     if (sourceItem?.items) {
-      priceEur = sourceItem.items.reduce((sum: number, item: any) => {
+      const itemsTotalEur = sourceItem.items.reduce((sum: number, item: any) => {
         const manualEur = Number(item.unitPriceEur || 0);
         const lineEur = manualEur > 0 ? manualEur * item.quantity : (item.unitPrice * item.quantity * itemRate);
         return sum + lineEur;
       }, 0);
       
-      const transportCnyValue = Number(sourceItem.transportCost || 0);
-      const transportEurValue = transportCnyValue * itemRate;
+      const transportEurValue = sourceItem.transportCostEur || (Number(sourceItem.transportCost || 0) * itemRate);
       const commRateValue = Number(sourceItem.commissionRate || 0);
       
       let commEurValue = 0;
       if (sourceItem.commissionBasis === 'total') {
-        commEurValue = (priceEur + transportEurValue) * (commRateValue / 100);
+        commEurValue = (itemsTotalEur + transportEurValue) * (commRateValue / 100);
       } else {
-        commEurValue = priceEur * (commRateValue / 100);
+        commEurValue = itemsTotalEur * (commRateValue / 100);
       }
-      priceEur = priceEur + commEurValue + transportEurValue;
+      priceEur = itemsTotalEur + commEurValue + transportEurValue;
     } else if (sourceItem?.unitPriceEur !== undefined) {
       const manualEur = Number(sourceItem.unitPriceEur || 0);
       priceEur = manualEur > 0 ? manualEur * (sourceItem.quantity || 1) : (priceCny * itemRate);
@@ -879,7 +885,7 @@ export default function ClientDetailPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex gap-1">
                                   <Input type="number" className="w-16 h-7 text-xs font-bold" value={transportInput?.value || ''} onChange={e => setTransportInputs({...transportInputs, [o.id]: {...transportInput, value: e.target.value}})} />
-                                  <Select value={transportInput?.currency || 'CNY'} onValueChange={(val: any) => setTransportInputs({...transportInputs, [o.id]: {...transportInput, currency: val}})}>
+                                  <Select value={transportInput?.currency || (currencyPref === 'EUR' ? 'EUR' : 'CNY')} onValueChange={(val: any) => setTransportInputs({...transportInputs, [o.id]: {...transportInput, currency: val}})}>
                                     <SelectTrigger className="w-10 h-7 p-1 text-[10px]">
                                       <SelectValue />
                                     </SelectTrigger>
@@ -1364,13 +1370,13 @@ export default function ClientDetailPage() {
                     <div className="text-2xl font-black text-primary">
                       ¥{(() => {
                         const it = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
-                        let transportCny = parseFloat(adminOrderTransport) || 0;
+                        let transportCnyValue = parseFloat(adminOrderTransport) || 0;
                         const effectiveRate = parseFloat(clientRate) || exchangeRate;
                         if (adminOrderTransportCurrency === 'EUR') {
-                          transportCny = transportCny / effectiveRate;
+                          transportCnyValue = transportCnyValue / effectiveRate;
                         }
                         const cr = parseFloat(adminOrderCommission) || 0;
-                        return adminOrderBasis === 'total' ? ((it + transportCny) * (1 + cr / 100)).toFixed(2) : (it * (1 + cr / 100) + transportCny).toFixed(2);
+                        return adminOrderBasis === 'total' ? ((it + transportCnyValue) * (1 + cr / 100)).toFixed(2) : (it * (1 + cr / 100) + transportCnyValue).toFixed(2);
                       })()}
                     </div>
                     <div className="text-[10px] font-bold text-blue-600">
@@ -1660,7 +1666,11 @@ export default function ClientDetailPage() {
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-400">Frais de Port :</span>
-                      <span className="font-black text-blue-400">¥{selectedOrderPreview.transportCost?.toFixed(2) || '0.00'}</span>
+                      {currencyPref === 'EUR' ? (
+                        <span className="font-black text-blue-400">€{selectedOrderPreview.transportCostEur?.toFixed(2) || (selectedOrderPreview.transportCost * (selectedOrderPreview.exchangeRate || exchangeRate)).toFixed(2)}</span>
+                      ) : (
+                        <span className="font-black text-blue-400">¥{selectedOrderPreview.transportCost?.toFixed(2) || '0.00'}</span>
+                      )}
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-400">Commission ({selectedOrderPreview.commissionRate || 0}%) :</span>
@@ -1677,18 +1687,22 @@ export default function ClientDetailPage() {
                     <div className="flex justify-between items-end pt-1">
                       <span className="font-black uppercase text-xs">Total TTC</span>
                       <div className="text-right">
-                        <div className="text-2xl font-black text-primary">¥{selectedOrderPreview.totalAmount?.toFixed(2)}</div>
-                        <div className="text-xs font-bold text-zinc-400">
-                          €{(() => {
-                            const effectiveRate = (selectedOrderPreview as any).exchangeRate || exchangeRate;
-                            const itEur = selectedOrderPreview.items.reduce((sum: number, i: any) => {
-                              const mEur = Number(i.unitPriceEur || 0);
-                              return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
-                            }, 0);
-                            const tEur = (selectedOrderPreview.transportCost || 0) * effectiveRate;
-                            const cr = Number(selectedOrderPreview.commissionRate || 0);
-                            return selectedOrderPreview.commissionBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
-                          })()}
+                        <div className="text-2xl font-black text-primary">
+                          {currencyPref === 'CNY' ? `¥${selectedOrderPreview.totalAmount?.toFixed(2)}` : (
+                            <>
+                              <div className="text-2xl font-black text-primary">€{(() => {
+                                const effectiveRate = (selectedOrderPreview as any).exchangeRate || exchangeRate;
+                                const itEur = selectedOrderPreview.items.reduce((sum: number, i: any) => {
+                                  const mEur = Number(i.unitPriceEur || 0);
+                                  return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
+                                }, 0);
+                                const tEur = selectedOrderPreview.transportCostEur || (selectedOrderPreview.transportCost || 0) * effectiveRate;
+                                const cr = Number(selectedOrderPreview.commissionRate || 0);
+                                return selectedOrderPreview.commissionBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
+                              })()}</div>
+                              {currencyPref === 'BOTH' && <div className="text-xs font-bold text-zinc-400">¥{selectedOrderPreview.totalAmount?.toFixed(2)}</div>}
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
