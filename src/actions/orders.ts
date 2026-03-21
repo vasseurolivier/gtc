@@ -18,7 +18,7 @@ const orderItemSchema = z.object({
   total: z.coerce.number().nonnegative("Total cannot be negative."),
   photo: z.string().optional(),
   size: z.string().optional().nullable(),
-  isPersonalized: b.boolean().optional(),
+  isPersonalized: z.boolean().optional(),
   weight: z.coerce.number().optional().default(0),
 });
 

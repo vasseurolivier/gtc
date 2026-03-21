@@ -88,8 +88,8 @@ async function getExchangeRateForClient(clientId?: string): Promise<number> {
 export async function addInvoiceFromOrder(order: Order, existingInvoiceId?: string) {
     try {
         const currentRate = await getExchangeRateForClient(order.customerId);
-        const supplierCostTotal = order.items.reduce((sum, item) => sum + (item.purchasePrice || 0) * item.quantity, 0);
-        const subTotal = order.items.reduce((sum, item) => sum + (item.total || 0), 0);
+        const supplierCostTotal = order.items.reduce((sum: number, item: OrderItem) => sum + (Number(item.purchasePrice) || 0) * item.quantity, 0);
+        const subTotal = order.items.reduce((sum: number, item: OrderItem) => sum + (Number(item.total) || 0), 0);
         
         // Use deterministic ID based on order if not provided
         const invoiceId = existingInvoiceId || `INV-DOC-${order.id}`;
