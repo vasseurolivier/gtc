@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -93,7 +94,6 @@ export default function ClientOrdersPage() {
   const totalToPay = useMemo(() => {
     return validatedQuotes.reduce((acc, q) => {
       const qRate = q.exchangeRate || rate;
-      const qCny = Number(q.totalAmount || 0);
       
       const qItemsEur = q.items.reduce((sum: number, i: any) => {
         const mEur = Number(i.unitPriceEur || 0);
@@ -111,6 +111,7 @@ export default function ClientOrdersPage() {
       }
       
       const qEur = qItemsEur + transportEur + commEur;
+      const qCny = qEur / qRate; // On reboucle sur le CNY total contractuel pour la PI
       
       acc.cny += qCny;
       acc.eur += qEur;
@@ -330,40 +331,40 @@ export default function ClientOrdersPage() {
 
         <TabsContent value="quotes" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <Card className="border-none shadow-sm bg-zinc-900 text-white overflow-hidden">
+            <Card className="border-4 border-primary bg-zinc-900 text-white overflow-hidden shadow-2xl">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Total en attente de règlement</p>
-                  <p className="text-[8px] text-zinc-500 uppercase mt-1">Cumul des Proformas validées (Accepted)</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Transfert Global Attendu</p>
+                  <p className="text-[8px] text-zinc-500 uppercase mt-1">Cumul de toutes les Proformas validées</p>
                   <div className="mt-2">
                     {currencyPreference === 'EUR' ? (
-                      <p className="text-2xl font-black text-primary">€{totalToPay.eur.toFixed(2)}</p>
+                      <p className="text-4xl font-black text-white">€{totalToPay.eur.toFixed(2)}</p>
                     ) : currencyPreference === 'CNY' ? (
-                      <p className="text-2xl font-black text-primary">¥{totalToPay.cny.toFixed(2)}</p>
+                      <p className="text-4xl font-black text-white">¥{totalToPay.cny.toFixed(2)}</p>
                     ) : (
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-2xl font-black text-primary">€{totalToPay.eur.toFixed(2)}</span>
+                      <div className="flex flex-col">
+                        <span className="text-4xl font-black text-white">€{totalToPay.eur.toFixed(2)}</span>
                         <span className="text-sm font-bold text-zinc-400">¥{totalToPay.cny.toFixed(2)}</span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                  <Coins className="h-6 w-6 text-primary" />
+                <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(225,29,72,0.4)]">
+                  <Coins className="h-8 w-8 text-white" />
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex items-center justify-between px-2 self-end">
               <h3 className="font-bold text-zinc-500 uppercase text-xs tracking-widest flex items-center gap-2">
-                <ListChecks className="h-4 w-4" /> Devis en attente de validation
+                <ListChecks className="h-4 w-4" /> Sélection multiple pour validation
               </h3>
               {selectedQuoteIds.length > 0 && (
                 <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4">
                   <span className="text-xs font-black text-primary">{selectedQuoteIds.length} sélectionné(s)</span>
                   <Button 
                     size="sm" 
-                    className="bg-zinc-900 hover:bg-black text-white font-black h-9 px-6 rounded-xl"
+                    className="bg-primary hover:bg-primary/90 text-white font-black h-10 px-8 rounded-xl shadow-lg"
                     onClick={handleBulkValidate}
                     disabled={isBulkValidating}
                   >
@@ -396,7 +397,7 @@ export default function ClientOrdersPage() {
                             <Checkbox 
                               checked={selectedQuoteIds.includes(q.id)} 
                               onCheckedChange={() => toggleQuoteSelection(q.id)} 
-                              className="h-5 w-5 rounded-md"
+                              className="h-5 w-5 rounded-md border-primary"
                             />
                           )}
                         </TableCell>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, useMemo, useRef } from 'react';
@@ -28,7 +29,7 @@ import { updateQuoteStatus, deleteQuote, Quote, syncQuoteFromOrder } from '@/act
 import { deleteInvoice } from '@/actions/invoices';
 import { getProducts, Product as GlobalProduct } from '@/actions/products';
 import { sendChatMessage, deleteChatMessage, markMessagesAsRead } from '@/actions/messages';
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc, getDocs, addDoc, serverTimestamp, setDoc, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,6 +133,7 @@ export default function ClientDetailPage() {
   const [adminBasket, setAdminBasket] = useState<any[]>([]);
   const [orderSuffix, setOrderSuffix] = useState('');
   const [adminOrderTransport, setAdminOrderTransport] = useState('0');
+  const [adminOrderTransportCurrency, setAdminOrderTransportCurrency] = useState<'CNY' | 'EUR'>('CNY');
   const [adminOrderCommission, setAdminOrderCommission] = useState('0');
   const [adminOrderBasis, setAdminOrderBasis] = useState<'products_only' | 'total'>('products_only');
   const [adminOrderAddress, setAdminOrderAddress] = useState('');
@@ -596,14 +598,20 @@ export default function ClientDetailPage() {
       const orderNumber = `${prefix}${orderSuffix.toUpperCase()}`;
       
       const itemsTotalCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
-      const transport = parseFloat(adminOrderTransport) || 0;
+      
+      let transportCny = parseFloat(adminOrderTransport) || 0;
+      const effectiveRate = parseFloat(clientRate) || exchangeRate;
+      if (adminOrderTransportCurrency === 'EUR') {
+        transportCny = transportCny / effectiveRate;
+      }
+
       const commissionRateValue = parseFloat(adminOrderCommission) || 0;
       
       let finalTotal = 0;
       if (adminOrderBasis === 'total') {
-        finalTotal = (itemsTotalCny + transport) * (1 + commissionRateValue / 100);
+        finalTotal = (itemsTotalCny + transportCny) * (1 + commissionRateValue / 100);
       } else {
-        finalTotal = itemsTotalCny * (1 + commissionRateValue / 100) + transport;
+        finalTotal = itemsTotalCny * (1 + commissionRateValue / 100) + transportCny;
       }
 
       const orderData = {
@@ -629,10 +637,10 @@ export default function ClientDetailPage() {
         orderDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         paymentStatus: 'unpaid' as any,
-        transportCost: transport,
+        transportCost: transportCny,
         commissionRate: commissionRateValue,
         commissionBasis: adminOrderBasis,
-        exchangeRate: parseFloat(clientRate) || exchangeRate
+        exchangeRate: effectiveRate
       };
 
       await addDoc(collection(db, 'orders'), orderData);
@@ -1286,9 +1294,18 @@ export default function ClientDetailPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-zinc-400">Transport (¥)</Label>
+                    <Label className="text-[10px] font-black uppercase text-zinc-400">Frais de Port</Label>
                     <div className="flex gap-1">
                       <Input type="number" className="h-9 font-bold text-xs" value={adminOrderTransport} onChange={e => setAdminOrderTransport(e.target.value)} />
+                      <Select value={adminOrderTransportCurrency} onValueChange={(val: any) => setAdminOrderTransportCurrency(val)}>
+                        <SelectTrigger className="w-16 h-9 font-bold text-xs bg-white border">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CNY">¥</SelectItem>
+                          <SelectItem value="EUR">€</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <Button size="icon" variant="ghost" className="h-9 w-9 bg-white border" onClick={() => openCalculator(adminBasket)}>
                         <Calculator className="h-4 w-4" />
                       </Button>
@@ -1347,9 +1364,13 @@ export default function ClientDetailPage() {
                     <div className="text-2xl font-black text-primary">
                       ¥{(() => {
                         const it = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
-                        const t = parseFloat(adminOrderTransport) || 0;
+                        let transportCny = parseFloat(adminOrderTransport) || 0;
+                        const effectiveRate = parseFloat(clientRate) || exchangeRate;
+                        if (adminOrderTransportCurrency === 'EUR') {
+                          transportCny = transportCny / effectiveRate;
+                        }
                         const cr = parseFloat(adminOrderCommission) || 0;
-                        return adminOrderBasis === 'total' ? ((it + t) * (1 + cr / 100)).toFixed(2) : (it * (1 + cr / 100) + t).toFixed(2);
+                        return adminOrderBasis === 'total' ? ((it + transportCny) * (1 + cr / 100)).toFixed(2) : (it * (1 + cr / 100) + transportCny).toFixed(2);
                       })()}
                     </div>
                     <div className="text-[10px] font-bold text-blue-600">
@@ -1360,7 +1381,12 @@ export default function ClientDetailPage() {
                           const lineEur = manualEur > 0 ? manualEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate);
                           return sum + lineEur;
                         }, 0);
-                        const tEur = (parseFloat(adminOrderTransport) || 0) * effectiveRate;
+                        let tEur = 0;
+                        if (adminOrderTransportCurrency === 'EUR') {
+                          tEur = parseFloat(adminOrderTransport) || 0;
+                        } else {
+                          tEur = (parseFloat(adminOrderTransport) || 0) * effectiveRate;
+                        }
                         const cr = parseFloat(adminOrderCommission) || 0;
                         return adminOrderBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
                       })()}
