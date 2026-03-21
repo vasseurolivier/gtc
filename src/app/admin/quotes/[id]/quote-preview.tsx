@@ -121,12 +121,22 @@ export function QuotePreview({ quote, customer, products }: { quote: Quote, cust
 
     let commissionCny = 0;
     let commissionEur = 0;
-    if (basis === 'total') {
-        commissionCny = (calculatedSubTotalCny + transportCny) * (commissionRate / 100);
-        commissionEur = (calculatedSubTotalEur + transportEur) * (commissionRate / 100);
+    
+    // EURO-FIRST Commission Logic
+    if (clientPref === 'EUR') {
+        if (basis === 'total') {
+            commissionEur = (calculatedSubTotalEur + transportEur) * (commissionRate / 100);
+        } else {
+            commissionEur = calculatedSubTotalEur * (commissionRate / 100);
+        }
+        commissionCny = commissionEur / quoteRate;
     } else {
-        commissionCny = calculatedSubTotalCny * (commissionRate / 100);
-        commissionEur = calculatedSubTotalEur * (commissionRate / 100);
+        if (basis === 'total') {
+            commissionCny = (calculatedSubTotalCny + transportCny) * (commissionRate / 100);
+        } else {
+            commissionCny = calculatedSubTotalCny * (commissionRate / 100);
+        }
+        commissionEur = commissionCny * quoteRate;
     }
 
     const totalFinalCny = calculatedSubTotalCny + commissionCny + transportCny;

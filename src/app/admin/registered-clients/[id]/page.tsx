@@ -288,7 +288,7 @@ export default function ClientDetailPage() {
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     const result = await updateOrderStatus(orderId, newStatus);
-    if (result.success) toast({ title: 'Statut mis à jour' });
+    if (result.success) toast({ title: 'Statut mi à jour' });
   };
 
   const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
@@ -619,11 +619,17 @@ export default function ClientDetailPage() {
       const prefix = client?.orderPrefix || 'ORD';
       const orderNumber = `${prefix}${orderSuffix.toUpperCase()}`;
       
+      const effectiveRate = parseFloat(clientRate) || exchangeRate;
+      
+      // Calculate Items Total in EUR and CNY
+      const itemsTotalEur = adminBasket.reduce((sum, i) => {
+        const mEur = Number(i.unitPriceEur || 0);
+        return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
+      }, 0);
       const itemsTotalCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
       
-      let transportCny = parseFloat(adminOrderTransport) || 0;
       let transportEur = 0;
-      const effectiveRate = parseFloat(clientRate) || exchangeRate;
+      let transportCny = 0;
       if (adminOrderTransportCurrency === 'EUR') {
         transportEur = parseFloat(adminOrderTransport) || 0;
         transportCny = transportEur / effectiveRate;
@@ -634,11 +640,11 @@ export default function ClientDetailPage() {
 
       const commissionRateValue = parseFloat(adminOrderCommission) || 0;
       
-      let finalTotal = 0;
+      let finalTotalCny = 0;
       if (adminOrderBasis === 'total') {
-        finalTotal = (itemsTotalCny + transportCny) * (1 + commissionRateValue / 100);
+        finalTotalCny = (itemsTotalCny + transportCny) * (1 + commissionRateValue / 100);
       } else {
-        finalTotal = itemsTotalCny * (1 + commissionRateValue / 100) + transportCny;
+        finalTotalCny = itemsTotalCny * (1 + commissionRateValue / 100) + transportCny;
       }
 
       const orderData = {
@@ -658,7 +664,7 @@ export default function ClientDetailPage() {
           isPersonalized: false,
           weight: item.weight || 0
         })),
-        totalAmount: finalTotal,
+        totalAmount: finalTotalCny,
         status: 'processing' as const,
         shippingAddress: adminOrderAddress,
         orderDate: new Date().toISOString(),
@@ -1419,14 +1425,31 @@ export default function ClientDetailPage() {
                   <div className="text-right">
                     <div className="text-2xl font-black text-primary">
                       ¥{(() => {
-                        const it = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
-                        let transportCnyValue = parseFloat(adminOrderTransport) || 0;
                         const effectiveRate = parseFloat(clientRate) || exchangeRate;
+                        const itCny = adminBasket.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+                        let transportCnyValue = parseFloat(adminOrderTransport) || 0;
                         if (adminOrderTransportCurrency === 'EUR') {
                           transportCnyValue = transportCnyValue / effectiveRate;
                         }
                         const cr = parseFloat(adminOrderCommission) || 0;
-                        return adminOrderBasis === 'total' ? ((it + transportCnyValue) * (1 + cr / 100)).toFixed(2) : (it * (1 + cr / 100) + transportCnyValue).toFixed(2);
+                        
+                        // Euro-first Logic alignment for CNY display
+                        if (currencyPref === 'EUR') {
+                          const itEur = adminBasket.reduce((sum, i) => {
+                            const mEur = Number(i.unitPriceEur || 0);
+                            return sum + (mEur > 0 ? mEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
+                          }, 0);
+                          let tEur = adminOrderTransportCurrency === 'EUR' ? (parseFloat(adminOrderTransport) || 0) : (parseFloat(adminOrderTransport) || 0) * effectiveRate;
+                          let finalEur = 0;
+                          if (adminOrderBasis === 'total') {
+                            finalEur = (itEur + tEur) * (1 + cr / 100);
+                          } else {
+                            finalEur = itEur * (1 + cr / 100) + tEur;
+                          }
+                          return (finalEur / effectiveRate).toFixed(2);
+                        }
+
+                        return adminOrderBasis === 'total' ? ((itCny + transportCnyValue) * (1 + cr / 100)).toFixed(2) : (itCny * (1 + cr / 100) + transportCnyValue).toFixed(2);
                       })()}
                     </div>
                     <div className="text-[10px] font-bold text-blue-600">
@@ -1434,8 +1457,7 @@ export default function ClientDetailPage() {
                         const effectiveRate = parseFloat(clientRate) || exchangeRate;
                         const itEur = adminBasket.reduce((sum, i) => {
                           const manualEur = Number(i.unitPriceEur || 0);
-                          const lineEur = manualEur > 0 ? manualEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate);
-                          return sum + lineEur;
+                          return sum + (manualEur > 0 ? manualEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
                         }, 0);
                         let tEur = 0;
                         if (adminOrderTransportCurrency === 'EUR') {
@@ -1444,7 +1466,13 @@ export default function ClientDetailPage() {
                           tEur = (parseFloat(adminOrderTransport) || 0) * effectiveRate;
                         }
                         const cr = parseFloat(adminOrderCommission) || 0;
-                        return adminOrderBasis === 'total' ? ((itEur + tEur) * (1 + cr / 100)).toFixed(2) : (itEur * (1 + cr / 100) + tEur).toFixed(2);
+                        
+                        // Euro-first Commission calculation
+                        if (adminOrderBasis === 'total') {
+                          return ((itEur + tEur) * (1 + cr / 100)).toFixed(2);
+                        } else {
+                          return (itEur * (1 + cr / 100) + tEur).toFixed(2);
+                        }
                       })()}
                     </div>
                   </div>
@@ -1724,14 +1752,25 @@ export default function ClientDetailPage() {
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-400">Commission ({selectedOrderPreview.commissionRate || 0}%) :</span>
-                      <span className="font-black text-primary">¥{(() => {
-                        const itemsTotal = selectedOrderPreview.items.reduce((sum: number, i: any) => sum + (i.total || 0), 0);
-                        const rateValue = (selectedOrderPreview.commissionRate || 0) / 100;
-                        if (selectedOrderPreview.commissionBasis === 'total') {
-                          return ((itemsTotal + (selectedOrderPreview.transportCost || 0)) * rateValue).toFixed(2);
-                        }
-                        return (itemsTotal * rateValue).toFixed(2);
-                      })()}</span>
+                      <span className="font-black text-primary">
+                        {currencyPref === 'EUR' ? '€' : '¥'}
+                        {(() => {
+                          const effectiveRate = selectedOrderPreview.exchangeRate || exchangeRate;
+                          const cr = (selectedOrderPreview.commissionRate || 0) / 100;
+                          
+                          if (currencyPref === 'EUR') {
+                            const itEur = selectedOrderPreview.items.reduce((sum: number, i: any) => {
+                              const manualEur = Number(i.unitPriceEur || 0);
+                              return sum + (manualEur > 0 ? manualEur * i.quantity : (i.unitPrice * i.quantity * effectiveRate));
+                            }, 0);
+                            const tEur = selectedOrderPreview.transportCostEur || (selectedOrderPreview.transportCost || 0) * effectiveRate;
+                            return (selectedOrderPreview.commissionBasis === 'total' ? (itEur + tEur) * cr : itEur * cr).toFixed(2);
+                          } else {
+                            const itemsTotal = selectedOrderPreview.items.reduce((sum: number, i: any) => sum + (i.total || 0), 0);
+                            return (selectedOrderPreview.commissionBasis === 'total' ? (itemsTotal + (selectedOrderPreview.transportCost || 0)) * cr : itemsTotal * cr).toFixed(2);
+                          }
+                        })()}
+                      </span>
                     </div>
                     <Separator className="bg-white/10" />
                     <div className="flex justify-between items-end pt-1">

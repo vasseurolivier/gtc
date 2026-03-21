@@ -113,16 +113,26 @@ export function InvoiceClientPreview({ invoice }: { invoice: Invoice }) {
 
     const commissionRate = Number(invoice.commissionRate || order?.commissionRate || 0);
     const transportCny = Number(invoice.transportCost || order?.transportCost || 0);
-    const transportEur = transportCny * invoiceRate;
+    const transportEur = (invoice as any).transportCostEur || transportCny * invoiceRate;
 
     let commissionCny = 0;
     let commissionEur = 0;
-    if (order?.commissionBasis === 'total') {
-        commissionCny = (subTotalCny + transportCny) * (commissionRate / 100);
-        commissionEur = (subTotalEur + transportEur) * (commissionRate / 100);
+    
+    // EURO-FIRST Commission Logic
+    if (currencyPref === 'EUR') {
+        if (order?.commissionBasis === 'total') {
+            commissionEur = (subTotalEur + transportEur) * (commissionRate / 100);
+        } else {
+            commissionEur = subTotalEur * (commissionRate / 100);
+        }
+        commissionCny = commissionEur / invoiceRate;
     } else {
-        commissionCny = subTotalCny * (commissionRate / 100);
-        commissionEur = subTotalEur * (commissionRate / 100);
+        if (order?.commissionBasis === 'total') {
+            commissionCny = (subTotalCny + transportCny) * (commissionRate / 100);
+        } else {
+            commissionCny = subTotalCny * (commissionRate / 100);
+        }
+        commissionEur = commissionCny * invoiceRate;
     }
 
     const totalFinalCny = subTotalCny + commissionCny + transportCny;
